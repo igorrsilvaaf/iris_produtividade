@@ -21,7 +21,7 @@ export default function LandingPage() {
               <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
               <path d="m9 12 2 2 4-4" />
             </svg>
-            <span>Todoist Clone</span>
+            <span>Igão To-Do-List</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <ModeToggle />
@@ -91,7 +91,7 @@ export default function LandingPage() {
           </div>
         </section>
         <section className="w-full py-8 sm:py-12 md:py-24 lg:py-32 bg-muted/50">
-          <div className="container px-4 md:px-6">
+          <div className="container px-4 md:px-6 mx-auto">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold tracking-tighter md:text-3xl">Features</h2>
@@ -178,7 +178,7 @@ export default function LandingPage() {
       <footer className="w-full border-t py-6">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Todoist Clone. All rights reserved.
+            © {new Date().getFullYear()} Igão To-Do-List. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <Link href="/terms" className="text-sm text-muted-foreground underline-offset-4 hover:underline">

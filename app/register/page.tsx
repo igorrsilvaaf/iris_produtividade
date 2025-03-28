@@ -28,10 +28,10 @@ export default async function RegisterPage() {
               <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
               <path d="m9 12 2 2 4-4" />
             </svg>
-            <span>Todoist Clone</span>
+            <span>Igão To-Do-List</span>
           </Link>
           <h1 className="mt-6 text-3xl font-bold">Create an account</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Sign up to get started with Todoist Clone</p>
+          <p className="mt-2 text-sm text-muted-foreground">Sign up to get started with Igão To-Do-List</p>
         </div>
         <RegisterForm />
         <div className="text-center text-sm">

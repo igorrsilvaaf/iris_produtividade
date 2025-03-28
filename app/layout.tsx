@@ -8,8 +8,8 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Todoist Clone",
-  description: "A Todoist clone with Pomodoro timer and more",
+  title: "Igão To-Do-List",
+  description: "A Igão To-Do-List with Pomodoro timer and more",
 }
 
 export const viewport: Viewport = {

@@ -142,7 +142,7 @@ export function AppSidebar({ user }: { user: User }) {
             <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
             <path d="m9 12 2 2 4-4" />
           </svg>
-          <span>Todoist Clone</span>
+          <span>To-Do-List</span>
         </Link>
       </div>
       <ScrollArea className="flex-1 px-2 py-4">
@@ -285,7 +285,7 @@ export function AppSidebar({ user }: { user: User }) {
             <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
             <path d="m9 12 2 2 4-4" />
           </svg>
-          <span>Todoist Clone</span>
+          <span>To-Do-List</span>
         </Link>
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
           <SheetTrigger asChild>
