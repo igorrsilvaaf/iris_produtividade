@@ -1,0 +1,119 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+
+import { Button } from "@/components/ui/button"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { useToast } from "@/components/ui/use-toast"
+import type { Label } from "@/lib/labels"
+
+const formSchema = z.object({
+  name: z.string().min(1, { message: "Label name is required" }),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i, {
+    message: "Color must be a valid hex code",
+  }),
+})
+
+interface LabelFormProps {
+  label?: Label
+  onSuccess?: () => void
+}
+
+export function LabelForm({ label, onSuccess }: LabelFormProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+  const { toast } = useToast()
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: label?.name || "",
+      color: label?.color || "#808080",
+    },
+  })
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true)
+
+    try {
+      const url = label ? `/api/labels/${label.id}` : "/api/labels"
+
+      const method = label ? "PATCH" : "POST"
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${label ? "update" : "create"} label`)
+      }
+
+      toast({
+        title: label ? "Label updated" : "Label created",
+        description: `Label has been ${label ? "updated" : "created"} successfully.`,
+      })
+
+      if (onSuccess) {
+        onSuccess()
+      }
+
+      router.refresh()
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: label ? "Failed to update label" : "Failed to create label",
+        description: error.message || "Please try again.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Label name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="color"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Color</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: field.value }} />
+                  <Input type="color" {...field} className="w-12 p-1" />
+                  <Input type="text" value={field.value} onChange={field.onChange} className="flex-1" />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Saving..." : label ? "Update Label" : "Create Label"}
+        </Button>
+      </form>
+    </Form>
+  )
+}
+
