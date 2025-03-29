@@ -39,4 +39,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: error.message || "Failed to create notification" }, { status: 500 })
   }
 }
-

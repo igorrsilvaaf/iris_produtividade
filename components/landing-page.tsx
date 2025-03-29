@@ -1,8 +1,14 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
+import { useEffect, useState } from "react"
 
 export default function LandingPage() {
+  const [year, setYear] = useState<number>()
+
+  useEffect(() => {
+    setYear(new Date().getFullYear())
+  }, [])
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -178,7 +184,7 @@ export default function LandingPage() {
       <footer className="w-full border-t py-6">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Igão To-Do-List. All rights reserved.
+            © {year ?? ""} Igão To-Do-List. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <Link href="/terms" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
@@ -193,4 +199,3 @@ export default function LandingPage() {
     </div>
   )
 }
-

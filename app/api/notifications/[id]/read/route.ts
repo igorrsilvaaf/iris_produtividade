@@ -19,4 +19,3 @@ export async function PATCH(_request: NextRequest, { params }: { params: { id: s
     return NextResponse.json({ message: error.message || "Failed to mark notification as read" }, { status: 500 })
   }
 }
-
