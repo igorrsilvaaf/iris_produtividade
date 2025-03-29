@@ -516,10 +516,6 @@ export const translations: Translations = {
     en: "Login",
     pt: "Entrar",
   },
-  "Sign Up": {
-    en: "Sign Up",
-    pt: "Cadastrar",
-  },
   "Organize your tasks with ease": {
     en: "Organize your tasks with ease",
     pt: "Organize suas tarefas com facilidade",
@@ -703,87 +699,91 @@ export const translations: Translations = {
   },
   "Welcome back": {
     en: "Welcome back",
-    pt: "Bem-vindo de volta",
+    pt: "Bem-vindo de volta"
   },
   "Sign in to your account to continue": {
     en: "Sign in to your account to continue",
-    pt: "Entre na sua conta para continuar",
+    pt: "Entre na sua conta para continuar"
   },
   "Don't have an account?": {
     en: "Don't have an account?",
-    pt: "Não tem uma conta?",
+    pt: "Não tem uma conta?"
   },
-  "Create an account": {
-    en: "Create an account",
-    pt: "Criar uma conta",
+  "Sign Up": {
+    en: "Sign Up",
+    pt: "Cadastrar"
   },
-  "Sign up to get started with Todoist Clone": {
-    en: "Sign up to get started with Todoist Clone",
-    pt: "Cadastre-se para começar a usar o Todoist Clone",
+  "Sign In": {
+    en: "Sign In",
+    pt: "Entrar"
   },
-  "Already have an account?": {
-    en: "Already have an account?",
-    pt: "Já tem uma conta?",
-  },
-  "Sign in": {
-    en: "Sign in",
-    pt: "Entrar",
-  },
-  Email: {
+  "Email": {
     en: "Email",
-    pt: "Email",
+    pt: "Email"
   },
-  Password: {
+  "Password": {
     en: "Password",
-    pt: "Senha",
+    pt: "Senha"
   },
   "Remember me": {
     en: "Remember me",
-    pt: "Lembrar de mim",
+    pt: "Lembrar de mim"
   },
   "Forgot password?": {
     en: "Forgot password?",
-    pt: "Esqueceu a senha?",
+    pt: "Esqueceu a senha?"
   },
   "Please wait": {
     en: "Please wait",
-    pt: "Aguarde",
-  },
-  Name: {
-    en: "Name",
-    pt: "Nome",
-  },
-  "Confirm Password": {
-    en: "Confirm Password",
-    pt: "Confirmar Senha",
-  },
-  "Hide password": {
-    en: "Hide password",
-    pt: "Ocultar senha",
-  },
-  "Show password": {
-    en: "Show password",
-    pt: "Mostrar senha",
+    pt: "Por favor, aguarde"
   },
   "Login successful": {
     en: "Login successful",
-    pt: "Login bem-sucedido",
+    pt: "Login realizado com sucesso"
   },
   "Redirecting to your dashboard...": {
     en: "Redirecting to your dashboard...",
-    pt: "Redirecionando para seu painel...",
+    pt: "Redirecionando para seu painel..."
   },
   "Login failed": {
     en: "Login failed",
-    pt: "Falha no login",
+    pt: "Falha no login"
   },
   "Something went wrong. Please try again.": {
     en: "Something went wrong. Please try again.",
-    pt: "Algo deu errado. Por favor, tente novamente.",
+    pt: "Algo deu errado. Por favor, tente novamente."
+  },
+  "Create an account": {
+    en: "Create an account",
+    pt: "Criar uma conta"
+  },
+  "Sign up to get started with To-Do": {
+    en: "Sign up to get started with To-Do",
+    pt: "Cadastre-se para começar a usar o To-Do"
+  },
+  "Already have an account?": {
+    en: "Already have an account?",
+    pt: "Já tem uma conta?"
+  },
+  "Hide password": {
+    en: "Hide password",
+    pt: "Ocultar senha"
+  },
+  "Show password": {
+    en: "Show password",
+    pt: "Mostrar senha"
+  },
+  "Your name": {
+    en: "Your name",
+    pt: "Seu nome"
+  },
+  "Your email": {
+    en: "Your email",
+    pt: "Seu email"
   },
   "Registration successful": {
     en: "Registration successful",
-    pt: "Registro bem-sucedido",
+    pt: "Registro realizado com sucesso",
   },
   "Your account has been created. Redirecting to login...": {
     en: "Your account has been created. Redirecting to login...",
@@ -797,6 +797,206 @@ export const translations: Translations = {
     en: "Toggle theme",
     pt: "Alternar tema",
   },
+  "My Account": {
+    en: "My Account",
+    pt: "Minha Conta",
+  },
+  "Backup & Restore": {
+    en: "Backup & Restore",
+    pt: "Backup & Restauração"
+  },
+  "Export your data or restore from a backup file.": {
+    en: "Export your data or restore from a backup file.",
+    pt: "Exporte seus dados ou restaure a partir de um arquivo de backup."
+  },
+  "Export Data": {
+    en: "Export Data",
+    pt: "Exportar Dados"
+  },
+  "Download a backup of all your tasks, projects, labels, and settings.": {
+    en: "Download a backup of all your tasks, projects, labels, and settings.",
+    pt: "Baixe um backup de todas as suas tarefas, projetos, etiquetas e configurações."
+  },
+  "Exporting...": {
+    en: "Exporting...",
+    pt: "Exportando..."
+  },
+  "Import Data": {
+    en: "Import Data",
+    pt: "Importar Dados"
+  },
+  "Restore your data from a previously exported backup file.": {
+    en: "Restore your data from a previously exported backup file.",
+    pt: "Restaure seus dados a partir de um arquivo de backup exportado anteriormente."
+  },
+  "Upload a backup file to restore your data. This will not delete your existing data, but may overwrite items with the same name.": {
+    en: "Upload a backup file to restore your data. This will not delete your existing data, but may overwrite items with the same name.",
+    pt: "Envie um arquivo de backup para restaurar seus dados. Isso não excluirá seus dados existentes, mas pode sobrescrever itens com o mesmo nome."
+  },
+  "Warning": {
+    en: "Warning",
+    pt: "Aviso"
+  },
+  "Importing data will merge with your existing data. Make sure to export your current data first if you want to keep it.": {
+    en: "Importing data will merge with your existing data. Make sure to export your current data first if you want to keep it.",
+    pt: "A importação de dados será mesclada com seus dados existentes. Certifique-se de exportar seus dados atuais primeiro se quiser mantê-los."
+  },
+  "Backup File": {
+    en: "Backup File",
+    pt: "Arquivo de Backup"
+  },
+  "Importing...": {
+    en: "Importing...",
+    pt: "Importando..."
+  },
+  "Import": {
+    en: "Import",
+    pt: "Importar"
+  },
+  "Note: Backup files contain all your tasks, projects, labels, and settings. They do not include your account information.": {
+    en: "Note: Backup files contain all your tasks, projects, labels, and settings. They do not include your account information.",
+    pt: "Nota: Os arquivos de backup contêm todas as suas tarefas, projetos, etiquetas e configurações. Eles não incluem suas informações de conta."
+  },
+  "Export successful": {
+    en: "Export successful",
+    pt: "Exportação bem-sucedida"
+  },
+  "Your data has been exported successfully.": {
+    en: "Your data has been exported successfully.",
+    pt: "Seus dados foram exportados com sucesso."
+  },
+  "Export failed": {
+    en: "Export failed",
+    pt: "Falha na exportação"
+  },
+  "Failed to export your data. Please try again.": {
+    en: "Failed to export your data. Please try again.",
+    pt: "Falha ao exportar seus dados. Por favor, tente novamente."
+  },
+  "No file selected": {
+    en: "No file selected",
+    pt: "Nenhum arquivo selecionado"
+  },
+  "Please select a backup file to import.": {
+    en: "Please select a backup file to import.",
+    pt: "Por favor, selecione um arquivo de backup para importar."
+  },
+  "Invalid backup file format": {
+    en: "Invalid backup file format",
+    pt: "Formato de arquivo de backup inválido"
+  },
+  "Failed to import data": {
+    en: "Failed to import data",
+    pt: "Falha ao importar dados"
+  },
+  "Import successful": {
+    en: "Import successful",
+    pt: "Importação bem-sucedida"
+  },
+  "Your data has been imported successfully.": {
+    en: "Your data has been imported successfully.",
+    pt: "Seus dados foram importados com sucesso."
+  },
+  "Import failed": {
+    en: "Import failed",
+    pt: "Falha na importação"
+  },
+  "Failed to import your data. Please try again.": {
+    en: "Failed to import your data. Please try again.",
+    pt: "Falha ao importar seus dados. Por favor, tente novamente."
+  },
+  "Name must be at least 2 characters": {
+    en: "Name must be at least 2 characters",
+    pt: "O nome deve ter pelo menos 2 caracteres"
+  },
+  "Please enter a valid email address": {
+    en: "Please enter a valid email address",
+    pt: "Por favor, insira um endereço de email válido"
+  },
+  "Password must be at least 6 characters": {
+    en: "Password must be at least 6 characters",
+    pt: "A senha deve ter pelo menos 6 caracteres"
+  },
+  "Passwords do not match": {
+    en: "Passwords do not match",
+    pt: "As senhas não coincidem"
+  },
+  "Missing required fields": {
+    en: "Missing required fields",
+    pt: "Campos obrigatórios faltando"
+  },
+  "Failed to login": {
+    en: "Failed to login",
+    pt: "Falha no login"
+  },
+  "Label name is required": {
+    en: "Label name is required",
+    pt: "O nome da etiqueta é obrigatório"
+  },
+  "Color must be a valid hex code": {
+    en: "Color must be a valid hex code",
+    pt: "A cor deve ser um código hexadecimal válido"
+  },
+  "Failed to update profile": {
+    en: "Failed to update profile",
+    pt: "Falha ao atualizar perfil"
+  },
+  "Profile updated": {
+    en: "Profile updated",
+    pt: "Perfil atualizado"
+  },
+  "Your profile has been updated successfully.": {
+    en: "Your profile has been updated successfully.",
+    pt: "Seu perfil foi atualizado com sucesso."
+  },
+  "Manage your account information.": {
+    en: "Manage your account information.",
+    pt: "Gerencie suas informações de conta."
+  },
+  "This is your public display name.": {
+    en: "This is your public display name.",
+    pt: "Este é seu nome de exibição público."
+  },
+  "This is the email associated with your account.": {
+    en: "This is the email associated with your account.",
+    pt: "Este é o email associado à sua conta."
+  },
+  "Label name": {
+    en: "Label name",
+    pt: "Nome da etiqueta"
+  },
+  "Color": {
+    en: "Color",
+    pt: "Cor"
+  },
+  "Update Label": {
+    en: "Update Label",
+    pt: "Atualizar Etiqueta"
+  },
+  "Failed to update label": {
+    en: "Failed to update label",
+    pt: "Falha ao atualizar etiqueta"
+  },
+  "Failed to create label": {
+    en: "Failed to create label",
+    pt: "Falha ao criar etiqueta"
+  },
+  "Label updated": {
+    en: "Label updated",
+    pt: "Etiqueta atualizada"
+  },
+  "Label created": {
+    en: "Label created",
+    pt: "Etiqueta criada"
+  },
+  "Label has been updated successfully.": {
+    en: "Label has been updated successfully.",
+    pt: "A etiqueta foi atualizada com sucesso."
+  },
+  "Label has been created successfully.": {
+    en: "Label has been created successfully.",
+    pt: "A etiqueta foi criada com sucesso."
+  }
 }
 
 // Store para gerenciar o idioma
@@ -809,7 +1009,7 @@ type LanguageStore = {
 export const useLanguage = create<LanguageStore>()(
   persist(
     (set, get) => ({
-      language: "en",
+      language: "pt",
       setLanguage: (language) => set({ language }),
       t: (key) => {
         const lang = get().language

@@ -14,12 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
 import { Card, CardContent } from "@/components/ui/card"
-
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  rememberMe: z.boolean().default(false),
-})
+import { LanguageProvider } from "@/components/language-provider";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
@@ -27,6 +22,12 @@ export function LoginForm() {
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+
+  const formSchema = z.object({
+    email: z.string().email({ message: t("Please enter a valid email address") }),
+    password: z.string().min(6, { message: t("Password must be at least 6 characters") }),
+    rememberMe: z.boolean().default(false),
+  })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,7 +51,7 @@ export function LoginForm() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to login")
+        throw new Error(data.message || t("Failed to login"))
       }
 
       toast({
@@ -83,7 +84,7 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>{t("Email")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="your.email@example.com" {...field} />
+                    <Input placeholder={t("Your email")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
