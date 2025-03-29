@@ -11,13 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import type { Label } from "@/lib/labels"
-
-const formSchema = z.object({
-  name: z.string().min(1, { message: "Label name is required" }),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i, {
-    message: "Color must be a valid hex code",
-  }),
-})
+import { useTranslation } from "@/lib/i18n"
 
 interface LabelFormProps {
   label?: Label
@@ -28,6 +22,14 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
+
+  const formSchema = z.object({
+    name: z.string().min(1, { message: t("Label name is required") }),
+    color: z.string().regex(/^#[0-9A-F]{6}$/i, {
+      message: t("Color must be a valid hex code"),
+    }),
+  })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,12 +54,12 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
       })
 
       if (!response.ok) {
-        throw new Error(`Failed to ${label ? "update" : "create"} label`)
+        throw new Error(t(label ? "Failed to update label" : "Failed to create label"))
       }
 
       toast({
-        title: label ? "Label updated" : "Label created",
-        description: `Label has been ${label ? "updated" : "created"} successfully.`,
+        title: t(label ? "Label updated" : "Label created"),
+        description: t(label ? "Label has been updated successfully." : "Label has been created successfully."),
       })
 
       if (onSuccess) {
@@ -68,8 +70,8 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: label ? "Failed to update label" : "Failed to create label",
-        description: error.message || "Please try again.",
+        title: t(label ? "Failed to update label" : "Failed to create label"),
+        description: error.message || t("Please try again."),
       })
     } finally {
       setIsLoading(false)
@@ -84,9 +86,9 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>{t("Name")}</FormLabel>
               <FormControl>
-                <Input placeholder="Label name" {...field} />
+                <Input placeholder={t("Label name")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -97,7 +99,7 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
           name="color"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Color</FormLabel>
+              <FormLabel>{t("Color")}</FormLabel>
               <FormControl>
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: field.value }} />
@@ -110,7 +112,7 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
           )}
         />
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Saving..." : label ? "Update Label" : "Create Label"}
+          {isLoading ? t("Please wait") : label ? t("Update Label") : t("Create Label")}
         </Button>
       </form>
     </Form>

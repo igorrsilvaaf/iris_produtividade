@@ -14,18 +14,6 @@ import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
 import { Card, CardContent } from "@/components/ui/card"
 
-const formSchema = z
-  .object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-    email: z.string().email({ message: "Please enter a valid email address" }),
-    password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
-
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -33,6 +21,18 @@ export function RegisterForm() {
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+
+  const formSchema = z
+    .object({
+      name: z.string().min(2, { message: t("Name must be at least 2 characters") }),
+      email: z.string().email({ message: t("Please enter a valid email address") }),
+      password: z.string().min(6, { message: t("Password must be at least 6 characters") }),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t("Passwords do not match"),
+      path: ["confirmPassword"],
+    })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

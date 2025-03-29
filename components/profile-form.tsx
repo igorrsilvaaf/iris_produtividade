@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import type { User } from "@/lib/auth"
+import { useTranslation } from "@/lib/i18n"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,15 +15,16 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-})
-
 export function ProfileForm({ user }: { user: User }) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
+
+  const formSchema = z.object({
+    name: z.string().min(2, { message: t("Name must be at least 2 characters") }),
+    email: z.string().email({ message: t("Please enter a valid email address") }),
+  })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,20 +45,20 @@ export function ProfileForm({ user }: { user: User }) {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to update profile")
+        throw new Error(t("Failed to update profile"))
       }
 
       toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
+        title: t("Profile updated"),
+        description: t("Your profile has been updated successfully."),
       })
 
       router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to update profile",
-        description: "Please try again.",
+        title: t("Failed to update profile"),
+        description: t("Please try again."),
       })
     } finally {
       setIsLoading(false)
@@ -74,8 +76,8 @@ export function ProfileForm({ user }: { user: User }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profile</CardTitle>
-        <CardDescription>Manage your account information.</CardDescription>
+        <CardTitle>{t("Profile")}</CardTitle>
+        <CardDescription>{t("Manage your account information.")}</CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -96,11 +98,11 @@ export function ProfileForm({ user }: { user: User }) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("Name")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your name" {...field} />
+                    <Input placeholder={t("Your name")} {...field} />
                   </FormControl>
-                  <FormDescription>This is your public display name.</FormDescription>
+                  <FormDescription>{t("This is your public display name.")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -111,11 +113,11 @@ export function ProfileForm({ user }: { user: User }) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t("Email")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your email" {...field} />
+                    <Input placeholder={t("Your email")} {...field} />
                   </FormControl>
-                  <FormDescription>This is the email associated with your account.</FormDescription>
+                  <FormDescription>{t("This is the email associated with your account.")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -123,7 +125,7 @@ export function ProfileForm({ user }: { user: User }) {
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save Changes"}
+              {isLoading ? t("Please wait") : t("Save")}
             </Button>
           </CardFooter>
         </form>
