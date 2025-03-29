@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { ModeToggle } from "@/components/mode-toggle"
-import { Button } from "@/components/ui/button"
-import { useTranslation } from "@/lib/i18n"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ModeToggle } from "@/components/mode-toggle";
+import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 
 export function AuthHeader() {
-  const { t } = useTranslation()
-  const pathname = usePathname()
+  const { t } = useTranslation();
+  const pathname = usePathname();
 
-  const isLoginPage = pathname === "/login"
-  const isRegisterPage = pathname === "/register"
+  const isLoginPage = pathname === "/login";
+  const isRegisterPage = pathname === "/register";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -31,10 +31,10 @@ export function AuthHeader() {
               <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
               <path d="m9 12 2 2 4-4" />
             </svg>
-            <span>Todoist Clone</span>
+            <span>To-Do</span>
           </Link>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-between">
           <ModeToggle />
           {isLoginPage && (
             <Link href="/register">
@@ -59,6 +59,5 @@ export function AuthHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }
-

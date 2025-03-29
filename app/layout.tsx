@@ -27,7 +27,7 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   // Tentar obter a preferência de idioma dos cookies
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const languageCookie = cookieStore.get("language-storage")
   let initialLanguage = "pt" // Definir português como padrão
 

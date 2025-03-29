@@ -116,7 +116,7 @@ export async function login(email: string, password: string): Promise<User> {
     throw new Error("Invalid email or password")
   }
 
-  const { password: _, ...userWithoutPassword } = user
+  const { password: _, ...userWithoutPassword } = user as User & { password: string }
   return userWithoutPassword
 }
 

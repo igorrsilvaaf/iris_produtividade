@@ -14,10 +14,9 @@ export default async function RegisterPage() {
     redirect("/app")
   }
 
-  // Tentar obter a preferência de idioma dos cookies
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const languageCookie = cookieStore.get("language-storage")
-  let initialLanguage = "pt" // Definir português como padrão
+  let initialLanguage = "pt" 
 
   if (languageCookie) {
     try {
@@ -30,7 +29,6 @@ export default async function RegisterPage() {
     }
   }
 
-  // Obter traduções para textos estáticos
   const t = (key: string) => translations[key]?.[initialLanguage as "en" | "pt"] || key
 
   return (
