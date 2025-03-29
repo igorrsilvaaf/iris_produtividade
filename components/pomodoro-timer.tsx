@@ -252,14 +252,14 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
             onValueChange={(value) => setMode(value as TimerMode)}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="work" className="text-xs sm:text-sm">
+            <TabsList className="grid w-full grid-cols-3 gap-3 p-1.5">
+              <TabsTrigger value="work" className="px-2 py-2 text-xs sm:text-sm">
                 {t("work")}
               </TabsTrigger>
-              <TabsTrigger value="shortBreak" className="text-xs sm:text-sm">
+              <TabsTrigger value="shortBreak" className="px-2 py-2 text-xs sm:text-sm">
                 {t("shortBreak")}
               </TabsTrigger>
-              <TabsTrigger value="longBreak" className="text-xs sm:text-sm">
+              <TabsTrigger value="longBreak" className="px-2 py-2 text-xs sm:text-sm">
                 {t("longBreak")}
               </TabsTrigger>
             </TabsList>

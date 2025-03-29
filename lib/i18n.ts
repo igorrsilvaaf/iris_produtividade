@@ -335,15 +335,33 @@ export const translations: Translations = {
     pt: "Dezembro",
   },
 
-  // Outros
+  // Busca
   search: {
     en: "Search",
-    pt: "Pesquisar",
+    pt: "Buscar",
   },
   searchTasks: {
-    en: "Search tasks...",
-    pt: "Pesquisar tarefas...",
+    en: "Search tasks",
+    pt: "Buscar tarefas",
   },
+  searching: {
+    en: "Searching...",
+    pt: "Buscando...",
+  },
+  noResultsFound: {
+    en: "No results found.",
+    pt: "Nenhum resultado encontrado.",
+  },
+  searchFailed: {
+    en: "Search failed",
+    pt: "Falha na busca",
+  },
+  failedToSearchTasks: {
+    en: "Failed to search tasks. Please try again.",
+    pt: "Falha ao buscar tarefas. Por favor, tente novamente.",
+  },
+
+  // Outros
   noProject: {
     en: "No Project",
     pt: "Sem Projeto",
@@ -359,10 +377,6 @@ export const translations: Translations = {
   pickDate: {
     en: "Pick a date",
     pt: "Escolha uma data",
-  },
-  today: {
-    en: "Today",
-    pt: "Hoje",
   },
   tomorrow: {
     en: "Tomorrow",
@@ -448,10 +462,6 @@ export const translations: Translations = {
     en: "Cycle",
     pt: "Ciclo",
   },
-  labels: {
-    en: "Labels",
-    pt: "Etiquetas",
-  },
   "Settings updated": {
     en: "Settings updated",
     pt: "Configurações atualizadas",
@@ -520,11 +530,10 @@ export const translations: Translations = {
     en: "Organize your tasks with ease",
     pt: "Organize suas tarefas com facilidade",
   },
-  "Stay organized and productive with our Todoist-inspired task manager. Includes Pomodoro timer, dark mode, and more.":
-    {
-      en: "Stay organized and productive with our Todoist-inspired task manager. Includes Pomodoro timer, dark mode, and more.",
-      pt: "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas inspirado no Todoist. Inclui temporizador Pomodoro, modo escuro e muito mais.",
-    },
+  "Stay organized and productive with our To-Do task manager. Includes Pomodoro timer, dark mode, and more.": {
+    en: "Stay organized and productive with our To-Do task manager. Includes Pomodoro timer, dark mode, and more.",
+    pt: "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas To-Do. Inclui temporizador Pomodoro, modo escuro e muito mais.",
+  },
   "Get Started": {
     en: "Get Started",
     pt: "Começar",

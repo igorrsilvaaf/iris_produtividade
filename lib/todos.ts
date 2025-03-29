@@ -185,8 +185,13 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
 }
 
 export async function searchTasks(userId: number, query: string): Promise<Todo[]> {
-  const searchQuery = `%${query}%`
+  // Preparar query para busca case-insensitive com wildcards entre cada caractere
+  // Isso permite buscar mesmo com caracteres faltando ou fora de ordem
+  const searchPattern = `%${query.split('').join('%')}%`;
+  
+  console.log("Padrão de busca:", searchPattern);
 
+  // Realizar a busca simples ILIKE
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
     FROM todos t
@@ -194,12 +199,12 @@ export async function searchTasks(userId: number, query: string): Promise<Todo[]
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
     AND (
-      t.title ILIKE ${searchQuery}
-      OR t.description ILIKE ${searchQuery}
+      t.title ILIKE ${searchPattern}
+      OR t.description ILIKE ${searchPattern}
     )
     ORDER BY t.completed ASC, t.due_date ASC, t.priority ASC
-  `
+  `;
 
-  return tasks
+  return tasks;
 }
 

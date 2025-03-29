@@ -14,7 +14,7 @@ export async function GET(_request: NextRequest) {
 
     // Adicionar timestamp ao nome do arquivo
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
-    const filename = `todoist-clone-backup-${timestamp}.json`
+    const filename = `to-do-backup-${timestamp}.json`
 
     return new NextResponse(JSON.stringify(data, null, 2), {
       headers: {
