@@ -95,3 +95,92 @@ body {
   min-height: -webkit-fill-available;
 }
 
+/* Melhorias de responsividade */
+@media (max-width: 1024px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .md\:grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .md\:grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .sm\:grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .md\:grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .text-xl {
+    font-size: 1.1rem;
+  }
+
+  .text-2xl {
+    font-size: 1.3rem;
+  }
+
+  h1.text-3xl {
+    font-size: 1.5rem;
+  }
+}
+
+/* Melhorias para notebooks */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .container {
+    max-width: 90%;
+  }
+
+  .lg\:py-32 {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  .md\:py-24 {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .lg\:grid-cols-2 {
+    grid-gap: 2rem;
+  }
+}
+
+/* Ajustes para telas muito pequenas */
+@media (max-width: 360px) {
+  html {
+    font-size: 12px;
+  }
+
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .space-y-8 > * + * {
+    margin-top: 1.5rem;
+  }
+}
+
+/* Ajustes para telas muito grandes */
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1400px;
+  }
+}
+
+/* Melhorias para os sons de notificação */
+audio {
+  display: none;
+}
+

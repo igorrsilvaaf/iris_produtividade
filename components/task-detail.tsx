@@ -6,6 +6,8 @@ import { format } from "date-fns"
 import { Calendar, Flag, Trash } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
+import { useTranslation } from "@/lib/i18n"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -37,6 +39,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -57,8 +60,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       } catch (error) {
         toast({
           variant: "destructive",
-          title: "Failed to load projects",
-          description: "Please try again later.",
+          title: t("Failed to load projects"),
+          description: t("Please try again later."),
         })
       }
     }
@@ -66,7 +69,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     if (open) {
       fetchProjects()
     }
-  }, [open, task.id, toast])
+  }, [open, task.id, toast, t])
 
   const handleSave = async () => {
     setIsLoading(true)
@@ -102,8 +105,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       }
 
       toast({
-        title: "Task updated",
-        description: "Task has been updated successfully.",
+        title: t("taskUpdated"),
+        description: t("Task has been updated successfully."),
       })
 
       onOpenChange(false)
@@ -111,8 +114,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to update task",
-        description: "Please try again.",
+        title: t("Failed to update task"),
+        description: t("Please try again."),
       })
     } finally {
       setIsLoading(false)
@@ -132,8 +135,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       }
 
       toast({
-        title: "Task deleted",
-        description: "Task has been deleted successfully.",
+        title: t("taskDeleted"),
+        description: t("Task has been deleted successfully."),
       })
 
       onOpenChange(false)
@@ -141,8 +144,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to delete task",
-        description: "Please try again.",
+        title: t("Failed to delete task"),
+        description: t("Please try again."),
       })
     } finally {
       setIsLoading(false)
@@ -166,32 +169,32 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Task Details</DialogTitle>
-          <DialogDescription>View and edit task details.</DialogDescription>
+          <DialogTitle>{t("taskDetails")}</DialogTitle>
+          <DialogDescription>{t("View and edit task details.")}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-medium">
-              Title
+              {t("title")}
             </label>
-            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task title" />
+            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("Task title")} />
           </div>
           <div className="space-y-2">
             <label htmlFor="description" className="text-sm font-medium">
-              Description
+              {t("description")}
             </label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Task description"
+              placeholder={t("Task description")}
               rows={4}
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="dueDate" className="text-sm font-medium">
-                Due Date
+                {t("dueDate")}
               </label>
               <div className="flex items-center">
                 <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -205,35 +208,35 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             </div>
             <div className="space-y-2">
               <label htmlFor="priority" className="text-sm font-medium">
-                Priority
+                {t("priority")}
               </label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                  <SelectValue placeholder={t("Select priority")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1">
                     <div className="flex items-center">
                       <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("1")}`} />
-                      Priority 1
+                      {t("priority1")}
                     </div>
                   </SelectItem>
                   <SelectItem value="2">
                     <div className="flex items-center">
                       <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("2")}`} />
-                      Priority 2
+                      {t("priority2")}
                     </div>
                   </SelectItem>
                   <SelectItem value="3">
                     <div className="flex items-center">
                       <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("3")}`} />
-                      Priority 3
+                      {t("priority3")}
                     </div>
                   </SelectItem>
                   <SelectItem value="4">
                     <div className="flex items-center">
                       <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("4")}`} />
-                      Priority 4
+                      {t("priority4")}
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -242,17 +245,17 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           </div>
           <div className="space-y-2">
             <label htmlFor="project" className="text-sm font-medium">
-              Project
+              {t("project")}
             </label>
             <Select
               value={projectId || "none"}
               onValueChange={(value) => setProjectId(value === "none" ? null : value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a project" />
+                <SelectValue placeholder={t("selectProject")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No Project</SelectItem>
+                <SelectItem value="none">{t("noProject")}</SelectItem>
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     <div className="flex items-center">
@@ -268,17 +271,23 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           <TaskLabels taskId={task.id} />
 
           <div className="text-xs text-muted-foreground">
-            <p>Created: {format(new Date(task.created_at), "PPP p")}</p>
-            {task.updated_at && <p>Last updated: {format(new Date(task.updated_at), "PPP p")}</p>}
+            <p>
+              {t("created")}: {format(new Date(task.created_at), "PPP p")}
+            </p>
+            {task.updated_at && (
+              <p>
+                {t("updated")}: {format(new Date(task.updated_at), "PPP p")}
+              </p>
+            )}
           </div>
         </div>
         <DialogFooter className="flex flex-col-reverse sm:flex-row items-center justify-between gap-2">
           <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isLoading}>
             <Trash className="mr-2 h-4 w-4" />
-            Delete
+            {t("delete")}
           </Button>
           <Button onClick={handleSave} disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Changes"}
+            {isLoading ? t("Saving...") : t("save")}
           </Button>
         </DialogFooter>
       </DialogContent>

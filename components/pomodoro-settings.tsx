@@ -3,6 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { useTranslation } from "@/lib/i18n"
+import { useAudioPlayer } from "@/lib/audio-utils"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,6 +19,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/components/ui/use-toast"
 
 const formSchema = z.object({
   workMinutes: z.coerce.number().min(1).max(60),
@@ -44,6 +47,10 @@ interface PomodoroSettingsProps {
 }
 
 export function PomodoroSettings({ open, onOpenChange, settings, onSave }: PomodoroSettingsProps) {
+  const { t } = useTranslation()
+  const { toast } = useToast()
+  const { playSound } = useAudioPlayer()
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: settings,
@@ -57,25 +64,25 @@ export function PomodoroSettings({ open, onOpenChange, settings, onSave }: Pomod
   const requestNotificationPermission = async () => {
     if (Notification.permission !== "granted") {
       const permission = await Notification.requestPermission()
+      if (permission !== "granted") {
+        toast({
+          variant: "destructive",
+          title: t("Notification permission denied"),
+          description: t("Desktop notifications will not be shown."),
+        })
+        form.setValue("enableDesktopNotifications", false)
+      }
       return permission === "granted"
     }
     return true
-  }
-
-  // Play sound sample
-  const playSound = (sound: string) => {
-    const audio = new Audio(`/sounds/${sound}.mp3`)
-    audio.play().catch((error) => {
-      console.error("Failed to play sound:", error)
-    })
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Pomodoro Settings</DialogTitle>
-          <DialogDescription>Customize your Pomodoro timer settings.</DialogDescription>
+          <DialogTitle>{t("pomodoroTimer")}</DialogTitle>
+          <DialogDescription>{t("Customize your Pomodoro timer settings.")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -84,7 +91,7 @@ export function PomodoroSettings({ open, onOpenChange, settings, onSave }: Pomod
               name="workMinutes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Work Duration (minutes)</FormLabel>
+                  <FormLabel>{t("Work Duration (minutes)")}</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>
@@ -97,7 +104,7 @@ export function PomodoroSettings({ open, onOpenChange, settings, onSave }: Pomod
               name="shortBreakMinutes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Short Break Duration (minutes)</FormLabel>
+                  <FormLabel>{t("Short Break Duration (minutes)")}</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>
@@ -110,7 +117,7 @@ export function PomodoroSettings({ open, onOpenChange, settings, onSave }: Pomod
               name="longBreakMinutes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Long Break Duration (minutes)</FormLabel>
+                  <FormLabel>{t("Long Break Duration (minutes)")}</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>
@@ -123,7 +130,7 @@ export function PomodoroSettings({ open, onOpenChange, settings, onSave }: Pomod
               name="longBreakInterval"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Long Break Interval (cycles)</FormLabel>
+                  <FormLabel>{t("Long Break Interval (cycles)")}</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>
@@ -138,8 +145,8 @@ export function PomodoroSettings({ open, onOpenChange, settings, onSave }: Pomod
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Sound Notifications</FormLabel>
-                    <FormDescription>Play a sound when a Pomodoro timer completes.</FormDescription>
+                    <FormLabel className="text-base">{t("soundNotifications")}</FormLabel>
+                    <FormDescription>{t("soundDescription")}</FormDescription>
                   </div>
                   <FormControl>
                     <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -154,27 +161,27 @@ export function PomodoroSettings({ open, onOpenChange, settings, onSave }: Pomod
                 name="notificationSound"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notification Sound</FormLabel>
+                    <FormLabel>{t("notificationSound")}</FormLabel>
                     <div className="flex items-center gap-2">
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a sound" />
+                            <SelectValue placeholder={t("Select a sound")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="default">Default</SelectItem>
-                          <SelectItem value="bell">Bell</SelectItem>
-                          <SelectItem value="chime">Chime</SelectItem>
-                          <SelectItem value="digital">Digital</SelectItem>
+                          <SelectItem value="default">{t("defaultSound")}</SelectItem>
+                          <SelectItem value="bell">{t("bell")}</SelectItem>
+                          <SelectItem value="chime">{t("chime")}</SelectItem>
+                          <SelectItem value="digital">{t("digital")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <Button type="button" variant="outline" size="icon" onClick={() => playSound(field.value)}>
-                        <span className="sr-only">Play sound</span>
+                        <span className="sr-only">{t("Play sound")}</span>
                         ▶️
                       </Button>
                     </div>
-                    <FormDescription>Choose the sound to play when a timer completes.</FormDescription>
+                    <FormDescription>{t("chooseSound")}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -187,8 +194,8 @@ export function PomodoroSettings({ open, onOpenChange, settings, onSave }: Pomod
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Desktop Notifications</FormLabel>
-                    <FormDescription>Show desktop notifications when a timer completes.</FormDescription>
+                    <FormLabel className="text-base">{t("desktopNotifications")}</FormLabel>
+                    <FormDescription>{t("desktopNotificationsDescription")}</FormDescription>
                   </div>
                   <FormControl>
                     <Switch
@@ -206,7 +213,7 @@ export function PomodoroSettings({ open, onOpenChange, settings, onSave }: Pomod
             />
 
             <DialogFooter>
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit">{t("save")}</Button>
             </DialogFooter>
           </form>
         </Form>

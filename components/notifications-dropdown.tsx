@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslation } from "@/lib/i18n"
 import type { Notification } from "@/lib/notifications"
 
 export function NotificationsDropdown() {
@@ -21,6 +22,7 @@ export function NotificationsDropdown() {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -67,8 +69,8 @@ export function NotificationsDropdown() {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to mark notification as read",
-        description: "Please try again.",
+        title: t("Failed to mark notification as read"),
+        description: t("Please try again."),
       })
     }
   }
@@ -83,14 +85,14 @@ export function NotificationsDropdown() {
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
-          <span className="sr-only">Notifications</span>
+          <span className="sr-only">{t("notifications")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <div className="flex items-center justify-between p-2">
-          <h4 className="font-medium">Notifications</h4>
+          <h4 className="font-medium">{t("notifications")}</h4>
           <Link href="/app/notifications" className="text-xs text-primary hover:underline">
-            View all
+            {t("View all")}
           </Link>
         </div>
         <DropdownMenuSeparator />
@@ -99,7 +101,7 @@ export function NotificationsDropdown() {
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
           </div>
         ) : notifications.length === 0 ? (
-          <div className="p-4 text-center text-sm text-muted-foreground">No notifications</div>
+          <div className="p-4 text-center text-sm text-muted-foreground">{t("noNotifications")}</div>
         ) : (
           <>
             {notifications.map((notification) => (
@@ -120,7 +122,7 @@ export function NotificationsDropdown() {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild className="cursor-pointer justify-center">
               <Link href="/app/notifications" className="w-full text-center text-xs font-medium text-primary">
-                View all notifications
+                {t("View all notifications")}
               </Link>
             </DropdownMenuItem>
           </>

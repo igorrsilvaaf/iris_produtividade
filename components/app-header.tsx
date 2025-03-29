@@ -1,6 +1,6 @@
 "use client"
 import { useRouter } from "next/navigation"
-import { Calendar, Settings, User } from "lucide-react"
+import { Calendar, Database, Settings, User } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/components/ui/use-toast"
 import { SearchTasks } from "@/components/search-tasks"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
+import { useTranslation } from "@/lib/i18n"
 
 type AppHeaderUser = {
   id: number
@@ -25,20 +26,21 @@ type AppHeaderUser = {
 export function AppHeader({ user }: { user: AppHeaderUser }) {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" })
       toast({
-        title: "Logged out successfully",
+        title: t("Logged out successfully"),
       })
       router.push("/login")
       router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Logout failed",
-        description: "Please try again.",
+        title: t("Logout failed"),
+        description: t("Please try again."),
       })
     }
   }
@@ -62,14 +64,14 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
         <Button variant="ghost" size="icon" className="hidden md:flex" asChild>
           <a href="/app/calendar">
             <Calendar className="h-5 w-5" />
-            <span className="sr-only">Calendar</span>
+            <span className="sr-only">{t("calendar")}</span>
           </a>
         </Button>
         <NotificationsDropdown />
         <Button variant="ghost" size="icon" className="hidden md:flex" asChild>
           <a href="/app/settings">
             <Settings className="h-5 w-5" />
-            <span className="sr-only">Settings</span>
+            <span className="sr-only">{t("settings")}</span>
           </a>
         </Button>
         <ModeToggle />
@@ -83,28 +85,34 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("My Account")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild className="md:hidden">
               <a href="/app/calendar" className="flex items-center">
                 <Calendar className="mr-2 h-4 w-4" />
-                Calendar
+                {t("calendar")}
               </a>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <a href="/app/profile" className="flex items-center">
                 <User className="mr-2 h-4 w-4" />
-                Profile
+                {t("profile")}
               </a>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <a href="/app/settings" className="flex items-center">
                 <Settings className="mr-2 h-4 w-4" />
-                Settings
+                {t("settings")}
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href="/app/storage" className="flex items-center">
+                <Database className="mr-2 h-4 w-4" />
+                {t("storage")}
               </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>{t("logout")}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </nav>

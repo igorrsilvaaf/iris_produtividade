@@ -1,11 +1,14 @@
 "use client"
 
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { useTheme } from "next-themes"
 import type { UserSettings } from "@/lib/settings"
+import { useTranslation } from "@/lib/i18n"
+import { useAudioPlayer } from "@/lib/audio-utils"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,6 +21,7 @@ import { useToast } from "@/components/ui/use-toast"
 
 const formSchema = z.object({
   theme: z.string(),
+  language: z.enum(["en", "pt"]),
   pomodoro_work_minutes: z.coerce.number().min(1).max(60),
   pomodoro_break_minutes: z.coerce.number().min(1).max(30),
   pomodoro_long_break_minutes: z.coerce.number().min(1).max(60),
@@ -31,11 +35,21 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
   const router = useRouter()
   const { setTheme } = useTheme()
   const { toast } = useToast()
+  const { t, language, setLanguage } = useTranslation()
+  const { playSound } = useAudioPlayer()
+
+  // Sincronizar o idioma do formulário com o idioma atual
+  useEffect(() => {
+    if (settings.language && (settings.language === "en" || settings.language === "pt")) {
+      setLanguage(settings.language as "en" | "pt")
+    }
+  }, [settings.language, setLanguage])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       theme: settings.theme,
+      language: (settings.language as "en" | "pt") || language,
       pomodoro_work_minutes: settings.pomodoro_work_minutes,
       pomodoro_break_minutes: settings.pomodoro_break_minutes,
       pomodoro_long_break_minutes: settings.pomodoro_long_break_minutes,
@@ -63,17 +77,22 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
         setTheme(values.theme)
       }
 
+      // Update language if changed
+      if (values.language !== language) {
+        setLanguage(values.language)
+      }
+
       toast({
-        title: "Settings updated",
-        description: "Your settings have been updated successfully.",
+        title: t("Settings updated"),
+        description: t("Your settings have been updated successfully."),
       })
 
       router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to update settings",
-        description: "Please try again.",
+        title: t("Failed to update settings"),
+        description: t("Please try again."),
       })
     }
   }
@@ -85,28 +104,20 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
       if (permission !== "granted") {
         toast({
           variant: "destructive",
-          title: "Notification permission denied",
-          description: "Desktop notifications will not be shown.",
+          title: t("Notification permission denied"),
+          description: t("Desktop notifications will not be shown."),
         })
         form.setValue("enable_desktop_notifications", false)
       }
     }
   }
 
-  // Play sound sample
-  const playSound = (sound: string) => {
-    const audio = new Audio(`/sounds/${sound}.mp3`)
-    audio.play().catch((error) => {
-      console.error("Failed to play sound:", error)
-    })
-  }
-
   return (
     <Tabs defaultValue="general">
       <TabsList className="mb-4">
-        <TabsTrigger value="general">General</TabsTrigger>
-        <TabsTrigger value="pomodoro">Pomodoro Timer</TabsTrigger>
-        <TabsTrigger value="notifications">Notifications</TabsTrigger>
+        <TabsTrigger value="general">{t("general")}</TabsTrigger>
+        <TabsTrigger value="pomodoro">{t("pomodoroTimer")}</TabsTrigger>
+        <TabsTrigger value="notifications">{t("notifications")}</TabsTrigger>
       </TabsList>
 
       <Form {...form}>
@@ -114,8 +125,8 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
           <TabsContent value="general">
             <Card>
               <CardHeader>
-                <CardTitle>General Settings</CardTitle>
-                <CardDescription>Manage your application preferences.</CardDescription>
+                <CardTitle>{t("general")}</CardTitle>
+                <CardDescription>{t("Manage your application preferences.")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <FormField
@@ -123,7 +134,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                   name="theme"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Theme</FormLabel>
+                      <FormLabel>{t("theme")}</FormLabel>
                       <Select
                         onValueChange={(value) => {
                           field.onChange(value)
@@ -133,23 +144,52 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a theme" />
+                            <SelectValue placeholder={t("Select a theme")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="light">Light</SelectItem>
-                          <SelectItem value="dark">Dark</SelectItem>
-                          <SelectItem value="system">System</SelectItem>
+                          <SelectItem value="light">{t("light")}</SelectItem>
+                          <SelectItem value="dark">{t("dark")}</SelectItem>
+                          <SelectItem value="system">{t("system")}</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormDescription>Choose your preferred theme for the application.</FormDescription>
+                      <FormDescription>{t("Choose your preferred theme for the application.")}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="language"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("language")}</FormLabel>
+                      <Select
+                        onValueChange={(value: "en" | "pt") => {
+                          field.onChange(value)
+                          setLanguage(value)
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("Select a language")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="en">{t("english")}</SelectItem>
+                          <SelectItem value="pt">{t("portuguese")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>{t("Choose your preferred language for the application.")}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </CardContent>
               <CardFooter>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit">{t("save")}</Button>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -157,8 +197,8 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
           <TabsContent value="pomodoro">
             <Card>
               <CardHeader>
-                <CardTitle>Pomodoro Timer Settings</CardTitle>
-                <CardDescription>Customize your Pomodoro timer preferences.</CardDescription>
+                <CardTitle>{t("pomodoroTimer")}</CardTitle>
+                <CardDescription>{t("Customize your Pomodoro timer preferences.")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -167,7 +207,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                     name="pomodoro_work_minutes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Work Duration (minutes)</FormLabel>
+                        <FormLabel>{t("Work Duration (minutes)")}</FormLabel>
                         <FormControl>
                           <Input type="number" {...field} />
                         </FormControl>
@@ -181,7 +221,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                     name="pomodoro_break_minutes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Short Break Duration (minutes)</FormLabel>
+                        <FormLabel>{t("Short Break Duration (minutes)")}</FormLabel>
                         <FormControl>
                           <Input type="number" {...field} />
                         </FormControl>
@@ -195,7 +235,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                     name="pomodoro_long_break_minutes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Long Break Duration (minutes)</FormLabel>
+                        <FormLabel>{t("Long Break Duration (minutes)")}</FormLabel>
                         <FormControl>
                           <Input type="number" {...field} />
                         </FormControl>
@@ -209,7 +249,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                     name="pomodoro_cycles"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Long Break Interval (cycles)</FormLabel>
+                        <FormLabel>{t("Long Break Interval (cycles)")}</FormLabel>
                         <FormControl>
                           <Input type="number" {...field} />
                         </FormControl>
@@ -225,8 +265,8 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Sound Notifications</FormLabel>
-                        <FormDescription>Play a sound when a Pomodoro timer completes.</FormDescription>
+                        <FormLabel className="text-base">{t("soundNotifications")}</FormLabel>
+                        <FormDescription>{t("soundDescription")}</FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -241,27 +281,27 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                     name="notification_sound"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Notification Sound</FormLabel>
+                        <FormLabel>{t("notificationSound")}</FormLabel>
                         <div className="flex items-center gap-2">
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select a sound" />
+                                <SelectValue placeholder={t("Select a sound")} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="default">Default</SelectItem>
-                              <SelectItem value="bell">Bell</SelectItem>
-                              <SelectItem value="chime">Chime</SelectItem>
-                              <SelectItem value="digital">Digital</SelectItem>
+                              <SelectItem value="default">{t("defaultSound")}</SelectItem>
+                              <SelectItem value="bell">{t("bell")}</SelectItem>
+                              <SelectItem value="chime">{t("chime")}</SelectItem>
+                              <SelectItem value="digital">{t("digital")}</SelectItem>
                             </SelectContent>
                           </Select>
                           <Button type="button" variant="outline" size="icon" onClick={() => playSound(field.value)}>
-                            <span className="sr-only">Play sound</span>
+                            <span className="sr-only">{t("Play sound")}</span>
                             ▶️
                           </Button>
                         </div>
-                        <FormDescription>Choose the sound to play when a timer completes.</FormDescription>
+                        <FormDescription>{t("chooseSound")}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -269,7 +309,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                 )}
               </CardContent>
               <CardFooter>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit">{t("save")}</Button>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -277,8 +317,8 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
           <TabsContent value="notifications">
             <Card>
               <CardHeader>
-                <CardTitle>Notification Settings</CardTitle>
-                <CardDescription>Manage how you receive notifications.</CardDescription>
+                <CardTitle>{t("notifications")}</CardTitle>
+                <CardDescription>{t("Manage how you receive notifications.")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <FormField
@@ -287,8 +327,8 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Desktop Notifications</FormLabel>
-                        <FormDescription>Receive desktop notifications for important events.</FormDescription>
+                        <FormLabel className="text-base">{t("desktopNotifications")}</FormLabel>
+                        <FormDescription>{t("desktopNotificationsDescription")}</FormDescription>
                       </div>
                       <FormControl>
                         <Switch
@@ -306,7 +346,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                 />
               </CardContent>
               <CardFooter>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit">{t("save")}</Button>
               </CardFooter>
             </Card>
           </TabsContent>

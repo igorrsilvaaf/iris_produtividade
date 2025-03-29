@@ -19,3 +19,4 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     return NextResponse.json({ message: error.message || "Failed to delete notification" }, { status: 500 })
   }
 }
+

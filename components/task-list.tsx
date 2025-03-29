@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
 import { TaskDetail } from "@/components/task-detail"
+import { useTranslation } from "@/lib/i18n"
 
 export function TaskList({ tasks }: { tasks: Todo[] }) {
   const [expandedTask, setExpandedTask] = useState<number | null>(null)
@@ -19,6 +20,7 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
   const [showTaskDetail, setShowTaskDetail] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   const toggleTaskCompletion = async (taskId: number) => {
     try {
@@ -27,16 +29,16 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
       })
 
       toast({
-        title: "Task updated",
-        description: "Task status has been updated.",
+        title: t("Task updated"),
+        description: t("Task status has been updated."),
       })
 
       router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to update task",
-        description: "Please try again.",
+        title: t("Failed to update task"),
+        description: t("Please try again."),
       })
     }
   }
@@ -48,16 +50,16 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
       })
 
       toast({
-        title: "Task deleted",
-        description: "Task has been deleted successfully.",
+        title: t("taskDeleted"),
+        description: t("Task has been deleted successfully."),
       })
 
       router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to delete task",
-        description: "Please try again.",
+        title: t("Failed to delete task"),
+        description: t("Please try again."),
       })
     }
   }
@@ -84,9 +86,9 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
     tomorrow.setDate(today.getDate() + 1)
 
     if (date.toDateString() === today.toDateString()) {
-      return "Today"
+      return t("today")
     } else if (date.toDateString() === tomorrow.toDateString()) {
-      return "Tomorrow"
+      return t("tomorrow")
     } else {
       return format(date, "MMM d")
     }
@@ -104,10 +106,8 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
           <div className="rounded-full bg-primary/10 p-3">
             <Check className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="mt-4 text-xl font-medium">All caught up!</h3>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
-            You don&apos;t have any tasks for today. Add a new task to get started.
-          </p>
+          <h3 className="mt-4 text-xl font-medium">{t("allCaughtUp")}</h3>
+          <p className="mt-2 text-center text-sm text-muted-foreground">{t("noTasksMessage")}</p>
         </CardContent>
       </Card>
     )
@@ -160,17 +160,17 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
                   <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">More</span>
+                  <span className="sr-only">{t("More")}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => openTaskDetail(task)}>
                   <Edit className="mr-2 h-4 w-4" />
-                  Edit
+                  {t("edit")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => deleteTask(task.id)}>
                   <Trash className="mr-2 h-4 w-4" />
-                  Delete
+                  {t("delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

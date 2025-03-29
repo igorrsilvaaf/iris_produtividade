@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Database,
   Home,
   Inbox,
   LayoutDashboard,
@@ -25,6 +26,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { AddProjectDialog } from "@/components/add-project-dialog"
 import { AddLabelDialog } from "@/components/add-label-dialog"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslation } from "@/lib/i18n"
 import type { Project } from "@/lib/projects"
 import type { Label } from "@/lib/labels"
 
@@ -35,31 +37,37 @@ type User = {
 }
 
 type NavItem = {
-  title: string
   href: string
   icon: React.ReactNode
+  translationKey: string
 }
 
+// Adicionar um novo item de navegação após o item "Completed"
 const navItems: NavItem[] = [
   {
-    title: "Today",
     href: "/app",
     icon: <Home className="h-5 w-5" />,
+    translationKey: "today",
   },
   {
-    title: "Inbox",
     href: "/app/inbox",
     icon: <Inbox className="h-5 w-5" />,
+    translationKey: "inbox",
   },
   {
-    title: "Upcoming",
     href: "/app/upcoming",
     icon: <Calendar className="h-5 w-5" />,
+    translationKey: "upcoming",
   },
   {
-    title: "Completed",
     href: "/app/completed",
     icon: <CheckCircle2 className="h-5 w-5" />,
+    translationKey: "completed",
+  },
+  {
+    href: "/app/storage",
+    icon: <Database className="h-5 w-5" />,
+    translationKey: "storage",
   },
 ]
 
@@ -73,6 +81,7 @@ export function AppSidebar({ user }: { user: User }) {
   const [labels, setLabels] = useState<Label[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   // Detectar se é dispositivo móvel
   useEffect(() => {
@@ -114,8 +123,8 @@ export function AppSidebar({ user }: { user: User }) {
       } catch (error) {
         toast({
           variant: "destructive",
-          title: "Failed to load data",
-          description: "Please refresh the page to try again.",
+          title: t("Failed to load data"),
+          description: t("Please refresh the page to try again."),
         })
       } finally {
         setIsLoading(false)
@@ -123,7 +132,7 @@ export function AppSidebar({ user }: { user: User }) {
     }
 
     fetchData()
-  }, [toast])
+  }, [toast, t])
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-background">
@@ -142,7 +151,7 @@ export function AppSidebar({ user }: { user: User }) {
             <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
             <path d="m9 12 2 2 4-4" />
           </svg>
-          <span>To-Do-List</span>
+          <span>Todoist Clone</span>
         </Link>
       </div>
       <ScrollArea className="flex-1 px-2 py-4">
@@ -157,7 +166,7 @@ export function AppSidebar({ user }: { user: User }) {
               )}
             >
               {item.icon}
-              {item.title}
+              {t(item.translationKey)}
             </Link>
           ))}
         </nav>
@@ -170,7 +179,7 @@ export function AppSidebar({ user }: { user: User }) {
               >
                 <div className="flex items-center gap-3">
                   <LayoutDashboard className="h-5 w-5" />
-                  Projects
+                  {t("projects")}
                 </div>
                 {projectsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </Button>
@@ -181,7 +190,7 @@ export function AppSidebar({ user }: { user: User }) {
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
               ) : projects.length === 0 ? (
-                <p className="px-3 py-2 text-sm text-muted-foreground">No projects found</p>
+                <p className="px-3 py-2 text-sm text-muted-foreground">{t("No projects found")}</p>
               ) : (
                 projects.map((project) => (
                   <Link
@@ -204,7 +213,7 @@ export function AppSidebar({ user }: { user: User }) {
                   className="flex w-full items-center gap-3 rounded-lg px-8 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                 >
                   <Plus className="h-4 w-4" />
-                  Add Project
+                  {t("addProject")}
                 </Button>
               </AddProjectDialog>
             </CollapsibleContent>
@@ -219,7 +228,7 @@ export function AppSidebar({ user }: { user: User }) {
               >
                 <div className="flex items-center gap-3">
                   <Tag className="h-5 w-5" />
-                  Labels
+                  {t("labels")}
                 </div>
                 {labelsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </Button>
@@ -230,7 +239,7 @@ export function AppSidebar({ user }: { user: User }) {
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
               ) : labels.length === 0 ? (
-                <p className="px-3 py-2 text-sm text-muted-foreground">No labels found</p>
+                <p className="px-3 py-2 text-sm text-muted-foreground">{t("No labels found")}</p>
               ) : (
                 labels.map((label) => (
                   <Link
@@ -252,7 +261,7 @@ export function AppSidebar({ user }: { user: User }) {
                   className="flex w-full items-center gap-3 rounded-lg px-8 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                 >
                   <Plus className="h-4 w-4" />
-                  Add Label
+                  {t("addLabel")}
                 </Button>
               </AddLabelDialog>
             </CollapsibleContent>
@@ -285,7 +294,7 @@ export function AppSidebar({ user }: { user: User }) {
             <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
             <path d="m9 12 2 2 4-4" />
           </svg>
-          <span>To-Do-List</span>
+          <span>Todoist Clone</span>
         </Link>
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
           <SheetTrigger asChild>

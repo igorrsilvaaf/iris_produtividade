@@ -151,7 +151,11 @@ export function CalendarView({ userId }: CalendarViewProps) {
     let formattedDays = []
 
     for (const day of days) {
-      const tasksForDay = tasks.filter((task) => task.due_date && isSameDay(new Date(task.due_date), day))
+      const tasksForDay = tasks.filter((task) => {
+        if (!task.due_date) return false
+        const taskDate = new Date(task.due_date)
+        return isSameDay(taskDate, day)
+      })
 
       formattedDays.push(
         <div

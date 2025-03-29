@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { CalendarIcon, Flag } from "lucide-react"
+import { CalendarIcon, Flag, Tag, X } from "lucide-react"
 import { format } from "date-fns"
 import type { Project } from "@/lib/projects"
+import type { Label } from "@/lib/labels"
+import { useTranslation } from "@/lib/i18n"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -28,6 +30,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { useToast } from "@/components/ui/use-toast"
+import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -35,6 +40,7 @@ const formSchema = z.object({
   dueDate: z.date().optional(),
   priority: z.string().default("4"),
   projectId: z.string().optional(),
+  labelIds: z.array(z.number()).default([]),
 })
 
 interface AddTaskDialogProps {
@@ -45,9 +51,14 @@ interface AddTaskDialogProps {
 export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps) {
   const [open, setOpen] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
+  const [labels, setLabels] = useState<Label[]>([])
+  const [selectedLabels, setSelectedLabels] = useState<Label[]>([])
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
+  const [isLoadingLabels, setIsLoadingLabels] = useState(false)
+  const [showLabelSelector, setShowLabelSelector] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,6 +67,7 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
       description: "",
       priority: "4",
       projectId: initialProjectId ? initialProjectId.toString() : undefined,
+      labelIds: [],
     },
   })
 
@@ -75,10 +87,48 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
       }
     }
 
+    const fetchLabels = async () => {
+      setIsLoadingLabels(true)
+      try {
+        const response = await fetch("/api/labels")
+        if (response.ok) {
+          const data = await response.json()
+          setLabels(data.labels)
+        }
+      } catch (error) {
+        console.error("Failed to fetch labels:", error)
+      } finally {
+        setIsLoadingLabels(false)
+      }
+    }
+
     if (open) {
       fetchProjects()
+      fetchLabels()
     }
   }, [open])
+
+  const toggleLabel = (label: Label) => {
+    const labelIds = form.getValues("labelIds") || []
+
+    if (labelIds.includes(label.id)) {
+      // Remove label
+      const updatedLabelIds = labelIds.filter((id) => id !== label.id)
+      form.setValue("labelIds", updatedLabelIds)
+      setSelectedLabels(selectedLabels.filter((l) => l.id !== label.id))
+    } else {
+      // Add label
+      form.setValue("labelIds", [...labelIds, label.id])
+      setSelectedLabels([...selectedLabels, label])
+    }
+  }
+
+  const removeLabel = (labelId: number) => {
+    const labelIds = form.getValues("labelIds") || []
+    const updatedLabelIds = labelIds.filter((id) => id !== labelId)
+    form.setValue("labelIds", updatedLabelIds)
+    setSelectedLabels(selectedLabels.filter((l) => l.id !== labelId))
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -91,6 +141,7 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
           dueDate: values.dueDate ? values.dueDate.toISOString() : null,
           priority: Number.parseInt(values.priority),
           projectId: values.projectId ? Number.parseInt(values.projectId) : null,
+          labelIds: values.labelIds,
         }),
       })
 
@@ -99,18 +150,19 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
       }
 
       toast({
-        title: "Task created",
-        description: "Your task has been created successfully.",
+        title: t("taskCreated"),
+        description: t("Your task has been created successfully."),
       })
 
       form.reset()
+      setSelectedLabels([])
       setOpen(false)
       router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to create task",
-        description: "Please try again.",
+        title: t("Failed to create task"),
+        description: t("Please try again."),
       })
     }
   }
@@ -120,8 +172,8 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Task</DialogTitle>
-          <DialogDescription>Create a new task to keep track of your work.</DialogDescription>
+          <DialogTitle>{t("addTask")}</DialogTitle>
+          <DialogDescription>{t("Create a new task to keep track of your work.")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
@@ -130,9 +182,9 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>{t("title")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Task title" {...field} />
+                    <Input placeholder={t("Task title")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -143,9 +195,9 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t("description")}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Add details about your task" className="resize-none" {...field} />
+                    <Textarea placeholder={t("Add details about your task")} className="resize-none" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,7 +209,7 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Due Date</FormLabel>
+                    <FormLabel>{t("dueDate")}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -168,7 +220,7 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
                             }`}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                            {field.value ? format(field.value, "PPP") : <span>{t("pickDate")}</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -185,36 +237,36 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
                 name="priority"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Priority</FormLabel>
+                    <FormLabel>{t("priority")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select priority" />
+                          <SelectValue placeholder={t("Select priority")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent position="popper">
                         <SelectItem value="1">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-red-500" />
-                            Priority 1
+                            {t("priority1")}
                           </div>
                         </SelectItem>
                         <SelectItem value="2">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-orange-500" />
-                            Priority 2
+                            {t("priority2")}
                           </div>
                         </SelectItem>
                         <SelectItem value="3">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-blue-500" />
-                            Priority 3
+                            {t("priority3")}
                           </div>
                         </SelectItem>
                         <SelectItem value="4">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-gray-400" />
-                            Priority 4
+                            {t("priority4")}
                           </div>
                         </SelectItem>
                       </SelectContent>
@@ -229,18 +281,18 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
               name="projectId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project</FormLabel>
+                  <FormLabel>{t("project")}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a project" />
+                        <SelectValue placeholder={t("selectProject")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent position="popper">
-                      <SelectItem value="0">No Project</SelectItem>
+                      <SelectItem value="0">{t("noProject")}</SelectItem>
                       {isLoadingProjects ? (
                         <SelectItem value="0" disabled>
-                          Loading projects...
+                          {t("Loading projects...")}
                         </SelectItem>
                       ) : (
                         projects.map((project) => (
@@ -258,9 +310,91 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="labelIds"
+              render={() => (
+                <FormItem>
+                  <FormLabel>{t("labels")}</FormLabel>
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2 min-h-[36px] p-1">
+                      {selectedLabels.map((label) => (
+                        <Badge
+                          key={label.id}
+                          variant="outline"
+                          style={{
+                            backgroundColor: `${label.color}20`,
+                            borderColor: label.color,
+                            color: label.color,
+                          }}
+                          className="flex items-center gap-1"
+                        >
+                          <Tag className="h-3 w-3" />
+                          {label.name}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 rounded-full"
+                            onClick={() => removeLabel(label.id)}
+                          >
+                            <X className="h-3 w-3" />
+                            <span className="sr-only">{t("Remove label")}</span>
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+                    <Popover open={showLabelSelector} onOpenChange={setShowLabelSelector}>
+                      <PopoverTrigger asChild>
+                        <Button type="button" variant="outline" size="sm" className="mt-1">
+                          <Tag className="mr-2 h-4 w-4" />
+                          {t("Add labels")}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0" align="start">
+                        <ScrollArea className="h-[200px] p-2">
+                          {isLoadingLabels ? (
+                            <div className="flex items-center justify-center p-4">
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                            </div>
+                          ) : labels.length === 0 ? (
+                            <div className="p-2 text-center text-sm text-muted-foreground">{t("No labels found")}</div>
+                          ) : (
+                            <div className="space-y-2">
+                              {labels.map((label) => {
+                                const isSelected = form.getValues("labelIds")?.includes(label.id)
+                                return (
+                                  <div key={label.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`label-${label.id}`}
+                                      checked={isSelected}
+                                      onCheckedChange={() => toggleLabel(label)}
+                                    />
+                                    <label
+                                      htmlFor={`label-${label.id}`}
+                                      className="flex items-center gap-2 text-sm cursor-pointer"
+                                    >
+                                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: label.color }} />
+                                      {label.name}
+                                    </label>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </ScrollArea>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <DialogFooter className="pt-2 sm:pt-0">
               <Button type="submit" className="w-full sm:w-auto">
-                Create Task
+                {t("Create Task")}
               </Button>
             </DialogFooter>
           </form>

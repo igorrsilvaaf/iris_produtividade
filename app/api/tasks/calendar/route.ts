@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ tasks })
   } catch (error: any) {
+    console.error("Error fetching calendar tasks:", error)
     return NextResponse.json({ message: error.message || "Failed to fetch tasks" }, { status: 500 })
   }
 }

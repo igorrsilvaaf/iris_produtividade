@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Tag, Plus, X } from "lucide-react"
 import type { Label } from "@/lib/labels"
+import { useTranslation } from "@/lib/i18n"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -28,6 +29,7 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
   const [showCreateLabel, setShowCreateLabel] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   useEffect(() => {
     const fetchLabels = async () => {
@@ -51,8 +53,8 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
       } catch (error) {
         toast({
           variant: "destructive",
-          title: "Failed to load labels",
-          description: "Please try again later.",
+          title: t("Failed to load labels"),
+          description: t("Please try again later."),
         })
       } finally {
         setIsLoading(false)
@@ -60,7 +62,7 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
     }
 
     fetchLabels()
-  }, [taskId, toast])
+  }, [taskId, toast, t])
 
   const addLabelToTask = async (labelId: number) => {
     try {
@@ -80,8 +82,8 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
       setLabels(taskLabelsData.labels)
 
       toast({
-        title: "Label added",
-        description: "Label has been added to the task successfully.",
+        title: t("Label added"),
+        description: t("Label has been added to the task successfully."),
       })
 
       setShowAddLabel(false)
@@ -89,8 +91,8 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to add label",
-        description: "Please try again.",
+        title: t("Failed to add label"),
+        description: t("Please try again."),
       })
     }
   }
@@ -111,16 +113,16 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
       setLabels(labels.filter((label) => label.id !== labelId))
 
       toast({
-        title: "Label removed",
-        description: "Label has been removed from the task successfully.",
+        title: t("Label removed"),
+        description: t("Label has been removed from the task successfully."),
       })
 
       router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to remove label",
-        description: "Please try again.",
+        title: t("Failed to remove label"),
+        description: t("Please try again."),
       })
     }
   }
@@ -135,35 +137,35 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
       .catch(() => {
         toast({
           variant: "destructive",
-          title: "Failed to refresh labels",
-          description: "Please try again later.",
+          title: t("Failed to refresh labels"),
+          description: t("Please try again later."),
         })
       })
   }
 
   if (isLoading) {
-    return <div className="flex items-center justify-center p-4">Loading labels...</div>
+    return <div className="flex items-center justify-center p-4">{t("Loading labels...")}</div>
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Labels</h3>
+        <h3 className="text-sm font-medium">{t("labels")}</h3>
         <Dialog open={showAddLabel} onOpenChange={setShowAddLabel}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
               <Plus className="mr-1 h-3 w-3" />
-              Add Label
+              {t("Add Label")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Label</DialogTitle>
-              <DialogDescription>Select a label to add to this task.</DialogDescription>
+              <DialogTitle>{t("Add Label")}</DialogTitle>
+              <DialogDescription>{t("Select a label to add to this task.")}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-2 py-4">
               {allLabels.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No labels found.</p>
+                <p className="text-sm text-muted-foreground">{t("No labels found.")}</p>
               ) : (
                 allLabels
                   .filter((label) => !labels.some((l) => l.id === label.id))
@@ -188,7 +190,7 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
                 }}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Create New Label
+                {t("Create New Label")}
               </Button>
             </div>
           </DialogContent>
@@ -197,7 +199,7 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
 
       <div className="flex flex-wrap gap-2">
         {labels.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No labels assigned to this task.</p>
+          <p className="text-sm text-muted-foreground">{t("No labels assigned to this task.")}</p>
         ) : (
           labels.map((label) => (
             <div
@@ -226,8 +228,8 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
       <Dialog open={showCreateLabel} onOpenChange={setShowCreateLabel}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Label</DialogTitle>
-            <DialogDescription>Create a new label to organize your tasks.</DialogDescription>
+            <DialogTitle>{t("Create Label")}</DialogTitle>
+            <DialogDescription>{t("Create a new label to organize your tasks.")}</DialogDescription>
           </DialogHeader>
           <LabelForm onSuccess={handleCreateLabelSuccess} />
         </DialogContent>

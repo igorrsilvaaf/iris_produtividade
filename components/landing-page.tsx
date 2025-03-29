@@ -1,14 +1,29 @@
+"use client"
+
+import { useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
-import { useEffect, useState } from "react"
+import { useTranslation } from "@/lib/i18n"
 
 export default function LandingPage() {
-  const [year, setYear] = useState<number>()
+  const { t, language, setLanguage } = useTranslation()
 
+  // Verificar se há uma preferência de idioma salva no localStorage
   useEffect(() => {
-    setYear(new Date().getFullYear())
-  }, [])
+    const savedLanguage = localStorage.getItem("language-storage")
+    if (savedLanguage) {
+      try {
+        const parsedData = JSON.parse(savedLanguage)
+        if (parsedData.state && parsedData.state.language) {
+          setLanguage(parsedData.state.language)
+        }
+      } catch (e) {
+        console.error("Error parsing saved language:", e)
+      }
+    }
+  }, [setLanguage])
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -27,21 +42,21 @@ export default function LandingPage() {
               <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
               <path d="m9 12 2 2 4-4" />
             </svg>
-            <span>Igão To-Do-List</span>
+            <span>Todoist Clone</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <ModeToggle />
             <div className="hidden sm:flex gap-4">
               <Link href="/login">
-                <Button variant="outline">Login</Button>
+                <Button variant="outline">{t("Login")}</Button>
               </Link>
               <Link href="/register">
-                <Button>Sign Up</Button>
+                <Button>{t("Sign Up")}</Button>
               </Link>
             </div>
             <div className="sm:hidden">
               <Link href="/login">
-                <Button>Login</Button>
+                <Button>{t("Login")}</Button>
               </Link>
             </div>
           </div>
@@ -54,22 +69,23 @@ export default function LandingPage() {
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <h1 className="text-2xl font-bold tracking-tighter sm:text-4xl md:text-5xl xl:text-6xl/none">
-                    Organize your tasks with ease
+                    {t("Organize your tasks with ease")}
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Stay organized and productive with our Todoist-inspired task manager. Includes Pomodoro timer, dark
-                    mode, and more.
+                    {t(
+                      "Stay organized and productive with our Todoist-inspired task manager. Includes Pomodoro timer, dark mode, and more.",
+                    )}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Link href="/register">
                     <Button size="lg" className="w-full">
-                      Get Started
+                      {t("Get Started")}
                     </Button>
                   </Link>
                   <Link href="/login">
                     <Button size="lg" variant="outline" className="w-full">
-                      Login
+                      {t("Login")}
                     </Button>
                   </Link>
                 </div>
@@ -97,12 +113,12 @@ export default function LandingPage() {
           </div>
         </section>
         <section className="w-full py-8 sm:py-12 md:py-24 lg:py-32 bg-muted/50">
-          <div className="container px-4 md:px-6 mx-auto">
+          <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold tracking-tighter md:text-3xl">Features</h2>
+                <h2 className="text-2xl font-bold tracking-tighter md:text-3xl">{t("Features")}</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Everything you need to stay organized and productive
+                  {t("Everything you need to stay organized and productive")}
                 </p>
               </div>
             </div>
@@ -125,9 +141,9 @@ export default function LandingPage() {
                     <path d="M9 14.25v-4.5L12 12l3-2.25v4.5" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold">Pomodoro Timer</h3>
+                <h3 className="text-xl font-bold">{t("Pomodoro Timer")}</h3>
                 <p className="text-sm text-muted-foreground text-center">
-                  Stay focused with built-in Pomodoro timer to boost your productivity
+                  {t("Stay focused with built-in Pomodoro timer to boost your productivity")}
                 </p>
               </div>
               <div className="flex flex-col items-center space-y-2 rounded-lg p-4">
@@ -148,9 +164,9 @@ export default function LandingPage() {
                     <path d="M12 6v6l4 2" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold">Task Management</h3>
+                <h3 className="text-xl font-bold">{t("Task Management")}</h3>
                 <p className="text-sm text-muted-foreground text-center">
-                  Organize tasks with projects, priorities, and due dates
+                  {t("Organize tasks with projects, priorities, and due dates")}
                 </p>
               </div>
               <div className="flex flex-col items-center space-y-2 rounded-lg p-4">
@@ -172,9 +188,9 @@ export default function LandingPage() {
                     <line x1="9" x2="9" y1="21" y2="9" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold">Calendar View</h3>
+                <h3 className="text-xl font-bold">{t("Calendar View")}</h3>
                 <p className="text-sm text-muted-foreground text-center">
-                  See your tasks in a calendar view to plan your week effectively
+                  {t("See your tasks in a calendar view to plan your week effectively")}
                 </p>
               </div>
             </div>
@@ -184,14 +200,14 @@ export default function LandingPage() {
       <footer className="w-full border-t py-6">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {year ?? ""} Igão To-Do-List. All rights reserved.
+            © {new Date().getFullYear()} Todoist Clone. {t("All rights reserved.")}
           </p>
           <div className="flex items-center gap-4">
             <Link href="/terms" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-              Terms
+              {t("Terms")}
             </Link>
             <Link href="/privacy" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-              Privacy
+              {t("Privacy")}
             </Link>
           </div>
         </div>
@@ -199,3 +215,4 @@ export default function LandingPage() {
     </div>
   )
 }
+

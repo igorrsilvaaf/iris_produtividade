@@ -4,6 +4,7 @@ const sql = neon(process.env.DATABASE_URL!)
 
 export type UserSettings = {
   theme: string
+  language: string
   pomodoro_work_minutes: number
   pomodoro_break_minutes: number
   pomodoro_long_break_minutes: number
@@ -15,6 +16,8 @@ export type UserSettings = {
 
 export async function getUserSettings(userId: number): Promise<UserSettings> {
   try {
+    // A coluna language já existe, então não precisamos verificar ou adicioná-la
+
     const settings = await sql`
       SELECT * FROM user_settings
       WHERE user_id = ${userId}
@@ -27,6 +30,7 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
     // Create default settings if none exist
     const defaultSettings = {
       theme: "system",
+      language: "en",
       pomodoro_work_minutes: 25,
       pomodoro_break_minutes: 5,
       pomodoro_long_break_minutes: 15,
@@ -39,7 +43,8 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
     await sql`
       INSERT INTO user_settings (
         user_id, 
-        theme, 
+        theme,
+        language,
         pomodoro_work_minutes, 
         pomodoro_break_minutes, 
         pomodoro_long_break_minutes, 
@@ -50,7 +55,8 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
       )
       VALUES (
         ${userId}, 
-        ${defaultSettings.theme}, 
+        ${defaultSettings.theme},
+        ${defaultSettings.language},
         ${defaultSettings.pomodoro_work_minutes}, 
         ${defaultSettings.pomodoro_break_minutes}, 
         ${defaultSettings.pomodoro_long_break_minutes}, 
@@ -68,6 +74,7 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
     // Return default settings if there's an error
     return {
       theme: "system",
+      language: "en",
       pomodoro_work_minutes: 25,
       pomodoro_break_minutes: 5,
       pomodoro_long_break_minutes: 15,
@@ -86,6 +93,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
     UPDATE user_settings
     SET
       theme = COALESCE(${settings.theme}, theme),
+      language = COALESCE(${settings.language}, language),
       pomodoro_work_minutes = COALESCE(${settings.pomodoro_work_minutes}, pomodoro_work_minutes),
       pomodoro_break_minutes = COALESCE(${settings.pomodoro_break_minutes}, pomodoro_break_minutes),
       pomodoro_long_break_minutes = COALESCE(${settings.pomodoro_long_break_minutes}, pomodoro_long_break_minutes),

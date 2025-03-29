@@ -8,6 +8,8 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PomodoroSettings } from "@/components/pomodoro-settings"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslation } from "@/lib/i18n"
+import { useAudioPlayer } from "@/lib/audio-utils"
 
 type TimerMode = "work" | "shortBreak" | "longBreak"
 
@@ -30,6 +32,8 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
   const [cycles, setCycles] = useState(0)
   const [showSettings, setShowSettings] = useState(false)
   const { toast } = useToast()
+  const { t } = useTranslation()
+  const { playSound } = useAudioPlayer()
 
   // Settings
   const [workMinutes, setWorkMinutes] = useState(initialSettings.pomodoro_work_minutes)
@@ -43,19 +47,6 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
   )
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-
-  useEffect(() => {
-    // Initialize audio element
-    audioRef.current = new Audio(`/sounds/${notificationSound || "default"}.mp3`)
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current = null
-      }
-    }
-  }, [notificationSound])
 
   useEffect(() => {
     // Reset timer when mode changes
@@ -88,16 +79,14 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
             clearInterval(intervalRef.current!)
 
             // Play sound if enabled
-            if (enableSound && audioRef.current) {
-              audioRef.current.play().catch((error) => {
-                console.error("Failed to play sound:", error)
-              })
+            if (enableSound) {
+              playSound(notificationSound)
             }
 
             // Show desktop notification if enabled
             if (enableDesktopNotifications && Notification.permission === "granted") {
-              const title = mode === "work" ? "Work session completed!" : "Break time over!"
-              const body = mode === "work" ? "Time for a break!" : "Back to work!"
+              const title = mode === "work" ? t("workSessionCompleted") : t("breakTimeOver")
+              const body = mode === "work" ? t("timeForBreak") : t("backToWork")
 
               new Notification(title, {
                 body,
@@ -107,8 +96,8 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
 
             // Show toast notification
             toast({
-              title: mode === "work" ? "Work session completed!" : "Break time over!",
-              description: mode === "work" ? "Time for a break!" : "Back to work!",
+              title: mode === "work" ? t("workSessionCompleted") : t("breakTimeOver"),
+              description: mode === "work" ? t("timeForBreak") : t("backToWork"),
             })
 
             // Switch to next mode
@@ -141,7 +130,18 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
         clearInterval(intervalRef.current)
       }
     }
-  }, [isRunning, mode, cycles, longBreakInterval, enableSound, enableDesktopNotifications, toast])
+  }, [
+    isRunning,
+    mode,
+    cycles,
+    longBreakInterval,
+    enableSound,
+    enableDesktopNotifications,
+    toast,
+    t,
+    notificationSound,
+    playSound,
+  ])
 
   const toggleTimer = () => {
     setIsRunning(!isRunning)
@@ -219,11 +219,6 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
         break
     }
 
-    // Update audio element
-    if (audioRef.current) {
-      audioRef.current.src = `/sounds/${settings.notificationSound || "default"}.mp3`
-    }
-
     setShowSettings(false)
   }
 
@@ -232,22 +227,22 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
     const originalTitle = document.title
 
     if (isRunning) {
-      document.title = `${formatTime(timeLeft)} - ${mode === "work" ? "Work" : "Break"}`
+      document.title = `${formatTime(timeLeft)} - ${mode === "work" ? t("work") : t(mode === "shortBreak" ? "shortBreak" : "longBreak")}`
     }
 
     return () => {
       document.title = originalTitle
     }
-  }, [timeLeft, isRunning, mode])
+  }, [timeLeft, isRunning, mode, t])
 
   return (
     <>
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-lg sm:text-xl">Pomodoro Timer</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">{t("pomodoroTimer")}</CardTitle>
           <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
             <Settings className="h-4 w-4" />
-            <span className="sr-only">Settings</span>
+            <span className="sr-only">{t("settings")}</span>
           </Button>
         </CardHeader>
         <CardContent className="pt-0">
@@ -259,13 +254,13 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
           >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="work" className="text-xs sm:text-sm">
-                Work
+                {t("work")}
               </TabsTrigger>
               <TabsTrigger value="shortBreak" className="text-xs sm:text-sm">
-                Short Break
+                {t("shortBreak")}
               </TabsTrigger>
               <TabsTrigger value="longBreak" className="text-xs sm:text-sm">
-                Long Break
+                {t("longBreak")}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -284,7 +279,7 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
             </div>
 
             <div className="mt-4 text-xs sm:text-sm text-muted-foreground">
-              Cycle: {cycles % longBreakInterval}/{longBreakInterval}
+              {t("cycle")}: {cycles % longBreakInterval}/{longBreakInterval}
             </div>
           </div>
         </CardContent>
