@@ -43,8 +43,8 @@ export function BackupRestore() {
       const a = document.createElement("a")
 
       const contentDisposition = response.headers.get("Content-Disposition")
-      const filenameMatch = contentDisposition && contentDisposition.match(/filename="(.+)"/)
-      const filename = filenameMatch ? filenameMatch[1] : "todoist-clone-backup.json"
+      const filenameMatch = contentDisposition?.match(/filename="([^"]+)"/)
+      const filename = filenameMatch ? filenameMatch[1] : "to-do-backup.json"
 
       a.href = url
       a.download = filename

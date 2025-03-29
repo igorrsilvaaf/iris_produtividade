@@ -70,13 +70,9 @@ export default function LandingPage() {
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
-                  <h1 className="text-2xl font-bold tracking-tighter sm:text-4xl md:text-5xl xl:text-6xl/none">
-                    {t("Organize your tasks with ease")}
-                  </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    {t(
-                      "Stay organized and productive with our Todoist-inspired task manager. Includes Pomodoro timer, dark mode, and more."
-                    )}
+                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">{t("Organize your tasks with ease")}</h1>
+                  <p className="mt-6 max-w-3xl text-lg text-muted-foreground">
+                    {t("Stay organized and productive with our To-Do task manager. Includes Pomodoro timer, dark mode, and more.")}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
