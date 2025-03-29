@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar, Flag, Trash } from "lucide-react"
+import { Calendar as CalendarIcon, Flag, Trash } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
 import { useTranslation } from "@/lib/i18n"
@@ -22,6 +22,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 import { TaskLabels } from "@/components/task-labels"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 
 interface TaskDetailProps {
   task: Todo
@@ -32,7 +34,7 @@ interface TaskDetailProps {
 export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description || "")
-  const [dueDate, setDueDate] = useState(task.due_date || "")
+  const [dueDate, setDueDate] = useState<Date | undefined>(task.due_date ? new Date(task.due_date) : undefined)
   const [priority, setPriority] = useState(task.priority.toString())
   const [projectId, setProjectId] = useState<string | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
@@ -82,7 +84,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         body: JSON.stringify({
           title,
           description: description || null,
-          due_date: dueDate || null,
+          due_date: dueDate ? dueDate.toISOString() : null,
           priority: Number.parseInt(priority),
         }),
       })
@@ -196,15 +198,26 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
               <label htmlFor="dueDate" className="text-sm font-medium">
                 {t("dueDate")}
               </label>
-              <div className="flex items-center">
-                <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="dueDate"
-                  type="date"
-                  value={dueDate ? dueDate.split("T")[0] : ""}
-                  onChange={(e) => setDueDate(e.target.value ? `${e.target.value}T00:00:00Z` : "")}
-                />
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                    id="dueDate"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    {dueDate ? format(dueDate, "PPP") : <span className="text-muted-foreground">{t("pickDate")}</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar 
+                    mode="single" 
+                    selected={dueDate} 
+                    onSelect={(date) => setDueDate(date)} 
+                    initialFocus 
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <label htmlFor="priority" className="text-sm font-medium">

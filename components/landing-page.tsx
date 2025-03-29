@@ -10,7 +10,6 @@ import { AuthFooter } from "@/components/auth-footer";
 export default function LandingPage() {
   const { t, language, setLanguage } = useTranslation();
 
-  // Verificar se há uma preferência de idioma salva no localStorage
   useEffect(() => {
     const savedLanguage = localStorage.getItem("language-storage");
     if (savedLanguage) {
