@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { getProjectTasks } from "@/lib/projects"
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
 
@@ -10,7 +10,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const projectId = Number.parseInt(params.id)
+    const resolvedParams = await params
+    const projectId = Number.parseInt(resolvedParams.id)
     const tasks = await getProjectTasks(projectId, session.user.id)
 
     return NextResponse.json({ tasks })

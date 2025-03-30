@@ -196,6 +196,11 @@ export function CalendarView({ userId }: CalendarViewProps) {
                 title={task.title}
               >
                 {task.title}
+                {task.due_date && new Date(task.due_date).getHours() !== 0 && (
+                  <span className="ml-1 font-medium">
+                    {format(new Date(task.due_date), "HH:mm")}
+                  </span>
+                )}
               </div>
             ))}
           </div>

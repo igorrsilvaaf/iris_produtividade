@@ -112,7 +112,7 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
           )}
         />
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? t("Please wait") : label ? t("Update Label") : t("Create Label")}
+          {isLoading ? t("Salvando...") : label ? t("Update Label") : t("Create Label")}
         </Button>
       </form>
     </Form>

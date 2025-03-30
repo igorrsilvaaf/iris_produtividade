@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { getTaskProject, setTaskProject } from "@/lib/todos"
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
 
@@ -10,7 +10,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const taskId = Number.parseInt(params.id)
+    const resolvedParams = await params
+    const taskId = Number.parseInt(resolvedParams.id)
     const projectId = await getTaskProject(taskId)
 
     return NextResponse.json({ projectId })
@@ -19,7 +20,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
 
@@ -27,7 +28,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const taskId = Number.parseInt(params.id)
+    const resolvedParams = await params
+    const taskId = Number.parseInt(resolvedParams.id)
     const { projectId } = await request.json()
 
     await setTaskProject(taskId, projectId)

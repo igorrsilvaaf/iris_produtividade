@@ -33,7 +33,7 @@ export default async function RootLayout({
 
   return (
     <html lang={initialLanguage} suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LanguageProvider initialLanguage={initialLanguage}>
             {children}

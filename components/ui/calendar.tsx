@@ -15,6 +15,20 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const [isClient, setIsClient] = React.useState(false)
+  
+  React.useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  if (!isClient) {
+    return (
+      <div className={cn("p-3", className)} style={{ minHeight: "300px" }}>
+        <div className="animate-pulse rounded-md bg-muted h-[300px]"></div>
+      </div>
+    )
+  }
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}

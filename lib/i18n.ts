@@ -60,6 +60,14 @@ export const translations: Translations = {
     en: "Edit",
     pt: "Editar",
   },
+  editTask: {
+    en: "Edit Task",
+    pt: "Editar Tarefa",
+  },
+  update: {
+    en: "Update Task",
+    pt: "Atualizar Tarefa",
+  },
   delete: {
     en: "Delete",
     pt: "Excluir",
@@ -215,6 +223,24 @@ export const translations: Translations = {
   calendar: {
     en: "Calendar",
     pt: "Calendário",
+  },
+
+  // Novas strings para data/hora
+  allDay: {
+    en: "All day",
+    pt: "Dia todo",
+  },
+  confirm: {
+    en: "Confirm",
+    pt: "Confirmar",
+  },
+  pickDate: {
+    en: "Pick a date",
+    pt: "Escolha uma data",
+  },
+  time: {
+    en: "Time",
+    pt: "Hora",
   },
 
   // Mensagens
@@ -373,10 +399,6 @@ export const translations: Translations = {
   selectLabel: {
     en: "Select a label",
     pt: "Selecione uma etiqueta",
-  },
-  pickDate: {
-    en: "Pick a date",
-    pt: "Escolha uma data",
   },
   tomorrow: {
     en: "Tomorrow",
@@ -1005,7 +1027,19 @@ export const translations: Translations = {
   "Label has been created successfully.": {
     en: "Label has been created successfully.",
     pt: "A etiqueta foi criada com sucesso."
-  }
+  },
+  Personal: {
+    en: "Personal",
+    pt: "Pessoal",
+  },
+  Work: {
+    en: "Work",
+    pt: "Trabalho",
+  },
+  Shopping: {
+    en: "Shopping",
+    pt: "Compras",
+  },
 }
 
 // Store para gerenciar o idioma

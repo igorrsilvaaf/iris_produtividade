@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { deleteNotification } from "@/lib/notifications"
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
 
@@ -10,7 +10,8 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const notificationId = Number.parseInt(params.id)
+    const resolvedParams = await params
+    const notificationId = Number.parseInt(resolvedParams.id)
 
     await deleteNotification(notificationId, session.user.id)
 

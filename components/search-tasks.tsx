@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
 import { TaskDetail } from "@/components/task-detail"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
+import { format } from "date-fns"
 
 export function SearchTasks() {
   const [open, setOpen] = useState(false)
@@ -199,7 +200,19 @@ export function SearchTasks() {
     if (!dueDate) return null
 
     const date = new Date(dueDate)
-    return date.toLocaleDateString()
+    
+    // Verificar se é uma tarefa "dia todo" (00:00:00)
+    const isAllDay = date.getHours() === 0 && date.getMinutes() === 0;
+    
+    // Formato básico de data
+    const dateStr = date.toLocaleDateString();
+    
+    // Adicionar horário se não for 'dia todo'
+    if (!isAllDay) {
+      return `${dateStr} ${format(date, "HH:mm")}`;
+    }
+    
+    return dateStr;
   }
 
   const handleSelectTask = (task: Todo) => {
@@ -278,7 +291,10 @@ export function SearchTasks() {
                     <span className={task.completed ? "line-through text-muted-foreground" : ""}>{task.title}</span>
                     {task.due_date && (
                       <span className="text-xs text-muted-foreground">
-                        {t("Due")}: {formatDueDate(task.due_date)}
+                        {t("Due")}: 
+                        <span className={task.due_date && new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0 ? "" : "font-medium"}>
+                          {formatDueDate(task.due_date)}
+                        </span>
                       </span>
                     )}
                   </div>

@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { getTaskLabels, addLabelToTask, removeLabelFromTask } from "@/lib/labels"
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
 
@@ -10,7 +10,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const taskId = Number.parseInt(params.id)
+    const resolvedParams = await params
+    const taskId = Number.parseInt(resolvedParams.id)
     const labels = await getTaskLabels(taskId)
 
     return NextResponse.json({ labels })
@@ -19,7 +20,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
 
@@ -27,7 +28,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const taskId = Number.parseInt(params.id)
+    const resolvedParams = await params
+    const taskId = Number.parseInt(resolvedParams.id)
     const { labelId } = await request.json()
 
     if (!labelId) {
@@ -42,7 +44,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
 
@@ -50,7 +52,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const taskId = Number.parseInt(params.id)
+    const resolvedParams = await params
+    const taskId = Number.parseInt(resolvedParams.id)
     const { labelId } = await request.json()
 
     if (!labelId) {
