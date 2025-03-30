@@ -34,28 +34,48 @@ export function AuthHeader() {
             <span>To-Do</span>
           </Link>
         </div>
-        <div className="flex items-center gap-2 justify-between">
+
+        <div className="flex items-center gap-2 sm:gap-4">
           <ModeToggle />
-          {isLoginPage && (
-            <Link href="/register">
-              <Button>{t("Sign Up")}</Button>
-            </Link>
-          )}
-          {isRegisterPage && (
-            <Link href="/login">
-              <Button variant="outline">{t("Login")}</Button>
-            </Link>
-          )}
-          {!isLoginPage && !isRegisterPage && (
-            <>
-              <Link href="/login">
-                <Button variant="outline">{t("Login")}</Button>
-              </Link>
+          <div className="hidden sm:flex gap-4">
+            {isLoginPage && (
               <Link href="/register">
                 <Button>{t("Sign Up")}</Button>
               </Link>
-            </>
-          )}
+            )}
+            {isRegisterPage && (
+              <Link href="/login">
+                <Button variant="default">{t("Login")}</Button>
+              </Link>
+            )}
+            {!isLoginPage && !isRegisterPage && (
+              <>
+                <Link href="/login">
+                  <Button variant="outline">{t("Login")}</Button>
+                </Link>
+                <Link href="/register">
+                  <Button>{t("Sign Up")}</Button>
+                </Link>
+              </>
+            )}
+          </div>
+          <div className="sm:hidden">
+            {isLoginPage && (
+              <Link href="/register">
+                <Button size="sm">{t("Sign Up")}</Button>
+              </Link>
+            )}
+            {isRegisterPage && (
+              <Link href="/login">
+                <Button size="sm" variant="default">{t("Login")}</Button>
+              </Link>
+            )}
+            {!isLoginPage && !isRegisterPage && (
+              <Link href="/login">
+                <Button size="sm">{t("Login")}</Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </header>

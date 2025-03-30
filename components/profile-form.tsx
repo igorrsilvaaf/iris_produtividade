@@ -125,7 +125,7 @@ export function ProfileForm({ user }: { user: User }) {
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? t("Please wait") : t("Save")}
+              {isLoading ? t("Salvando...") : t("Save")}
             </Button>
           </CardFooter>
         </form>

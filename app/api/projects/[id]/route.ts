@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { getProject, updateProject, deleteProject } from "@/lib/projects"
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
 
@@ -10,7 +10,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const projectId = Number.parseInt(params.id)
+    const resolvedParams = await params
+    const projectId = Number.parseInt(resolvedParams.id)
     const project = await getProject(projectId, session.user.id)
 
     if (!project) {
@@ -23,7 +24,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
 
@@ -31,7 +32,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const projectId = Number.parseInt(params.id)
+    const resolvedParams = await params
+    const projectId = Number.parseInt(resolvedParams.id)
     const updates = await request.json()
 
     const project = await updateProject(projectId, session.user.id, updates)
@@ -42,7 +44,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getSession()
 
@@ -50,7 +52,8 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const projectId = Number.parseInt(params.id)
+    const resolvedParams = await params
+    const projectId = Number.parseInt(resolvedParams.id)
 
     await deleteProject(projectId, session.user.id)
 

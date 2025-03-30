@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -37,6 +37,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
   const { toast } = useToast()
   const { t, language, setLanguage } = useTranslation()
   const { playSound } = useAudioPlayer()
+  const [isLoading, setIsLoading] = useState(false)
 
   // Sincronizar o idioma do formulário com o idioma atual
   useEffect(() => {
@@ -61,6 +62,8 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true)
+    
     try {
       const response = await fetch("/api/settings", {
         method: "PATCH",
@@ -82,9 +85,18 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
         setLanguage(values.language)
       }
 
+      // Tocar um som de sucesso se os sons estiverem habilitados
+      if (values.enable_sound) {
+        playSound('success');
+      }
+
+      // Mostrar notificação de sucesso
       toast({
         title: t("Settings updated"),
         description: t("Your settings have been updated successfully."),
+        variant: "success",
+        duration: 5000,
+        position: "top-right"
       })
 
       router.refresh()
@@ -94,6 +106,8 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
         title: t("Failed to update settings"),
         description: t("Please try again."),
       })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -189,7 +203,9 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                 />
               </CardContent>
               <CardFooter>
-                <Button type="submit">{t("save")}</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? t("Salvando...") : t("save")}
+                </Button>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -309,7 +325,9 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                 )}
               </CardContent>
               <CardFooter>
-                <Button type="submit">{t("save")}</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? t("Salvando...") : t("save")}
+                </Button>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -346,7 +364,9 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                 />
               </CardContent>
               <CardFooter>
-                <Button type="submit">{t("save")}</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? t("Salvando...") : t("save")}
+                </Button>
               </CardFooter>
             </Card>
           </TabsContent>

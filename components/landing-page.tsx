@@ -22,6 +22,19 @@ export default function LandingPage() {
         console.error("Error parsing saved language:", e);
       }
     }
+    
+    // Ajustar layout para telas muito grandes
+    const handleResize = () => {
+      const isVeryLargeScreen = window.innerWidth >= 1920;
+      document.body.classList.toggle('very-large-screen', isVeryLargeScreen);
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, [setLanguage]);
 
   return (
@@ -66,39 +79,46 @@ export default function LandingPage() {
       <main className="flex-1">
         <section className="w-full py-8 sm:py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">{t("Organize your tasks with ease")}</h1>
-                  <p className="mt-6 max-w-3xl text-lg text-muted-foreground">
+            <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 xl:gap-20 items-center max-w-[1920px] mx-auto">
+              <div className="flex flex-col justify-center space-y-6 max-w-3xl">
+                <div className="space-y-4">
+                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl xl:text-7xl">{t("Organize your tasks with ease")}</h1>
+                  <p className="text-lg md:text-xl text-muted-foreground max-w-[600px]">
                     {t("Stay organized and productive with our To-Do task manager. Includes Pomodoro timer, dark mode, and more.")}
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link href="/register">
-                    <Button size="lg" className="w-full">
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                  <Link href="/register" className="w-full sm:w-auto">
+                    <Button size="lg" className="w-full px-8">
                       {t("Get Started")}
                     </Button>
                   </Link>
-                  <Link href="/login">
-                    <Button size="lg" variant="outline" className="w-full">
+                  <Link href="/login" className="w-full sm:w-auto">
+                    <Button size="lg" variant="outline" className="w-full px-8">
                       {t("Login")}
                     </Button>
                   </Link>
                 </div>
               </div>
-              <div className="hidden sm:flex items-center justify-center">
-                <div className="relative h-[350px] w-[350px] md:h-[450px] md:w-[450px] lg:h-[500px] lg:w-[500px]">
+              <div className="hidden sm:block w-full mx-auto flex justify-center items-center lg:max-w-full">
+                <div className="relative aspect-square w-full max-w-[600px] xl:max-w-[650px] 2xl:max-w-[700px] landing-reader mx-auto">
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full opacity-20 blur-3xl"></div>
-                  <div className="relative h-full w-full rounded-xl border bg-background p-4 shadow-xl">
-                    <div className="space-y-4">
-                      <div className="h-6 w-3/4 rounded bg-muted"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 w-full rounded bg-muted"></div>
-                        <div className="h-4 w-5/6 rounded bg-muted"></div>
-                        <div className="h-4 w-4/6 rounded bg-muted"></div>
+                  <div className="relative h-full w-full rounded-xl border bg-background p-4 md:p-6 lg:p-8 shadow-xl">
+                    <div className="flex flex-col h-full justify-between">
+                      <div className="space-y-5">
+                        <div className="h-6 w-3/4 rounded bg-muted"></div>
+                        <div className="space-y-3">
+                          <div className="h-4 w-full rounded bg-muted"></div>
+                          <div className="h-4 w-5/6 rounded bg-muted"></div>
+                          <div className="h-4 w-4/6 rounded bg-muted"></div>
+                        </div>
+                        <div className="h-4 w-2/3 rounded bg-muted"></div>
+                        <div className="space-y-3">
+                          <div className="h-4 w-full rounded bg-muted"></div>
+                          <div className="h-4 w-4/5 rounded bg-muted"></div>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between mt-auto pt-6">
                         <div className="h-8 w-24 rounded bg-muted"></div>
                         <div className="h-8 w-8 rounded-full bg-muted"></div>
                       </div>

@@ -9,6 +9,7 @@ export const SOUND_URLS = {
   bell: "/sounds/bell.mp3",
   chime: "/sounds/chime.mp3",
   digital: "/sounds/digital.mp3",
+  success: "/sounds/chime.mp3", // Usar chime como som de sucesso por enquanto
 }
 
 // Hook para reproduzir sons com tratamento de erros simplificado

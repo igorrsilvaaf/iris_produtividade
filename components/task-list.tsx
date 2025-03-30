@@ -85,13 +85,25 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
     const tomorrow = new Date()
     tomorrow.setDate(today.getDate() + 1)
 
+    // Verificar se é uma tarefa "dia todo" (00:00:00)
+    const isAllDay = date.getHours() === 0 && date.getMinutes() === 0;
+    
+    // Formatar a parte da data
+    let dateDisplay;
     if (date.toDateString() === today.toDateString()) {
-      return t("today")
+      dateDisplay = t("today");
     } else if (date.toDateString() === tomorrow.toDateString()) {
-      return t("tomorrow")
+      dateDisplay = t("tomorrow");
     } else {
-      return format(date, "MMM d")
+      dateDisplay = format(date, "MMM d");
     }
+    
+    // Adicionar horário se não for 'dia todo'
+    if (!isAllDay) {
+      return `${dateDisplay} ${format(date, "HH:mm")}`;
+    }
+    
+    return dateDisplay;
   }
 
   const openTaskDetail = (task: Todo) => {
@@ -121,17 +133,31 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
             <Checkbox
               checked={task.completed}
               onCheckedChange={() => toggleTaskCompletion(task.id)}
-              className="mt-1 flex-shrink-0"
+              className={cn(
+                "mt-1 flex-shrink-0 transition-all duration-200",
+                task.completed && "animate-pulse-once"
+              )}
             />
             <div
               className="ml-3 flex-1 cursor-pointer min-w-0"
-              onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
+              onClick={() => openTaskDetail(task)}
             >
               <div className="flex items-center justify-between">
-                <h3 className={cn("font-medium truncate", task.completed && "line-through text-muted-foreground")}>
+                <h3 className={cn(
+                  "font-medium truncate transition-all duration-300", 
+                  task.completed && "line-through text-muted-foreground"
+                )}>
                   {task.title}
                 </h3>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 ml-1">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 flex-shrink-0 ml-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedTask(expandedTask === task.id ? null : task.id);
+                  }}
+                >
                   <ChevronRight
                     className={cn("h-4 w-4 transition-transform", expandedTask === task.id && "rotate-90")}
                   />
@@ -150,7 +176,9 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
                 {task.due_date && (
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3 flex-shrink-0" />
-                    {formatDueDate(task.due_date)}
+                    <span className={task.due_date && new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0 ? "" : "font-medium"}>
+                      {formatDueDate(task.due_date)}
+                    </span>
                   </span>
                 )}
                 {task.priority < 4 && <Flag className={cn("h-3 w-3 flex-shrink-0", getPriorityColor(task.priority))} />}

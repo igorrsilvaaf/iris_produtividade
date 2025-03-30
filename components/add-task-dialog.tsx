@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { CalendarIcon, Flag, Tag, X } from "lucide-react"
+import { CalendarIcon, Flag, Tag, X, Clock } from "lucide-react"
 import { format } from "date-fns"
 import type { Project } from "@/lib/projects"
 import type { Label } from "@/lib/labels"
@@ -38,6 +38,8 @@ const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().optional(),
   dueDate: z.date().optional(),
+  dueTime: z.string().optional(),
+  isAllDay: z.boolean().default(true),
   priority: z.string().default("4"),
   projectId: z.string().optional(),
   labelIds: z.array(z.number()).default([]),
@@ -56,15 +58,20 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isLoadingLabels, setIsLoadingLabels] = useState(false)
   const [showLabelSelector, setShowLabelSelector] = useState(false)
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
+      dueDate: undefined,
+      dueTime: "12:00",
+      isAllDay: true,
       priority: "4",
       projectId: initialProjectId ? initialProjectId.toString() : undefined,
       labelIds: [],
@@ -131,16 +138,32 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true)
     try {
+      let dueDateTime = null;
+      
+      if (values.dueDate) {
+        if (values.isAllDay) {
+          // Para o dia todo, mantém só a data
+          dueDateTime = values.dueDate.toISOString().split('T')[0] + 'T00:00:00Z';
+        } else if (values.dueTime) {
+          // Combina data e hora
+          const date = new Date(values.dueDate);
+          const [hours, minutes] = values.dueTime.split(':').map(Number);
+          date.setHours(hours, minutes);
+          dueDateTime = date.toISOString();
+        }
+      }
+
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: values.title,
           description: values.description || null,
-          dueDate: values.dueDate ? values.dueDate.toISOString() : null,
+          dueDate: dueDateTime,
           priority: Number.parseInt(values.priority),
-          projectId: values.projectId ? Number.parseInt(values.projectId) : null,
+          projectId: values.projectId && values.projectId !== "noProject" ? Number.parseInt(values.projectId) : null,
           labelIds: values.labelIds,
         }),
       })
@@ -164,6 +187,8 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
         title: t("Failed to create task"),
         description: t("Please try again."),
       })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -210,7 +235,7 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("dueDate")}</FormLabel>
-                    <Popover>
+                    <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -218,14 +243,96 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
                             className={`w-full justify-start text-left font-normal ${
                               !field.value && "text-muted-foreground"
                             }`}
+                            type="button"
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(field.value, "PPP") : <span>{t("pickDate")}</span>}
+                            {field.value 
+                              ? form.watch("isAllDay")
+                                ? format(field.value, "PPP")
+                                : `${format(field.value, "PPP")} - ${form.watch("dueTime") || "12:00"}`
+                              : <span>{t("pickDate")}</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                      <PopoverContent className="w-auto p-0" align="start" side="bottom">
+                        <div className="p-3">
+                          <Calendar 
+                            mode="single" 
+                            selected={field.value} 
+                            onSelect={(date) => {
+                              field.onChange(date);
+                            }}
+                            initialFocus 
+                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          />
+                          <div className="pt-3 pb-2 border-t mt-3">
+                            <FormField
+                              control={form.control}
+                              name="isAllDay"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 h-9">
+                                  <FormControl>
+                                    <Checkbox
+                                      id="isAllDay"
+                                      checked={field.value}
+                                      onCheckedChange={(checked) => {
+                                        field.onChange(checked);
+                                        // Força uma re-renderização para dispositivos iOS
+                                        if (typeof window !== 'undefined') {
+                                          setTimeout(() => {
+                                            form.trigger("dueTime");
+                                          }, 0);
+                                        }
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal cursor-pointer" htmlFor="isAllDay">
+                                    {t("allDay")}
+                                  </FormLabel>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name="dueTime"
+                            render={({ field }) => (
+                              <FormItem className={`mt-2 ${form.watch("isAllDay") ? "hidden" : ""}`}>
+                                <div className="flex items-center">
+                                  <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                                  <FormControl>
+                                    <Input 
+                                      type="time" 
+                                      value={field.value || "12:00"}
+                                      onChange={(e) => field.onChange(e.target.value || "12:00")}
+                                      className="w-full"
+                                      inputMode="none"
+                                      onClick={(e) => {
+                                        const target = e.target as HTMLInputElement;
+                                        target.focus();
+                                        if (typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                                          setTimeout(() => {
+                                            target.click();
+                                          }, 100);
+                                        }
+                                      }}
+                                    />
+                                  </FormControl>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          <Button 
+                            className="w-full mt-3" 
+                            type="button"
+                            onClick={() => {
+                              // Feche o popover usando o estado
+                              setDatePickerOpen(false);
+                            }}
+                          >
+                            {t("confirm")}
+                          </Button>
+                        </div>
                       </PopoverContent>
                     </Popover>
                     <FormMessage />
@@ -236,7 +343,7 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
                 control={form.control}
                 name="priority"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>{t("priority")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
@@ -244,7 +351,7 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
                           <SelectValue placeholder={t("Select priority")} />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent position="popper">
+                      <SelectContent>
                         <SelectItem value="1">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-red-500" />
@@ -288,10 +395,10 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
                         <SelectValue placeholder={t("selectProject")} />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent position="popper">
-                      <SelectItem value="0">{t("noProject")}</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="noProject">{t("noProject")}</SelectItem>
                       {isLoadingProjects ? (
-                        <SelectItem value="0" disabled>
+                        <SelectItem value="loading" disabled>
                           {t("Loading projects...")}
                         </SelectItem>
                       ) : (
@@ -393,8 +500,8 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
             />
 
             <DialogFooter className="pt-2 sm:pt-0">
-              <Button type="submit" className="w-full sm:w-auto">
-                {t("Create Task")}
+              <Button type="submit" className="w-full sm:w-auto" disabled={isLoading}>
+                {isLoading ? t("Criando...") : t("Create Task")}
               </Button>
             </DialogFooter>
           </form>
