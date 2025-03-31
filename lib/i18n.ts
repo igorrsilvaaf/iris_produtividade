@@ -770,7 +770,7 @@ export const translations: Translations = {
   },
   "Login successful": {
     en: "Login successful",
-    pt: "Login realizado com sucesso"
+    pt: "Login bem-sucedido"
   },
   "Redirecting to your dashboard...": {
     en: "Redirecting to your dashboard...",
@@ -814,7 +814,7 @@ export const translations: Translations = {
   },
   "Registration successful": {
     en: "Registration successful",
-    pt: "Registro realizado com sucesso",
+    pt: "Registro bem-sucedido",
   },
   "Your account has been created. Redirecting to login...": {
     en: "Your account has been created. Redirecting to login...",
@@ -958,7 +958,7 @@ export const translations: Translations = {
   },
   "Failed to login": {
     en: "Failed to login",
-    pt: "Falha no login"
+    pt: "Falha ao fazer login"
   },
   "Label name is required": {
     en: "Label name is required",
@@ -1040,6 +1040,62 @@ export const translations: Translations = {
     en: "Shopping",
     pt: "Compras",
   },
+  // Mensagens de erro e sucesso
+  "Invalid email or password": {
+    en: "Invalid email or password",
+    pt: "Email ou senha inválidos"
+  },
+  "Invalid email or password. Please check your credentials and try again.": {
+    en: "Invalid email or password. Please check your credentials and try again.",
+    pt: "Email ou senha inválidos. Por favor, verifique suas credenciais e tente novamente."
+  },
+  "Multiple failed login attempts. Make sure your credentials are correct or reset your password.": {
+    en: "Multiple failed login attempts. Make sure your credentials are correct or reset your password.",
+    pt: "Múltiplas tentativas de login malsucedidas. Certifique-se de que suas credenciais estão corretas ou redefina sua senha."
+  },
+  "Failed to login": {
+    en: "Failed to login",
+    pt: "Falha ao fazer login"
+  },
+  "Failed to register": {
+    en: "Failed to register",
+    pt: "Falha ao registrar"
+  },
+  "Erro login": {
+    en: "Login failed",
+    pt: "Falha no login"
+  },
+  "Erro registro": {
+    en: "Registration failed",
+    pt: "Falha no registro"
+  },
+  "Sucesso login": {
+    en: "Login successful",
+    pt: "Login bem-sucedido"
+  },
+  "Sucesso registro": {
+    en: "Registration successful",
+    pt: "Registro bem-sucedido"
+  },
+  "Redirecionando login": {
+    en: "Redirecting to your dashboard...",
+    pt: "Redirecionando para seu painel..."
+  },
+  "Erro email existe": {
+    en: "This email is already registered. Please use a different email or try logging in.",
+    pt: "Este email já está registrado. Por favor, use um email diferente ou tente fazer login."
+  },
+  "Mensagem conta criada": {
+    en: "Your account has been created. Redirecting to login...",
+    pt: "Sua conta foi criada. Redirecionando para o login..."
+  },
+  
+  // Navegação
+  today: {
+    en: "Today",
+    pt: "Hoje",
+  },
+  // ... existing code ...
 }
 
 // Store para gerenciar o idioma
