@@ -10,23 +10,35 @@ import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/lib/i18n"
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isEmailAvailable, setIsEmailAvailable] = useState(true)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
 
   const formSchema = z
     .object({
-      name: z.string().min(2, { message: t("Name must be at least 2 characters") }),
-      email: z.string().email({ message: t("Please enter a valid email address") }),
-      password: z.string().min(6, { message: t("Password must be at least 6 characters") }),
-      confirmPassword: z.string(),
+      name: z
+        .string()
+        .min(1, { message: t("Name is required") })
+        .min(2, { message: t("Name must be at least 2 characters") }),
+      email: z
+        .string()
+        .min(1, { message: t("Email is required") })
+        .email({ message: t("Please enter a valid email address") }),
+      password: z
+        .string()
+        .min(1, { message: t("Password is required") })
+        .min(6, { message: t("Password must be at least 6 characters") })
+        .regex(/.*[A-Z].*/, { message: t("Password must contain at least one uppercase letter") })
+        .regex(/.*[0-9].*/, { message: t("Password must contain at least one number") }),
+      confirmPassword: z.string().min(1, { message: t("Please confirm your password") }),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: t("Passwords do not match"),
@@ -43,10 +55,46 @@ export function RegisterForm() {
     },
   })
 
+  // Check if email already exists
+  const checkEmailAvailability = async (email: string) => {
+    if (!email || !form.formState.dirtyFields.email) return
+    
+    try {
+      const response = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`, {
+        method: "GET",
+      })
+      
+      const data = await response.json()
+      setIsEmailAvailable(data.available)
+      
+      if (!data.available) {
+        form.setError("email", {
+          type: "manual",
+          message: t("This email is already registered. Please use a different email or try logging in.")
+        })
+      }
+    } catch (error) {
+      // Silent fail - don't block registration on email check failure
+      console.error("Failed to check email availability:", error)
+    }
+  }
+
+  // Add email blur handler to check availability
+  const onEmailBlur = (email: string) => {
+    if (email && email.includes('@') && email.includes('.')) {
+      checkEmailAvailability(email);
+    }
+  }
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
 
     try {
+      // Final email check before submission
+      if (!isEmailAvailable) {
+        throw new Error(t("This email is already registered. Please use a different email or try logging in."))
+      }
+      
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,21 +108,38 @@ export function RegisterForm() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to register")
+        let errorMessage = "";
+        
+        if (data.message.includes("Email already exists")) {
+          setIsEmailAvailable(false)
+          errorMessage = t("This email is already registered. Please use a different email or try logging in.");
+          form.setError("email", {
+            type: "manual",
+            message: errorMessage
+          });
+        } else {
+          errorMessage = t(data.message) || t("Failed to register");
+        }
+        
+        throw new Error(errorMessage);
       }
 
       toast({
-        title: t("Registration successful"),
-        description: t("Your account has been created. Redirecting to login..."),
+        variant: "success",
+        title: t("Sucesso registro"),
+        description: t("Mensagem conta criada"),
+        duration: 3000,
       })
 
       router.push("/login")
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: t("Registration failed"),
-        description: error.message || t("Something went wrong. Please try again."),
+        title: t("Erro registro"),
+        description: error.message,
+        duration: 5000,
       })
+      console.error("Registration error:", error.message);
     } finally {
       setIsLoading(false)
     }
@@ -90,7 +155,7 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>{t("Name")}</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="John Doe" {...field} autoComplete="name" aria-required="true" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -103,7 +168,13 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>{t("Email")}</FormLabel>
               <FormControl>
-                <Input placeholder="your.email@example.com" {...field} />
+                <Input 
+                  placeholder="your.email@example.com" 
+                  {...field} 
+                  autoComplete="email" 
+                  aria-required="true" 
+                  onBlur={() => onEmailBlur(field.value)}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -117,13 +188,20 @@ export function RegisterForm() {
               <FormLabel>{t("Password")}</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    {...field} 
+                    autoComplete="new-password"
+                    aria-required="true"
+                  />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? t("Hide password") : t("Show password")}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -135,6 +213,9 @@ export function RegisterForm() {
                 </div>
               </FormControl>
               <FormMessage />
+              <p className="text-xs text-muted-foreground">
+                {t("Password must be at least 6 characters with one uppercase letter and one number.")}
+              </p>
             </FormItem>
           )}
         />
@@ -146,13 +227,20 @@ export function RegisterForm() {
               <FormLabel>{t("Confirm Password")}</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                  <Input 
+                    type={showConfirmPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    {...field} 
+                    autoComplete="new-password"
+                    aria-required="true"
+                  />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4 text-muted-foreground" />

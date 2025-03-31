@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { useTranslation } from "@/lib/i18n"
 import { Card, CardContent } from "@/components/ui/card"
 import { LanguageProvider } from "@/components/language-provider";
@@ -19,13 +19,18 @@ import { LanguageProvider } from "@/components/language-provider";
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [loginAttempts, setLoginAttempts] = useState(0)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
 
   const formSchema = z.object({
-    email: z.string().email({ message: t("Please enter a valid email address") }),
-    password: z.string().min(6, { message: t("Password must be at least 6 characters") }),
+    email: z.string()
+      .min(1, { message: t("Email is required") })
+      .email({ message: t("Please enter a valid email address") }),
+    password: z.string()
+      .min(1, { message: t("Password is required") })
+      .min(6, { message: t("Password must be at least 6 characters") }),
     rememberMe: z.boolean().default(false),
   })
 
@@ -51,12 +56,29 @@ export function LoginForm() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || t("Failed to login"))
+        setLoginAttempts(prev => prev + 1)
+        
+        // Translate error messages from the server
+        let errorMessage = "";
+        if (data.message.includes("Invalid email or password")) {
+          errorMessage = loginAttempts >= 2 
+            ? t("Multiple failed login attempts. Make sure your credentials are correct or reset your password.")
+            : t("Invalid email or password. Please check your credentials and try again.");
+        } else {
+          errorMessage = t(data.message) || t("Failed to login");
+        }
+        
+        throw new Error(errorMessage);
       }
 
+      // Reset login attempts on successful login
+      setLoginAttempts(0)
+      
       toast({
-        title: t("Login successful"),
-        description: t("Redirecting to your dashboard..."),
+        variant: "success",
+        title: t("Sucesso login"),
+        description: t("Redirecionando login"),
+        duration: 3000,
       })
 
       router.push("/app")
@@ -64,8 +86,9 @@ export function LoginForm() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: t("Login failed"),
-        description: error.message || t("Something went wrong. Please try again."),
+        title: t("Erro login"),
+        description: error.message,
+        duration: 5000,
       })
     } finally {
       setIsLoading(false)
@@ -82,7 +105,12 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>{t("Email")}</FormLabel>
               <FormControl>
-                <Input placeholder={t("Your email")} {...field} />
+                <Input 
+                  placeholder={t("Your email")} 
+                  {...field} 
+                  autoComplete="email"
+                  aria-required="true"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -96,13 +124,20 @@ export function LoginForm() {
               <FormLabel>{t("Password")}</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} />
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    {...field} 
+                    autoComplete="current-password"
+                    aria-required="true"
+                  />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? t("Hide password") : t("Show password")}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-muted-foreground" />
