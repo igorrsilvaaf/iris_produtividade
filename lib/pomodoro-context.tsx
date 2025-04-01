@@ -1,17 +1,39 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
-import { Play, Pause, RotateCcw, Settings } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PomodoroSettings } from "@/components/pomodoro-settings"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
 import { useAudioPlayer } from "@/lib/audio-utils"
 
-interface PomodoroTimerProps {
+type TimerMode = "work" | "shortBreak" | "longBreak"
+
+interface PomodoroContextType {
+  isRunning: boolean
+  mode: TimerMode
+  timeLeft: number
+  cycles: number
+  settings: {
+    workMinutes: number
+    shortBreakMinutes: number
+    longBreakMinutes: number
+    longBreakInterval: number
+    enableSound: boolean
+    notificationSound: string
+    enableDesktopNotifications: boolean
+  }
+  toggleTimer: () => void
+  resetTimer: () => void
+  setMode: (mode: TimerMode) => void
+  updateSettings: (settings: PomodoroContextType["settings"]) => void
+}
+
+const PomodoroContext = createContext<PomodoroContextType | null>(null)
+
+export function PomodoroProvider({
+  children,
+  initialSettings,
+}: {
+  children: React.ReactNode
   initialSettings: {
     pomodoro_work_minutes: number
     pomodoro_break_minutes: number
@@ -21,11 +43,7 @@ interface PomodoroTimerProps {
     notification_sound: string
     enable_desktop_notifications: boolean
   }
-}
-
-type TimerMode = "work" | "shortBreak" | "longBreak"
-
-export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
+}) {
   const [isRunning, setIsRunning] = useState(false)
   const [mode, setMode] = useState<TimerMode>("work")
   const [timeLeft, setTimeLeft] = useState(initialSettings.pomodoro_work_minutes * 60)
@@ -39,7 +57,6 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
     notificationSound: initialSettings.notification_sound,
     enableDesktopNotifications: initialSettings.enable_desktop_notifications,
   })
-  const [showSettings, setShowSettings] = useState(false)
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
@@ -167,97 +184,44 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
     }
   }
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
-
-  const getProgress = () => {
-    let total
+  const updateSettings = (newSettings: PomodoroContextType["settings"]) => {
+    setSettings(newSettings)
     switch (mode) {
       case "work":
-        total = settings.workMinutes * 60
+        setTimeLeft(newSettings.workMinutes * 60)
         break
       case "shortBreak":
-        total = settings.shortBreakMinutes * 60
+        setTimeLeft(newSettings.shortBreakMinutes * 60)
         break
       case "longBreak":
-        total = settings.longBreakMinutes * 60
+        setTimeLeft(newSettings.longBreakMinutes * 60)
         break
     }
-    return 100 - (timeLeft / total) * 100
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-lg sm:text-xl">{t("pomodoroTimer")}</CardTitle>
-          <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
-            <Settings className="h-4 w-4" />
-            <span className="sr-only">{t("settings")}</span>
-          </Button>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <Tabs
-            defaultValue="work"
-            value={mode}
-            onValueChange={(value) => handleSetMode(value as TimerMode)}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-3 gap-3 p-1.5">
-              <TabsTrigger value="work" className="px-2 py-2 text-xs sm:text-sm">
-                {t("work")}
-              </TabsTrigger>
-              <TabsTrigger value="shortBreak" className="px-2 py-2 text-xs sm:text-sm">
-                {t("shortBreak")}
-              </TabsTrigger>
-              <TabsTrigger value="longBreak" className="px-2 py-2 text-xs sm:text-sm">
-                {t("longBreak")}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <div className="mt-4 sm:mt-6 flex flex-col items-center">
-            <div className="text-4xl sm:text-5xl font-bold tabular-nums">{formatTime(timeLeft)}</div>
-            <Progress value={getProgress()} className="mt-4 h-2 w-full" />
-
-            <div className="mt-4 sm:mt-6 flex items-center gap-4">
-              <Button variant="outline" size="icon" onClick={toggleTimer} className="h-12 w-12 rounded-full">
-                {isRunning ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-              </Button>
-              <Button variant="outline" size="icon" onClick={resetTimer} className="h-10 w-10 rounded-full">
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="mt-4 text-xs sm:text-sm text-muted-foreground">
-              {t("cycle")}: {cycles % settings.longBreakInterval}/{settings.longBreakInterval}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <PomodoroSettings
-        open={showSettings}
-        onOpenChange={setShowSettings}
-        settings={{
-          workMinutes: settings.workMinutes,
-          shortBreakMinutes: settings.shortBreakMinutes,
-          longBreakMinutes: settings.longBreakMinutes,
-          longBreakInterval: settings.longBreakInterval,
-          enableSound: settings.enableSound,
-          notificationSound: settings.notificationSound,
-          enableDesktopNotifications: settings.enableDesktopNotifications,
-        }}
-        onSave={(newSettings) => {
-          setSettings(newSettings)
-          setTimeLeft(newSettings.workMinutes * 60)
-          setShowSettings(false)
-        }}
-      />
-    </>
+    <PomodoroContext.Provider
+      value={{
+        isRunning,
+        mode,
+        timeLeft,
+        cycles,
+        settings,
+        toggleTimer,
+        resetTimer,
+        setMode: handleSetMode,
+        updateSettings,
+      }}
+    >
+      {children}
+    </PomodoroContext.Provider>
   )
 }
 
+export function usePomodoroTimer() {
+  const context = useContext(PomodoroContext)
+  if (!context) {
+    throw new Error("usePomodoroTimer must be used within a PomodoroProvider")
+  }
+  return context
+} 

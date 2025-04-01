@@ -16,7 +16,11 @@ export type Todo = {
 }
 
 export async function getTodayTasks(userId: number): Promise<Todo[]> {
-  const today = new Date().toISOString().split("T")[0]
+  const now = new Date()
+  const startOfDay = new Date(now)
+  startOfDay.setHours(0, 0, 0, 0)
+  const endOfDay = new Date(now)
+  endOfDay.setHours(23, 59, 59, 999)
 
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
@@ -24,7 +28,9 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     LEFT JOIN todo_projects tp ON t.id = tp.todo_id
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
-    AND (t.due_date IS NULL OR DATE(t.due_date) <= ${today})
+    AND t.due_date IS NOT NULL
+    AND t.due_date >= ${startOfDay.toISOString()}
+    AND t.due_date <= ${endOfDay.toISOString()}
     AND t.completed = false
     ORDER BY t.priority ASC, t.due_date ASC
   `
@@ -167,7 +173,7 @@ export async function setTaskProject(taskId: number, projectId: number | null): 
 }
 
 export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
-  const today = new Date().toISOString().split("T")[0]
+  const now = new Date().toISOString()
 
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
@@ -176,7 +182,7 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
     AND t.due_date IS NOT NULL
-    AND DATE(t.due_date) > ${today}
+    AND t.due_date > ${now}
     AND t.completed = false
     ORDER BY t.due_date ASC, t.priority ASC
   `
