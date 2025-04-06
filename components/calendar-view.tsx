@@ -16,6 +16,7 @@ import {
   isFuture,
   isPast,
 } from "date-fns"
+import { ptBR } from "date-fns/locale"
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import { Button } from "@/components/ui/button"
@@ -23,6 +24,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AddTaskDialog } from "@/components/add-task-dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { TaskDetail } from "@/components/task-detail"
+import { useTranslation } from "@/lib/i18n"
 
 interface CalendarViewProps {
   userId: number
@@ -37,6 +39,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
   const [showTaskDetail, setShowTaskDetail] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { language, t } = useTranslation()
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -69,8 +72,8 @@ export function CalendarView({ userId }: CalendarViewProps) {
       } catch (error) {
         toast({
           variant: "destructive",
-          title: "Failed to load tasks",
-          description: "Please try again later.",
+          title: t("Failed to load tasks"),
+          description: t("Please try again later."),
         })
       } finally {
         setIsLoading(false)
@@ -78,7 +81,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
     }
 
     fetchTasks()
-  }, [currentMonth, toast])
+  }, [currentMonth, toast, t])
 
   const nextMonth = () => {
     setCurrentMonth(addMonths(currentMonth, 1))
@@ -89,12 +92,15 @@ export function CalendarView({ userId }: CalendarViewProps) {
   }
 
   const renderHeader = () => {
+    const formatOptions = language === "pt" ? { locale: ptBR } : undefined
     return (
       <div className="flex items-center justify-between mb-4">
         <Button variant="outline" size="icon" onClick={prevMonth}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-base sm:text-xl font-bold">{format(currentMonth, "MMMM yyyy")}</h2>
+        <h2 className="text-base sm:text-xl font-bold">
+          {format(currentMonth, "MMMM yyyy", formatOptions)}
+        </h2>
         <Button variant="outline" size="icon" onClick={nextMonth}>
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -103,7 +109,19 @@ export function CalendarView({ userId }: CalendarViewProps) {
   }
 
   const renderDays = () => {
-    const days = isMobile ? ["S", "M", "T", "W", "T", "F", "S"] : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    const getDaysOfWeek = () => {
+      if (language === "pt") {
+        return isMobile 
+          ? ["D", "S", "T", "Q", "Q", "S", "S"] 
+          : ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+      } else {
+        return isMobile 
+          ? ["S", "M", "T", "W", "T", "F", "S"] 
+          : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+      }
+    }
+    
+    const days = getDaysOfWeek()
 
     return (
       <div className="grid grid-cols-7 gap-1 mb-2">
@@ -150,6 +168,8 @@ export function CalendarView({ userId }: CalendarViewProps) {
     const days = eachDayOfInterval({ start: startDate, end: endDate })
     let formattedDays = []
 
+    const formatOptions = language === "pt" ? { locale: ptBR } : undefined
+
     for (const day of days) {
       const tasksForDay = tasks.filter((task) => {
         if (!task.due_date) return false
@@ -176,7 +196,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
                   : ""
               }`}
             >
-              {format(day, dateFormat)}
+              {format(day, dateFormat, formatOptions)}
             </span>
             <AddTaskDialog initialProjectId={undefined}>
               <Button variant="ghost" size="icon" className="h-5 w-5 sm:h-6 sm:w-6">
@@ -198,7 +218,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
                 {task.title}
                 {task.due_date && new Date(task.due_date).getHours() !== 0 && (
                   <span className="ml-1 font-medium">
-                    {format(new Date(task.due_date), "HH:mm")}
+                    {format(new Date(task.due_date), "HH:mm", formatOptions)}
                   </span>
                 )}
               </div>
