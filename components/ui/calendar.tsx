@@ -3,9 +3,11 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker } from "react-day-picker"
+import { ptBR } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { useTranslation } from "@/lib/i18n"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -16,6 +18,7 @@ function Calendar({
   ...props
 }: CalendarProps) {
   const [isClient, setIsClient] = React.useState(false)
+  const { language } = useTranslation()
   
   React.useEffect(() => {
     setIsClient(true)
@@ -71,6 +74,7 @@ function Calendar({
         IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
       }}
+      locale={language === "pt" ? ptBR : undefined}
       {...props}
     />
   )

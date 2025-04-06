@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar as CalendarIcon, Flag, Trash, Clock } from "lucide-react"
+import { Calendar as CalendarIcon, Flag, Trash, Clock, X, Save, Edit } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
 import { useTranslation } from "@/lib/i18n"
@@ -32,30 +32,61 @@ interface TaskDetailProps {
   onOpenChange: (open: boolean) => void
 }
 
+// Helper function to safely check if date is all-day (00:00)
+function isAllDayDate(dateString: string | null): boolean {
+  if (!dateString) return true;
+  try {
+    const date = new Date(dateString);
+    return date.getHours() === 0 && date.getMinutes() === 0;
+  } catch (e) {
+    return true;
+  }
+}
+
+// Helper function to safely extract time from date
+function getTimeFromDate(dateString: string | null): string {
+  if (!dateString) return "12:00";
+  try {
+    const date = new Date(dateString);
+    if (date.getHours() === 0 && date.getMinutes() === 0) return "12:00";
+    return date.toTimeString().slice(0, 5);
+  } catch (e) {
+    return "12:00";
+  }
+}
+
 export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description || "")
   const [dueDate, setDueDate] = useState<Date | undefined>(task.due_date ? new Date(task.due_date) : undefined)
-  const [dueTime, setDueTime] = useState(
-    task.due_date 
-      ? new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
-        ? "12:00" 
-        : new Date(task.due_date).toTimeString().slice(0, 5) 
-      : "12:00"
-  )
-  const [isAllDay, setIsAllDay] = useState(
-    task.due_date 
-      ? new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
-      : true
-  )
+  const [dueTime, setDueTime] = useState(() => getTimeFromDate(task.due_date))
+  const [isAllDay, setIsAllDay] = useState(() => isAllDayDate(task.due_date))
   const [priority, setPriority] = useState(task.priority.toString())
   const [projectId, setProjectId] = useState<string | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [projectName, setProjectName] = useState<string>("")
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+
+  useEffect(() => {
+    if (open) {
+      // Reset to view mode when opening
+      setIsEditMode(false)
+      
+      // Reset form values to task values
+      setTitle(task.title)
+      setDescription(task.description || "")
+      setDueDate(task.due_date ? new Date(task.due_date) : undefined)
+      setDueTime(getTimeFromDate(task.due_date))
+      setIsAllDay(isAllDayDate(task.due_date))
+      setPriority(task.priority.toString())
+    }
+  }, [open, task])
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -71,6 +102,14 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         if (projectResponse.ok) {
           const projectData = await projectResponse.json()
           setProjectId(projectData.projectId ? projectData.projectId.toString() : null)
+          
+          // Find project name
+          if (projectData.projectId) {
+            const project = data.projects.find((p: Project) => p.id === projectData.projectId)
+            if (project) {
+              setProjectName(project.name)
+            }
+          }
         }
       } catch (error) {
         toast({
@@ -87,7 +126,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   }, [open, task.id, toast, t])
 
   const handleSave = async () => {
-    setIsLoading(true)
+    setIsSaving(true)
 
     try {
       let dueDateWithTime = null;
@@ -135,7 +174,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Task has been updated successfully."),
       })
 
-      onOpenChange(false)
+      setIsEditMode(false)
       router.refresh()
     } catch (error) {
       toast({
@@ -144,12 +183,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Please try again."),
       })
     } finally {
-      setIsLoading(false)
+      setIsSaving(false)
     }
   }
 
   const handleDelete = async () => {
-    setIsLoading(true)
+    setIsDeleting(true)
 
     try {
       const response = await fetch(`/api/tasks/${task.id}`, {
@@ -174,7 +213,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Please try again."),
       })
     } finally {
-      setIsLoading(false)
+      setIsDeleting(false)
     }
   }
 
@@ -191,179 +230,242 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }
 
+  const getPriorityName = (p: string) => {
+    switch (p) {
+      case "1":
+        return t("priority1")
+      case "2":
+        return t("priority2")
+      case "3":
+        return t("priority3")
+      case "4":
+        return t("priority4")
+      default:
+        return t("priority4")
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("taskDetails")}</DialogTitle>
-          <DialogDescription>{t("View and edit task details.")}</DialogDescription>
+          <DialogDescription>
+            {isEditMode 
+              ? t("View and edit task details.") 
+              : t("View task details.")}
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium">
+            <label className="text-sm font-medium">
               {t("title")}
             </label>
-            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("Task title")} />
+            {isEditMode ? (
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("Task title")} />
+            ) : (
+              <p className="p-2 border rounded-md bg-muted/30">{title}</p>
+            )}
           </div>
           <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium">
+            <label className="text-sm font-medium">
               {t("description")}
             </label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t("Task description")}
-              rows={4}
-            />
+            {isEditMode ? (
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={t("Task description")}
+                rows={4}
+              />
+            ) : (
+              <div className="p-2 border rounded-md bg-muted/30 min-h-[80px]">
+                {description ? (
+                  <p className="whitespace-pre-wrap">{description}</p>
+                ) : (
+                  <p className="text-muted-foreground">{t("No description")}</p>
+                )}
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="dueDate" className="text-sm font-medium">
+              <label className="text-sm font-medium">
                 {t("dueDate")}
               </label>
-              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                    id="dueDate"
-                    type="button"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                    {dueDate 
-                      ? isAllDay 
-                        ? format(dueDate, "PPP") 
-                        : `${format(dueDate, "PPP")} - ${dueTime || "12:00"}`
-                      : <span className="text-muted-foreground">{t("pickDate")}</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent 
-                  className="w-auto p-0" 
-                  align="start" 
-                  side="bottom"
-                >
-                  <div className="p-3">
-                    <Calendar 
-                      mode="single" 
-                      selected={dueDate} 
-                      onSelect={(date) => {
-                        setDueDate(date);
-                      }}
-                      initialFocus
-                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                    />
-                    <div className="pt-3 pb-2 border-t mt-3">
-                      <div className="flex flex-row items-center space-x-3 space-y-0 h-9">
-                        <Checkbox
-                          id="taskDetailAllDay"
-                          checked={isAllDay}
-                          onCheckedChange={(checked) => {
-                            setIsAllDay(checked === true);
-                            setTimeout(() => {
-                              setDueTime(dueTime);
-                            }, 0);
-                          }}
-                        />
-                        <label className="text-sm font-normal cursor-pointer" htmlFor="taskDetailAllDay">
-                          {t("allDay")}
-                        </label>
-                      </div>
-                    </div>
-                    <div className={`mt-2 ${isAllDay ? "hidden" : ""}`}>
-                      <div className="flex items-center">
-                        <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                          type="time" 
-                          value={dueTime || "12:00"}
-                          onChange={(e) => setDueTime(e.target.value || "12:00")}
-                          className="w-full"
-                          inputMode="none"
-                          onClick={(e) => {
-                            const target = e.target as HTMLInputElement;
-                            target.focus();
-                            if (typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
-                              setTimeout(() => {
-                                target.click();
-                              }, 100);
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <Button 
-                      className="w-full mt-3" 
+              {isEditMode ? (
+                <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                      id="dueDate"
                       type="button"
-                      onClick={() => {
-                        setDatePickerOpen(false);
-                      }}
                     >
-                      {t("confirm")}
+                      <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                      {dueDate 
+                        ? isAllDay 
+                          ? format(dueDate, "PPP") 
+                          : `${format(dueDate, "PPP")} - ${dueTime || "12:00"}`
+                        : <span className="text-muted-foreground">{t("pickDate")}</span>}
                     </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-auto p-0" 
+                    align="start" 
+                    side="bottom"
+                  >
+                    <div className="p-3">
+                      <Calendar 
+                        mode="single" 
+                        selected={dueDate} 
+                        onSelect={(date) => {
+                          setDueDate(date);
+                        }}
+                        initialFocus
+                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      />
+                      <div className="pt-3 pb-2 border-t mt-3">
+                        <div className="flex flex-row items-center space-x-3 space-y-0 h-9">
+                          <Checkbox
+                            id="taskDetailAllDay"
+                            checked={isAllDay}
+                            onCheckedChange={(checked) => {
+                              setIsAllDay(checked === true);
+                              setTimeout(() => {
+                                setDueTime(dueTime);
+                              }, 0);
+                            }}
+                          />
+                          <label className="text-sm font-normal cursor-pointer" htmlFor="taskDetailAllDay">
+                            {t("allDay")}
+                          </label>
+                        </div>
+                      </div>
+                      <div className={`mt-2 ${isAllDay ? "hidden" : ""}`}>
+                        <div className="flex items-center">
+                          <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                          <Input 
+                            type="time" 
+                            value={dueTime || "12:00"}
+                            onChange={(e) => setDueTime(e.target.value || "12:00")}
+                            className="w-full"
+                            inputMode="none"
+                            onClick={(e) => {
+                              const target = e.target as HTMLInputElement;
+                              target.focus();
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <Button 
+                        className="w-full mt-3" 
+                        type="button"
+                        onClick={() => {
+                          setDatePickerOpen(false);
+                        }}
+                      >
+                        {t("confirm")}
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <div className="p-2 border rounded-md bg-muted/30">
+                  {dueDate 
+                    ? isAllDay 
+                      ? format(dueDate, "PPP") 
+                      : `${format(dueDate, "PPP")} - ${dueTime || "12:00"}`
+                    : <span className="text-muted-foreground">{t("No due date")}</span>}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
-              <label htmlFor="priority" className="text-sm font-medium">
+              <label className="text-sm font-medium">
                 {t("priority")}
               </label>
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("Select priority")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">
-                    <div className="flex items-center">
-                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("1")}`} />
-                      {t("priority1")}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="2">
-                    <div className="flex items-center">
-                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("2")}`} />
-                      {t("priority2")}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="3">
-                    <div className="flex items-center">
-                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("3")}`} />
-                      {t("priority3")}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="4">
-                    <div className="flex items-center">
-                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("4")}`} />
-                      {t("priority4")}
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              {isEditMode ? (
+                <Select value={priority} onValueChange={setPriority}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("Select priority")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">
+                      <div className="flex items-center">
+                        <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("1")}`} />
+                        {t("Grave")}
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="2">
+                      <div className="flex items-center">
+                        <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("2")}`} />
+                        {t("Alta")}
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="3">
+                      <div className="flex items-center">
+                        <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("3")}`} />
+                        {t("Média")}
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="4">
+                      <div className="flex items-center">
+                        <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("4")}`} />
+                        {t("Baixa")}
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="p-2 border rounded-md bg-muted/30 flex items-center">
+                  <Flag className={`mr-2 h-4 w-4 ${getPriorityColor(priority)}`} />
+                  {getPriorityName(priority)}
+                </div>
+              )}
             </div>
           </div>
           <div className="space-y-2">
-            <label htmlFor="project" className="text-sm font-medium">
+            <label className="text-sm font-medium">
               {t("project")}
             </label>
-            <Select
-              value={projectId || "noProject"}
-              onValueChange={(value) => setProjectId(value === "noProject" ? null : value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("selectProject")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="noProject">{t("noProject")}</SelectItem>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id.toString()}>
-                    <div className="flex items-center">
-                      <div className="mr-2 h-3 w-3 rounded-full" style={{ backgroundColor: project.color }} />
-                      {project.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isEditMode ? (
+              <Select
+                value={projectId || "noProject"}
+                onValueChange={(value) => setProjectId(value === "noProject" ? null : value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("selectProject")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="noProject">{t("noProject")}</SelectItem>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id.toString()}>
+                      <div className="flex items-center">
+                        <div className="mr-2 h-3 w-3 rounded-full" style={{ backgroundColor: project.color }} />
+                        {project.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="p-2 border rounded-md bg-muted/30">
+                {projectId ? (
+                  <div className="flex items-center">
+                    <div 
+                      className="mr-2 h-3 w-3 rounded-full" 
+                      style={{ 
+                        backgroundColor: projects.find(p => p.id.toString() === projectId)?.color || "#ccc" 
+                      }} 
+                    />
+                    {projectName || t("Unknown project")}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">{t("noProject")}</span>
+                )}
+              </div>
+            )}
           </div>
 
           <TaskLabels taskId={task.id} />
@@ -379,18 +481,49 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             )}
           </div>
         </div>
-        <DialogFooter className="flex justify-between w-full gap-2">
-          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="flex justify-between items-center w-full">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            onClick={() => onOpenChange(false)}
+            className="w-28"
+          >
+            <X className="mr-1 h-4 w-4" />
             {t("cancel")}
           </Button>
           <div className="flex items-center gap-2">
-            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isLoading}>
-              <Trash className="mr-2 h-4 w-4" />
-              {isLoading ? t("Excluindo...") : t("delete")}
-            </Button>
-            <Button size="sm" onClick={handleSave} disabled={isLoading}>
-              {isLoading ? t("Salvando...") : t("save")}
-            </Button>
+            {isEditMode ? (
+              <>
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  onClick={handleDelete} 
+                  disabled={isDeleting}
+                  className="w-28"
+                >
+                  <Trash className="mr-1 h-4 w-4" />
+                  {isDeleting ? t("Deleting...") : t("delete")}
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={handleSave} 
+                  disabled={isSaving}
+                  className="w-28"
+                >
+                  <Save className="mr-1 h-4 w-4" />
+                  {isSaving ? t("Saving...") : t("save")}
+                </Button>
+              </>
+            ) : (
+              <Button 
+                size="sm" 
+                onClick={() => setIsEditMode(true)}
+                className="w-28"
+              >
+                <Edit className="mr-1 h-4 w-4" />
+                {t("edit")}
+              </Button>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>

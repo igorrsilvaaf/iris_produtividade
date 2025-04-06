@@ -113,20 +113,36 @@ export const translations: Translations = {
 
   // Prioridades
   priority1: {
-    en: "Priority 1",
-    pt: "Prioridade 1",
+    en: "Critical",
+    pt: "Grave",
   },
   priority2: {
-    en: "Priority 2",
-    pt: "Prioridade 2",
+    en: "High",
+    pt: "Alta",
   },
   priority3: {
-    en: "Priority 3",
-    pt: "Prioridade 3",
+    en: "Medium",
+    pt: "Média",
   },
   priority4: {
-    en: "Priority 4",
-    pt: "Prioridade 4",
+    en: "Low",
+    pt: "Baixa",
+  },
+  Grave: {
+    en: "Critical",
+    pt: "Grave",
+  },
+  Alta: {
+    en: "High",
+    pt: "Alta",
+  },
+  Média: {
+    en: "Medium",
+    pt: "Média",
+  },
+  Baixa: {
+    en: "Low", 
+    pt: "Baixa",
   },
 
   // Configurações
