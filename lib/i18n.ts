@@ -1112,6 +1112,24 @@ export const translations: Translations = {
     pt: "Hoje",
   },
   // ... existing code ...
+
+  // Adicionando textos de ordenação
+  "Sort by": {
+    en: "Sort by",
+    pt: "Ordenar por",
+  },
+  "Prioridade": {
+    en: "Priority",
+    pt: "Prioridade",
+  },
+  "Título": {
+    en: "Title",
+    pt: "Título",
+  },
+  "Data de Vencimento": {
+    en: "Due Date",
+    pt: "Data de Vencimento",
+  },
 }
 
 // Store para gerenciar o idioma

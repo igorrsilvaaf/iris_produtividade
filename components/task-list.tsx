@@ -183,14 +183,14 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
               <SelectItem value="priority">
                 <div className="flex items-center">
                   <Flag className="mr-2 h-4 w-4" />
-                  {t("Priority")}
+                  {t("Prioridade")}
                 </div>
               </SelectItem>
-              <SelectItem value="title">{t("Title")}</SelectItem>
+              <SelectItem value="title">{t("Título")}</SelectItem>
               <SelectItem value="dueDate">
                 <div className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
-                  {t("Due Date")}
+                  {t("Data de Vencimento")}
                 </div>
               </SelectItem>
             </SelectContent>
