@@ -46,6 +46,16 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
     }
   }, [settings.language, setLanguage])
 
+  // Função para definir cookie diretamente
+  function setCookie(name: string, value: string) {
+    document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Lax`
+  }
+  
+  // Função para limpar um cookie
+  function clearCookie(name: string) {
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`
+  }
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -83,6 +93,11 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
       // Update language if changed
       if (values.language !== language) {
         setLanguage(values.language)
+        
+        // Limpar cookies antigos e definir o novo
+        clearCookie("language-storage")
+        setCookie("user-language", values.language)
+        console.log("Cookies de idioma limpos e redefinidos")
       }
 
       // Tocar um som de sucesso se os sons estiverem habilitados

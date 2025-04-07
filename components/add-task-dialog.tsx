@@ -11,6 +11,7 @@ import { CalendarIcon, Flag, Tag, X, Clock } from "lucide-react"
 import { format } from "date-fns"
 import type { Project } from "@/lib/projects"
 import type { Label } from "@/lib/labels"
+import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
 
 import { Button } from "@/components/ui/button"
@@ -29,7 +30,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
-import { useToast } from "@/components/ui/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -48,9 +48,10 @@ const formSchema = z.object({
 interface AddTaskDialogProps {
   children: React.ReactNode
   initialProjectId?: number
+  initialLanguage: string
 }
 
-export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps) {
+export function AddTaskDialog({ children, initialProjectId, initialLanguage }: AddTaskDialogProps) {
   const [open, setOpen] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [labels, setLabels] = useState<Label[]>([])
@@ -61,8 +62,14 @@ export function AddTaskDialog({ children, initialProjectId }: AddTaskDialogProps
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  const { t } = useTranslation()
+  const { t, setLanguage } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (initialLanguage) {
+      setLanguage(initialLanguage as "en" | "pt")
+    }
+  }, [initialLanguage, setLanguage])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

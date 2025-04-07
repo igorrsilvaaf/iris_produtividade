@@ -16,17 +16,35 @@ export { metadata, viewport }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
-  const languageCookie = cookieStore.get("language-storage")
+  
+  // Verificar primeiro o novo cookie user-language
+  const userLanguageCookie = cookieStore.get("user-language")
+  
+  // Definir o idioma padrão como português
   let initialLanguage = "pt" as "pt" | "en"
 
-  if (languageCookie) {
-    try {
-      const parsedData = JSON.parse(languageCookie.value)
-      if (parsedData.state && parsedData.state.language) {
-        initialLanguage = parsedData.state.language as "pt" | "en"
+  if (userLanguageCookie) {
+    // Usar o valor do cookie diretamente se for válido
+    const cookieValue = userLanguageCookie.value
+    if (cookieValue === "en" || cookieValue === "pt") {
+      initialLanguage = cookieValue
+      console.log("RootLayout: Usando idioma do cookie user-language:", initialLanguage)
+    }
+  } else {
+    // Verificar o cookie antigo como fallback
+    const legacyCookie = cookieStore.get("language-storage")
+    if (legacyCookie) {
+      try {
+        const parsedData = JSON.parse(legacyCookie.value)
+        if (parsedData.state && parsedData.state.language) {
+          initialLanguage = parsedData.state.language as "pt" | "en"
+          console.log("RootLayout: Usando idioma do cookie legacy:", initialLanguage)
+        }
+      } catch (e) {
+        console.error("Error parsing language cookie:", e)
       }
-    } catch (e) {
-      console.error("Error parsing language cookie:", e)
+    } else {
+      console.log("RootLayout: Nenhum cookie de idioma encontrado, usando pt como padrão")
     }
   }
 

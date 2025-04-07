@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import {
   format,
@@ -30,6 +30,14 @@ interface CalendarViewProps {
   userId: number
 }
 
+// Interface para o cache para armazenar tarefas por mês
+interface TaskCache {
+  [key: string]: {
+    tasks: Todo[];
+    timestamp: number;
+  }
+}
+
 export function CalendarView({ userId }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [tasks, setTasks] = useState<Todo[]>([])
@@ -41,6 +49,17 @@ export function CalendarView({ userId }: CalendarViewProps) {
   const { toast } = useToast()
   const { language, t } = useTranslation()
 
+  // Referência para o cache de tarefas por mês
+  const tasksCache = useRef<TaskCache>({})
+  // Flag para controlar se uma busca está em andamento
+  const isFetchingRef = useRef(false)
+  
+  // Função para verificar se as tarefas do mês atual estão em cache
+  const getMonthKey = useCallback((date: Date) => {
+    return `${date.getFullYear()}-${date.getMonth() + 1}`
+  }, [])
+
+  // Detectar dispositivo móvel
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 640)
@@ -54,44 +73,95 @@ export function CalendarView({ userId }: CalendarViewProps) {
     }
   }, [])
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      setIsLoading(true)
-      try {
-        const start = format(startOfMonth(currentMonth), "yyyy-MM-dd")
-        const end = format(endOfMonth(currentMonth), "yyyy-MM-dd")
-
-        const response = await fetch(`/api/tasks/calendar?start=${start}&end=${end}`)
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch tasks")
-        }
-
-        const data = await response.json()
-        setTasks(data.tasks)
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: t("Failed to load tasks"),
-          description: t("Please try again later."),
-        })
-      } finally {
-        setIsLoading(false)
-      }
+  // Função para buscar tarefas do mês atual
+  const fetchTasksForMonth = useCallback(async (date: Date) => {
+    const monthKey = getMonthKey(date)
+    
+    // Verificar se já temos essas tarefas em cache e se não estão expiradas (30 minutos)
+    const cached = tasksCache.current[monthKey]
+    const now = Date.now()
+    if (cached && (now - cached.timestamp < 30 * 60 * 1000)) {
+      console.log(`[calendar] Usando cache para ${monthKey}, ${cached.tasks.length} tarefas`)
+      setTasks(cached.tasks)
+      setIsLoading(false)
+      return
     }
+    
+    // Se uma busca já estiver em andamento, não fazer outra
+    if (isFetchingRef.current) {
+      console.log('[calendar] Já existe uma busca em andamento, ignorando')
+      return
+    }
+    
+    try {
+      // Marcar como buscando para evitar chamadas duplicadas
+      isFetchingRef.current = true
+      setIsLoading(true)
+      
+      const start = format(startOfMonth(date), "yyyy-MM-dd")
+      const end = format(endOfMonth(date), "yyyy-MM-dd")
+      
+      console.log(`[calendar] Buscando tarefas para ${monthKey} (${start} até ${end})`)
+      
+      const response = await fetch(`/api/tasks/calendar?start=${start}&end=${end}`, {
+        // Adicionar cabeçalhos de cache para evitar problemas no navegador
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+          'Pragma': 'no-cache'
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar tarefas: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      // Salvar no cache
+      tasksCache.current[monthKey] = {
+        tasks: data.tasks,
+        timestamp: now
+      }
+      
+      setTasks(data.tasks)
+      console.log(`[calendar] ${data.tasks.length} tarefas carregadas para ${monthKey}`)
+    } catch (error) {
+      console.error("[calendar] Erro ao buscar tarefas:", error)
+      toast({
+        variant: "destructive",
+        title: t("Failed to load tasks"),
+        description: t("Please try again later."),
+      })
+      // Em caso de erro, usar cache mesmo se expirado
+      if (cached) {
+        setTasks(cached.tasks)
+        console.log(`[calendar] Usando cache expirado devido a erro`)
+      }
+    } finally {
+      setIsLoading(false)
+      // Resetar flag de busca após um curto atraso para evitar múltiplas chamadas
+      setTimeout(() => {
+        isFetchingRef.current = false
+      }, 300)
+    }
+  }, [getMonthKey, toast, t])
 
-    fetchTasks()
-  }, [currentMonth, toast, t])
+  // Efeito para carregar tarefas quando o mês mudar
+  useEffect(() => {
+    fetchTasksForMonth(currentMonth)
+  }, [currentMonth, fetchTasksForMonth])
 
-  const nextMonth = () => {
-    setCurrentMonth(addMonths(currentMonth, 1))
-  }
+  // Funções para navegar entre meses
+  const nextMonth = useCallback(() => {
+    setCurrentMonth(prevMonth => addMonths(prevMonth, 1))
+  }, [])
 
-  const prevMonth = () => {
-    setCurrentMonth(subMonths(currentMonth, 1))
-  }
+  const prevMonth = useCallback(() => {
+    setCurrentMonth(prevMonth => subMonths(prevMonth, 1))
+  }, [])
 
-  const renderHeader = () => {
+  // Função para renderizar o cabeçalho do calendário
+  const renderHeader = useCallback(() => {
     const formatOptions = language === "pt" ? { locale: ptBR } : undefined
     return (
       <div className="flex items-center justify-between mb-4">
@@ -106,9 +176,10 @@ export function CalendarView({ userId }: CalendarViewProps) {
         </Button>
       </div>
     )
-  }
+  }, [currentMonth, language, nextMonth, prevMonth])
 
-  const renderDays = () => {
+  // Função para renderizar os dias da semana
+  const renderDays = useCallback(() => {
     const getDaysOfWeek = () => {
       if (language === "pt") {
         return isMobile 
@@ -132,29 +203,35 @@ export function CalendarView({ userId }: CalendarViewProps) {
         ))}
       </div>
     )
-  }
+  }, [isMobile, language])
 
-  const openTaskDetail = (task: Todo) => {
+  // Função para abrir detalhes da tarefa
+  const openTaskDetail = useCallback((task: Todo) => {
     setSelectedTask(task)
     setShowTaskDetail(true)
-  }
+  }, [])
 
-  const getTaskStatusClass = (task: Todo, day: Date) => {
-    if (task.completed) return "bg-green-100 dark:bg-green-900/20 border-green-500 text-green-800 dark:text-green-300"
+  // Função para determinar a classe CSS com base no status da tarefa
+  const getTaskStatusClass = useCallback((task: Todo) => {
+    if (task.completed) 
+      return "bg-green-100 dark:bg-green-900/20 border-green-500 text-green-800 dark:text-green-300"
 
     if (task.due_date) {
       const dueDate = parseISO(task.due_date)
 
       if (isToday(dueDate))
         return "bg-yellow-100 dark:bg-yellow-900/20 border-yellow-500 text-yellow-800 dark:text-yellow-300"
-      if (isPast(dueDate)) return "bg-red-100 dark:bg-red-900/20 border-red-500 text-red-800 dark:text-red-300"
-      if (isFuture(dueDate)) return "bg-blue-100 dark:bg-blue-900/20 border-blue-500 text-blue-800 dark:text-blue-300"
+      if (isPast(dueDate)) 
+        return "bg-red-100 dark:bg-red-900/20 border-red-500 text-red-800 dark:text-red-300"
+      if (isFuture(dueDate)) 
+        return "bg-blue-100 dark:bg-blue-900/20 border-blue-500 text-blue-800 dark:text-blue-300"
     }
 
     return "bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700"
-  }
+  }, [])
 
-  const renderCells = () => {
+  // Função para renderizar as células do calendário
+  const renderCells = useCallback(() => {
     const monthStart = startOfMonth(currentMonth)
     const monthEnd = endOfMonth(monthStart)
     const startDate = new Date(monthStart)
@@ -208,10 +285,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
             {tasksForDay.map((task) => (
               <div
                 key={task.id}
-                className={`text-[10px] sm:text-xs p-1 rounded truncate border-l-2 cursor-pointer hover:opacity-80 ${getTaskStatusClass(
-                  task,
-                  day,
-                )}`}
+                className={`text-[10px] sm:text-xs p-1 rounded truncate border-l-2 cursor-pointer hover:opacity-80 ${getTaskStatusClass(task)}`}
                 onClick={() => openTaskDetail(task)}
                 title={task.title}
               >
@@ -224,21 +298,21 @@ export function CalendarView({ userId }: CalendarViewProps) {
               </div>
             ))}
           </div>
-        </div>,
+        </div>
       )
 
       if (formattedDays.length === 7) {
         rows.push(
           <div key={day.toString()} className="grid grid-cols-7 gap-1">
             {formattedDays}
-          </div>,
+          </div>
         )
         formattedDays = []
       }
     }
 
     return <div className="space-y-1">{rows}</div>
-  }
+  }, [currentMonth, tasks, language, getTaskStatusClass, openTaskDetail])
 
   return (
     <>

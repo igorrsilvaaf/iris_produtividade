@@ -2,8 +2,9 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useReducer } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation"
 import {
   Calendar,
@@ -73,6 +74,7 @@ const navItems: NavItem[] = [
 
 export function AppSidebar({ user }: { user: User }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [projectsOpen, setProjectsOpen] = useState(true)
   const [labelsOpen, setLabelsOpen] = useState(true)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
@@ -81,7 +83,23 @@ export function AppSidebar({ user }: { user: User }) {
   const [labels, setLabels] = useState<Label[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
+
+  // Log para diagnóstico
+  useEffect(() => {
+    console.log("[AppSidebar] Montagem inicial do componente")
+    console.log("[AppSidebar] Idioma atual:", language)
+    console.log("[AppSidebar] Tradução 'inbox':", t("inbox"))
+    console.log("[AppSidebar] Tradução 'today':", t("today"))
+    console.log("[AppSidebar] Tradução 'upcoming':", t("upcoming"))
+    console.log("[AppSidebar] Tradução 'completed':", t("completed"))
+    
+    // Verificar se o documento tem o atributo de idioma
+    if (typeof document !== 'undefined') {
+      console.log("[AppSidebar] Atributo data-language no HTML:", document.documentElement.getAttribute('data-language'))
+      console.log("[AppSidebar] Atributo lang no HTML:", document.documentElement.lang)
+    }
+  }, [language, t])
 
   // Detectar se é dispositivo móvel
   useEffect(() => {
@@ -132,7 +150,7 @@ export function AppSidebar({ user }: { user: User }) {
     }
 
     fetchData()
-  }, [toast, t])
+  }, [toast])
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-background">
@@ -198,7 +216,9 @@ export function AppSidebar({ user }: { user: User }) {
                     href={`/app/projects/${project.id}`}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-8 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-                      pathname === `/app/projects/${project.id}` ? "bg-accent/50" : "",
+                      pathname === `/app/projects/${project.id}`
+                        ? "bg-accent text-accent-foreground"
+                        : "transparent",
                     )}
                   >
                     <div className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color }} />
@@ -247,7 +267,9 @@ export function AppSidebar({ user }: { user: User }) {
                     href={`/app/labels/${label.id}`}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-8 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-                      pathname === `/app/labels/${label.id}` ? "bg-accent/50" : "",
+                      pathname === `/app/labels/${label.id}`
+                        ? "bg-accent text-accent-foreground"
+                        : "transparent",
                     )}
                   >
                     <div className="h-3 w-3 rounded-full" style={{ backgroundColor: label.color }} />
