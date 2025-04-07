@@ -2,13 +2,12 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Download, Upload, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
-import { useTranslation } from "@/lib/i18n"
 import {
   Dialog,
   DialogContent,
@@ -19,15 +18,26 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useTranslation } from "@/lib/i18n"
 
-export function BackupRestore() {
+interface BackupRestoreProps {
+  initialLanguage: string;
+}
+
+export function BackupRestore({ initialLanguage }: BackupRestoreProps) {
   const [isExporting, setIsExporting] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [showImportDialog, setShowImportDialog] = useState(false)
   const [importFile, setImportFile] = useState<File | null>(null)
   const router = useRouter()
   const { toast } = useToast()
-  const { t } = useTranslation()
+  const { t, setLanguage } = useTranslation()
+
+  useEffect(() => {
+    if (initialLanguage) {
+      setLanguage(initialLanguage as "en" | "pt");
+    }
+  }, [initialLanguage, setLanguage]);
 
   const handleExport = async () => {
     setIsExporting(true)

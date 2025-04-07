@@ -2,6 +2,7 @@
 
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { useEffect } from 'react';
 
 type Language = "en" | "pt"
 
@@ -11,7 +12,10 @@ type Translations = {
   }
 }
 
-// Traduções comuns usadas em todo o aplicativo
+function setCookie(name: string, value: string) {
+  document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Lax`
+}
+
 export const translations: Translations = {
   // Navegação
   today: {
@@ -1069,10 +1073,6 @@ export const translations: Translations = {
     en: "Multiple failed login attempts. Make sure your credentials are correct or reset your password.",
     pt: "Múltiplas tentativas de login malsucedidas. Certifique-se de que suas credenciais estão corretas ou redefina sua senha."
   },
-  "Failed to login": {
-    en: "Failed to login",
-    pt: "Falha ao fazer login"
-  },
   "Failed to register": {
     en: "Failed to register",
     pt: "Falha ao registrar"
@@ -1106,13 +1106,6 @@ export const translations: Translations = {
     pt: "Sua conta foi criada. Redirecionando para o login..."
   },
   
-  // Navegação
-  today: {
-    en: "Today",
-    pt: "Hoje",
-  },
-  // ... existing code ...
-
   // Adicionando textos de ordenação
   "Sort by": {
     en: "Sort by",
@@ -1130,34 +1123,130 @@ export const translations: Translations = {
     en: "Due Date",
     pt: "Data de Vencimento",
   },
+  "View all": {
+    en: "View all",
+    pt: "Ver todos",
+  },
+  "More": {
+    en: "More",
+    pt: "Mais",
+  },
+  "pomodoroSettings": {
+    en: "Pomodoro Settings",
+    pt: "Configurações do Pomodoro",
+  },
+  "pomodoroSettingsDescription": {
+    en: "Customize your Pomodoro timer settings",
+    pt: "Personalize as configurações do temporizador Pomodoro", 
+  },
+  "Refresh": {
+    en: "Refresh Page",
+    pt: "Atualizar Página",
+  },
+  "Cancel": {
+    en: "Cancel",
+    pt: "Cancelar",
+  },
 }
 
-// Store para gerenciar o idioma
-type LanguageStore = {
+type LanguageState = {
   language: Language
   setLanguage: (language: Language) => void
-  t: (key: string) => string
+  isHydrated: boolean
+  setHydrated: (hydrated: boolean) => void
 }
 
-export const useLanguage = create<LanguageStore>()(
+// Estado padrão é português
+const DEFAULT_LANGUAGE: Language = "pt"
+
+export const useLanguageStore = create<LanguageState>()(
   persist(
-    (set, get) => ({
-      language: "pt",
-      setLanguage: (language) => set({ language }),
-      t: (key) => {
-        const lang = get().language
-        return translations[key]?.[lang] || key
+    (set) => ({
+      language: DEFAULT_LANGUAGE,
+      isHydrated: false,
+      setHydrated: (hydrated: boolean) => set({ isHydrated: hydrated }),
+      setLanguage: (language: Language) => {
+        // Definir cookie imediatamente quando a linguagem for alterada
+        if (typeof document !== 'undefined') {
+          setCookie('user-language', language)
+          console.log('Language changed to:', language)
+          
+          // Disparar evento personalizado para notificar a mudança de idioma
+          const event = new Event('languageChanged')
+          window.dispatchEvent(event)
+        }
+        
+        set({ language })
       },
     }),
     {
       name: "language-storage",
-    },
-  ),
+      // Quando a store é hidratada do localStorage, marcar como hidratada
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.setHydrated(true)
+          
+          // Definir cookie imediatamente após hidratação
+          if (typeof document !== 'undefined') {
+            setCookie('user-language', state.language)
+          }
+        }
+      },
+    }
+  )
 )
 
-// Hook para usar traduções em componentes
-export function useTranslation() {
-  const { language, setLanguage, t } = useLanguage()
-  return { language, setLanguage, t }
+export const useTranslation = () => {
+  const { language, setLanguage, isHydrated } = useLanguageStore()
+  
+  // Efeito para definir cookie quando o componente montar e após hidratação
+  useEffect(() => {
+    if (isHydrated && typeof document !== 'undefined') {
+      // Forçar a definição do cookie após a hidratação
+      setCookie('user-language', language)
+      
+      console.log('[useTranslation] Cookie definido após hidratação:', language)
+      console.log('[useTranslation] Estado atual: isHydrated =', isHydrated, 'language =', language)
+      
+      // Solução temporária - adicionar uma classe ao documento para indicar o idioma atual
+      document.documentElement.setAttribute('data-language', language)
+      console.log('[useTranslation] Atributo data-language definido como:', language)
+    }
+  }, [isHydrated, language])
+  
+  const t = (key: string): string => {
+    if (!translations[key]) {
+      console.warn(`[useTranslation] Tradução não encontrada para: ${key}`)
+      return key
+    }
+    
+    const translated = translations[key][language] || key
+    
+    // Log adicional para chaves importantes
+    if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
+      console.log(`[useTranslation] Tradução: "${key}" -> "${translated}" (idioma: ${language})`)
+    }
+    
+    return translated
+  }
+  
+  return { t, language, setLanguage }
+}
+
+// Função para usar em componentes do servidor
+export function getServerTranslation(key: string, language: "en" | "pt" = "pt"): string {
+  if (!translations[key]) {
+    console.warn(`[getServerTranslation] Tradução não encontrada para: ${key}`)
+    return key
+  }
+  
+  const translated = translations[key][language] || key
+  
+  // Log apenas para depuração
+  if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
+    console.log(`[getServerTranslation] Tradução: "${key}" -> "${translated}" (idioma: ${language})`)
+  }
+  
+  return translated
 }
 
