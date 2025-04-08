@@ -157,18 +157,36 @@ export async function getTaskProject(taskId: number): Promise<number | null> {
 }
 
 export async function setTaskProject(taskId: number, projectId: number | null): Promise<void> {
-  // First, remove any existing project association
-  await sql`
-    DELETE FROM todo_projects
-    WHERE todo_id = ${taskId}
-  `
-
-  // Then, if a project ID is provided, add the new association
-  if (projectId) {
+  console.log(`[setTaskProject] Iniciando com taskId=${taskId}, projectId=${projectId}`);
+  
+  if (!taskId || isNaN(taskId) || taskId <= 0) {
+    console.error(`[setTaskProject] ID de tarefa inválido: ${taskId}`);
+    throw new Error("Invalid task ID");
+  }
+  
+  try {
+    // First, remove any existing project association
+    console.log(`[setTaskProject] Removendo associações existentes para taskId=${taskId}`);
     await sql`
-      INSERT INTO todo_projects (todo_id, project_id)
-      VALUES (${taskId}, ${projectId})
-    `
+      DELETE FROM todo_projects
+      WHERE todo_id = ${taskId}
+    `;
+  
+    // Then, if a project ID is provided, add the new association
+    if (projectId !== null && projectId > 0) {
+      console.log(`[setTaskProject] Adicionando nova associação: taskId=${taskId}, projectId=${projectId}`);
+      await sql`
+        INSERT INTO todo_projects (todo_id, project_id)
+        VALUES (${taskId}, ${projectId})
+      `;
+    } else {
+      console.log(`[setTaskProject] Nenhum projectId válido fornecido (${projectId}), apenas removendo associações existentes`);
+    }
+    
+    console.log(`[setTaskProject] Concluído com sucesso para taskId=${taskId}`);
+  } catch (error) {
+    console.error(`[setTaskProject] Erro ao definir projeto da tarefa:`, error);
+    throw error;
   }
 }
 
