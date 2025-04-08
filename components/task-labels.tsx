@@ -27,42 +27,68 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [showAddLabel, setShowAddLabel] = useState(false)
   const [showCreateLabel, setShowCreateLabel] = useState(false)
+  const [isFetched, setIsFetched] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
 
   useEffect(() => {
     const fetchLabels = async () => {
-      setIsLoading(true)
-      try {
-        // Fetch task labels
-        const taskLabelsResponse = await fetch(`/api/tasks/${taskId}/labels`)
-        if (!taskLabelsResponse.ok) {
-          throw new Error("Failed to fetch task labels")
-        }
-        const taskLabelsData = await taskLabelsResponse.json()
-        setLabels(taskLabelsData.labels)
+      if (!taskId || isFetched) {
+        setIsLoading(false);
+        return;
+      }
 
-        // Fetch all labels
-        const allLabelsResponse = await fetch("/api/labels")
-        if (!allLabelsResponse.ok) {
-          throw new Error("Failed to fetch all labels")
+      setIsLoading(true);
+      
+      try {
+        console.log(`[TaskLabels] Iniciando carregamento de labels para tarefa ${taskId}`);
+        
+        const taskLabelsResponse = await fetch(`/api/tasks/${taskId}/labels`);
+        
+        if (!taskLabelsResponse.ok) {
+          const errorData = await taskLabelsResponse.json();
+          console.error(`[TaskLabels] Erro ao carregar labels da tarefa:`, errorData);
+          throw new Error("Failed to fetch task labels");
         }
-        const allLabelsData = await allLabelsResponse.json()
-        setAllLabels(allLabelsData.labels)
+        
+        const taskLabelsData = await taskLabelsResponse.json();
+        console.log(`[TaskLabels] Labels da tarefa carregadas:`, taskLabelsData.labels);
+        setLabels(taskLabelsData.labels);
+
+        const allLabelsResponse = await fetch("/api/labels");
+        
+        if (!allLabelsResponse.ok) {
+          const errorData = await allLabelsResponse.json();
+          console.error(`[TaskLabels] Erro ao carregar todas as labels:`, errorData);
+          throw new Error("Failed to fetch all labels");
+        }
+        
+        const allLabelsData = await allLabelsResponse.json();
+        console.log(`[TaskLabels] Todas as labels carregadas:`, allLabelsData.labels);
+        setAllLabels(allLabelsData.labels);
+        
+        setIsFetched(true);
       } catch (error) {
+        console.error(`[TaskLabels] Erro ao carregar labels:`, error);
         toast({
           variant: "destructive",
           title: t("Failed to load labels"),
           description: t("Please try again later."),
-        })
+        });
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchLabels()
-  }, [taskId, toast, t])
+    fetchLabels();
+  }, [taskId, toast, t, isFetched]);
+
+  useEffect(() => {
+    setIsFetched(false);
+    setLabels([]);
+    setAllLabels([]);
+  }, [taskId]);
 
   const addLabelToTask = async (labelId: number) => {
     try {
@@ -76,10 +102,10 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
         throw new Error("Failed to add label to task")
       }
 
-      // Refresh the task labels
-      const taskLabelsResponse = await fetch(`/api/tasks/${taskId}/labels`)
-      const taskLabelsData = await taskLabelsResponse.json()
-      setLabels(taskLabelsData.labels)
+      const newLabel = allLabels.find(l => l.id === labelId);
+      if (newLabel) {
+        setLabels(prev => [...prev, newLabel]);
+      }
 
       toast({
         title: t("Label added"),
@@ -87,7 +113,6 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
       })
 
       setShowAddLabel(false)
-      router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
@@ -109,7 +134,7 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
         throw new Error("Failed to remove label from task")
       }
 
-      // Update the labels state
+      // Atualizar o estado local em vez de fazer nova requisição
       setLabels(labels.filter((label) => label.id !== labelId))
 
       toast({
@@ -117,8 +142,9 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
         description: t("Label has been removed from the task successfully."),
       })
 
-      router.refresh()
+      // Remover o router.refresh() para evitar múltiplas chamadas de API
     } catch (error) {
+      console.error(`[TaskLabels] Erro ao remover label:`, error);
       toast({
         variant: "destructive",
         title: t("Failed to remove label"),
@@ -130,11 +156,15 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
   const handleCreateLabelSuccess = () => {
     setShowCreateLabel(false)
 
-    // Refresh all labels
+    // Atualizar todas as etiquetas sem triggar refresh
     fetch("/api/labels")
       .then((response) => response.json())
-      .then((data) => setAllLabels(data.labels))
-      .catch(() => {
+      .then((data) => {
+        setAllLabels(data.labels);
+        console.log(`[TaskLabels] Labels atualizadas após criação:`, data.labels);
+      })
+      .catch((error) => {
+        console.error(`[TaskLabels] Erro ao atualizar labels após criação:`, error);
         toast({
           variant: "destructive",
           title: t("Failed to refresh labels"),

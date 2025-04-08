@@ -69,9 +69,17 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [projectName, setProjectName] = useState<string>("")
+  const [taskLabelsKey, setTaskLabelsKey] = useState(0)
+  const [projectsFetched, setProjectsFetched] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+
+  useEffect(() => {
+    if (open) {
+      setTaskLabelsKey(prev => prev + 1)
+    }
+  }, [open])
 
   useEffect(() => {
     if (open) {
@@ -85,12 +93,28 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       setDueTime(getTimeFromDate(task.due_date))
       setIsAllDay(isAllDayDate(task.due_date))
       setPriority(task.priority.toString())
+      
+      // Resetar projeto apenas se ainda não foi carregado
+      if (!projectsFetched) {
+        setProjectId(null)
+        setProjectName("")
+      }
+    } else {
+      // Quando o modal for fechado, resetar a flag de projetos carregados
+      setProjectsFetched(false)
     }
-  }, [open, task])
+  }, [open, task, projectsFetched])
 
   useEffect(() => {
     const fetchProjects = async () => {
+      // Evitar buscar projetos novamente se já foram carregados
+      if (!open || projectsFetched) {
+        return;
+      }
+
       try {
+        console.log(`[TaskDetail] Carregando projetos para tarefa ${task.id}`);
+        
         const response = await fetch("/api/projects")
         if (!response.ok) {
           throw new Error("Failed to fetch projects")
@@ -111,7 +135,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             }
           }
         }
+        
+        // Marcar projetos como carregados
+        setProjectsFetched(true);
+        console.log(`[TaskDetail] Projetos carregados com sucesso para tarefa ${task.id}`);
       } catch (error) {
+        console.error(`[TaskDetail] Erro ao carregar projetos:`, error);
         toast({
           variant: "destructive",
           title: t("Failed to load projects"),
@@ -120,10 +149,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       }
     }
 
-    if (open) {
-      fetchProjects()
-    }
-  }, [open, task.id, toast, t])
+    fetchProjects()
+  }, [open, task.id, toast, t, projectsFetched])
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -142,6 +169,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         }
       }
 
+      console.log(`[TaskDetail] Salvando alterações para tarefa ${task.id}`);
+
+      // Primeiro, atualize os detalhes da tarefa
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -157,16 +187,33 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         throw new Error("Failed to update task")
       }
 
+      // Depois, atualize o projeto da tarefa apenas se necessário
+      const projectIdInt = projectId ? parseInt(projectId, 10) : null;
+      
+      console.log(`[TaskDetail] Atualizando projeto para tarefa ${task.id} para ${projectIdInt}`);
+      
       const projectResponse = await fetch(`/api/tasks/${task.id}/project`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          projectId: projectId ? Number.parseInt(projectId) : null,
+          projectId: projectIdInt,
         }),
       })
 
       if (!projectResponse.ok) {
+        const errorData = await projectResponse.json();
+        console.error(`[TaskDetail] Erro ao atualizar projeto:`, errorData);
         throw new Error("Failed to update task project")
+      }
+
+      // Atualizar o nome do projeto no estado local
+      if (projectIdInt) {
+        const selectedProject = projects.find(p => p.id === projectIdInt);
+        if (selectedProject) {
+          setProjectName(selectedProject.name);
+        }
+      } else {
+        setProjectName("");
       }
 
       toast({
@@ -174,9 +221,15 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Task has been updated successfully."),
       })
 
+      // Mudamos para não recarregar automaticamente, apenas atualizar o estado local
       setIsEditMode(false)
-      router.refresh()
+      
+      // Faz uma atualização seletiva sem recarregar a página inteira
+      if (typeof window !== 'undefined') {
+        console.log(`[TaskDetail] Tarefa ${task.id} atualizada com sucesso`);
+      }
     } catch (error) {
+      console.error(`[TaskDetail] Erro ao salvar tarefa:`, error);
       toast({
         variant: "destructive",
         title: t("Failed to update task"),
@@ -191,6 +244,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     setIsDeleting(true)
 
     try {
+      console.log(`[TaskDetail] Excluindo tarefa ${task.id}`);
+      
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: "DELETE",
       })
@@ -204,9 +259,19 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Task has been deleted successfully."),
       })
 
+      // Fechar o modal sem causar recargas adicionais
       onOpenChange(false)
-      router.refresh()
+      
+      // Atualização seletiva sem recarregar a página inteira
+      if (typeof window !== 'undefined') {
+        console.log(`[TaskDetail] Tarefa ${task.id} excluída com sucesso`);
+        // Damos um pequeno atraso antes de redirecionar para garantir que o toast seja exibido
+        setTimeout(() => {
+          router.push(router.asPath);
+        }, 500);
+      }
     } catch (error) {
+      console.error(`[TaskDetail] Erro ao excluir tarefa:`, error);
       toast({
         variant: "destructive",
         title: t("Failed to delete task"),
@@ -249,7 +314,15 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t("taskDetails")}</DialogTitle>
+          <DialogTitle className="flex items-center justify-between">
+            <span>{isEditMode ? t("editTask") : t("taskDetails")}</span>
+            {!isEditMode && (
+              <Button variant="outline" size="sm" onClick={() => setIsEditMode(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                {t("edit")}
+              </Button>
+            )}
+          </DialogTitle>
           <DialogDescription>
             {isEditMode 
               ? t("View and edit task details.") 
@@ -468,7 +541,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             )}
           </div>
 
-          <TaskLabels taskId={task.id} />
+          <TaskLabels key={taskLabelsKey} taskId={task.id} />
 
           <div className="text-xs text-muted-foreground">
             <p>
