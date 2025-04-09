@@ -70,7 +70,7 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
 
     const defaultSettings = {
       theme: "system",
-      language: "en",
+      language: "pt",
       pomodoro_work_minutes: 25,
       pomodoro_break_minutes: 5,
       pomodoro_long_break_minutes: 15,
@@ -113,7 +113,7 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
 
     return {
       theme: "system",
-      language: "en",
+      language: "pt",
       pomodoro_work_minutes: 25,
       pomodoro_break_minutes: 5,
       pomodoro_long_break_minutes: 15,
@@ -154,7 +154,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
     
     const defaultSettings = {
       theme: "system",
-      language: "en",
+      language: "pt",
       pomodoro_work_minutes: 25,
       pomodoro_break_minutes: 5,
       pomodoro_long_break_minutes: 15,

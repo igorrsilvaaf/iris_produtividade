@@ -20,11 +20,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Verificar primeiro o novo cookie user-language
   const userLanguageCookie = cookieStore.get("user-language")
   
+  // Log de todos os cookies para debug
+  console.log("------ COOKIES DISPONÍVEIS NO SERVIDOR ------")
+  for (const cookie of cookieStore.getAll()) {
+    console.log(`Cookie: ${cookie.name} = ${cookie.value.substring(0, 20)}${cookie.value.length > 20 ? '...' : ''}`)
+  }
+  console.log("--------------------------------")
+  
   // Definir o idioma padrão como português
   let initialLanguage = "pt" as "pt" | "en"
 
-  if (userLanguageCookie) {
-    // Usar o valor do cookie diretamente se for válido
+  // Tenta ler o idioma do usuário logado das configurações do banco de dados
+  const session = await getSession()
+  const settings = session ? await getUserSettings(session.user.id) : null
+  
+  if (settings && settings.language && (settings.language === "en" || settings.language === "pt")) {
+    // Prioridade 1: Usar o idioma das configurações salvas no banco
+    initialLanguage = settings.language as "pt" | "en"
+    console.log("RootLayout: Usando idioma das configurações do usuário:", initialLanguage)
+  } else if (userLanguageCookie) {
+    // Prioridade 2: Usar o valor do cookie se estiver disponível e for válido
     const cookieValue = userLanguageCookie.value
     if (cookieValue === "en" || cookieValue === "pt") {
       initialLanguage = cookieValue
@@ -48,11 +63,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     }
   }
 
-  const session = await getSession()
-  const settings = session ? await getUserSettings(session.user.id) : null
+  // Log para debugging
+  console.log("RootLayout: Idioma definido:", initialLanguage)
+  console.log(`RootLayout: HTML lang será definido como: ${initialLanguage === "en" ? "en" : "pt-BR"}`)
+  
+  // Para usuários logados, verificar se existe discrepância entre cookie e configurações do banco
+  if (session && settings && userLanguageCookie) {
+    const cookieLang = userLanguageCookie.value;
+    const dbLang = settings.language;
+    
+    if (cookieLang !== dbLang) {
+      console.log(`ALERTA: Discrepância entre idioma do cookie (${cookieLang}) e banco de dados (${dbLang})`);
+    }
+  }
 
   return (
-    <html lang={initialLanguage} suppressHydrationWarning>
+    <html 
+      lang={initialLanguage === "en" ? "en" : "pt-BR"} 
+      suppressHydrationWarning
+      data-language={initialLanguage}
+    >
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LanguageProvider initialLanguage={initialLanguage}>

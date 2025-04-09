@@ -2,7 +2,7 @@
 
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 type Language = "en" | "pt"
 
@@ -13,7 +13,10 @@ type Translations = {
 }
 
 function setCookie(name: string, value: string) {
-  document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Lax`
+  if (typeof document !== 'undefined') {
+    document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Strict`;
+    console.log(`[i18n] Cookie '${name}' definido para: '${value}'`);
+  }
 }
 
 export const translations: Translations = {
@@ -768,6 +771,10 @@ export const translations: Translations = {
     en: "Sign In",
     pt: "Entrar"
   },
+  "Sign in": {
+    en: "Sign in",
+    pt: "Entrar"
+  },
   "Email": {
     en: "Email",
     pt: "Email"
@@ -968,6 +975,14 @@ export const translations: Translations = {
     en: "Password must be at least 6 characters",
     pt: "A senha deve ter pelo menos 6 caracteres"
   },
+  "Password must be at least 6 characters with one uppercase letter and one number.": {
+    en: "Password must be at least 6 characters with one uppercase letter and one number.",
+    pt: "A senha deve ter pelo menos 6 caracteres com uma letra maiúscula e um número.",
+  },
+  "Password is required": {
+    en: "Password is required",
+    pt: "A senha é obrigatória",
+  },
   "Passwords do not match": {
     en: "Passwords do not match",
     pt: "As senhas não coincidem"
@@ -1147,6 +1162,147 @@ export const translations: Translations = {
     en: "Cancel",
     pt: "Cancelar",
   },
+
+  // Esqueci a senha
+  "Forgot Password": {
+    en: "Forgot Password",
+    pt: "Esqueci a Senha",
+  },
+  "Forgot password?": {
+    en: "Forgot password?",
+    pt: "Esqueceu a senha?",
+  },
+  "Forgot your password?": {
+    en: "Forgot your password?",
+    pt: "Esqueceu sua senha?",
+  },
+  "Enter your email address and we'll send you a link to reset your password.": {
+    en: "Enter your email address and we'll send you a link to reset your password.",
+    pt: "Digite seu endereço de e-mail e enviaremos um link para redefinir sua senha.",
+  },
+  "Send Reset Link": {
+    en: "Send Reset Link",
+    pt: "Enviar Link de Redefinição",
+  },
+  "Sending...": {
+    en: "Sending...",
+    pt: "Enviando...",
+  },
+  "Check your email": {
+    en: "Check your email",
+    pt: "Verifique seu e-mail",
+  },
+  "We've sent you an email with instructions to reset your password. If you don't see it, check your spam folder.": {
+    en: "We've sent you an email with instructions to reset your password. If you don't see it, check your spam folder.",
+    pt: "Enviamos um e-mail com instruções para redefinir sua senha. Se não o encontrar, verifique sua pasta de spam.",
+  },
+  "Try another email": {
+    en: "Try another email",
+    pt: "Tentar outro e-mail",
+  },
+  "Request submitted": {
+    en: "Request submitted",
+    pt: "Solicitação enviada",
+  },
+  "Check your email for password reset instructions.": {
+    en: "Check your email for password reset instructions.",
+    pt: "Verifique seu e-mail para instruções de redefinição de senha.",
+  },
+  "Email is required": {
+    en: "Email is required",
+    pt: "O email é obrigatório",
+  },
+  "Please enter a valid email address": {
+    en: "Please enter a valid email address",
+    pt: "Por favor, insira um endereço de email válido",
+  },
+  
+  // Reset de senha
+  "Reset Password": {
+    en: "Reset Password",
+    pt: "Redefinir Senha",
+  },
+  "Reset your password": {
+    en: "Reset your password",
+    pt: "Redefina sua senha",
+  },
+  "Enter your new password below.": {
+    en: "Enter your new password below.",
+    pt: "Digite sua nova senha abaixo.",
+  },
+  "New Password": {
+    en: "New Password",
+    pt: "Nova Senha",
+  },
+  "Confirm Password": {
+    en: "Confirm Password",
+    pt: "Confirmar Senha",
+  },
+  "Passwords do not match": {
+    en: "Passwords do not match",
+    pt: "As senhas não coincidem",
+  },
+  "Please confirm your password": {
+    en: "Please confirm your password",
+    pt: "Por favor, confirme sua senha",
+  },
+  "Resetting...": {
+    en: "Resetting...",
+    pt: "Redefinindo...",
+  },
+  "Password reset successful": {
+    en: "Password reset successful",
+    pt: "Senha redefinida com sucesso",
+  },
+  "Your password has been successfully reset.": {
+    en: "Your password has been successfully reset.",
+    pt: "Sua senha foi redefinida com sucesso.",
+  },
+  "Your password has been successfully reset. You can now log in with your new password.": {
+    en: "Your password has been successfully reset. You can now log in with your new password.",
+    pt: "Sua senha foi redefinida com sucesso. Agora você pode fazer login com sua nova senha.",
+  },
+  "Go to Login": {
+    en: "Go to Login",
+    pt: "Ir para Login",
+  },
+  "Invalid or expired token": {
+    en: "Invalid or expired token",
+    pt: "Token inválido ou expirado",
+  },
+  "The password reset link is invalid or has expired. Please request a new one.": {
+    en: "The password reset link is invalid or has expired. Please request a new one.",
+    pt: "O link de redefinição de senha é inválido ou expirou. Por favor, solicite um novo.",
+  },
+  "Back to Forgot Password": {
+    en: "Back to Forgot Password",
+    pt: "Voltar para Esqueci a Senha",
+  },
+  "Back to Login": {
+    en: "Back to Login",
+    pt: "Voltar para Login",
+  },
+  // Novas traduções para o fluxo de recuperação de senha
+  "Development Mode": {
+    en: "Development Mode",
+    pt: "Modo de Desenvolvimento",
+  },
+  "In development, we use Ethereal Email for testing. Look for a line in the server console that says 'LINK PARA VISUALIZAR O EMAIL:' and click that URL to see the email.": {
+    en: "In development, we use Ethereal Email for testing. Look for a line in the server console that says 'LINK PARA VISUALIZAR O EMAIL:' and click that URL to see the email.",
+    pt: "No modo de desenvolvimento, usamos o Ethereal Email para testes. Procure uma linha no console do servidor que diz 'LINK PARA VISUALIZAR O EMAIL:' e clique nessa URL para ver o email.",
+  },
+  "In development mode, please check the server console for the email preview link. A test email has been generated and you can view it by clicking on the preview URL in the console.": {
+    en: "In development mode, please check the server console for the email preview link. A test email has been generated and you can view it by clicking on the preview URL in the console.",
+    pt: "No modo de desenvolvimento, verifique o console do servidor para obter o link de visualização do email. Um email de teste foi gerado e você pode visualizá-lo clicando na URL de visualização no console.",
+  },
+  "Check the console for the email preview link": {
+    en: "Check the console for the email preview link",
+    pt: "Verifique o console para o link de visualização do email",
+  },
+  "Name is required": {
+    en: "Name is required",
+    pt: "O nome é obrigatório",
+  },
 }
 
 type LanguageState = {
@@ -1168,15 +1324,38 @@ export const useLanguageStore = create<LanguageState>()(
       setLanguage: (language: Language) => {
         // Definir cookie imediatamente quando a linguagem for alterada
         if (typeof document !== 'undefined') {
-          setCookie('user-language', language)
-          console.log('Language changed to:', language)
+          // Limpar cookie antigo
+          document.cookie = `language-storage=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+          
+          // Definir novo cookie com opções mais seguras
+          setCookie('user-language', language);
+          
+          console.log('[i18n] Language changed to:', language);
+          
+          // Definir também o atributo lang no HTML
+          document.documentElement.lang = language === "en" ? "en" : "pt-BR";
+          console.log('[i18n] HTML language attribute set to:', document.documentElement.lang);
+          
+          // Definir attribute data-language para facilitar debugging
+          document.documentElement.setAttribute('data-language', language);
+          
+          // Verificar se o cookie foi definido corretamente
+          setTimeout(() => {
+            const cookies = document.cookie.split(';').map(c => c.trim());
+            const langCookie = cookies.find(c => c.startsWith('user-language='));
+            console.log('[i18n] Cookie check after setting:', langCookie);
+          }, 100);
           
           // Disparar evento personalizado para notificar a mudança de idioma
-          const event = new Event('languageChanged')
-          window.dispatchEvent(event)
+          try {
+            const event = new Event('languageChanged');
+            window.dispatchEvent(event);
+          } catch (error) {
+            console.error('[i18n] Error dispatching language change event:', error);
+          }
         }
         
-        set({ language })
+        set({ language });
       },
     }),
     {
@@ -1184,11 +1363,14 @@ export const useLanguageStore = create<LanguageState>()(
       // Quando a store é hidratada do localStorage, marcar como hidratada
       onRehydrateStorage: () => (state) => {
         if (state) {
-          state.setHydrated(true)
+          state.setHydrated(true);
           
           // Definir cookie imediatamente após hidratação
           if (typeof document !== 'undefined') {
-            setCookie('user-language', state.language)
+            setCookie('user-language', state.language);
+            
+            // Definir atributo lang no HTML
+            document.documentElement.lang = state.language === "en" ? "en" : "pt-BR";
           }
         }
       },
@@ -1196,31 +1378,29 @@ export const useLanguageStore = create<LanguageState>()(
   )
 )
 
-export const useTranslation = () => {
+// Função de tradução
+export function useTranslation() {
   const { language, setLanguage, isHydrated } = useLanguageStore()
   
-  // Efeito para definir cookie quando o componente montar e após hidratação
+  // Obter o idioma do navegador ou a partir dos cookies
   useEffect(() => {
-    if (isHydrated && typeof document !== 'undefined') {
-      // Forçar a definição do cookie após a hidratação
-      setCookie('user-language', language)
-      
-      console.log('[useTranslation] Cookie definido após hidratação:', language)
-      console.log('[useTranslation] Estado atual: isHydrated =', isHydrated, 'language =', language)
-      
-      // Solução temporária - adicionar uma classe ao documento para indicar o idioma atual
-      document.documentElement.setAttribute('data-language', language)
-      console.log('[useTranslation] Atributo data-language definido como:', language)
-    }
-  }, [isHydrated, language])
-  
+    // ...existindo código...
+  }, [])
+
   const t = (key: string): string => {
     if (!translations[key]) {
-      console.warn(`[useTranslation] Tradução não encontrada para: ${key}`)
+      console.warn(`[TRADUÇÃO FALTANDO] Key: "${key}" para o idioma: ${language}`)
+      
+      // Crie um snippet para facilitar a adição da tradução
+      const suggestion = `  "${key}": {
+    en: "${key}",
+    pt: "TRADUÇÃO PENDENTE",
+  },`
+      console.info('Adicione isto ao arquivo i18n.ts:\n', suggestion)
       return key
     }
     
-    const translated = translations[key][language] || key
+    const translated = translations[key][language] || translations[key]['en'] || key
     
     // Log adicional para chaves importantes
     if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
@@ -1229,7 +1409,7 @@ export const useTranslation = () => {
     
     return translated
   }
-  
+
   return { t, language, setLanguage }
 }
 
