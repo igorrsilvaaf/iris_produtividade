@@ -22,7 +22,7 @@ export function LoginForm() {
   const [loginAttempts, setLoginAttempts] = useState(0)
   const router = useRouter()
   const { toast } = useToast()
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
 
   const formSchema = z.object({
     email: z.string()
@@ -47,10 +47,16 @@ export function LoginForm() {
     setIsLoading(true)
 
     try {
+      // Capturar o idioma atual para enviá-lo ao servidor
+      const currentLanguage = (language && ["pt", "en"].includes(language)) ? language : "pt"
+      
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          preferredLanguage: currentLanguage
+        }),
       })
 
       const data = await response.json()

@@ -75,6 +75,8 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
     setIsLoading(true)
     
     try {
+      console.log("Atualizando configurações:", values);
+      
       const response = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -82,8 +84,13 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to update settings")
+        const errorData = await response.json();
+        console.error("Erro ao atualizar configurações:", errorData);
+        throw new Error("Failed to update settings");
       }
+
+      const result = await response.json();
+      console.log("Configurações atualizadas com sucesso:", result);
 
       // Update theme if changed
       if (values.theme !== settings.theme) {
@@ -92,12 +99,22 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
 
       // Update language if changed
       if (values.language !== language) {
+        console.log(`Alterando idioma de ${language} para ${values.language}`);
+        
+        // Atualizar o idioma na store do Zustand
         setLanguage(values.language)
         
-        // Limpar cookies antigos e definir o novo
+        // Limpar cookies antigos de idioma
         clearCookie("language-storage")
-        setCookie("user-language", values.language)
-        console.log("Cookies de idioma limpos e redefinidos")
+        
+        // Definir o novo cookie de idioma com opções mais seguras
+        document.cookie = `user-language=${values.language}; path=/; max-age=31536000; SameSite=Strict`;
+        
+        console.log("Cookies de idioma atualizados:");
+        console.log(document.cookie.split(';').filter(c => c.trim().startsWith('user-language') || c.trim().startsWith('language-storage')));
+        
+        // Atualizar o atributo lang no documento HTML
+        document.documentElement.lang = values.language === 'en' ? 'en' : 'pt-BR';
       }
 
       // Tocar um som de sucesso se os sons estiverem habilitados
@@ -114,8 +131,12 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
         position: "top-right"
       })
 
-      router.refresh()
+      // Forçar um refresh para garantir que todas as alterações sejam aplicadas
+      setTimeout(() => {
+        router.refresh();
+      }, 500);
     } catch (error) {
+      console.error("Erro ao salvar configurações:", error);
       toast({
         variant: "destructive",
         title: t("Failed to update settings"),
