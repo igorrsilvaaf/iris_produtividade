@@ -52,9 +52,9 @@ export function BackupRestore({ initialLanguage }: BackupRestoreProps) {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
 
-      const contentDisposition = response.headers.get("Content-Disposition")
-      const filenameMatch = contentDisposition?.match(/filename="([^"]+)"/)
-      const filename = filenameMatch ? filenameMatch[1] : "to-do-backup.json"
+      const contentDisposition = response.headers.get("Content-Disposition") || "";
+      const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+      const filename = filenameMatch ? filenameMatch[1] : "iris-backup.json";
 
       a.href = url
       a.download = filename

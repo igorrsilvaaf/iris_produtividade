@@ -30,6 +30,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
 import type { Project } from "@/lib/projects"
 import type { Label } from "@/lib/labels"
+import { Logo } from "@/components/logo"
 
 type User = {
   id: number
@@ -156,20 +157,7 @@ export function AppSidebar({ user }: { user: User }) {
     <div className="flex h-full flex-col bg-background">
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/app" className="flex items-center gap-2 font-bold">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-6 w-6 text-red-500"
-          >
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
-          <span>To-Do</span>
+          <Logo asLink={false} />
         </Link>
       </div>
       <ScrollArea className="flex-1 px-2 py-4">
@@ -303,20 +291,7 @@ export function AppSidebar({ user }: { user: User }) {
     <>
       <div className="flex h-14 items-center justify-between border-b px-4 md:hidden">
         <Link href="/app" className="flex items-center gap-2 font-bold">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-6 w-6 text-red-500"
-          >
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
-          <span>To-Do</span>
+          <Logo asLink={false} />
         </Link>
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
           <SheetTrigger asChild>

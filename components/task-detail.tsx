@@ -267,7 +267,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         console.log(`[TaskDetail] Tarefa ${task.id} excluída com sucesso`);
         // Damos um pequeno atraso antes de redirecionar para garantir que o toast seja exibido
         setTimeout(() => {
-          router.push(router.asPath);
+          router.refresh();
         }, 500);
       }
     } catch (error) {
@@ -316,12 +316,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{isEditMode ? t("editTask") : t("taskDetails")}</span>
-            {!isEditMode && (
-              <Button variant="outline" size="sm" onClick={() => setIsEditMode(true)}>
-                <Edit className="mr-2 h-4 w-4" />
-                {t("edit")}
-              </Button>
-            )}
           </DialogTitle>
           <DialogDescription>
             {isEditMode 
@@ -554,17 +548,17 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             )}
           </div>
         </div>
-        <DialogFooter className="flex justify-between items-center w-full">
+        <DialogFooter className="flex flex-col sm:flex-row justify-between items-center w-full gap-4 sm:gap-2">
           <Button 
             variant="secondary" 
             size="sm" 
             onClick={() => onOpenChange(false)}
-            className="w-28"
+            className="w-full sm:w-28"
           >
             <X className="mr-1 h-4 w-4" />
             {t("cancel")}
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-2 w-full sm:w-auto">
             {isEditMode ? (
               <>
                 <Button 
@@ -572,7 +566,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   size="sm" 
                   onClick={handleDelete} 
                   disabled={isDeleting}
-                  className="w-28"
+                  className="w-full sm:w-28"
                 >
                   <Trash className="mr-1 h-4 w-4" />
                   {isDeleting ? t("Deleting...") : t("delete")}
@@ -581,7 +575,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   size="sm" 
                   onClick={handleSave} 
                   disabled={isSaving}
-                  className="w-28"
+                  className="w-full sm:w-28"
                 >
                   <Save className="mr-1 h-4 w-4" />
                   {isSaving ? t("Saving...") : t("save")}
@@ -591,7 +585,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
               <Button 
                 size="sm" 
                 onClick={() => setIsEditMode(true)}
-                className="w-28"
+                className="w-full sm:w-28"
               >
                 <Edit className="mr-1 h-4 w-4" />
                 {t("edit")}

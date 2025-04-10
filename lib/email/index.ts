@@ -81,7 +81,7 @@ export const createPasswordResetEmailHtml = (resetUrl: string, userName: string 
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
-        <h1 style="color: #d31e25; margin: 0;">To-Do-Ist</h1>
+        <h1 style="color: #d31e25; margin: 0;">Íris</h1>
       </div>
       
       <div style="padding: 20px; border: 1px solid #e9ecef; border-radius: 0 0 10px 10px; background-color: #ffffff;">
@@ -89,7 +89,7 @@ export const createPasswordResetEmailHtml = (resetUrl: string, userName: string 
         
         <p>Olá ${userName},</p>
         
-        <p>Recebemos uma solicitação para redefinir sua senha do To-Do-Ist. 
+        <p>Recebemos uma solicitação para redefinir sua senha do Íris. 
            Se você não solicitou esta alteração, por favor ignore este e-mail.</p>
         
         <p>Para redefinir sua senha, clique no botão abaixo:</p>
@@ -115,12 +115,12 @@ export const createPasswordResetEmailHtml = (resetUrl: string, userName: string 
         
         <p style="margin-top: 30px; font-size: 0.9em; color: #6c757d;">
           Atenciosamente,<br>
-          Equipe To-Do-Ist
+          Equipe Íris
         </p>
       </div>
       
       <div style="text-align: center; padding: 20px; font-size: 0.8em; color: #6c757d;">
-        <p>© ${new Date().getFullYear()} To-Do-Ist. Todos os direitos reservados.</p>
+        <p>© ${new Date().getFullYear()} Íris. Todos os direitos reservados.</p>
       </div>
     </div>
   `;

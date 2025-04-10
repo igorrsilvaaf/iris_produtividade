@@ -575,9 +575,9 @@ export const translations: Translations = {
     en: "Organize your tasks with ease",
     pt: "Organize suas tarefas com facilidade",
   },
-  "Stay organized and productive with our To-Do task manager. Includes Pomodoro timer, dark mode, and more.": {
-    en: "Stay organized and productive with our To-Do task manager. Includes Pomodoro timer, dark mode, and more.",
-    pt: "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas To-Do. Inclui temporizador Pomodoro, modo escuro e muito mais.",
+  "Stay organized and productive with our Íris task manager. Includes Pomodoro timer, dark mode, and more.": {
+    en: "Stay organized and productive with our Íris task manager. Includes Pomodoro timer, dark mode, and more.",
+    pt: "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, modo escuro e muito mais.",
   },
   "Get Started": {
     en: "Get Started",
@@ -815,9 +815,9 @@ export const translations: Translations = {
     en: "Create an account",
     pt: "Criar uma conta"
   },
-  "Sign up to get started with To-Do": {
-    en: "Sign up to get started with To-Do",
-    pt: "Cadastre-se para começar a usar o To-Do"
+  "Sign up to get started with Íris": {
+    en: "Sign up to get started with Íris",
+    pt: "Cadastre-se para começar a usar o Íris"
   },
   "Already have an account?": {
     en: "Already have an account?",

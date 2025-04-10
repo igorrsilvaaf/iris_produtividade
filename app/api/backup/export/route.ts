@@ -12,9 +12,10 @@ export async function GET(_request: NextRequest) {
 
     const data = await StorageService.exportUserData(session.user.id)
 
-    // Adicionar timestamp ao nome do arquivo
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
-    const filename = `to-do-backup-${timestamp}.json`
+    // Formato do nome do arquivo: to-do-backup-ANO-MES-DIA-HORA-MINUTO-SEGUNDO.json
+    const date = new Date();
+    const timestamp = date.toISOString().replace(/[:.]/g, '-').replace('T', '-').split('Z')[0];
+    const filename = `iris-backup-${timestamp}.json`;
 
     return new NextResponse(JSON.stringify(data, null, 2), {
       headers: {
