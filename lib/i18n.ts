@@ -1134,9 +1134,17 @@ export const translations: Translations = {
     en: "Title",
     pt: "Título",
   },
+  "Descrição": {
+    en: "Description",
+    pt: "Descrição",
+  },
   "Data de Vencimento": {
     en: "Due Date",
     pt: "Data de Vencimento",
+  },
+  "Data de Criação": {
+    en: "Creation Date",
+    pt: "Data de Criação",
   },
   "View all": {
     en: "View all",
