@@ -170,6 +170,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       }
 
       console.log(`[TaskDetail] Salvando alterações para tarefa ${task.id}`);
+      console.log(`[TaskDetail] Nova data: ${dueDateWithTime}`);
 
       // Primeiro, atualize os detalhes da tarefa
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
@@ -224,10 +225,13 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       // Mudamos para não recarregar automaticamente, apenas atualizar o estado local
       setIsEditMode(false)
       
-      // Faz uma atualização seletiva sem recarregar a página inteira
-      if (typeof window !== 'undefined') {
-        console.log(`[TaskDetail] Tarefa ${task.id} atualizada com sucesso`);
-      }
+      // Forçar atualização completa da página para refletir as mudanças
+      router.refresh();
+      
+      // Fechar o modal após salvar as alterações
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 500);
     } catch (error) {
       console.error(`[TaskDetail] Erro ao salvar tarefa:`, error);
       toast({

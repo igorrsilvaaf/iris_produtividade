@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar, Check, ChevronRight, Edit, Flag, MoreHorizontal, Trash, ArrowUpDown } from "lucide-react"
+import { Calendar, Check, ChevronRight, Edit, Flag, MoreHorizontal, Trash, ArrowUpDown, Clock, FileText } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -21,7 +21,7 @@ import {
   SelectValue 
 } from "@/components/ui/select"
 
-type SortOption = "priority" | "title" | "dueDate"
+type SortOption = "priority" | "title" | "dueDate" | "createdAt"
 
 export function TaskList({ tasks }: { tasks: Todo[] }) {
   const [expandedTask, setExpandedTask] = useState<number | null>(null)
@@ -46,6 +46,10 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
           if (!a.due_date) return 1;
           if (!b.due_date) return -1;
           return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+        });
+      case "createdAt":
+        return tasksCopy.sort((a, b) => {
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
       default:
         return tasksCopy;
@@ -186,11 +190,22 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
                   {t("Prioridade")}
                 </div>
               </SelectItem>
-              <SelectItem value="title">{t("Título")}</SelectItem>
+              <SelectItem value="title">
+                <div className="flex items-center">
+                  <FileText className="mr-2 h-4 w-4" />
+                  {t("Descrição")}
+                </div>
+              </SelectItem>
               <SelectItem value="dueDate">
                 <div className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
                   {t("Data de Vencimento")}
+                </div>
+              </SelectItem>
+              <SelectItem value="createdAt">
+                <div className="flex items-center">
+                  <Clock className="mr-2 h-4 w-4" />
+                  {t("Data de Criação")}
                 </div>
               </SelectItem>
             </SelectContent>

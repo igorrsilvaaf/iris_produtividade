@@ -31,6 +31,7 @@ const formSchema = z.object({
 
 export function AddProjectDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -43,6 +44,10 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
     try {
       const response = await fetch("/api/projects", {
         method: "POST",
@@ -61,18 +66,29 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
 
       form.reset()
       setOpen(false)
-      router.refresh()
+      
+      setTimeout(() => {
+        router.refresh()
+      }, 300);
+      
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Failed to create project",
         description: "Please try again.",
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      if (!newOpen) {
+        form.reset();
+      }
+      setOpen(newOpen);
+    }}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -112,7 +128,9 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
               )}
             />
             <DialogFooter>
-              <Button type="submit">Create Project</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Project"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
