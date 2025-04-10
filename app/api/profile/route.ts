@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
-    const { name, email } = await request.json()
+    const { name, email, avatar_url } = await request.json()
 
     if (!name || !email) {
       return NextResponse.json({ message: "Name and email are required" }, { status: 400 })
@@ -30,9 +30,9 @@ export async function PATCH(request: NextRequest) {
 
     const updatedUser = await sql`
       UPDATE users
-      SET name = ${name}, email = ${email}
+      SET name = ${name}, email = ${email}, avatar_url = ${avatar_url}
       WHERE id = ${session.user.id}
-      RETURNING id, name, email
+      RETURNING id, name, email, avatar_url
     `
 
     return NextResponse.json({ user: updatedUser[0] })

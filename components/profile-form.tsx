@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import type { User } from "@/lib/auth"
 import { useTranslation } from "@/lib/i18n"
+import { Camera, Upload } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,8 +16,16 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-export function ProfileForm({ user }: { user: User }) {
+// Tipo estendido para incluir o avatar_url
+type UserWithAvatar = User & {
+  avatar_url?: string | null
+}
+
+export function ProfileForm({ user }: { user: UserWithAvatar }) {
   const [isLoading, setIsLoading] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [avatarBase64, setAvatarBase64] = useState<string | null>(user.avatar_url || null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
@@ -41,7 +50,10 @@ export function ProfileForm({ user }: { user: User }) {
       const response = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          avatar_url: avatarBase64
+        }),
       })
 
       if (!response.ok) {
@@ -65,6 +77,67 @@ export function ProfileForm({ user }: { user: User }) {
     }
   }
 
+  // Função para converter imagem para Base64
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  }
+
+  // Função para lidar com o upload da imagem
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Validar o tipo do arquivo
+    if (!file.type.startsWith('image/')) {
+      toast({
+        variant: "destructive",
+        title: t("Invalid file type"),
+        description: t("Please upload an image file."),
+      });
+      return;
+    }
+    
+    // Validar o tamanho do arquivo (max 1MB para armazenar como base64)
+    if (file.size > 1 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: t("File too large"),
+        description: t("Please upload an image smaller than 1MB."),
+      });
+      return;
+    }
+    
+    setUploadingAvatar(true);
+    
+    try {
+      // Converter a imagem para base64
+      const base64String = await convertToBase64(file);
+      setAvatarBase64(base64String);
+      
+      toast({
+        title: t("Avatar selected"),
+        description: t("Click Save to update your profile picture."),
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: t("Failed to process image"),
+        description: t("Please try again with another image."),
+      });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -83,13 +156,46 @@ export function ProfileForm({ user }: { user: User }) {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src="" alt={user.name} />
-                <AvatarFallback className="text-2xl">{getInitials(user.name)}</AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-24 w-24 cursor-pointer border-2 border-muted bg-muted" onClick={triggerFileInput}>
+                  <AvatarImage src={avatarBase64 || ""} alt={user.name} />
+                  <AvatarFallback className="text-2xl">{getInitials(user.name)}</AvatarFallback>
+                  
+                  {/* Overlay com ícone de câmera */}
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity hover:opacity-100">
+                    <Camera className="h-8 w-8 text-white" />
+                  </div>
+                </Avatar>
+                {/* Indicador de carregamento */}
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                  </div>
+                )}
+                
+                {/* Input de arquivo oculto */}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleAvatarUpload} 
+                  className="hidden" 
+                  accept="image/*"
+                />
+              </div>
               <div className="space-y-1 text-center sm:text-left">
                 <h3 className="text-lg font-medium">{user.name}</h3>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  type="button" 
+                  onClick={triggerFileInput}
+                  disabled={uploadingAvatar}
+                  className="mt-2"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {uploadingAvatar ? t("Processing...") : t("Upload Photo")}
+                </Button>
               </div>
             </div>
 

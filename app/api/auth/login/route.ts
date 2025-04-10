@@ -25,8 +25,9 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ user }, { status: 200 })
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message || "Login failed" }, { status: 401 })
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Login failed";
+    return NextResponse.json({ message: errorMessage }, { status: 401 })
   }
 }
 

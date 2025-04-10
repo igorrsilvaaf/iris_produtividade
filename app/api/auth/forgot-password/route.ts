@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
           const emailHtml = createPasswordResetEmailHtml(resetUrl, userName);
           const emailResult = await sendEmail({
             to: email,
-            subject: 'Redefinição de Senha - To-Do-Ist',
+            subject: 'Redefinição de Senha - Íris',
             html: emailHtml,
           });
           

@@ -21,6 +21,7 @@ type AppHeaderUser = {
   id: number
   name: string
   email: string
+  avatar_url?: string | null
 }
 
 export function AppHeader({ user }: { user: AppHeaderUser }) {
@@ -79,7 +80,7 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="" alt={user.name} />
+                <AvatarImage src={user.avatar_url || ""} alt={user.name} />
                 <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
               </Avatar>
             </Button>

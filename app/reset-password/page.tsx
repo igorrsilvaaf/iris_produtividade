@@ -3,6 +3,7 @@ import { Metadata } from "next"
 import { ResetPasswordForm } from "@/components/reset-password-form"
 import { getServerTranslation } from "@/lib/server-i18n"
 import { cookies } from "next/headers"
+import { Logo } from "@/components/logo"
 
 export async function generateMetadata(): Promise<Metadata> {
   const cookieStore = await cookies()
@@ -28,26 +29,14 @@ export default function ResetPasswordPage({ searchParams }: ResetPasswordPagePro
   const token = searchParams.token as string || "";
   
   return (
-    <div className="w-full max-w-md mx-auto space-y-6 py-12">
-      <div className="flex flex-col space-y-2 text-center">
-        <Link href="/" className="mx-auto">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-10 w-10 text-red-500"
-          >
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
-        </Link>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0c0d10] py-12 px-4">
+      <div className="flex flex-col space-y-4 text-center">
+        <Logo className="mx-auto" />
       </div>
-      <div className="bg-card text-card-foreground shadow-lg rounded-lg p-8 border">
-        <ResetPasswordForm token={token} />
+      <div className="w-full max-w-md mx-auto mt-8">
+        <div className="bg-[#151821] shadow-lg rounded-lg p-8 border border-[#20232b] text-white">
+          <ResetPasswordForm token={token} />
+        </div>
       </div>
     </div>
   )

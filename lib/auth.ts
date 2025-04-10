@@ -10,6 +10,7 @@ export type User = {
   id: number
   name: string
   email: string
+  avatar_url?: string | null
 }
 
 export type Session = {
@@ -26,7 +27,7 @@ export async function getSession(): Promise<Session | null> {
 
   try {
     const user = await sql`
-    SELECT u.id, u.name, u.email
+    SELECT u.id, u.name, u.email, u.avatar_url
     FROM users u
     JOIN sessions s ON u.id = s.user_id
     WHERE s.session_token = ${sessionToken}
@@ -41,7 +42,8 @@ export async function getSession(): Promise<Session | null> {
       user: {
         id: user[0].id, 
         name: user[0].name, 
-        email: user[0].email
+        email: user[0].email,
+        avatar_url: user[0].avatar_url
       } 
     }
   } catch (error) {
@@ -89,7 +91,7 @@ export async function register(name: string, email: string, password: string): P
     const result = await sql`
     INSERT INTO users (name, email, password)
     VALUES (${name}, ${email}, ${hashedPassword})
-    RETURNING id, name, email
+    RETURNING id, name, email, avatar_url
   `
 
     if (!result || result.length === 0) {
@@ -99,7 +101,8 @@ export async function register(name: string, email: string, password: string): P
     return {
       id: result[0].id,
       name: result[0].name,
-      email: result[0].email
+      email: result[0].email,
+      avatar_url: result[0].avatar_url
     }
   } catch (error: any) {
     if (error.message.includes("duplicate key")) {
@@ -111,7 +114,7 @@ export async function register(name: string, email: string, password: string): P
 
 export async function login(email: string, password: string): Promise<User> {
   const users = await sql`
-  SELECT id, name, email, password
+  SELECT id, name, email, password, avatar_url
   FROM users
   WHERE email = ${email}
 `
