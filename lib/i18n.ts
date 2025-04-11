@@ -55,13 +55,57 @@ export const translations: Translations = {
     en: "Add Task",
     pt: "Adicionar Tarefa",
   },
+  createTask: {
+    en: "Create Task",
+    pt: "Criar Tarefa",
+  },
+  createProject: {
+    en: "Create Project",
+    pt: "Criar Projeto",
+  },
+  creating: {
+    en: "Creating...",
+    pt: "Criando...",
+  },
+  taskCreated: {
+    en: "Task Created",
+    pt: "Tarefa Criada",
+  },
   addProject: {
     en: "Add Project",
     pt: "Adicionar Projeto",
   },
+  createNewProject: {
+    en: "Create a new project to organize your tasks.",
+    pt: "Crie um novo projeto para organizar suas tarefas.",
+  },
+  projectName: {
+    en: "Project name",
+    pt: "Nome do projeto",
+  },
   addLabel: {
     en: "Add Label",
     pt: "Adicionar Etiqueta",
+  },
+  createNewLabel: {
+    en: "Create a new label to organize your tasks.",
+    pt: "Crie uma nova etiqueta para organizar suas tarefas.",
+  },
+  addLabels: {
+    en: "Add labels",
+    pt: "Adicionar etiquetas",
+  },
+  removeLabel: {
+    en: "Remove label",
+    pt: "Remover etiqueta",
+  },
+  noLabelsFound: {
+    en: "No labels found",
+    pt: "Nenhuma etiqueta encontrada",
+  },
+  loadingProjects: {
+    en: "Loading projects...",
+    pt: "Carregando projetos...",
   },
   edit: {
     en: "Edit",
@@ -267,10 +311,6 @@ export const translations: Translations = {
   },
 
   // Mensagens
-  taskCreated: {
-    en: "Task created",
-    pt: "Tarefa criada",
-  },
   taskUpdated: {
     en: "Task updated",
     pt: "Tarefa atualizada",
@@ -282,6 +322,14 @@ export const translations: Translations = {
   projectCreated: {
     en: "Project created",
     pt: "Projeto criado",
+  },
+  projectCreateSuccess: {
+    en: "Your project has been created successfully.",
+    pt: "Seu projeto foi criado com sucesso.",
+  },
+  failedCreateProject: {
+    en: "Failed to create project",
+    pt: "Falha ao criar projeto",
   },
   projectUpdated: {
     en: "Project updated",

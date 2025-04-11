@@ -21,6 +21,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslation } from "@/lib/i18n"
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Project name is required" }),
@@ -34,6 +35,7 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -60,8 +62,8 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
       }
 
       toast({
-        title: "Project created",
-        description: "Your project has been created successfully.",
+        title: t("projectCreated"),
+        description: t("Your project has been created successfully."),
       })
 
       form.reset()
@@ -74,8 +76,8 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to create project",
-        description: "Please try again.",
+        title: t("Failed to create project"),
+        description: t("Please try again."),
       })
     } finally {
       setIsSubmitting(false)
@@ -92,8 +94,8 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Project</DialogTitle>
-          <DialogDescription>Create a new project to organize your tasks.</DialogDescription>
+          <DialogTitle>{t("addProject")}</DialogTitle>
+          <DialogDescription>{t("createNewProject")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -102,9 +104,9 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("name")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Project name" {...field} />
+                    <Input placeholder={t("projectName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -115,7 +117,7 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
               name="color"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Color</FormLabel>
+                  <FormLabel>{t("color")}</FormLabel>
                   <FormControl>
                     <div className="flex items-center gap-2">
                       <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: field.value }} />
@@ -127,9 +129,9 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
                 </FormItem>
               )}
             />
-            <DialogFooter>
+            <DialogFooter className="flex justify-end">
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Project"}
+                {isSubmitting ? t("creating") : t("createProject")}
               </Button>
             </DialogFooter>
           </form>

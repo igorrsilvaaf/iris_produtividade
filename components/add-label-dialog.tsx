@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { LabelForm } from "@/components/label-form"
+import { useTranslation } from "@/lib/i18n"
 
 interface AddLabelDialogProps {
   children: React.ReactNode
@@ -21,6 +22,7 @@ interface AddLabelDialogProps {
 export function AddLabelDialog({ children }: AddLabelDialogProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const { t } = useTranslation()
 
   const handleSuccess = () => {
     setOpen(false)
@@ -32,8 +34,8 @@ export function AddLabelDialog({ children }: AddLabelDialogProps) {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Label</DialogTitle>
-          <DialogDescription>Create a new label to organize your tasks.</DialogDescription>
+          <DialogTitle>{t("addLabel")}</DialogTitle>
+          <DialogDescription>{t("createNewLabel")}</DialogDescription>
         </DialogHeader>
         <LabelForm onSuccess={handleSuccess} />
       </DialogContent>
