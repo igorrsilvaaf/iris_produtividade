@@ -111,9 +111,11 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? t("Salvando...") : label ? t("Update Label") : t("Create Label")}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? t("Salvando...") : label ? t("Update Label") : t("Create Label")}
+          </Button>
+        </div>
       </form>
     </Form>
   )

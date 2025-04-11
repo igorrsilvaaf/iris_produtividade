@@ -5,7 +5,7 @@ import { useTranslation } from "@/lib/i18n"
 
 // Mapeamento de nomes de sons para URLs
 export const SOUND_URLS = {
-  default: "/sounds/default.mp3",
+  default: "/sounds/pomodoro.mp3",
   bell: "/sounds/bell.mp3",
   chime: "/sounds/chime.mp3",
   digital: "/sounds/digital.mp3",
@@ -30,7 +30,7 @@ export function useAudioPlayer() {
       const audio = new Audio(soundUrl)
 
       // Definir volume baixo para evitar sustos
-      audio.volume = 0.3
+      audio.volume = 0.4
 
       // Reproduzir o som sem esperar
       audio.play().catch((e) => {

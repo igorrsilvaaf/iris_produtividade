@@ -202,7 +202,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("addTask")}</DialogTitle>
           <DialogDescription>{t("Create a new task to keep track of your work.")}</DialogDescription>
@@ -229,7 +229,12 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                 <FormItem>
                   <FormLabel>{t("description")}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder={t("Add details about your task")} className="resize-none" {...field} />
+                    <Textarea 
+                      placeholder={t("Add details about your task")} 
+                      className="min-h-[200px] text-base"
+                      rows={8}
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -406,7 +411,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                       <SelectItem value="noProject">{t("noProject")}</SelectItem>
                       {isLoadingProjects ? (
                         <SelectItem value="loading" disabled>
-                          {t("Loading projects...")}
+                          {t("loadingProjects")}
                         </SelectItem>
                       ) : (
                         projects.map((project) => (
@@ -454,7 +459,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                             onClick={() => removeLabel(label.id)}
                           >
                             <X className="h-3 w-3" />
-                            <span className="sr-only">{t("Remove label")}</span>
+                            <span className="sr-only">{t("removeLabel")}</span>
                           </Button>
                         </Badge>
                       ))}
@@ -463,7 +468,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                       <PopoverTrigger asChild>
                         <Button type="button" variant="outline" size="sm" className="mt-1">
                           <Tag className="mr-2 h-4 w-4" />
-                          {t("Add labels")}
+                          {t("addLabels")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-[200px] p-0" align="start">
@@ -473,7 +478,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                               <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                             </div>
                           ) : labels.length === 0 ? (
-                            <div className="p-2 text-center text-sm text-muted-foreground">{t("No labels found")}</div>
+                            <div className="p-2 text-center text-sm text-muted-foreground">{t("noLabelsFound")}</div>
                           ) : (
                             <div className="space-y-2">
                               {labels.map((label) => {
@@ -507,8 +512,8 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
             />
 
             <DialogFooter className="pt-2 sm:pt-0">
-              <Button type="submit" className="w-full sm:w-auto" disabled={isLoading}>
-                {isLoading ? t("Criando...") : t("Create Task")}
+              <Button type="submit" className="ml-auto" disabled={isLoading}>
+                {isLoading ? t("creating") : t("createTask")}
               </Button>
             </DialogFooter>
           </form>
