@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar, Check, ChevronRight, Edit, Flag, MoreHorizontal, Trash, ArrowUpDown, Clock, FileText } from "lucide-react"
+import { Calendar, Check, ChevronRight, Edit, Flag, MoreHorizontal, Trash, ArrowUpDown, Clock, FileText, Link } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,22 @@ import {
 } from "@/components/ui/select"
 
 type SortOption = "priority" | "title" | "dueDate" | "createdAt"
+
+// Função para processar texto da descrição
+const processDescription = (text: string) => {
+  if (!text) return "";
+  
+  // Substituir [x] ou [ ] por checkbox
+  const checkboxText = text.replace(/\[([ xX]?)\]/g, (match, inside) => {
+    if (inside === 'x' || inside === 'X') {
+      return '✓ ';
+    }
+    return '□ ';
+  });
+  
+  // Substituir linhas que começam com - por bullet points
+  return checkboxText.replace(/^-\s(.+)$/gm, '• $1');
+};
 
 export function TaskList({ tasks }: { tasks: Todo[] }) {
   const [expandedTask, setExpandedTask] = useState<number | null>(null)
@@ -296,7 +312,59 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
           </div>
           {expandedTask === task.id && task.description && (
             <CardContent className="border-t bg-muted/50 px-4 py-3">
-              <p className="text-sm break-words">{task.description}</p>
+              <div className="text-sm break-words whitespace-pre-wrap">
+                {processDescription(task.description).split('\n').map((line, i) => {
+                  // Encontra URLs no texto
+                  const urlRegex = /(https?:\/\/[^\s]+)/g;
+                  let parts = [];
+                  let lastIndex = 0;
+                  let match;
+                  
+                  // Para cada URL encontrada
+                  while ((match = urlRegex.exec(line)) !== null) {
+                    // Adiciona o texto antes da URL
+                    if (match.index > lastIndex) {
+                      parts.push(line.substring(lastIndex, match.index));
+                    }
+                    
+                    // Adiciona a URL como um link
+                    parts.push(
+                      <a 
+                        key={`${i}-${match.index}`} 
+                        href={match[0]} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline inline-flex items-center"
+                      >
+                        {match[0]}
+                      </a>
+                    );
+                    
+                    lastIndex = urlRegex.lastIndex;
+                  }
+                  
+                  // Adiciona o restante do texto após a última URL
+                  if (lastIndex < line.length) {
+                    parts.push(line.substring(lastIndex));
+                  }
+                  
+                  // Se não houver URLs, apenas retorna a linha
+                  if (parts.length === 0) {
+                    parts.push(line);
+                  }
+                  
+                  // Verifica se a linha está vazia para pular adequadamente
+                  if (line.trim() === '') {
+                    return <br key={i} />;
+                  }
+                  
+                  return (
+                    <p key={i} className="mb-2">
+                      {parts}
+                    </p>
+                  );
+                })}
+              </div>
             </CardContent>
           )}
         </Card>

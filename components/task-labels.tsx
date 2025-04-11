@@ -19,9 +19,10 @@ import { LabelForm } from "@/components/label-form"
 
 interface TaskLabelsProps {
   taskId: number
+  readOnly?: boolean
 }
 
-export function TaskLabels({ taskId }: TaskLabelsProps) {
+export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
   const [labels, setLabels] = useState<Label[]>([])
   const [allLabels, setAllLabels] = useState<Label[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -179,11 +180,40 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">{t("labels")}</h3>
+      <div className="flex flex-wrap gap-2 mt-1">
+        {labels.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("No labels")}</p>
+        ) : (
+          labels.map((label) => (
+            <div
+              key={label.id}
+              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+              style={{
+                backgroundColor: label.color,
+                color: label.text_color || "#ffffff",
+              }}
+            >
+              <Tag className="mr-1 h-3 w-3" />
+              <span>{label.name}</span>
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={() => removeLabelFromTask(label.id)}
+                  className="ml-1 hover:bg-black/10 rounded-full p-0.5"
+                  aria-label={`Remove ${label.name} label`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+      
+      {!readOnly && (
         <Dialog open={showAddLabel} onOpenChange={setShowAddLabel}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="mt-2" id="addLabelBtn">
               <Plus className="mr-1 h-3 w-3" />
               {t("Add Label")}
             </Button>
@@ -200,70 +230,47 @@ export function TaskLabels({ taskId }: TaskLabelsProps) {
                 allLabels
                   .filter((label) => !labels.some((l) => l.id === label.id))
                   .map((label) => (
-                    <Button
+                    <button
                       key={label.id}
-                      variant="outline"
-                      className="justify-start"
+                      type="button"
+                      className="flex items-center justify-between p-2 border rounded hover:bg-accent"
                       onClick={() => addLabelToTask(label.id)}
                     >
-                      <div className="mr-2 h-3 w-3 rounded-full" style={{ backgroundColor: label.color }} />
-                      {label.name}
-                    </Button>
+                      <div className="flex items-center">
+                        <div
+                          className="w-4 h-4 rounded-full mr-2"
+                          style={{ backgroundColor: label.color }}
+                        />
+                        <span>{label.name}</span>
+                      </div>
+                    </button>
                   ))
               )}
-              <Button
-                variant="outline"
-                className="justify-start mt-2"
-                onClick={() => {
-                  setShowAddLabel(false)
-                  setShowCreateLabel(true)
-                }}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                {t("Create New Label")}
+            </div>
+            <div className="mt-4 border-t pt-4 flex justify-between">
+              <Button variant="outline" onClick={() => setShowAddLabel(false)}>
+                {t("Cancel")}
               </Button>
+              <Dialog open={showCreateLabel} onOpenChange={setShowCreateLabel}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => setShowCreateLabel(true)}>
+                    {t("Create New Label")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{t("Create New Label")}</DialogTitle>
+                    <DialogDescription>
+                      {t("Fill in the details to create a new label.")}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <LabelForm onSuccess={handleCreateLabelSuccess} />
+                </DialogContent>
+              </Dialog>
             </div>
           </DialogContent>
         </Dialog>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {labels.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("No labels assigned to this task.")}</p>
-        ) : (
-          labels.map((label) => (
-            <div
-              key={label.id}
-              className="flex items-center gap-1 rounded-full px-2 py-1 text-xs"
-              style={{
-                backgroundColor: `${label.color}20`,
-                borderColor: label.color,
-              }}
-            >
-              <Tag className="h-3 w-3" style={{ color: label.color }} />
-              <span>{label.name}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-4 w-4 rounded-full"
-                onClick={() => removeLabelFromTask(label.id)}
-              >
-                <X className="h-2 w-2" />
-              </Button>
-            </div>
-          ))
-        )}
-      </div>
-
-      <Dialog open={showCreateLabel} onOpenChange={setShowCreateLabel}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("Create Label")}</DialogTitle>
-            <DialogDescription>{t("Create a new label to organize your tasks.")}</DialogDescription>
-          </DialogHeader>
-          <LabelForm onSuccess={handleCreateLabelSuccess} />
-        </DialogContent>
-      </Dialog>
+      )}
     </div>
   )
 }

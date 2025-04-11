@@ -3,10 +3,13 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar as CalendarIcon, Flag, Trash, Clock, X, Save, Edit } from "lucide-react"
+import { Calendar as CalendarIcon, Flag, Trash, Clock, X, Save, Edit, CheckSquare, Square, Link } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
 import { useTranslation } from "@/lib/i18n"
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -227,11 +230,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       
       // Forçar atualização completa da página para refletir as mudanças
       router.refresh();
-      
-      // Fechar o modal após salvar as alterações
-      setTimeout(() => {
-        onOpenChange(false);
-      }, 500);
     } catch (error) {
       console.error(`[TaskDetail] Erro ao salvar tarefa:`, error);
       toast({
@@ -314,9 +312,256 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }
 
+  // Função para alternar estado do checkbox na descrição
+  const toggleCheckboxInDescription = (index: number) => {
+    if (isEditMode) return; // Não permitir alterações no modo de edição
+    
+    console.log(`Alternando checkbox ${index} na descrição`);
+    
+    // Encontrar todos os checkboxes na descrição
+    const checkboxRegex = /\[([ x]?)\]/g;
+    let checkboxPositions = [];
+    let match;
+    
+    // Primeiro, encontre todas as posições de checkbox no texto
+    while ((match = checkboxRegex.exec(description)) !== null) {
+      const isChecked = match[1] === 'x' || match[1] === 'X';
+      checkboxPositions.push({
+        index: match.index,
+        length: match[0].length,
+        isChecked
+      });
+    }
+    
+    console.log(`Encontrados ${checkboxPositions.length} checkboxes na descrição`);
+    
+    // Verificar se temos o índice solicitado
+    if (index >= 0 && index < checkboxPositions.length) {
+      const targetCheckbox = checkboxPositions[index];
+      
+      // Criar a nova descrição com o checkbox alternado
+      const before = description.substring(0, targetCheckbox.index);
+      const after = description.substring(targetCheckbox.index + targetCheckbox.length);
+      const newCheckbox = targetCheckbox.isChecked ? '[ ]' : '[x]';
+      
+      const newDescription = before + newCheckbox + after;
+      
+      console.log(`Checkbox alternado de ${targetCheckbox.isChecked ? '[x]' : '[ ]'} para ${newCheckbox}`);
+      
+      // Atualiza o estado e salva no servidor
+      setDescription(newDescription);
+      updateTaskDescription(newDescription);
+    } else {
+      console.error(`Índice de checkbox inválido: ${index}, total de checkboxes: ${checkboxPositions.length}`);
+    }
+  };
+  
+  // Função para atualizar a descrição da tarefa no servidor
+  const updateTaskDescription = async (newDescription: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: newDescription,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to update task description");
+      }
+      
+      toast({
+        title: t("Task updated"),
+        description: t("Checklist item has been updated."),
+      });
+      
+      // Atualiza a visão
+      router.refresh();
+    } catch (error) {
+      console.error(`[TaskDetail] Erro ao atualizar descrição:`, error);
+      toast({
+        variant: "destructive",
+        title: t("Failed to update task"),
+        description: t("Please try again."),
+      });
+    }
+  };
+  
+  // Função para renderizar a descrição com checkboxes interativos
+  const renderDescription = () => {
+    if (!description) return <p className="text-muted-foreground">{t("No description")}</p>;
+    
+    // Primeiro, encontre todos os checkboxes para termos a contagem global
+    const allCheckboxes = [];
+    const checkboxRegex = /\[([ x]?)\]/g;
+    let match;
+    let tempDescription = description;
+    
+    while((match = checkboxRegex.exec(tempDescription)) !== null) {
+      allCheckboxes.push({
+        index: match.index,
+        checked: match[1] === 'x' || match[1] === 'X'
+      });
+    }
+    
+    console.log(`Total de checkboxes encontrados: ${allCheckboxes.length}`);
+    
+    // Divide a descrição em linhas
+    let globalCheckboxIndex = 0;
+    return description.split('\n').map((line, lineIndex) => {
+      // Se a linha estiver vazia, retorna um <br>
+      if (line.trim() === '') {
+        return <br key={`line-${lineIndex}`} />;
+      }
+      
+      // Verifica se a linha começa com traço (bullet point)
+      const isBullet = line.trim().match(/^-\s(.+)$/);
+      if (isBullet) {
+        // Extrai o conteúdo após o traço
+        const bulletContent = isBullet[1];
+        // Processamos o conteúdo normal, mas com um estilo de bullet point
+        const processedContent = processBulletContent(bulletContent, lineIndex, globalCheckboxIndex);
+        // Atualiza o índice global com base em quantos checkboxes foram encontrados na linha
+        globalCheckboxIndex += processedContent.checkboxCount;
+        
+        return (
+          <p key={`line-${lineIndex}`} className="mb-2 flex">
+            <span className="mr-2">•</span>
+            <span>{processedContent.content}</span>
+          </p>
+        );
+      }
+      
+      // Processamento de checkboxes e links para linhas normais
+      const processedLine = processLineContent(line, lineIndex, globalCheckboxIndex);
+      // Atualiza o índice global
+      globalCheckboxIndex += processedLine.checkboxCount;
+      
+      return (
+        <p key={`line-${lineIndex}`} className="mb-2">
+          {processedLine.content}
+        </p>
+      );
+    });
+  };
+  
+  // Processa o conteúdo de um bullet point
+  const processBulletContent = (content: string, lineIndex: number, startCheckboxIndex: number) => {
+    return processLineContent(content, lineIndex, startCheckboxIndex);
+  };
+  
+  // Processa o conteúdo de uma linha (checkboxes e URLs)
+  const processLineContent = (line: string, lineIndex: number, startCheckboxIndex: number) => {
+    let segments = [];
+    let lastIndex = 0;
+    let checkboxCount = 0;
+    
+    // Regex para checkboxes e URLs
+    const combinedRegex = /(\[([ x]?)\]|https?:\/\/[^\s]+)/g;
+    let match;
+    let lastCheckbox = null;
+    
+    // Para cada checkbox ou URL na linha
+    while ((match = combinedRegex.exec(line)) !== null) {
+      // Adiciona o texto antes do match
+      if (match.index > lastIndex) {
+        const textSegment = line.substring(lastIndex, match.index);
+        // Se o último elemento foi um checkbox marcado, aplica o estilo taxado
+        if (lastCheckbox && lastCheckbox.isChecked) {
+          segments.push(
+            <span 
+              key={`text-${lineIndex}-${lastIndex}`}
+              className="line-through text-muted-foreground"
+            >
+              {textSegment}
+            </span>
+          );
+        } else {
+          segments.push(<span key={`text-${lineIndex}-${lastIndex}`}>{textSegment}</span>);
+        }
+        lastCheckbox = null; // Reseta após processar o texto
+      }
+      
+      // Verifica se é um checkbox
+      if (match[0].startsWith('[')) {
+        const isChecked = match[2] === 'x' || match[2] === 'X';
+        const currentCheckboxIndex = startCheckboxIndex + checkboxCount;
+        
+        // Adiciona checkbox interativo com ícones menores e brancos
+        segments.push(
+          <span key={`checkbox-${lineIndex}-${match.index}`} className="inline-flex items-center align-middle">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(`Clicando no checkbox ${currentCheckboxIndex}, estado atual: ${isChecked}`);
+                toggleCheckboxInDescription(currentCheckboxIndex);
+              }}
+              disabled={isEditMode}
+              className="p-1 mr-1 inline-flex items-center justify-center focus:outline-none hover:bg-gray-800 rounded"
+              aria-checked={isChecked}
+              role="checkbox"
+            >
+              {isChecked ? (
+                <CheckSquare className="h-3.5 w-3.5 text-white" />
+              ) : (
+                <Square className="h-3.5 w-3.5 text-white" />
+              )}
+            </button>
+          </span>
+        );
+        
+        // Guarda informação sobre este checkbox para aplicar estilo no texto que segue
+        lastCheckbox = { isChecked };
+        checkboxCount++;
+      } 
+      // Se for uma URL
+      else if (match[0].match(/https?:\/\//)) {
+        segments.push(
+          <a 
+            key={`url-${lineIndex}-${match.index}`}
+            href={match[0]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`text-blue-500 hover:underline inline-flex items-center ${lastCheckbox && lastCheckbox.isChecked ? "line-through" : ""}`}
+          >
+            {match[0]}
+          </a>
+        );
+      }
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Adiciona o texto restante após o último match
+    if (lastIndex < line.length) {
+      const restText = line.substring(lastIndex);
+      if (lastCheckbox && lastCheckbox.isChecked) {
+        segments.push(
+          <span 
+            key={`text-${lineIndex}-${lastIndex}`}
+            className="line-through text-muted-foreground"
+          >
+            {restText}
+          </span>
+        );
+      } else {
+        segments.push(<span key={`text-${lineIndex}-${lastIndex}`}>{restText}</span>);
+      }
+    }
+    
+    // Retorna os segmentos e a contagem de checkboxes
+    return {
+      content: segments.length > 0 ? segments : line,
+      checkboxCount
+    };
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{isEditMode ? t("editTask") : t("taskDetails")}</span>
@@ -348,15 +593,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t("Task description")}
-                rows={4}
+                rows={8}
+                className="min-h-[200px] text-base"
               />
             ) : (
-              <div className="p-2 border rounded-md bg-muted/30 min-h-[80px]">
-                {description ? (
-                  <p className="whitespace-pre-wrap">{description}</p>
-                ) : (
-                  <p className="text-muted-foreground">{t("No description")}</p>
-                )}
+              <div className="p-3 border rounded-md bg-muted/30 min-h-[200px] overflow-y-auto">
+                {renderDescription()}
               </div>
             )}
           </div>
@@ -539,7 +781,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             )}
           </div>
 
-          <TaskLabels key={taskLabelsKey} taskId={task.id} />
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {t("Etiquetas")}
+            </label>
+            <TaskLabels key={taskLabelsKey} taskId={task.id} readOnly={!isEditMode} />
+          </div>
 
           <div className="text-xs text-muted-foreground">
             <p>
