@@ -1311,6 +1311,36 @@ export const translations: Translations = {
     en: "Name is required",
     pt: "O nome é obrigatório",
   },
+
+  // Changelog
+  changelog: {
+    en: "Changelog",
+    pt: "Notas de Versão",
+  },
+  releaseNotes: {
+    en: "Release Notes",
+    pt: "Notas de Lançamento",
+  },
+  version: {
+    en: "Version",
+    pt: "Versão",
+  },
+  newFeatures: {
+    en: "New Features",
+    pt: "Novos Recursos",
+  },
+  improvements: {
+    en: "Improvements",
+    pt: "Melhorias",
+  },
+  bugFixes: {
+    en: "Bug Fixes",
+    pt: "Correções de Bugs",
+  },
+  new: {
+    en: "New",
+    pt: "Novo",
+  },
 }
 
 type LanguageState = {

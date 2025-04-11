@@ -1,6 +1,6 @@
 "use client"
 import { useRouter } from "next/navigation"
-import { Calendar, Database, Settings, User } from "lucide-react"
+import { Calendar, Database, Settings, User, FileText } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import {
@@ -110,6 +110,12 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
               <a href="/app/storage" className="flex items-center">
                 <Database className="mr-2 h-4 w-4" />
                 {t("storage")}
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href="/app/changelog" className="flex items-center">
+                <FileText className="mr-2 h-4 w-4" />
+                {t("changelog")}
               </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
