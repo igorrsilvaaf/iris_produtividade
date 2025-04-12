@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { CalendarIcon, Flag, Tag, X, Clock } from "lucide-react"
+import { CalendarIcon, Flag, Tag, X, Clock, Plus } from "lucide-react"
 import { format } from "date-fns"
 import type { Project } from "@/lib/projects"
 import type { Label } from "@/lib/labels"
@@ -33,6 +33,8 @@ import { Calendar } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Checkbox } from "@/components/ui/checkbox"
+import { LabelForm } from "@/components/label-form"
+import { ProjectForm } from "@/components/project-form"
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -58,7 +60,10 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
   const [selectedLabels, setSelectedLabels] = useState<Label[]>([])
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isLoadingLabels, setIsLoadingLabels] = useState(false)
-  const [showLabelSelector, setShowLabelSelector] = useState(false)
+  const [showAddLabel, setShowAddLabel] = useState(false)
+  const [showCreateLabel, setShowCreateLabel] = useState(false)
+  const [showAddProject, setShowAddProject] = useState(false)
+  const [showCreateProject, setShowCreateProject] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
@@ -142,6 +147,32 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
     const updatedLabelIds = labelIds.filter((id) => id !== labelId)
     form.setValue("labelIds", updatedLabelIds)
     setSelectedLabels(selectedLabels.filter((l) => l.id !== labelId))
+  }
+
+  const handleCreateLabelSuccess = () => {
+    setShowCreateLabel(false)
+    // Refresh labels
+    fetch("/api/labels")
+      .then((response) => response.json())
+      .then((data) => {
+        setLabels(data.labels)
+      })
+      .catch((error) => {
+        console.error("Failed to refresh labels:", error)
+      })
+  }
+
+  const handleCreateProjectSuccess = () => {
+    setShowCreateProject(false)
+    // Refresh projects
+    fetch("/api/projects")
+      .then((response) => response.json())
+      .then((data) => {
+        setProjects(data.projects)
+      })
+      .catch((error) => {
+        console.error("Failed to refresh projects:", error)
+      })
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -401,30 +432,105 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("project")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("selectProject")} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="noProject">{t("noProject")}</SelectItem>
-                      {isLoadingProjects ? (
-                        <SelectItem value="loading" disabled>
-                          {t("loadingProjects")}
-                        </SelectItem>
-                      ) : (
-                        projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id.toString()}>
-                            <div className="flex items-center">
-                              <div className="mr-2 h-3 w-3 rounded-full" style={{ backgroundColor: project.color }} />
-                              {project.name}
+                  <div className="space-y-2">
+                    {field.value && field.value !== "noProject" ? (
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center">
+                          <div
+                            className="w-4 h-4 rounded-full mr-2"
+                            style={{ 
+                              backgroundColor: projects.find(p => p.id.toString() === field.value)?.color || "#ccc" 
+                            }}
+                          />
+                          <span>{projects.find(p => p.id.toString() === field.value)?.name || t("Unknown project")}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => field.onChange("noProject")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">{t("Remove project")}</span>
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground p-2">{t("noProject")}</p>
+                    )}
+                    <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
+                      <DialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                        >
+                          <Plus className="mr-1 h-3 w-3" />
+                          {t("Add Project")}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="z-[60]" onClick={(e) => e.stopPropagation()}>
+                        <DialogHeader>
+                          <DialogTitle>{t("Add Project")}</DialogTitle>
+                          <DialogDescription>{t("Select a project or create a new one.")}</DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-2 py-4">
+                          {isLoadingProjects ? (
+                            <div className="flex items-center justify-center p-4">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                             </div>
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                          ) : projects.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">{t("No projects found.")}</p>
+                          ) : (
+                            projects.map((project) => (
+                              <button
+                                key={project.id}
+                                type="button"
+                                className="flex items-center justify-between p-2 border rounded hover:bg-accent"
+                                onClick={() => {
+                                  field.onChange(project.id.toString());
+                                  setShowAddProject(false);
+                                }}
+                              >
+                                <div className="flex items-center">
+                                  <div
+                                    className="w-4 h-4 rounded-full mr-2"
+                                    style={{ backgroundColor: project.color }}
+                                  />
+                                  <span>{project.name}</span>
+                                </div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                        <div className="mt-4 border-t pt-4 flex justify-between">
+                          <Button variant="outline" onClick={() => setShowAddProject(false)}>
+                            {t("Cancel")}
+                          </Button>
+                          <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
+                            <DialogTrigger asChild>
+                              <Button onClick={(e) => {
+                                e.stopPropagation();
+                                setShowCreateProject(true);
+                              }}>
+                                {t("Create New Project")}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="z-[70]" onClick={(e) => e.stopPropagation()}>
+                              <DialogHeader>
+                                <DialogTitle>{t("Create New Project")}</DialogTitle>
+                                <DialogDescription>
+                                  {t("Fill in the details to create a new project.")}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <ProjectForm onSuccess={handleCreateProjectSuccess} />
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -435,82 +541,108 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
               name="labelIds"
               render={() => (
                 <FormItem>
-                  <FormLabel>{t("labels")}</FormLabel>
+                  <FormLabel>{t("Labels")}</FormLabel>
                   <div className="space-y-2">
                     <div className="flex flex-wrap gap-2 min-h-[36px] p-1">
                       {selectedLabels.map((label) => (
                         <Badge
                           key={label.id}
-                          variant="outline"
                           style={{
-                            backgroundColor: `${label.color}20`,
-                            borderColor: label.color,
-                            color: label.color,
+                            backgroundColor: label.color,
+                            color: label.text_color || "#ffffff",
                           }}
                           className="flex items-center gap-1"
                         >
                           <Tag className="h-3 w-3" />
                           {label.name}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-4 w-4 p-0 rounded-full"
-                            onClick={() => removeLabel(label.id)}
+                          <button 
+                            type="button" 
+                            onClick={() => removeLabel(label.id)} 
+                            className="ml-1 hover:bg-black/10 rounded-full p-0.5"
+                            aria-label={`Remove ${label.name} label`}
                           >
                             <X className="h-3 w-3" />
-                            <span className="sr-only">{t("removeLabel")}</span>
-                          </Button>
+                          </button>
                         </Badge>
                       ))}
+                      {selectedLabels.length === 0 && (
+                        <span className="text-sm text-muted-foreground">{t("No labels selected")}</span>
+                      )}
                     </div>
-                    <Popover open={showLabelSelector} onOpenChange={setShowLabelSelector}>
-                      <PopoverTrigger asChild>
-                        <Button type="button" variant="outline" size="sm" className="mt-1">
-                          <Tag className="mr-2 h-4 w-4" />
-                          {t("addLabels")}
+                    <Dialog open={showAddLabel} onOpenChange={setShowAddLabel}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="mt-2" id="addLabelBtn">
+                          <Plus className="mr-1 h-3 w-3" />
+                          {t("Add Label")}
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[200px] p-0" align="start">
-                        <ScrollArea className="h-[200px] p-2">
+                      </DialogTrigger>
+                      <DialogContent className="z-[60]" onClick={(e) => e.stopPropagation()}>
+                        <DialogHeader>
+                          <DialogTitle>{t("Add Label")}</DialogTitle>
+                          <DialogDescription>{t("Select a label to add to this task.")}</DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-2 py-4">
                           {isLoadingLabels ? (
                             <div className="flex items-center justify-center p-4">
-                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                             </div>
                           ) : labels.length === 0 ? (
-                            <div className="p-2 text-center text-sm text-muted-foreground">{t("noLabelsFound")}</div>
+                            <p className="text-sm text-muted-foreground">{t("No labels found.")}</p>
                           ) : (
-                            <div className="space-y-2">
-                              {labels.map((label) => {
-                                const isSelected = form.getValues("labelIds")?.includes(label.id)
-                                return (
-                                  <div key={label.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`label-${label.id}`}
-                                      checked={isSelected}
-                                      onCheckedChange={() => toggleLabel(label)}
+                            labels
+                              .filter((label) => !selectedLabels.some((l) => l.id === label.id))
+                              .map((label) => (
+                                <button
+                                  key={label.id}
+                                  type="button"
+                                  className="flex items-center justify-between p-2 border rounded hover:bg-accent"
+                                  onClick={() => {
+                                    toggleLabel(label);
+                                    setShowAddLabel(false);
+                                  }}
+                                >
+                                  <div className="flex items-center">
+                                    <div
+                                      className="w-4 h-4 rounded-full mr-2"
+                                      style={{ backgroundColor: label.color }}
                                     />
-                                    <label
-                                      htmlFor={`label-${label.id}`}
-                                      className="flex items-center gap-2 text-sm cursor-pointer"
-                                    >
-                                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: label.color }} />
-                                      {label.name}
-                                    </label>
+                                    <span>{label.name}</span>
                                   </div>
-                                )
-                              })}
-                            </div>
+                                </button>
+                              ))
                           )}
-                        </ScrollArea>
-                      </PopoverContent>
-                    </Popover>
+                        </div>
+                        <div className="mt-4 border-t pt-4 flex justify-between">
+                          <Button variant="outline" onClick={() => setShowAddLabel(false)}>
+                            {t("Cancel")}
+                          </Button>
+                          <Dialog open={showCreateLabel} onOpenChange={setShowCreateLabel}>
+                            <DialogTrigger asChild>
+                              <Button onClick={(e) => {
+                                e.stopPropagation();
+                                setShowCreateLabel(true);
+                              }}>
+                                {t("Create New Label")}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="z-[70]" onClick={(e) => e.stopPropagation()}>
+                              <DialogHeader>
+                                <DialogTitle>{t("Create New Label")}</DialogTitle>
+                                <DialogDescription>
+                                  {t("Fill in the details to create a new label.")}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <LabelForm onSuccess={handleCreateLabelSuccess} />
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <DialogFooter className="pt-2 sm:pt-0">
               <Button type="submit" className="ml-auto" disabled={isLoading}>
                 {isLoading ? t("creating") : t("createTask")}

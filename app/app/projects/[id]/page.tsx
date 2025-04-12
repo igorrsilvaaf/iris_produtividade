@@ -8,9 +8,10 @@ import { EditProjectDialog } from "@/components/edit-project-dialog"
 import { DeleteProjectDialog } from "@/components/delete-project-dialog"
 import { ToggleProjectFavorite } from "@/components/toggle-project-favorite"
 
-export default async function ProjectPage({ params }: { params: { id: string } }) {
+export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await requireAuth()
-  const projectId = Number.parseInt(params.id)
+  const resolvedParams = await params
+  const projectId = Number.parseInt(resolvedParams.id)
 
   const project = await getProject(projectId, session.user.id)
   const tasks = await getProjectTasks(projectId, session.user.id)
