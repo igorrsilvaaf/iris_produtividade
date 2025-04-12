@@ -14,7 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/components/ui/use-toast"
 import { SearchTasks } from "@/components/search-tasks"
-import { NotificationsDropdown } from "@/components/notifications-dropdown"
+import { TaskNotificationsMenu } from "@/components/task-notifications-menu"
 import { useTranslation } from "@/lib/i18n"
 
 type AppHeaderUser = {
@@ -68,7 +68,7 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
             <span className="sr-only">{t("calendar")}</span>
           </a>
         </Button>
-        <NotificationsDropdown />
+        <TaskNotificationsMenu />
         <Button variant="ghost" size="icon" className="hidden md:flex" asChild>
           <a href="/app/settings">
             <Settings className="h-5 w-5" />

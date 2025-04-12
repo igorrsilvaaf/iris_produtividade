@@ -1389,6 +1389,107 @@ export const translations: Translations = {
     en: "New",
     pt: "Novo",
   },
+  // Novas traduções para notificações de tarefas
+  "taskNotifications": {
+    en: "Task Notifications",
+    pt: "Notificações de Tarefas"
+  },
+  "showNotificationsForUpcomingTasks": {
+    en: "Show notifications for upcoming and overdue tasks",
+    pt: "Mostrar notificações para tarefas próximas e vencidas"
+  },
+  "notificationDays": {
+    en: "Notification Days",
+    pt: "Dias de Notificação"
+  },
+  "numberOfDaysBeforeToShowNotifications": {
+    en: "Number of days before due date to show notifications",
+    pt: "Número de dias antes do vencimento para mostrar notificações"
+  },
+  "dueTasks": {
+    en: "Due Tasks",
+    pt: "Tarefas a Vencer"
+  },
+  "overdueTasks": {
+    en: "Overdue Tasks",
+    pt: "Tarefas Vencidas"
+  },
+  "taskDueToday": {
+    en: "Due today",
+    pt: "Vence hoje"
+  },
+  "taskDueTomorrow": {
+    en: "Due tomorrow",
+    pt: "Vence amanhã"
+  },
+  "taskOverdue": {
+    en: "Overdue by {days}",
+    pt: "Vencido há {days}"
+  },
+  "taskDueInDays": {
+    en: "Due in {days}",
+    pt: "Vence em {days}"
+  },
+  "youHaveNTasks": {
+    en: "You have {count} tasks",
+    pt: "Você tem {count} tarefas"
+  },
+  "dueToday": {
+    en: "due today",
+    pt: "que vencem hoje"
+  },
+  "overdue": {
+    en: "overdue",
+    pt: "vencidas"
+  },
+  "dueInNextDays": {
+    en: "due in the next {days} days",
+    pt: "que vencem nos próximos {days} dias"
+  },
+  "viewAllNotifications": {
+    en: "View all notifications",
+    pt: "Ver todas as notificações"
+  },
+  "Next {days} days": {
+    en: "Next {days} days",
+    pt: "Próximos {days} dias"
+  },
+  "Today": {
+    en: "Today",
+    pt: "Hoje"
+  },
+  "No task notifications": {
+    en: "No task notifications",
+    pt: "Sem notificações de tarefas"
+  },
+  "You don't have any tasks due in the next {days} days.": {
+    en: "You don't have any tasks due in the next {days} days.",
+    pt: "Você não tem tarefas que vencem nos próximos {days} dias."
+  },
+  "Task completed": {
+    en: "Task completed",
+    pt: "Tarefa concluída"
+  },
+  "The task has been marked as complete.": {
+    en: "The task has been marked as complete.",
+    pt: "A tarefa foi marcada como concluída."
+  },
+  "Failed to complete task": {
+    en: "Failed to complete task",
+    pt: "Falha ao concluir tarefa"
+  },
+  "Complete": {
+    en: "Complete",
+    pt: "Concluir"
+  },
+  "System Notifications": {
+    en: "System Notifications",
+    pt: "Notificações do Sistema"
+  },
+  "Task Notifications": {
+    en: "Task Notifications",
+    pt: "Notificações de Tarefas"
+  },
 }
 
 type LanguageState = {

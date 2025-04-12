@@ -86,22 +86,6 @@ export function AppSidebar({ user }: { user: User }) {
   const { toast } = useToast()
   const { t, language } = useTranslation()
 
-  // Log para diagnóstico
-  useEffect(() => {
-    console.log("[AppSidebar] Montagem inicial do componente")
-    console.log("[AppSidebar] Idioma atual:", language)
-    console.log("[AppSidebar] Tradução 'inbox':", t("inbox"))
-    console.log("[AppSidebar] Tradução 'today':", t("today"))
-    console.log("[AppSidebar] Tradução 'upcoming':", t("upcoming"))
-    console.log("[AppSidebar] Tradução 'completed':", t("completed"))
-    
-    // Verificar se o documento tem o atributo de idioma
-    if (typeof document !== 'undefined') {
-      console.log("[AppSidebar] Atributo data-language no HTML:", document.documentElement.getAttribute('data-language'))
-      console.log("[AppSidebar] Atributo lang no HTML:", document.documentElement.lang)
-    }
-  }, [language, t])
-
   // Detectar se é dispositivo móvel
   useEffect(() => {
     const checkIfMobile = () => {

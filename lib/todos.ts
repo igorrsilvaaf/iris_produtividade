@@ -272,3 +272,88 @@ export async function searchTasks(userId: number, searchText: string): Promise<T
   }
 }
 
+export async function getTasksForNotifications(userId: number, daysAhead: number = 3): Promise<{
+  overdueCount: number,
+  dueTodayCount: number,
+  upcomingCount: number,
+  overdueTasks: Todo[],
+  dueTodayTasks: Todo[],
+  upcomingTasks: Todo[]
+}> {
+  try {
+    // Calcular datas relevantes
+    const now = new Date();
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const futureDate = new Date(today);
+    futureDate.setDate(futureDate.getDate() + daysAhead);
+    
+    // Tarefas já vencidas (antes de hoje)
+    const overdueTasks = await sql`
+      SELECT t.*, p.name as project_name, p.color as project_color
+      FROM todos t
+      LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+      LEFT JOIN projects p ON tp.project_id = p.id
+      WHERE t.user_id = ${userId}
+      AND t.due_date IS NOT NULL
+      AND t.due_date < ${today.toISOString()}
+      AND t.completed = false
+      ORDER BY t.due_date ASC, t.priority ASC
+      LIMIT 10
+    `;
+    
+    // Tarefas que vencem hoje
+    const dueTodayTasks = await sql`
+      SELECT t.*, p.name as project_name, p.color as project_color
+      FROM todos t
+      LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+      LEFT JOIN projects p ON tp.project_id = p.id
+      WHERE t.user_id = ${userId}
+      AND t.due_date IS NOT NULL
+      AND t.due_date >= ${today.toISOString()}
+      AND t.due_date < ${tomorrow.toISOString()}
+      AND t.completed = false
+      ORDER BY t.due_date ASC, t.priority ASC
+      LIMIT 10
+    `;
+    
+    // Tarefas que vencem nos próximos dias (até o limite definido)
+    const upcomingTasks = await sql`
+      SELECT t.*, p.name as project_name, p.color as project_color
+      FROM todos t
+      LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+      LEFT JOIN projects p ON tp.project_id = p.id
+      WHERE t.user_id = ${userId}
+      AND t.due_date IS NOT NULL
+      AND t.due_date >= ${tomorrow.toISOString()}
+      AND t.due_date < ${futureDate.toISOString()}
+      AND t.completed = false
+      ORDER BY t.due_date ASC, t.priority ASC
+      LIMIT 10
+    `;
+    
+    return {
+      overdueCount: overdueTasks.length,
+      dueTodayCount: dueTodayTasks.length,
+      upcomingCount: upcomingTasks.length,
+      overdueTasks: overdueTasks as Todo[],
+      dueTodayTasks: dueTodayTasks as Todo[],
+      upcomingTasks: upcomingTasks as Todo[]
+    };
+  } catch (error) {
+    console.error("Error fetching tasks for notifications:", error);
+    return {
+      overdueCount: 0,
+      dueTodayCount: 0,
+      upcomingCount: 0,
+      overdueTasks: [],
+      dueTodayTasks: [],
+      upcomingTasks: []
+    };
+  }
+}
+

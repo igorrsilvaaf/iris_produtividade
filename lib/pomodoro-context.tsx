@@ -63,6 +63,17 @@ export function PomodoroProvider({
   const { t } = useTranslation()
   const { playSound } = useAudioPlayer()
 
+  // Verificar e solicitar permissão para notificações quando habilitado
+  useEffect(() => {
+    if (settings.enableDesktopNotifications && typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().catch(err => {
+          console.error('Erro ao solicitar permissão de notificação:', err);
+        });
+      }
+    }
+  }, [settings.enableDesktopNotifications]);
+
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
@@ -97,14 +108,35 @@ export function PomodoroProvider({
     }
 
     // Show desktop notification if enabled
-    if (settings.enableDesktopNotifications && Notification.permission === "granted") {
-      const title = mode === "work" ? t("workSessionCompleted") : t("breakTimeOver")
-      const body = mode === "work" ? t("timeForBreak") : t("backToWork")
+    if (settings.enableDesktopNotifications && typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === "granted") {
+        const title = mode === "work" ? t("workSessionCompleted") : t("breakTimeOver")
+        const body = mode === "work" ? t("timeForBreak") : t("backToWork")
 
-      new Notification(title, {
-        body,
-        icon: "/favicon.ico",
-      })
+        try {
+          new Notification(title, {
+            body,
+            icon: "/favicon.ico",
+          })
+        } catch (error) {
+          console.error('Erro ao exibir notificação:', error);
+        }
+      } else if (Notification.permission === "default") {
+        // Tentar solicitar permissão novamente
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            const title = mode === "work" ? t("workSessionCompleted") : t("breakTimeOver")
+            const body = mode === "work" ? t("timeForBreak") : t("backToWork")
+            
+            new Notification(title, {
+              body,
+              icon: "/favicon.ico",
+            })
+          }
+        }).catch(err => {
+          console.error('Erro ao solicitar permissão de notificação:', err);
+        });
+      }
     }
 
     // Show toast notification

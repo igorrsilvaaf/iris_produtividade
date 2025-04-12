@@ -2,6 +2,7 @@
 
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
+import { useRef, useEffect } from "react"
 
 // Mapeamento de nomes de sons para URLs
 export const SOUND_URLS = {
@@ -9,6 +10,8 @@ export const SOUND_URLS = {
   bell: "/sounds/bell.mp3",
   chime: "/sounds/chime.mp3",
   digital: "/sounds/digital.mp3",
+  ding: "/sounds/ding.mp3",
+  notification: "/sounds/notification.mp3",
   success: "/sounds/chime.mp3", // Usar chime como som de sucesso por enquanto
 }
 
@@ -16,28 +19,67 @@ export const SOUND_URLS = {
 export function useAudioPlayer() {
   const { toast } = useToast()
   const { t } = useTranslation()
+  const audioCache = useRef<Map<string, HTMLAudioElement>>(new Map())
+
+  // Pré-carregar os sons para melhor performance
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    Object.entries(SOUND_URLS).forEach(([name, url]) => {
+      if (!audioCache.current.has(name)) {
+        try {
+          const audio = new Audio(url);
+          audio.preload = "auto";
+          // Apenas tentar carregar os metadados para evitar erros de reprodução automática
+          audio.load();
+          audioCache.current.set(name, audio);
+        } catch (error) {
+          console.error(`Failed to preload sound: ${name}`, error);
+        }
+      }
+    });
+
+    return () => {
+      // Limpar cache de áudio quando o componente for desmontado
+      audioCache.current.clear();
+    };
+  }, []);
 
   const playSound = async (soundName: string): Promise<void> => {
+    if (typeof window === 'undefined') return;
+
     try {
       // Verificar se o som existe no mapeamento
-      const soundUrl = SOUND_URLS[soundName as keyof typeof SOUND_URLS]
-      if (!soundUrl) {
-        console.error(`Sound not found: ${soundName}`)
-        return
+      const soundUrl = SOUND_URLS[soundName as keyof typeof SOUND_URLS] || SOUND_URLS.default;
+      
+      // Tentar usar o áudio do cache primeiro
+      let audio = audioCache.current.get(soundName);
+      
+      // Se não estiver no cache, criar novo
+      if (!audio) {
+        audio = new Audio(soundUrl);
+        audioCache.current.set(soundName, audio);
       }
 
-      // Usar um elemento de áudio simples
-      const audio = new Audio(soundUrl)
+      // Redefinir o áudio para garantir que possa ser reproduzido novamente
+      audio.currentTime = 0;
+      audio.volume = 0.4;
 
-      // Definir volume baixo para evitar sustos
-      audio.volume = 0.4
-
-      // Reproduzir o som sem esperar
-      audio.play().catch((e) => {
-        console.error("Browser blocked autoplay:", e)
-      })
+      try {
+        await audio.play();
+      } catch (playError) {
+        console.error("Browser blocked autoplay, trying again with user interaction:", playError);
+        
+        // Em caso de erro de reprodução, podemos notificar o usuário sobre problemas de permissão
+        // Isso é especialmente útil em navegadores que bloqueiam a reprodução automática
+        toast({
+          title: t("Sound could not play"),
+          description: t("Your browser may be blocking autoplay."),
+          duration: 2000,
+        });
+      }
     } catch (error) {
-      console.error("Error playing sound:", error)
+      console.error("Error playing sound:", error);
     }
   }
 
