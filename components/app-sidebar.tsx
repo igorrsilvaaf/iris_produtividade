@@ -140,7 +140,7 @@ export function AppSidebar({ user }: { user: User }) {
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-background">
       <div className="flex h-14 items-center border-b px-4">
-        <Link href="/app" className="flex items-center gap-2 font-bold">
+        <Link href="/app" className="flex items-center gap-2 font-bold w-full">
           <Logo asLink={false} />
         </Link>
       </div>
@@ -274,7 +274,7 @@ export function AppSidebar({ user }: { user: User }) {
   return (
     <>
       <div className="flex h-14 items-center justify-between border-b px-4 md:hidden">
-        <Link href="/app" className="flex items-center gap-2 font-bold">
+        <Link href="/app" className="flex items-center gap-2 font-bold w-full">
           <Logo asLink={false} />
         </Link>
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>

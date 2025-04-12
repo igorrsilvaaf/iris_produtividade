@@ -1,6 +1,6 @@
 "use client"
 import { useRouter } from "next/navigation"
-import { Calendar, Database, Settings, User, FileText } from "lucide-react"
+import { Calendar, Database, Settings, User, FileText, Info } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +16,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { SearchTasks } from "@/components/search-tasks"
 import { TaskNotificationsMenu } from "@/components/task-notifications-menu"
 import { useTranslation } from "@/lib/i18n"
+import { CHANGELOG_DATA } from "@/lib/changelog-data"
 
 type AppHeaderUser = {
   id: number
@@ -28,6 +29,7 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+  const currentVersion = CHANGELOG_DATA[0]?.version || ""
 
   const handleLogout = async () => {
     try {
@@ -118,6 +120,10 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
                 {t("changelog")}
               </a>
             </DropdownMenuItem>
+            <div className="flex items-center text-xs text-muted-foreground py-1.5 px-2">
+              <Info className="mr-2 h-3 w-3" />
+              Íris v{currentVersion}
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>{t("logout")}</DropdownMenuItem>
           </DropdownMenuContent>
