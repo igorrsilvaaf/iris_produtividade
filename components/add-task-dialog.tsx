@@ -181,21 +181,23 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
       let dueDateTime = null;
       
       if (values.dueDate) {
-        // Verifica se é Hoje
-        const isToday = new Date(values.dueDate).toDateString() === new Date().toDateString();
+        // Clone da data para evitar problemas de referência
+        const date = new Date(values.dueDate);
         
         if (values.isAllDay) {
-          // Formato para dia inteiro: YYYY-MM-DDT00:00:00Z
-          const dateStr = values.dueDate.toISOString().split('T')[0];
-          dueDateTime = `${dateStr}T00:00:00Z`;
-          console.log(`[AddTask] Data para dia todo${isToday ? ' (HOJE)' : ''}:`, dueDateTime);
-        } else if (values.dueTime) {
-          // Combina data e hora
-          const date = new Date(values.dueDate);
-          const [hours, minutes] = values.dueTime.split(':').map(Number);
-          date.setHours(hours, minutes);
+          // Para dia todo, definir para meia-noite UTC
+          date.setUTCHours(0, 0, 0, 0);
           dueDateTime = date.toISOString();
-          console.log(`[AddTask] Data com hora específica${isToday ? ' (HOJE)' : ''}:`, dueDateTime);
+          console.log(`[AddTask] Data para dia todo: ${dueDateTime}`);
+        } else if (values.dueTime) {
+          // Para hora específica, converter para UTC
+          const [hours, minutes] = values.dueTime.split(':').map(Number);
+          
+          // Definir a hora considerando o fuso
+          date.setHours(hours, minutes, 0, 0);
+          dueDateTime = date.toISOString();
+          
+          console.log(`[AddTask] Data com hora específica: ${dueDateTime}`);
         }
       }
 

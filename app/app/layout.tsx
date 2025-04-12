@@ -41,7 +41,7 @@ export default async function AppLayout({
   return (
     <LanguageProvider initialLanguage={initialLanguage}>
       <div className="flex min-h-screen flex-col md:flex-row md:overflow-hidden">
-        <div className="w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r bg-background">
+        <div className="w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r bg-background md:block hidden">
           <AppSidebar user={session.user} />
         </div>
         <div className="flex flex-1 flex-col overflow-hidden">

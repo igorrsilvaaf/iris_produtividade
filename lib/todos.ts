@@ -16,20 +16,11 @@ export type Todo = {
 }
 
 export async function getTodayTasks(userId: number): Promise<Todo[]> {
-  // Usar o intervalo do dia atual completo para garantir que todas as tarefas de hoje sejam encontradas
-  const now = new Date()
-  
-  // Início do dia atual (00:00:00)
-  const startOfDay = new Date(now)
-  startOfDay.setHours(0, 0, 0, 0)
-  
-  // Fim do dia atual (23:59:59)
-  const endOfDay = new Date(now)
-  endOfDay.setHours(23, 59, 59, 999)
-  
-  const formattedDate = now.toISOString().split('T')[0]
-  console.log(`[getTodayTasks] Buscando tarefas para ${formattedDate} entre ${startOfDay.toISOString()} e ${endOfDay.toISOString()}`)
+  // Obter data atual no formato YYYY-MM-DD
+  const now = new Date();
+  const todayDate = now.toISOString().split('T')[0];
 
+  // Consulta usando CAST para ignorar a hora e considerar apenas a data
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
     FROM todos t
@@ -37,22 +28,19 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
     AND t.due_date IS NOT NULL
-    AND (
-      t.due_date::date = ${formattedDate}
-      OR (t.due_date >= ${startOfDay.toISOString()} AND t.due_date <= ${endOfDay.toISOString()})
-    )
+    AND CAST(t.due_date AS DATE) = CURRENT_DATE
     AND t.completed = false
     ORDER BY t.priority ASC, t.due_date ASC
-  `
+  `;
 
   console.log(`[getTodayTasks] Encontradas ${tasks.length} tarefas para hoje`);
   
-  // Depuração detalhada
+  // Mostrar detalhes para debug
   tasks.forEach((task: any) => {
-    console.log(`[getTodayTasks] Tarefa ID: ${task.id}, Título: ${task.title}, Data: ${task.due_date}`);
+    console.log(`[getTodayTasks] ID: ${task.id}, Título: ${task.title}, Data: ${task.due_date}`);
   });
   
-  return tasks as Todo[]
+  return tasks as Todo[];
 }
 
 export async function getInboxTasks(userId: number): Promise<Todo[]> {
@@ -208,15 +196,14 @@ export async function setTaskProject(taskId: number, projectId: number | null): 
 }
 
 export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
-  // Usamos a hora atual como referência
-  const now = new Date()
+  // Data e hora atual
+  const now = new Date();
+  const nowIsoString = now.toISOString();
+  const todayDate = now.toISOString().split('T')[0];
   
-  // Final do dia de hoje para tarefas próximas
-  const endOfToday = new Date(now)
-  endOfToday.setHours(23, 59, 59, 999)
-  
-  console.log(`[getUpcomingTasks] Buscando tarefas futuras a partir de ${now.toISOString()} (incluindo tarefas de hoje que ainda não venceram)`)
+  console.log(`[getUpcomingTasks] Buscando tarefas futuras a partir de ${nowIsoString}`);
 
+  // Consulta usando CAST para tratar datas corretamente
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
     FROM todos t
@@ -224,19 +211,24 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
     AND t.due_date IS NOT NULL
-    AND t.due_date > ${now.toISOString()}
+    AND (
+      -- Tarefas de hoje com horário futuro
+      (CAST(t.due_date AS DATE) = CAST(${todayDate} AS DATE) AND t.due_date > ${nowIsoString})
+      -- OU tarefas de dias futuros
+      OR CAST(t.due_date AS DATE) > CAST(${todayDate} AS DATE)
+    )
     AND t.completed = false
     ORDER BY t.due_date ASC, t.priority ASC
-  `
+  `;
 
-  console.log(`[getUpcomingTasks] Encontradas ${tasks.length} tarefas futuras`)
+  console.log(`[getUpcomingTasks] Encontradas ${tasks.length} tarefas futuras`);
   
-  // Depuração detalhada
+  // Mostrar detalhes para debug
   tasks.forEach((task: any) => {
-    console.log(`[getUpcomingTasks] Tarefa ID: ${task.id}, Título: ${task.title}, Data: ${task.due_date}`);
+    console.log(`[getUpcomingTasks] ID: ${task.id}, Título: ${task.title}, Data: ${task.due_date}`);
   });
   
-  return tasks as Todo[]
+  return tasks as Todo[];
 }
 
 export async function searchTasks(userId: number, searchText: string): Promise<Todo[]> {

@@ -18,6 +18,9 @@ import { TaskNotificationsMenu } from "@/components/task-notifications-menu"
 import { useTranslation } from "@/lib/i18n"
 import { CHANGELOG_DATA } from "@/lib/changelog-data"
 import { useState } from "react"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { AppSidebar } from "@/components/app-sidebar"
+import { VisuallyHidden } from "@/components/ui/visually-hidden"
 
 type AppHeaderUser = {
   id: number
@@ -31,7 +34,7 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
   const { toast } = useToast()
   const { t } = useTranslation()
   const currentVersion = CHANGELOG_DATA[0]?.version || ""
-  const [showSearch, setShowSearch] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const handleLogout = async () => {
     try {
@@ -67,23 +70,29 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
         </a>
       </div>
 
-      {/* Search toggle on mobile */}
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="md:hidden" 
-        onClick={() => setShowSearch(!showSearch)}
-      >
-        <Search className="h-5 w-5" />
-      </Button>
+      {/* Mobile menu button (positioned to the left of search) */}
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="mr-2 md:hidden">
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="p-0 w-72">
+          <SheetTitle className="sr-only">
+            {t("Navigation Menu")}
+          </SheetTitle>
+          <AppSidebar user={user} />
+        </SheetContent>
+      </Sheet>
       
-      {/* Search area - desktop always visible, mobile conditionally */}
-      <div className={`${showSearch ? 'flex' : 'hidden'} md:flex flex-1 justify-center transition-all duration-200`}>
+      {/* Search area - always visible on all devices */}
+      <div className="flex flex-1 justify-center transition-all duration-200">
         <div className="w-full max-w-md relative">
           <SearchTasks />
         </div>
       </div>
-
+      
       {/* Primary navigation */}
       <nav className="flex items-center gap-1 ml-auto md:ml-4">
         <div className="hidden md:flex items-center mr-1 border-r pr-2 border-muted">
