@@ -107,6 +107,10 @@ export const translations: Translations = {
     en: "Loading projects...",
     pt: "Carregando projetos...",
   },
+  loadingProject: {
+    en: "Loading project...",
+    pt: "Carregando projeto...",
+  },
   edit: {
     en: "Edit",
     pt: "Editar",
@@ -459,6 +463,10 @@ export const translations: Translations = {
   },
 
   // Outros
+  "Unknown project": {
+    en: "Unknown project",
+    pt: "Carregando Projetos",
+  },
   noProject: {
     en: "No Project",
     pt: "Sem Projeto",
