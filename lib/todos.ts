@@ -16,11 +16,19 @@ export type Todo = {
 }
 
 export async function getTodayTasks(userId: number): Promise<Todo[]> {
+  // Usar o intervalo do dia atual completo para garantir que todas as tarefas de hoje sejam encontradas
   const now = new Date()
+  
+  // Início do dia atual (00:00:00)
   const startOfDay = new Date(now)
   startOfDay.setHours(0, 0, 0, 0)
+  
+  // Fim do dia atual (23:59:59)
   const endOfDay = new Date(now)
   endOfDay.setHours(23, 59, 59, 999)
+  
+  const formattedDate = now.toISOString().split('T')[0]
+  console.log(`[getTodayTasks] Buscando tarefas para ${formattedDate} entre ${startOfDay.toISOString()} e ${endOfDay.toISOString()}`)
 
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
@@ -29,12 +37,21 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
     AND t.due_date IS NOT NULL
-    AND t.due_date >= ${startOfDay.toISOString()}
-    AND t.due_date <= ${endOfDay.toISOString()}
+    AND (
+      t.due_date::date = ${formattedDate}
+      OR (t.due_date >= ${startOfDay.toISOString()} AND t.due_date <= ${endOfDay.toISOString()})
+    )
     AND t.completed = false
     ORDER BY t.priority ASC, t.due_date ASC
   `
 
+  console.log(`[getTodayTasks] Encontradas ${tasks.length} tarefas para hoje`);
+  
+  // Depuração detalhada
+  tasks.forEach((task: any) => {
+    console.log(`[getTodayTasks] Tarefa ID: ${task.id}, Título: ${task.title}, Data: ${task.due_date}`);
+  });
+  
   return tasks as Todo[]
 }
 
@@ -191,7 +208,14 @@ export async function setTaskProject(taskId: number, projectId: number | null): 
 }
 
 export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
-  const now = new Date().toISOString()
+  // Usamos a hora atual como referência
+  const now = new Date()
+  
+  // Final do dia de hoje para tarefas próximas
+  const endOfToday = new Date(now)
+  endOfToday.setHours(23, 59, 59, 999)
+  
+  console.log(`[getUpcomingTasks] Buscando tarefas futuras a partir de ${now.toISOString()} (incluindo tarefas de hoje que ainda não venceram)`)
 
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
@@ -200,11 +224,18 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
     AND t.due_date IS NOT NULL
-    AND t.due_date > ${now}
+    AND t.due_date > ${now.toISOString()}
     AND t.completed = false
     ORDER BY t.due_date ASC, t.priority ASC
   `
 
+  console.log(`[getUpcomingTasks] Encontradas ${tasks.length} tarefas futuras`)
+  
+  // Depuração detalhada
+  tasks.forEach((task: any) => {
+    console.log(`[getUpcomingTasks] Tarefa ID: ${task.id}, Título: ${task.title}, Data: ${task.due_date}`);
+  });
+  
   return tasks as Todo[]
 }
 

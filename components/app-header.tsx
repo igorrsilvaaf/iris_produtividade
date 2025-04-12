@@ -60,11 +60,6 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center border-b bg-gradient-to-r from-background via-background to-background/95 backdrop-blur-sm px-3 md:px-5">
-      {/* Mobile menu button (only visible on small screens) */}
-      <button className="md:hidden rounded-full p-2 hover:bg-accent mr-2" aria-label="Menu">
-        <Menu className="h-5 w-5" />
-      </button>
-      
       {/* Logo/brand area */}
       <div className="flex-none mr-3">
         <a href="/app" className="flex items-center text-xl font-semibold">

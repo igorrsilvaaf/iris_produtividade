@@ -181,15 +181,21 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
       let dueDateTime = null;
       
       if (values.dueDate) {
+        // Verifica se é Hoje
+        const isToday = new Date(values.dueDate).toDateString() === new Date().toDateString();
+        
         if (values.isAllDay) {
-          // Para o dia todo, mantém só a data
-          dueDateTime = values.dueDate.toISOString().split('T')[0] + 'T00:00:00Z';
+          // Formato para dia inteiro: YYYY-MM-DDT00:00:00Z
+          const dateStr = values.dueDate.toISOString().split('T')[0];
+          dueDateTime = `${dateStr}T00:00:00Z`;
+          console.log(`[AddTask] Data para dia todo${isToday ? ' (HOJE)' : ''}:`, dueDateTime);
         } else if (values.dueTime) {
           // Combina data e hora
           const date = new Date(values.dueDate);
           const [hours, minutes] = values.dueTime.split(':').map(Number);
           date.setHours(hours, minutes);
           dueDateTime = date.toISOString();
+          console.log(`[AddTask] Data com hora específica${isToday ? ' (HOJE)' : ''}:`, dueDateTime);
         }
       }
 
@@ -476,14 +482,14 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                           <DialogDescription>{t("Select a project or create a new one.")}</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-2 py-4">
-                          {isLoadingProjects ? (
+                      {isLoadingProjects ? (
                             <div className="flex items-center justify-center p-4">
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                             </div>
                           ) : projects.length === 0 ? (
                             <p className="text-sm text-muted-foreground">{t("No projects found.")}</p>
-                          ) : (
-                            projects.map((project) => (
+                      ) : (
+                        projects.map((project) => (
                               <button
                                 key={project.id}
                                 type="button"
@@ -493,13 +499,13 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                                   setShowAddProject(false);
                                 }}
                               >
-                                <div className="flex items-center">
+                            <div className="flex items-center">
                                   <div
                                     className="w-4 h-4 rounded-full mr-2"
                                     style={{ backgroundColor: project.color }}
                                   />
                                   <span>{project.name}</span>
-                                </div>
+                            </div>
                               </button>
                             ))
                           )}
@@ -556,8 +562,8 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                           <Tag className="h-3 w-3" />
                           {label.name}
                           <button 
-                            type="button" 
-                            onClick={() => removeLabel(label.id)} 
+                            type="button"
+                            onClick={() => removeLabel(label.id)}
                             className="ml-1 hover:bg-black/10 rounded-full p-0.5"
                             aria-label={`Remove ${label.name} label`}
                           >
