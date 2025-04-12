@@ -1,10 +1,15 @@
 import type { Metadata, Viewport } from "next"
+import { CHANGELOG_DATA } from "@/lib/changelog-data"
+
+// Get the current version from the changelog for other uses if needed
+const currentVersion = CHANGELOG_DATA[0]?.version || ""
+const appTitle = "Íris"
 
 export const metadata: Metadata = {
-  title: "Íris",
+  title: appTitle,
   description: "Organize suas tarefas com facilidade. Inclui temporizador Pomodoro, modo escuro e muito mais.",
   generator: 'Next.js',
-  applicationName: 'Íris',
+  applicationName: appTitle,
   referrer: 'origin-when-cross-origin',
   keywords: ['íris', 'to-do', 'tarefas', 'lista', 'produtividade', 'pomodoro'],
   authors: [{ name: 'Íris Team' }],
@@ -32,7 +37,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "Íris",
+    title: appTitle,
     description: "Organize suas tarefas com facilidade",
     url: "/",
     images: [

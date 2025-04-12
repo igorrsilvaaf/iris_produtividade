@@ -1,0 +1,368 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { formatDistanceToNow, isToday, isTomorrow } from "date-fns"
+import { pt, enUS } from "date-fns/locale"
+import { Bell, Check } from "lucide-react"
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardFooter, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useTranslation } from "@/lib/i18n"
+import { useToast } from "@/components/ui/use-toast"
+import type { Todo } from "@/lib/todos"
+
+interface TaskNotification {
+  enabled: boolean
+  overdueCount: number
+  dueTodayCount: number
+  upcomingCount: number
+  totalCount: number
+  tasks: {
+    overdueTasks: Todo[]
+    dueTodayTasks: Todo[]
+    upcomingTasks: Todo[]
+  }
+}
+
+export function TaskNotificationsMenu() {
+  const { t, language } = useTranslation()
+  const router = useRouter()
+  const { toast } = useToast()
+  
+  const [loading, setLoading] = useState(true)
+  const [open, setOpen] = useState(false)
+  const [viewed, setViewed] = useState(false)
+  const [completingTask, setCompletingTask] = useState<number | null>(null)
+  const [notifications, setNotifications] = useState<TaskNotification>({
+    enabled: false,
+    overdueCount: 0,
+    dueTodayCount: 0,
+    upcomingCount: 0,
+    totalCount: 0,
+    tasks: {
+      overdueTasks: [],
+      dueTodayTasks: [],
+      upcomingTasks: []
+    }
+  })
+
+  const fetchTaskNotifications = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch("/api/notifications/tasks")
+      if (response.ok) {
+        const data = await response.json()
+        setNotifications(data)
+      } else {
+        console.error("Erro ao buscar notificações:", await response.text())
+      }
+    } catch (error) {
+      console.error("Erro ao buscar notificações:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (open) {
+      fetchTaskNotifications()
+      // Marcar como "vistas" quando o usuário abrir o menu
+      setViewed(true)
+    }
+  }, [open])
+  
+  // Carregar notificações ao montar o componente para mostrar o contador corretamente
+  useEffect(() => {
+    fetchTaskNotifications()
+    
+    // Verificar notificações a cada 5 minutos
+    const interval = setInterval(() => {
+      fetchTaskNotifications()
+      // Se o usuário já visualizou antes, mantenha como visualizado
+      if (!open) {
+        setViewed(false) // Resetar estado "viewed" apenas se o menu estiver fechado
+      }
+    }, 5 * 60 * 1000)
+    
+    return () => {
+      clearInterval(interval)
+    }
+  }, [open])
+
+  // Refetch notificações ao retornar à página
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchTaskNotifications()
+        if (!open) {
+          setViewed(false) // Resetar estado "viewed" quando a página voltar a ser visível
+        }
+      }
+    }
+    
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [open])
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const dateLocale = language === "pt" ? pt : enUS
+
+    if (isToday(date)) {
+      return t("taskDueToday")
+    } else if (isTomorrow(date)) {
+      return t("taskDueTomorrow")
+    } else if (date < new Date()) {
+      // Tarefa atrasada
+      const distance = formatDistanceToNow(date, { locale: dateLocale, addSuffix: false })
+      return t("taskOverdue").replace("{days}", distance)
+    } else {
+      // Tarefa futura
+      const distance = formatDistanceToNow(date, { locale: dateLocale, addSuffix: false })
+      return t("taskDueInDays").replace("{days}", distance)
+    }
+  }
+
+  const handleCompleteTask = async (e: React.MouseEvent, taskId: number) => {
+    e.stopPropagation() // Prevent triggering the card click
+    setCompletingTask(taskId)
+    
+    try {
+      const response = await fetch(`/api/tasks/${taskId}/complete`, {
+        method: "PATCH",
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to complete task")
+      }
+
+      // Update local state to remove the completed task
+      setNotifications(prev => {
+        // Helper function to filter out the completed task
+        const filterTask = (tasks: Todo[]) => tasks.filter(task => task.id !== taskId)
+        
+        // Calculate new counts
+        const newOverdueTasks = filterTask(prev.tasks.overdueTasks)
+        const newDueTodayTasks = filterTask(prev.tasks.dueTodayTasks)
+        const newUpcomingTasks = filterTask(prev.tasks.upcomingTasks)
+        
+        return {
+          ...prev,
+          overdueCount: newOverdueTasks.length,
+          dueTodayCount: newDueTodayTasks.length,
+          upcomingCount: newUpcomingTasks.length,
+          totalCount: newOverdueTasks.length + newDueTodayTasks.length + newUpcomingTasks.length,
+          tasks: {
+            overdueTasks: newOverdueTasks,
+            dueTodayTasks: newDueTodayTasks,
+            upcomingTasks: newUpcomingTasks
+          }
+        }
+      })
+
+      toast({
+        title: t("Task completed"),
+        description: t("The task has been marked as complete."),
+        duration: 3000,
+      })
+      
+    } catch (error) {
+      console.error("Error completing task:", error)
+      toast({
+        variant: "destructive",
+        title: t("Failed to complete task"),
+        description: t("Please try again."),
+      })
+    } finally {
+      setCompletingTask(null)
+    }
+  }
+
+  const handleViewTask = (taskId: number) => {
+    setOpen(false)
+    router.push(`/app/tasks/${taskId}`)
+  }
+
+  // Só mostra o contador de notificações se houver notificações e elas não estiverem vistas
+  const showNotificationBadge = notifications.totalCount > 0 && !viewed
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          {showNotificationBadge && (
+            <Badge 
+              variant="default" 
+              className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs bg-rose-600 hover:bg-rose-700"
+            >
+              {notifications.totalCount > 99 ? "99+" : notifications.totalCount}
+            </Badge>
+          )}
+          <span className="sr-only">{t("notifications")}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-96 md:w-[450px]" align="end">
+        <div className="flex items-center justify-between">
+          <h4 className="font-medium text-base">{t("notifications")}</h4>
+          <Button 
+            variant="link" 
+            size="sm" 
+            className="h-auto p-0 text-sm"
+            onClick={() => { 
+              setOpen(false) 
+              router.push("/app/notifications")
+            }}
+          >
+            {t("viewAllNotifications")}
+          </Button>
+        </div>
+        <Separator className="my-2" />
+
+        <ScrollArea className="h-[400px] pr-4">
+          {loading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex flex-col gap-1">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : notifications.totalCount === 0 ? (
+            <div className="flex h-[250px] items-center justify-center flex-col p-4 text-center">
+              <Bell className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <p className="text-sm text-muted-foreground">{t("noNotifications")}</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {notifications.overdueCount > 0 && (
+                <div>
+                  <h5 className="text-base font-medium text-rose-600 mb-3">
+                    {t("youHaveNTasks").replace("{count}", String(notifications.overdueCount))} {t("overdue")}
+                  </h5>
+                  <div className="space-y-3">
+                    {notifications.tasks.overdueTasks.map(task => (
+                      <Card key={task.id} className="cursor-pointer hover:bg-rose-50 dark:hover:bg-rose-900/10 border-rose-200 dark:border-rose-800">
+                        <CardContent 
+                          className="p-4 pb-2" 
+                          onClick={() => handleViewTask(task.id)}
+                        >
+                          <CardTitle className="text-base mb-1 line-clamp-1">
+                            {task.title}
+                          </CardTitle>
+                          <p className="text-sm text-rose-600 dark:text-rose-400">
+                            {formatDate(task.due_date!)}
+                          </p>
+                        </CardContent>
+                        <CardFooter className="p-2 pt-0 flex justify-end">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 px-2 gap-1 text-xs hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-900/10"
+                            onClick={(e) => handleCompleteTask(e, task.id)}
+                            disabled={completingTask === task.id}
+                          >
+                            <Check className="h-3 w-3" />
+                            {t("Complete")}
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {notifications.dueTodayCount > 0 && (
+                <div>
+                  <h5 className="text-base font-medium text-amber-600 mb-3">
+                    {t("youHaveNTasks").replace("{count}", String(notifications.dueTodayCount))} {t("dueToday")}
+                  </h5>
+                  <div className="space-y-3">
+                    {notifications.tasks.dueTodayTasks.map(task => (
+                      <Card key={task.id} className="cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-900/10 border-amber-200 dark:border-amber-800">
+                        <CardContent 
+                          className="p-4 pb-2" 
+                          onClick={() => handleViewTask(task.id)}
+                        >
+                          <CardTitle className="text-base mb-1 line-clamp-1">
+                            {task.title}
+                          </CardTitle>
+                          <p className="text-sm text-amber-600 dark:text-amber-400">
+                            {formatDate(task.due_date!)}
+                          </p>
+                        </CardContent>
+                        <CardFooter className="p-2 pt-0 flex justify-end">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 px-2 gap-1 text-xs hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-900/10"
+                            onClick={(e) => handleCompleteTask(e, task.id)}
+                            disabled={completingTask === task.id}
+                          >
+                            <Check className="h-3 w-3" />
+                            {t("Complete")}
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {notifications.upcomingCount > 0 && (
+                <div>
+                  <h5 className="text-base font-medium text-blue-600 mb-3">
+                    {t("youHaveNTasks").replace("{count}", String(notifications.upcomingCount))} {t("dueInNextDays").replace("{days}", String(3))}
+                  </h5>
+                  <div className="space-y-3">
+                    {notifications.tasks.upcomingTasks.map(task => (
+                      <Card key={task.id} className="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/10 border-blue-200 dark:border-blue-800">
+                        <CardContent 
+                          className="p-4 pb-2" 
+                          onClick={() => handleViewTask(task.id)}
+                        >
+                          <CardTitle className="text-base mb-1 line-clamp-1">
+                            {task.title}
+                          </CardTitle>
+                          <p className="text-sm text-blue-600 dark:text-blue-400">
+                            {formatDate(task.due_date!)}
+                          </p>
+                        </CardContent>
+                        <CardFooter className="p-2 pt-0 flex justify-end">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 px-2 gap-1 text-xs hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/10"
+                            onClick={(e) => handleCompleteTask(e, task.id)}
+                            disabled={completingTask === task.id}
+                          >
+                            <Check className="h-3 w-3" />
+                            {t("Complete")}
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  )
+} 

@@ -86,22 +86,6 @@ export function AppSidebar({ user }: { user: User }) {
   const { toast } = useToast()
   const { t, language } = useTranslation()
 
-  // Log para diagnóstico
-  useEffect(() => {
-    console.log("[AppSidebar] Montagem inicial do componente")
-    console.log("[AppSidebar] Idioma atual:", language)
-    console.log("[AppSidebar] Tradução 'inbox':", t("inbox"))
-    console.log("[AppSidebar] Tradução 'today':", t("today"))
-    console.log("[AppSidebar] Tradução 'upcoming':", t("upcoming"))
-    console.log("[AppSidebar] Tradução 'completed':", t("completed"))
-    
-    // Verificar se o documento tem o atributo de idioma
-    if (typeof document !== 'undefined') {
-      console.log("[AppSidebar] Atributo data-language no HTML:", document.documentElement.getAttribute('data-language'))
-      console.log("[AppSidebar] Atributo lang no HTML:", document.documentElement.lang)
-    }
-  }, [language, t])
-
   // Detectar se é dispositivo móvel
   useEffect(() => {
     const checkIfMobile = () => {
@@ -156,7 +140,7 @@ export function AppSidebar({ user }: { user: User }) {
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-background">
       <div className="flex h-14 items-center border-b px-4">
-        <Link href="/app" className="flex items-center gap-2 font-bold">
+        <Link href="/app" className="flex items-center gap-2 font-bold w-full">
           <Logo asLink={false} />
         </Link>
       </div>
@@ -290,7 +274,7 @@ export function AppSidebar({ user }: { user: User }) {
   return (
     <>
       <div className="flex h-14 items-center justify-between border-b px-4 md:hidden">
-        <Link href="/app" className="flex items-center gap-2 font-bold">
+        <Link href="/app" className="flex items-center gap-2 font-bold w-full">
           <Logo asLink={false} />
         </Link>
         <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>

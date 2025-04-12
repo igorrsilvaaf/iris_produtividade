@@ -7,6 +7,7 @@ import { metadata, viewport } from "./metadata"
 import { PomodoroProvider } from "@/lib/pomodoro-context"
 import { getUserSettings } from "@/lib/settings"
 import { getSession } from "@/lib/auth"
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
 
 import "./globals.css"
 
@@ -98,10 +99,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   enableDesktopNotifications: settings.enable_desktop_notifications,
                 }}
               >
+                <ServiceWorkerRegistration />
                 {children}
               </PomodoroProvider>
             ) : (
-              children
+              <>
+                <ServiceWorkerRegistration />
+                {children}
+              </>
             )}
             <Toaster />
           </LanguageProvider>

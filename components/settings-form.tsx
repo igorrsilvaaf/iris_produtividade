@@ -29,6 +29,8 @@ const formSchema = z.object({
   enable_sound: z.boolean().default(true),
   notification_sound: z.string(),
   enable_desktop_notifications: z.boolean().default(true),
+  enable_task_notifications: z.boolean().default(true),
+  task_notification_days: z.coerce.number().min(1).max(14).default(3),
 })
 
 export function SettingsForm({ settings }: { settings: UserSettings }) {
@@ -68,6 +70,8 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
       enable_sound: settings.enable_sound,
       notification_sound: settings.notification_sound || "default",
       enable_desktop_notifications: settings.enable_desktop_notifications,
+      enable_task_notifications: settings.enable_task_notifications,
+      task_notification_days: settings.task_notification_days,
     },
   })
 
@@ -398,6 +402,42 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="enable_task_notifications"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">{t("taskNotifications")}</FormLabel>
+                        <FormDescription>{t("showNotificationsForUpcomingTasks")}</FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("enable_task_notifications") && (
+                  <FormField
+                    control={form.control}
+                    name="task_notification_days"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("notificationDays")}</FormLabel>
+                        <FormDescription>{t("numberOfDaysBeforeToShowNotifications")}</FormDescription>
+                        <FormControl>
+                          <Input type="number" min="1" max="14" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </CardContent>
               <CardFooter>
                 <Button type="submit" disabled={isLoading}>

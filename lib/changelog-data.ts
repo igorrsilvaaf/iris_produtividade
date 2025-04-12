@@ -15,6 +15,92 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.2.0',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'notification-system',
+        title: 'Sistema de Notificações de Tarefas',
+        description: 'Implementação de um sistema completo de notificações para tarefas',
+        items: [
+          {
+            type: 'feature',
+            content: 'Adicionado sistema de notificações para tarefas atrasadas, tarefas de hoje e tarefas próximas'
+          },
+          {
+            type: 'feature',
+            content: 'Notificações sonoras quando novas tarefas estiverem disponíveis'
+          },
+          {
+            type: 'feature',
+            content: 'Notificações de desktop para alertar sobre tarefas pendentes'
+          },
+          {
+            type: 'feature',
+            content: 'Capacidade de marcar tarefas como concluídas diretamente a partir do menu de notificações'
+          },
+          {
+            type: 'feature',
+            content: 'Nova página de notificações para visualizar todas as tarefas que precisam de atenção'
+          },
+          {
+            type: 'improvement',
+            content: 'Integração com as configurações do usuário para controlar notificações sonoras e de desktop'
+          },
+          {
+            type: 'improvement',
+            content: 'Possibilidade de configurar quantos dias à frente o sistema deve verificar para tarefas'
+          },
+          {
+            type: 'improvement',
+            content: 'Código refatorado para usar a biblioteca de áudio centralizada para todas as notificações sonoras'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigido problema que impedia a marcação correta de notificações como lidas'
+          }
+        ]
+      },
+      {
+        id: 'ui-improvements',
+        title: 'Melhorias na Interface',
+        description: 'Atualizações na interface da landing page e no upload de fotos de perfil',
+        items: [
+          {
+            type: 'improvement',
+            content: 'Redesign da landing page com nova paleta de cores consistente com o resto do aplicativo'
+          },
+          {
+            type: 'improvement',
+            content: 'Uso de variáveis de tema em vez de cores fixas para melhor suporte ao modo claro/escuro'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface mais moderna e atraente para destacar recursos do aplicativo'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigido problema com distorção de imagens no upload de fotos de perfil'
+          },
+          {
+            type: 'improvement',
+            content: 'Implementado processamento inteligente de imagens para perfil, garantindo recorte adequado'
+          },
+          {
+            type: 'improvement',
+            content: 'Melhor experiência de usuário ao selecionar e fazer upload de fotos'
+          }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date('2024-04-15'),
     version: '2.1.0',
     author: {
       name: 'Igor Silva',
@@ -58,10 +144,10 @@ export const CHANGELOG_DATA: ChangelogData[] = [
         ]
       }
     ],
-    isNew: true
+    isNew: false
   },
   {
-    date: new Date('2024-10-10'),
+    date: new Date('2024-01-10'),
     version: '1.0.0',
     author: {
       name: 'Igor Silva',

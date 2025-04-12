@@ -848,4 +848,3 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     </Dialog>
   )
 }
-

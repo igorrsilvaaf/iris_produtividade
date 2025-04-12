@@ -27,6 +27,7 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTranslation } from "@/lib/i18n"
 import { usePomodoroStore } from "@/lib/stores/pomodoro-store"
+import { useToast } from "@/components/ui/use-toast"
 
 interface PomodoroSettingsProps {
   open: boolean
@@ -47,6 +48,7 @@ export function PomodoroSettings({ open, onOpenChange }: PomodoroSettingsProps) 
   const { t } = useTranslation()
   const { settings, updateSettings } = usePomodoroStore()
   const [requestingNotificationPermission, setRequestingNotificationPermission] = useState(false)
+  const { toast } = useToast()
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -73,18 +75,71 @@ export function PomodoroSettings({ open, onOpenChange }: PomodoroSettingsProps) 
     })
   }, [settings, form])
 
+  const requestNotificationPermission = async (): Promise<boolean> => {
+    if (!("Notification" in window)) {
+      toast({
+        variant: "destructive",
+        title: t("Notifications not supported"),
+        description: t("Your browser does not support desktop notifications."),
+      });
+      return false;
+    }
+
+    if (Notification.permission === "granted") {
+      return true;
+    }
+
+    if (Notification.permission === "denied") {
+      toast({
+        variant: "destructive",
+        title: t("Notification permission denied"),
+        description: t("Please enable notifications in your browser settings."),
+      });
+      return false;
+    }
+
+    try {
+      setRequestingNotificationPermission(true);
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        toast({
+          title: t("Notifications enabled"),
+          description: t("You will now receive desktop notifications when timers complete."),
+        });
+        return true;
+      } else {
+        toast({
+          variant: "destructive",
+          title: t("Notification permission denied"),
+          description: t("Desktop notifications will not be shown."),
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Error requesting notification permission:", error);
+      toast({
+        variant: "destructive",
+        title: t("Error"),
+        description: t("Failed to request notification permissions."),
+      });
+      return false;
+    } finally {
+      setRequestingNotificationPermission(false);
+    }
+  };
+
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    if (data.enableDesktopNotifications && Notification.permission === "default") {
-      setRequestingNotificationPermission(true)
-      const permission = await Notification.requestPermission()
-      setRequestingNotificationPermission(false)
-      if (permission !== "granted") {
-        data.enableDesktopNotifications = false
+    let updatedData = { ...data };
+
+    if (data.enableDesktopNotifications) {
+      const permissionGranted = await requestNotificationPermission();
+      if (!permissionGranted) {
+        updatedData.enableDesktopNotifications = false;
       }
     }
 
-    updateSettings(data)
-    onOpenChange(false)
+    updateSettings(updatedData);
+    onOpenChange(false);
   }
 
   return (
@@ -196,7 +251,18 @@ export function PomodoroSettings({ open, onOpenChange }: PomodoroSettingsProps) 
                     <FormDescription>{t("enableDesktopNotificationsDescription")}</FormDescription>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch 
+                      checked={field.value} 
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          requestNotificationPermission().then(granted => {
+                            field.onChange(granted);
+                          });
+                        } else {
+                          field.onChange(false);
+                        }
+                      }} 
+                    />
                   </FormControl>
                 </FormItem>
               )}
