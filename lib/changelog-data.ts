@@ -15,6 +15,41 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.3.0',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'project-assignment-fix',
+        title: 'Correção na Atribuição de Projetos',
+        description: 'Correção de bug no sistema de atribuição de projetos para tarefas',
+        items: [
+          {
+            type: 'bugfix',
+            content: 'Corrigido problema que impedia a persistência de projetos ao editar tarefas'
+          },
+          {
+            type: 'improvement',
+            content: 'Implementada API dedicada para gerenciar a associação entre tarefas e projetos'
+          },
+          {
+            type: 'improvement',
+            content: 'Aprimorada a interface de edição de tarefas para garantir a exibição correta do projeto associado'
+          },
+          {
+            type: 'improvement',
+            content: 'Atualizado o componente de detalhes da tarefa para buscar informações de projeto via API'
+          }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date(),
     version: '2.2.0',
     author: {
       name: 'Igor Silva',

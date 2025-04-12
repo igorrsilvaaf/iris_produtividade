@@ -4,11 +4,12 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { CalendarIcon, Flag, Clock } from "lucide-react"
+import { CalendarIcon, Flag, Clock, X, Plus } from "lucide-react"
 import { format } from "date-fns"
 import type { Todo } from "@/lib/todos"
+import type { Project } from "@/lib/projects"
 import { useTranslation } from "@/lib/i18n"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -18,6 +19,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -27,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { useToast } from "@/components/ui/use-toast"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ProjectForm } from "@/components/project-form"
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -49,6 +52,11 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
   const { toast } = useToast()
   const { t } = useTranslation()
   const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false)
+  const [showAddProject, setShowAddProject] = useState(false)
+  const [showCreateProject, setShowCreateProject] = useState(false)
+  const [taskProjectId, setTaskProjectId] = useState<string | null>(null)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,9 +73,64 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         ? new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
         : true,
       priority: task.priority.toString(),
-      projectId: "noProject", // Default sem projeto
+      projectId: "noProject", // Valor padrão, será atualizado após carregar da API
     },
   })
+
+  // Buscar o projeto da tarefa quando o diálogo for aberto
+  useEffect(() => {
+    const fetchTaskProject = async () => {
+      if (!open || !task.id) return;
+      
+      try {
+        const response = await fetch(`/api/tasks/${task.id}/project`);
+        if (response.ok) {
+          const data = await response.json();
+          const projectId = data.projectId ? data.projectId.toString() : "noProject";
+          setTaskProjectId(projectId !== "noProject" ? projectId : null);
+          form.setValue("projectId", projectId);
+        }
+      } catch (error) {
+        console.error("Failed to fetch task project:", error);
+      }
+    };
+
+    fetchTaskProject();
+  }, [open, task.id, form]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setIsLoadingProjects(true)
+      try {
+        const response = await fetch("/api/projects")
+        if (response.ok) {
+          const data = await response.json()
+          setProjects(data.projects)
+        }
+      } catch (error) {
+        console.error("Failed to fetch projects:", error)
+      } finally {
+        setIsLoadingProjects(false)
+      }
+    }
+
+    if (open) {
+      fetchProjects()
+    }
+  }, [open])
+
+  const handleCreateProjectSuccess = () => {
+    setShowCreateProject(false)
+    // Refresh projects
+    fetch("/api/projects")
+      .then((response) => response.json())
+      .then((data) => {
+        setProjects(data.projects)
+      })
+      .catch((error) => {
+        console.error("Failed to refresh projects:", error)
+      })
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -87,7 +150,8 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         }
       }
 
-      const response = await fetch(`/api/tasks/${task.id}`, {
+      // Atualiza os detalhes da tarefa
+      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -95,12 +159,28 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
           description: values.description || null,
           dueDate: dueDateWithTime,
           priority: Number.parseInt(values.priority),
-          projectId: values.projectId && values.projectId !== "noProject" ? Number.parseInt(values.projectId) : null,
         }),
-      })
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to update task")
+      if (!taskResponse.ok) {
+        throw new Error("Failed to update task details");
+      }
+
+      // Atualiza o projeto da tarefa
+      const projectId = values.projectId && values.projectId !== "noProject" 
+        ? Number.parseInt(values.projectId) 
+        : null;
+
+      const projectResponse = await fetch(`/api/tasks/${task.id}/project`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: projectId,
+        }),
+      });
+
+      if (!projectResponse.ok) {
+        throw new Error("Failed to update task project");
       }
 
       toast({
@@ -315,19 +395,105 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("project")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("selectProject")} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="noProject">{t("noProject")}</SelectItem>
-                      <SelectItem value="1">{t("Personal")}</SelectItem>
-                      <SelectItem value="2">{t("Work")}</SelectItem>
-                      <SelectItem value="3">{t("Shopping")}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    {field.value && field.value !== "noProject" ? (
+                      <div className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center">
+                          <div
+                            className="w-4 h-4 rounded-full mr-2"
+                            style={{ 
+                              backgroundColor: projects.find(p => p.id.toString() === field.value)?.color || "#ccc" 
+                            }}
+                          />
+                          <span>{projects.find(p => p.id.toString() === field.value)?.name || t("Unknown project")}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => field.onChange("noProject")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">{t("Remove project")}</span>
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground p-2">{t("noProject")}</p>
+                    )}
+                    <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
+                      <DialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                        >
+                          <Plus className="mr-1 h-3 w-3" />
+                          {t("Add Project")}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="z-[60]" onClick={(e) => e.stopPropagation()}>
+                        <DialogHeader>
+                          <DialogTitle>{t("Add Project")}</DialogTitle>
+                          <DialogDescription>{t("Select a project or create a new one.")}</DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-2 py-4">
+                          {isLoadingProjects ? (
+                            <div className="flex items-center justify-center p-4">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                            </div>
+                          ) : projects.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">{t("No projects found.")}</p>
+                          ) : (
+                            projects.map((project) => (
+                              <button
+                                key={project.id}
+                                type="button"
+                                className="flex items-center justify-between p-2 border rounded hover:bg-accent"
+                                onClick={() => {
+                                  field.onChange(project.id.toString());
+                                  setShowAddProject(false);
+                                }}
+                              >
+                                <div className="flex items-center">
+                                  <div
+                                    className="w-4 h-4 rounded-full mr-2"
+                                    style={{ backgroundColor: project.color }}
+                                  />
+                                  <span>{project.name}</span>
+                                </div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                        <div className="mt-4 border-t pt-4 flex justify-between">
+                          <Button variant="outline" onClick={() => setShowAddProject(false)}>
+                            {t("Cancel")}
+                          </Button>
+                          <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
+                            <DialogTrigger asChild>
+                              <Button onClick={(e) => {
+                                e.stopPropagation();
+                                setShowCreateProject(true);
+                              }}>
+                                {t("Create New Project")}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="z-[70]" onClick={(e) => e.stopPropagation()}>
+                              <DialogHeader>
+                                <DialogTitle>{t("Create New Project")}</DialogTitle>
+                                <DialogDescription>
+                                  {t("Fill in the details to create a new project.")}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <ProjectForm onSuccess={handleCreateProjectSuccess} />
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
