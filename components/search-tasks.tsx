@@ -220,8 +220,7 @@ export function SearchTasks() {
           onClick={() => setOpen(true)}
         >
           <Search className="mr-2 h-4 w-4 text-muted-foreground/70" />
-          <span className="hidden sm:inline-flex text-muted-foreground/90">{t("searchTasks")}</span>
-          <span className="inline-flex sm:hidden text-muted-foreground/90">{t("search")}...</span>
+          <span className="text-muted-foreground/90">{t("searchTasks")}</span>
           <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-5 select-none items-center gap-1 rounded border border-border/50 bg-muted/50 px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
             <span className="text-xs">⌘</span>K
           </kbd>
@@ -248,15 +247,11 @@ export function SearchTasks() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 p-0 rounded-full text-muted-foreground hover:text-foreground flex-shrink-0 ml-1"
-                onClick={() => {
-                  setQuery("");
-                  setResults([]);
-                  setSearchError(null);
-                }}
+                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                onClick={() => setQuery("")}
               >
-                <X className="h-3.5 w-3.5" />
-                <span className="sr-only">{t("Clear")}</span>
+                <X className="h-4 w-4" />
+                <span className="sr-only">Clear</span>
               </Button>
             )}
           </div>

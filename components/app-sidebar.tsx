@@ -78,7 +78,6 @@ export function AppSidebar({ user }: { user: User }) {
   const router = useRouter()
   const [projectsOpen, setProjectsOpen] = useState(true)
   const [labelsOpen, setLabelsOpen] = useState(true)
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [labels, setLabels] = useState<Label[]>([])
@@ -99,11 +98,6 @@ export function AppSidebar({ user }: { user: User }) {
       window.removeEventListener("resize", checkIfMobile)
     }
   }, [])
-
-  // Fechar o menu móvel quando uma rota é selecionada
-  useEffect(() => {
-    setIsMobileOpen(false)
-  }, [pathname])
 
   // Buscar projetos e etiquetas
   useEffect(() => {
@@ -265,30 +259,7 @@ export function AppSidebar({ user }: { user: User }) {
     </div>
   )
 
-  // Versão para desktop
-  if (!isMobile) {
-    return <SidebarContent />
-  }
-
-  // Versão para mobile com Sheet
-  return (
-    <>
-      <div className="flex h-14 items-center justify-between border-b px-4 md:hidden">
-        <Link href="/app" className="flex items-center gap-2 font-bold w-full">
-          <Logo asLink={false} />
-        </Link>
-        <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-72">
-            <SidebarContent />
-          </SheetContent>
-        </Sheet>
-      </div>
-    </>
-  )
+  // For both mobile and desktop, render the SidebarContent directly
+  return <SidebarContent />;
 }
 
