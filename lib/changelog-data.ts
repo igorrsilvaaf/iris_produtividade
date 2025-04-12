@@ -64,6 +64,37 @@ export const CHANGELOG_DATA: ChangelogData[] = [
             content: 'Corrigido problema que impedia a marcação correta de notificações como lidas'
           }
         ]
+      },
+      {
+        id: 'ui-improvements',
+        title: 'Melhorias na Interface',
+        description: 'Atualizações na interface da landing page e no upload de fotos de perfil',
+        items: [
+          {
+            type: 'improvement',
+            content: 'Redesign da landing page com nova paleta de cores consistente com o resto do aplicativo'
+          },
+          {
+            type: 'improvement',
+            content: 'Uso de variáveis de tema em vez de cores fixas para melhor suporte ao modo claro/escuro'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface mais moderna e atraente para destacar recursos do aplicativo'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigido problema com distorção de imagens no upload de fotos de perfil'
+          },
+          {
+            type: 'improvement',
+            content: 'Implementado processamento inteligente de imagens para perfil, garantindo recorte adequado'
+          },
+          {
+            type: 'improvement',
+            content: 'Melhor experiência de usuário ao selecionar e fazer upload de fotos'
+          }
+        ]
       }
     ],
     isNew: true

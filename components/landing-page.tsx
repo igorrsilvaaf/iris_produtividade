@@ -7,6 +7,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { useTranslation } from "@/lib/i18n";
 import { AuthFooter } from "@/components/auth-footer";
 import { Logo } from "@/components/logo";
+import { Check, Clock, Calendar, List, Moon, Bell, Star } from "lucide-react";
 
 export default function LandingPage() {
   const { t, language, setLanguage } = useTranslation();
@@ -39,9 +40,9 @@ export default function LandingPage() {
   }, [setLanguage]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0c0d10]">
-      <header className="w-full border-b border-[#1a1c23] bg-[#0c0d10]">
-        <div className="container flex h-14 items-center justify-between">
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="w-full border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2 font-bold">
             <Logo />
           </div>
@@ -50,19 +51,19 @@ export default function LandingPage() {
             <ModeToggle />
             <div className="hidden sm:flex gap-4">
               <Link href="/login">
-                <Button variant="outline" className="border-[#2d3343] text-gray-200 hover:bg-[#202430] hover:text-white">
+                <Button variant="outline">
                   {t("Entrar")}
                 </Button>
               </Link>
               <Link href="/register">
-                <Button className="bg-[#e11d48] hover:bg-[#be123c] text-white">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   {t("Cadastrar")}
                 </Button>
               </Link>
             </div>
             <div className="sm:hidden">
               <Link href="/login">
-                <Button variant="outline" className="border-[#2d3343] text-gray-200 hover:bg-[#202430] hover:text-white">
+                <Button variant="outline">
                   {t("Entrar")}
                 </Button>
               </Link>
@@ -71,52 +72,70 @@ export default function LandingPage() {
         </div>
       </header>
       <main className="flex-1">
-        <section className="w-full py-8 sm:py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
+        <section className="w-full py-12 sm:py-16 md:py-24 lg:py-32 overflow-hidden relative border-b">
+          <div className="absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10 bg-repeat"></div>
+          <div className="container px-4 md:px-6 relative">
             <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 xl:gap-20 items-center max-w-[1920px] mx-auto">
               <div className="flex flex-col justify-center space-y-6 max-w-3xl">
                 <div className="space-y-4">
-                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl xl:text-7xl text-white">
+                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl xl:text-7xl">
                     {t("Organize suas tarefas com facilidade")}
                   </h1>
-                  <p className="text-lg md:text-xl text-gray-400 max-w-[600px]">
-                    {t("Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, modo escuro e muito mais.")}
+                  <p className="text-lg md:text-xl text-muted-foreground max-w-[600px]">
+                    {t("Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, notificações, modo escuro e muito mais.")}
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <Link href="/register" className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full px-8 bg-[#e11d48] hover:bg-[#be123c] text-white">
-                      {t("Começar")}
+                    <Button size="lg" className="w-full px-8 bg-primary hover:bg-primary/90 text-primary-foreground">
+                      {t("Começar agora")}
                     </Button>
                   </Link>
                   <Link href="/login" className="w-full sm:w-auto">
-                    <Button size="lg" variant="outline" className="w-full px-8 border-[#2d3343] text-gray-200 hover:bg-[#202430] hover:text-white">
+                    <Button size="lg" variant="outline" className="w-full px-8">
                       {t("Entrar")}
                     </Button>
                   </Link>
                 </div>
+                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                  <div className="flex items-center">
+                    <Check className="text-primary h-4 w-4 mr-1.5" />
+                    {t("Gratuito")}
+                  </div>
+                  <div className="flex items-center">
+                    <Check className="text-primary h-4 w-4 mr-1.5" />
+                    {t("Fácil de usar")}
+                  </div>
+                  <div className="flex items-center">
+                    <Check className="text-primary h-4 w-4 mr-1.5" />
+                    {t("Seguro")}
+                  </div>
+                </div>
               </div>
               <div className="hidden sm:block w-full mx-auto flex justify-center items-center lg:max-w-full">
                 <div className="relative aspect-square w-full max-w-[600px] xl:max-w-[650px] 2xl:max-w-[700px] landing-reader mx-auto">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full opacity-20 blur-3xl"></div>
-                  <div className="relative h-full w-full rounded-xl border bg-[#151821] border-[#20232b] p-4 md:p-6 lg:p-8 shadow-xl">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-primary/10 rounded-full opacity-50 blur-3xl"></div>
+                  <div className="relative h-full w-full rounded-xl border bg-card p-4 md:p-6 lg:p-8 shadow-xl">
                     <div className="flex flex-col h-full justify-between">
                       <div className="space-y-5">
-                        <div className="h-6 w-3/4 rounded bg-[#202430]"></div>
-                        <div className="space-y-3">
-                          <div className="h-4 w-full rounded bg-[#202430]"></div>
-                          <div className="h-4 w-5/6 rounded bg-[#202430]"></div>
-                          <div className="h-4 w-4/6 rounded bg-[#202430]"></div>
+                        <div className="flex items-center justify-between">
+                          <div className="h-6 w-3/4 rounded bg-muted"></div>
+                          <div className="h-6 w-6 rounded-full bg-primary"></div>
                         </div>
-                        <div className="h-4 w-2/3 rounded bg-[#202430]"></div>
                         <div className="space-y-3">
-                          <div className="h-4 w-full rounded bg-[#202430]"></div>
-                          <div className="h-4 w-4/5 rounded bg-[#202430]"></div>
+                          <div className="h-4 w-full rounded bg-muted"></div>
+                          <div className="h-4 w-5/6 rounded bg-muted"></div>
+                          <div className="h-4 w-4/6 rounded bg-muted"></div>
+                        </div>
+                        <div className="h-4 w-2/3 rounded bg-muted"></div>
+                        <div className="space-y-3">
+                          <div className="h-4 w-full rounded bg-muted"></div>
+                          <div className="h-4 w-4/5 rounded bg-muted"></div>
                         </div>
                       </div>
                       <div className="flex justify-between mt-auto pt-6">
-                        <div className="h-8 w-24 rounded bg-[#202430]"></div>
-                        <div className="h-8 w-8 rounded-full bg-[#202430]"></div>
+                        <div className="h-8 w-24 rounded bg-muted"></div>
+                        <div className="h-8 w-8 rounded-full bg-muted"></div>
                       </div>
                     </div>
                   </div>
@@ -125,92 +144,97 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-        <section className="w-full py-8 sm:py-12 md:py-24 lg:py-32 bg-[#151821]">
-          <div className="container px-4 md:px-6 mx-auto">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold tracking-tighter md:text-3xl text-white">
-                  {t("Recursos")}
+        <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-muted/30 relative">
+          <div className="absolute inset-0 bg-muted/20 opacity-50"></div>
+          <div className="container px-4 md:px-6 mx-auto relative">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+              <div className="space-y-2 max-w-3xl">
+                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl lg:text-5xl">
+                  {t("Recursos avançados de produtividade")}
                 </h2>
-                <p className="max-w-[900px] text-gray-400 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  {t("Tudo o que você precisa para se manter organizado e produtivo")}
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  {t("Tudo o que você precisa para se manter organizado e produtivo em um só lugar")}
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-8 sm:grid-cols-2 md:grid-cols-3">
-              <div className="flex flex-col items-center space-y-2 rounded-lg p-4">
-                <div className="rounded-full bg-[#202430] p-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6 text-pink-500"
-                  >
-                    <rect width="18" height="18" x="3" y="3" rx="2" />
-                    <path d="M9 14.25v-4.5L12 12l3-2.25v4.5" />
-                  </svg>
+            <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 py-8 md:grid-cols-2 lg:grid-cols-3">
+              <div className="flex flex-col space-y-3 rounded-xl p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+                <div className="rounded-full bg-primary/10 p-3 w-12 h-12 flex items-center justify-center mb-1">
+                  <Clock className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold text-white">{t("Temporizador Pomodoro")}</h3>
-                <p className="text-sm text-gray-400 text-center">
-                  {t(
-                    "Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade"
-                  )}
+                <h3 className="text-xl font-bold">{t("Temporizador Pomodoro")}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {t("Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.")}
                 </p>
               </div>
-              <div className="flex flex-col items-center space-y-2 rounded-lg p-4">
-                <div className="rounded-full bg-[#202430] p-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6 text-pink-500"
-                  >
-                    <path d="M2 12a10 10 0 1 0 20 0 10 10 0 1 0-20 0" />
-                    <path d="M12 6v6l4 2" />
-                  </svg>
+              <div className="flex flex-col space-y-3 rounded-xl p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+                <div className="rounded-full bg-primary/10 p-3 w-12 h-12 flex items-center justify-center mb-1">
+                  <List className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold text-white">{t("Gerenciamento de Tarefas")}</h3>
-                <p className="text-sm text-gray-400 text-center">
-                  {t("Organize tarefas com projetos, prioridades e datas de vencimento")}
+                <h3 className="text-xl font-bold">{t("Gerenciamento de Tarefas")}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {t("Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.")}
                 </p>
               </div>
-              <div className="flex flex-col items-center space-y-2 rounded-lg p-4">
-                <div className="rounded-full bg-[#202430] p-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6 text-pink-500"
-                  >
-                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                    <line x1="3" x2="21" y1="9" y2="9" />
-                    <line x1="9" x2="9" y1="21" y2="9" />
-                  </svg>
+              <div className="flex flex-col space-y-3 rounded-xl p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+                <div className="rounded-full bg-primary/10 p-3 w-12 h-12 flex items-center justify-center mb-1">
+                  <Calendar className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold text-white">{t("Visualização de Calendário")}</h3>
-                <p className="text-sm text-gray-400 text-center">
-                  {t(
-                    "Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência"
-                  )}
+                <h3 className="text-xl font-bold">{t("Visualização de Calendário")}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {t("Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.")}
                 </p>
+              </div>
+              <div className="flex flex-col space-y-3 rounded-xl p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+                <div className="rounded-full bg-primary/10 p-3 w-12 h-12 flex items-center justify-center mb-1">
+                  <Bell className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">{t("Sistema de Notificações")}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {t("Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.")}
+                </p>
+              </div>
+              <div className="flex flex-col space-y-3 rounded-xl p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+                <div className="rounded-full bg-primary/10 p-3 w-12 h-12 flex items-center justify-center mb-1">
+                  <Moon className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">{t("Modo Escuro")}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {t("Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.")}
+                </p>
+              </div>
+              <div className="flex flex-col space-y-3 rounded-xl p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+                <div className="rounded-full bg-primary/10 p-3 w-12 h-12 flex items-center justify-center mb-1">
+                  <Star className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold">{t("Personalização")}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {t("Adapte o aplicativo ao seu estilo com cores personalizáveis, diferentes sons de notificação e preferências de exibição.")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="w-full py-16 sm:py-20 md:py-24 lg:py-32 bg-background">
+          <div className="container px-4 md:px-6 mx-auto">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl lg:text-5xl">
+                {t("Comece a usar hoje")}
+              </h2>
+              <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed">
+                {t("Registre-se gratuitamente e comece a organizar suas tarefas e aumentar sua produtividade")}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                <Link href="/register">
+                  <Button size="lg" className="px-8 bg-primary hover:bg-primary/90 text-primary-foreground">
+                    {t("Criar conta grátis")}
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button size="lg" variant="outline" className="px-8">
+                    {t("Fazer login")}
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -220,3 +244,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

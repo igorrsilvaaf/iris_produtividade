@@ -1,12 +1,16 @@
 import Link from "next/link";
+import { CHANGELOG_DATA } from "@/lib/changelog-data";
 
 interface LogoProps {
   className?: string;
   asLink?: boolean;
   href?: string;
+  showVersion?: boolean;
 }
 
-export function Logo({ className = "", asLink = true, href = "/" }: LogoProps) {
+export function Logo({ className = "", asLink = true, href = "/", showVersion = false }: LogoProps) {
+  const currentVersion = CHANGELOG_DATA[0]?.version || "";
+  
   const logoContent = (
     <>
       <div className="relative h-8 w-8 overflow-hidden rounded-full bg-[#15161c]">

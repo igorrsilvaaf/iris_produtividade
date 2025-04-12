@@ -272,7 +272,7 @@ export async function searchTasks(userId: number, searchText: string): Promise<T
   }
 }
 
-export async function getTasksForNotifications(userId: number, daysAhead: number = 3): Promise<{
+export async function getTasksForNotifications(userId: number, daysAhead: number = 3, ignoreReadStatus: boolean = false): Promise<{
   overdueCount: number,
   dueTodayCount: number,
   upcomingCount: number,

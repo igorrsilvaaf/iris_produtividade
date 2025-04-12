@@ -3,8 +3,11 @@ import { getSession } from "@/lib/auth"
 import { getUserSettings } from "@/lib/settings"
 import { getTasksForNotifications } from "@/lib/todos"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Obter parâmetro da query "ignoreRead"
+    const ignoreRead = request.nextUrl.searchParams.get('ignoreRead') === 'true'
+    
     const session = await getSession()
 
     if (!session) {
@@ -31,8 +34,8 @@ export async function GET() {
       })
     }
 
-    // Buscar tarefas para notificações
-    const taskNotifications = await getTasksForNotifications(session.user.id, task_notification_days)
+    // Buscar tarefas para notificações, passando o parâmetro ignoreReadStatus
+    const taskNotifications = await getTasksForNotifications(session.user.id, task_notification_days, ignoreRead)
     
     // Calcular o total
     const totalCount = taskNotifications.overdueCount + taskNotifications.dueTodayCount + taskNotifications.upcomingCount
