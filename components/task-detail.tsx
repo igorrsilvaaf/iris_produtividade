@@ -827,13 +827,13 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                               setShowAddProject(false);
                             }}
                           >
-                            <div className="flex items-center">
+                      <div className="flex items-center">
                               <div
                                 className="w-4 h-4 rounded-full mr-2"
                                 style={{ backgroundColor: project.color }}
                               />
                               <span>{project.name}</span>
-                            </div>
+                      </div>
                           </button>
                         ))
                       )}
