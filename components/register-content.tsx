@@ -6,7 +6,6 @@ import { useTranslation } from "@/lib/i18n";
 import { RegisterForm } from "@/components/register-form";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import { AuthFooter } from "@/components/auth-footer";
 import { Logo } from "@/components/logo";
 
 export function RegisterContent() {
@@ -74,7 +73,6 @@ export function RegisterContent() {
           </div>
         </div>
       </main>
-      <AuthFooter />
     </div>
   );
 } 

@@ -6,7 +6,6 @@ import { useTranslation } from "@/lib/i18n";
 import { LoginForm } from "@/components/login-form";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import { AuthFooter } from "@/components/auth-footer";
 import { Logo } from "@/components/logo";
 
 export function LoginContent() {
@@ -49,7 +48,7 @@ export function LoginContent() {
           </div>
         </div>
       </header>
-      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12 md:py-16 lg:py-20">
+      <main className="flex-1 flex items-center justify-center px-4 py-4 sm:px-6 sm:py-6 md:py-8 lg:py-10">
         <div className="mx-auto w-full max-w-md space-y-6 sm:space-y-8">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("Welcome back")}</h1>
@@ -73,7 +72,6 @@ export function LoginContent() {
           </div>
         </div>
       </main>
-      <AuthFooter />
     </div>
   );
 } 
