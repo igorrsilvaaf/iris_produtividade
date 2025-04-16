@@ -32,6 +32,15 @@ import { useToast } from "@/components/ui/use-toast"
 interface PomodoroSettingsProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSave?: (settings: {
+    workMinutes: number
+    shortBreakMinutes: number
+    longBreakMinutes: number
+    longBreakInterval: number
+    enableSound: boolean
+    notificationSound: string
+    enableDesktopNotifications: boolean
+  }) => void
 }
 
 const FormSchema = z.object({
@@ -128,18 +137,28 @@ export function PomodoroSettings({ open, onOpenChange }: PomodoroSettingsProps) 
     }
   };
 
-  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    let updatedData = { ...data };
+  const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+    let updatedValues = { ...values };
 
-    if (data.enableDesktopNotifications) {
+    if (values.enableDesktopNotifications) {
       const permissionGranted = await requestNotificationPermission();
       if (!permissionGranted) {
-        updatedData.enableDesktopNotifications = false;
+        updatedValues.enableDesktopNotifications = false;
       }
     }
 
-    updateSettings(updatedData);
+    updateSettings(updatedValues);
+    
+    // Call onSave callback if provided
+    if (onSave) {
+      onSave(updatedValues);
+    }
+    
     onOpenChange(false);
+    toast({
+      title: "Configurações salvas com sucesso",
+      description: "Suas configurações de pomodoro foram atualizadas.",
+    });
   }
 
   return (
@@ -278,4 +297,5 @@ export function PomodoroSettings({ open, onOpenChange }: PomodoroSettingsProps) 
     </Dialog>
   )
 }
+
 

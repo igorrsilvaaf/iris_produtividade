@@ -25,7 +25,7 @@ export default function PomodoroPage() {
   const taskIdParam = searchParams?.get('taskId')
   const router = useRouter()
   
-  console.log("PomodoroPage inicializado, idioma:", t.language)
+  console.log("PomodoroPage inicializado")
   
   const [tasks, setTasks] = useState<Todo[]>([])
   const [selectedTaskId, setSelectedTaskId] = useState<string>("none")
@@ -60,7 +60,6 @@ export default function PomodoroPage() {
     let isMounted = true;
     
     // Função para buscar tarefas que será chamada apenas na montagem
-    // e quando o idioma mudar
     const fetchTasks = async () => {
       try {
         setIsLoading(true)
@@ -122,7 +121,7 @@ export default function PomodoroPage() {
     }
   // Incluir apenas o mínimo necessário de dependências para não causar re-renders excessivos
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t.language]) // Apenas re-executar quando o idioma mudar
+  }, []) // Executar apenas na montagem do componente
 
   return (
     <div className={`container mx-auto py-6 ${isMobile ? "px-0" : "px-6"}`}>
@@ -188,16 +187,13 @@ export default function PomodoroPage() {
               
               {selectedTaskId !== "none" && (
                 <div className="mt-4 p-3 bg-secondary/50 rounded-md">
-                  <h3 className="font-medium">
-                    {tasks.find(task => task.id.toString() === selectedTaskId)?.title}
-                  </h3>
                   <p className="text-sm text-muted-foreground">
                     {tasks.find(task => task.id.toString() === selectedTaskId)?.description || t("noDescription")}
                   </p>
                 </div>
               )}
               
-              <div className={`mt-6 ${isMobile ? "flex-1" : ""}`}>
+              <div className={`mt-6 ${isMobile ? "flex-1 flex items-center justify-center" : ""}`}>
                 <PomodoroTimer
                   initialSettings={{
                     pomodoro_work_minutes: settings.workMinutes,

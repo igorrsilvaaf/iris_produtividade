@@ -221,7 +221,7 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
 
   return (
     <>
-      <Card className={fullScreen ? "h-full border-0 rounded-none shadow-none" : ""}>
+      <Card className={fullScreen ? "h-full border-0 rounded-none shadow-none flex flex-col" : ""}>
         <CardHeader className={`pb-2 flex flex-row items-center justify-between ${fullScreen ? 'pt-4' : ''}`}>
           <CardTitle className="text-lg sm:text-xl">{t("pomodoroTimer")}</CardTitle>
           <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
@@ -230,13 +230,6 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
           </Button>
         </CardHeader>
         <CardContent className={`pt-0 ${fullScreen ? 'flex flex-col items-center justify-center flex-1' : ''}`}>
-          {selectedTask && (
-            <div className="mb-4 flex items-center space-x-2 text-sm">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{selectedTask.title}</span>
-            </div>
-          )}
-          
           <Tabs
             defaultValue="work"
             value={mode}
@@ -256,11 +249,13 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
             </TabsList>
           </Tabs>
 
-          <div className={`mt-4 sm:mt-6 flex flex-col items-center ${fullScreen ? 'flex-1 justify-center' : ''}`}>
-            <div className={`${fullScreen ? 'text-6xl' : 'text-4xl sm:text-5xl'} font-bold tabular-nums`}>{formatTime(timeLeft)}</div>
-            <Progress value={getProgress()} className="mt-4 h-2 w-full" />
+          <div className={`w-full flex flex-col items-center ${fullScreen ? 'flex-1 justify-center mt-0' : 'mt-4 sm:mt-6'}`}>
+            <div className={`${fullScreen ? 'text-7xl mb-4' : 'text-4xl sm:text-5xl'} font-bold tabular-nums`}>{formatTime(timeLeft)}</div>
+            <div className={`w-full mt-4 ${fullScreen ? 'max-w-[85%] mx-auto' : ''}`}>
+              <Progress value={getProgress()} className={`${fullScreen ? 'h-4' : 'h-2'} w-full`} />
+            </div>
 
-            <div className="mt-4 sm:mt-6 flex items-center gap-4">
+            <div className={`flex items-center gap-4 mt-6`}>
               <Button variant="outline" size="icon" onClick={toggleTimer} className={`${fullScreen ? 'h-16 w-16' : 'h-12 w-12'} rounded-full`}>
                 {isRunning ? <Pause className={fullScreen ? "h-8 w-8" : "h-6 w-6"} /> : <Play className={fullScreen ? "h-8 w-8" : "h-6 w-6"} />}
               </Button>
@@ -269,7 +264,7 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
               </Button>
             </div>
 
-            <div className="mt-4 text-xs sm:text-sm text-muted-foreground">
+            <div className={`text-xs sm:text-sm text-muted-foreground ${fullScreen ? 'mt-5 text-base' : 'mt-6'}`}>
               {t("cycle")}: {cycles % settings.longBreakInterval}/{settings.longBreakInterval}
             </div>
           </div>
@@ -279,16 +274,15 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
       <PomodoroSettings
         open={showSettings}
         onOpenChange={setShowSettings}
-        settings={{
-          workMinutes: settings.workMinutes,
-          shortBreakMinutes: settings.shortBreakMinutes,
-          longBreakMinutes: settings.longBreakMinutes,
-          longBreakInterval: settings.longBreakInterval,
-          enableSound: settings.enableSound,
-          notificationSound: settings.notificationSound,
-          enableDesktopNotifications: settings.enableDesktopNotifications,
-        }}
-        onSave={(newSettings) => {
+        onSave={(newSettings: {
+          workMinutes: number;
+          shortBreakMinutes: number;
+          longBreakMinutes: number;
+          longBreakInterval: number;
+          enableSound: boolean;
+          notificationSound: string;
+          enableDesktopNotifications: boolean;
+        }) => {
           setSettings(newSettings)
           // Reset the current timer with the new settings
           switch (mode) {
