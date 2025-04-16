@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar, Check, ChevronRight, Edit, Flag, MoreHorizontal, Trash, ArrowUpDown, Clock, FileText, Link } from "lucide-react"
+import { Calendar, Check, ChevronRight, Edit, Flag, MoreHorizontal, Trash, ArrowUpDown, Clock, FileText, Link, Timer } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -176,6 +176,11 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
     setShowTaskDetail(true)
   }
 
+  const openTaskDetailInEditMode = (task: Todo) => {
+    setSelectedTask({...task, isEditMode: true})
+    setShowTaskDetail(true)
+  }
+
   if (tasks.length === 0) {
     return (
       <Card className="border-dashed">
@@ -229,146 +234,128 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
         </div>
       </div>
 
-      {sortedTasks.map((task) => (
-        <Card key={task.id} className="overflow-hidden">
-          <div className="flex items-start p-3 sm:p-4">
-            <Checkbox
-              checked={task.completed}
-              onCheckedChange={() => toggleTaskCompletion(task.id)}
-              className={cn(
-                "mt-1 flex-shrink-0 transition-all duration-200",
-                task.completed && "animate-pulse-once"
-              )}
-            />
-            <div
-              className="ml-3 flex-1 cursor-pointer min-w-0"
-              onClick={() => openTaskDetail(task)}
-            >
-              <div className="flex items-center justify-between">
-                <h3 className={cn(
-                  "font-medium truncate transition-all duration-300", 
-                  task.completed && "line-through text-muted-foreground"
-                )}>
-                  {task.title}
-                </h3>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 flex-shrink-0 ml-1"
+      <div className="space-y-2">
+        {sortedTasks.map((task) => (
+          <div
+            key={task.id}
+            className={cn(
+              "flex flex-col rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent hover:shadow-md cursor-pointer",
+              task.completed && "opacity-60"
+            )}
+            onClick={() => openTaskDetail(task)}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={task.completed}
+                  onCheckedChange={() => toggleTaskCompletion(task.id)}
+                  className="h-5 w-5"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <div>
+                  <div
+                    className={cn(
+                      "font-medium cursor-pointer",
+                      task.completed && "line-through"
+                    )}
+                  >
+                    {task.title}
+                  </div>
+                  {!expandedTask && task.description && (
+                    <div
+                      className="text-xs text-muted-foreground line-clamp-1 cursor-pointer"
+                    >
+                      {processDescription(task.description)}
+                    </div>
+                  )}
+                  <div className="mt-1 flex items-center gap-2">
+                    {task.due_date && (
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <Clock className="mr-1 h-3 w-3" />
+                        <span>{formatDueDate(task.due_date)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center text-xs">
+                      <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(task.priority)}`} />
+                      <span>{getPriorityLabel(task.priority)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">{t("options")}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenuItem 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openTaskDetailInEditMode(task);
+                      }}
+                      className="hover:bg-primary/10 cursor-pointer"
+                    >
+                      <Edit className="mr-2 h-4 w-4" />
+                      {t("edit")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/app/pomodoro?taskId=${task.id}`);
+                      }}
+                      className="hover:bg-primary/10 cursor-pointer"
+                    >
+                      <Timer className="mr-2 h-4 w-4" />
+                      {t("startPomodoro")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteTask(task.id);
+                      }}
+                      className="hover:bg-primary/10 cursor-pointer"
+                    >
+                      <Trash className="mr-2 h-4 w-4" />
+                      {t("delete")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
+                    // Implementar função para expandir apenas a descrição (observações)
                     setExpandedTask(expandedTask === task.id ? null : task.id);
                   }}
                 >
-                  <ChevronRight
-                    className={cn("h-4 w-4 transition-transform", expandedTask === task.id && "rotate-90")}
-                  />
+                  <ChevronRight className={`h-4 w-4 ${expandedTask === task.id ? "transform rotate-90" : ""}`} />
+                  <span className="sr-only">{t("view")}</span>
                 </Button>
-              </div>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                {task.project_name && (
-                  <span className="flex items-center gap-1 max-w-[120px] truncate">
-                    <div
-                      className="h-2 w-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: task.project_color }}
-                    />
-                    <span className="truncate">{task.project_name}</span>
-                  </span>
-                )}
-                {task.due_date && (
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3 flex-shrink-0" />
-                    <span className={task.due_date && new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0 ? "" : "font-medium"}>
-                      {formatDueDate(task.due_date)}
-                    </span>
-                  </span>
-                )}
-                <span className="flex items-center gap-1">
-                  <Flag className={cn("h-3 w-3 flex-shrink-0", getPriorityColor(task.priority))} />
-                  <span className={cn(getPriorityColor(task.priority))}>
-                    {getPriorityLabel(task.priority)}
-                  </span>
-                </span>
               </div>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">{t("More")}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => openTaskDetail(task)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  {t("edit")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => deleteTask(task.id)}>
-                  <Trash className="mr-2 h-4 w-4" />
-                  {t("delete")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          {expandedTask === task.id && task.description && (
-            <CardContent className="border-t bg-muted/50 px-4 py-3">
-              <div className="text-sm break-words whitespace-pre-wrap">
-                {processDescription(task.description).split('\n').map((line, i) => {
-                  // Encontra URLs no texto
-                  const urlRegex = /(https?:\/\/[^\s]+)/g;
-                  let parts = [];
-                  let lastIndex = 0;
-                  let match;
-                  
-                  // Para cada URL encontrada
-                  while ((match = urlRegex.exec(line)) !== null) {
-                    // Adiciona o texto antes da URL
-                    if (match.index > lastIndex) {
-                      parts.push(line.substring(lastIndex, match.index));
-                    }
-                    
-                    // Adiciona a URL como um link
-                    parts.push(
-                      <a 
-                        key={`${i}-${match.index}`} 
-                        href={match[0]} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline inline-flex items-center"
-                      >
-                        {match[0]}
-                      </a>
-                    );
-                    
-                    lastIndex = urlRegex.lastIndex;
-                  }
-                  
-                  // Adiciona o restante do texto após a última URL
-                  if (lastIndex < line.length) {
-                    parts.push(line.substring(lastIndex));
-                  }
-                  
-                  // Se não houver URLs, apenas retorna a linha
-                  if (parts.length === 0) {
-                    parts.push(line);
-                  }
-                  
-                  // Verifica se a linha está vazia para pular adequadamente
-                  if (line.trim() === '') {
-                    return <br key={i} />;
-                  }
-                  
-                  return (
-                    <p key={i} className="mb-2">
-                      {parts}
-                    </p>
-                  );
-                })}
+            
+            {/* Exibir a descrição expandida se esta tarefa estiver expandida */}
+            {expandedTask === task.id && task.description && (
+              <div 
+                className="mt-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-md"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {processDescription(task.description)}
               </div>
-            </CardContent>
-          )}
-        </Card>
-      ))}
+            )}
+          </div>
+        ))}
+      </div>
 
       {selectedTask && (
         <TaskDetail

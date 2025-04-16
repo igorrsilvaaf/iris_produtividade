@@ -18,6 +18,7 @@ import {
   Menu,
   Plus,
   Tag,
+  Timer,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -65,6 +66,11 @@ const navItems: NavItem[] = [
     href: "/app/completed",
     icon: <CheckCircle2 className="h-5 w-5" />,
     translationKey: "completed",
+  },
+  {
+    href: "/app/pomodoro",
+    icon: <Timer className="h-5 w-5" />,
+    translationKey: "pomodoro",
   },
   {
     href: "/app/storage",

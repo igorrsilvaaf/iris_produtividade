@@ -30,6 +30,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { useToast } from "@/components/ui/use-toast"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ProjectForm } from "@/components/project-form"
+import { BackButton } from "@/components/ui/back-button"
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -139,14 +140,18 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
       
       if (values.dueDate) {
         if (values.isAllDay) {
-          // Para o dia todo, mantém só a data
-          dueDateWithTime = values.dueDate.toISOString().split('T')[0] + 'T00:00:00Z';
+          // Para o dia todo, força horário 00:00 UTC
+          const date = new Date(values.dueDate);
+          date.setHours(0, 0, 0, 0);
+          dueDateWithTime = date.toISOString();
+          console.log('[EditTask] Data para dia todo:', dueDateWithTime);
         } else if (values.dueTime) {
           // Combina data e hora
           const date = new Date(values.dueDate);
           const [hours, minutes] = values.dueTime.split(':').map(Number);
-          date.setHours(hours, minutes);
+          date.setHours(hours, minutes, 0, 0);
           dueDateWithTime = date.toISOString();
+          console.log('[EditTask] Data com hora específica:', dueDateWithTime);
         }
       }
 
@@ -201,10 +206,17 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t("editTask")}</DialogTitle>
-          <DialogDescription>{t("Update your task details.")}</DialogDescription>
+          <div className="flex items-center">
+            <div className="md:hidden">
+              <BackButton onClick={() => onOpenChange(false)} className="mr-2" />
+            </div>
+            <DialogTitle>{t("editTask")}</DialogTitle>
+          </div>
+          <DialogDescription>
+            {t("Make changes to the task.")}
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -215,7 +227,12 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                 <FormItem>
                   <FormLabel>{t("title")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Task title" {...field} />
+                    <Textarea
+                      placeholder={t("Task title")}
+                      className="min-h-[80px] text-base"
+                      rows={3}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -262,11 +279,24 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start" side="bottom">
                         <div className="p-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-medium">{t("pickDate")}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-7 w-7 p-0 rounded-full" 
+                              onClick={() => setDatePickerOpen(false)}
+                            >
+                              <X className="h-4 w-4" />
+                              <span className="sr-only">{t("close")}</span>
+                            </Button>
+                          </div>
                           <Calendar 
                             mode="single" 
                             selected={field.value} 
                             onSelect={(date) => {
                               field.onChange(date);
+                              // Não fechamos o popover, permitindo ajustes adicionais
                             }}
                             initialFocus 
                             disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
@@ -283,6 +313,13 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                                       checked={field.value}
                                       onCheckedChange={(checked) => {
                                         field.onChange(checked);
+                                        // Se ativar "dia todo", atualiza o horário para 00:00
+                                        if (checked) {
+                                          form.setValue("dueTime", "00:00");
+                                        } else {
+                                          // Se desativar, volta para 12:00 ou o horário atual
+                                          form.setValue("dueTime", "12:00");
+                                        }
                                         // Força uma re-renderização para dispositivos iOS
                                         if (typeof window !== 'undefined') {
                                           setTimeout(() => {
@@ -308,36 +345,48 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                                   <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
                                   <FormControl>
                                     <Input 
-                                      type="time" 
+                                      type="text" 
                                       value={field.value || "12:00"}
-                                      onChange={(e) => field.onChange(e.target.value || "12:00")}
-                                      className="w-full"
-                                      inputMode="none"
-                                      onClick={(e) => {
-                                        const target = e.target as HTMLInputElement;
-                                        target.focus();
-                                        if (typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
-                                          setTimeout(() => {
-                                            target.click();
-                                          }, 100);
+                                      onChange={(e) => {
+                                        // Allow direct typing with validation
+                                        const value = e.target.value;
+                                        // Basic validation for time format
+                                        if (!value || /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value) || /^([0-1]?[0-9]|2[0-3]):[0-5]?$/.test(value) || /^([0-1]?[0-9]|2[0-3])?$/.test(value)) {
+                                          field.onChange(value || "12:00");
                                         }
                                       }}
+                                      onBlur={(e) => {
+                                        // Format properly on blur
+                                        let value = e.target.value;
+                                        if (!value) {
+                                          field.onChange("12:00");
+                                          return;
+                                        }
+                                        
+                                        // If just hours entered, add minutes
+                                        if (/^([0-1]?[0-9]|2[0-3])$/.test(value)) {
+                                          value = `${value}:00`;
+                                        }
+                                        
+                                        // If valid time format, keep it
+                                        if (/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
+                                          // Ensure 2-digit format for hours and minutes
+                                          const [hours, minutes] = value.split(':');
+                                          const formattedTime = `${hours.padStart(2, '0')}:${minutes}`;
+                                          field.onChange(formattedTime);
+                                        } else {
+                                          // Revert to default if invalid
+                                          field.onChange("12:00");
+                                        }
+                                      }}
+                                      className="w-full"
+                                      placeholder="HH:MM"
                                     />
                                   </FormControl>
                                 </div>
                               </FormItem>
                             )}
                           />
-                          <Button 
-                            className="w-full mt-3" 
-                            type="button"
-                            onClick={() => {
-                              // Feche o popover usando o estado
-                              setDatePickerOpen(false);
-                            }}
-                          >
-                            {t("confirm")}
-                          </Button>
                         </div>
                       </PopoverContent>
                     </Popover>

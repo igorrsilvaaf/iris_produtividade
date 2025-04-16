@@ -45,9 +45,49 @@ export const translations: Translations = {
     en: "Labels",
     pt: "Etiquetas",
   },
+  "Navigation Menu": {
+    en: "Navigation Menu",
+    pt: "Menu de Navegação",
+  },
   storage: {
     en: "Storage & Backup",
     pt: "Armazenamento & Backup",
+  },
+  pomodoro: {
+    en: "Pomodoro",
+    pt: "Pomodoro",
+  },
+  startPomodoro: {
+    en: "Start Pomodoro",
+    pt: "Iniciar Pomodoro",
+  },
+  selectTask: {
+    en: "Select Task",
+    pt: "Selecionar Tarefa",
+  },
+  noTask: {
+    en: "No Task",
+    pt: "Sem Tarefa",
+  },
+  selectTaskForPomodoro: {
+    en: "Select a task for your Pomodoro session (showing all incomplete tasks)",
+    pt: "Selecione uma tarefa para sua sessão Pomodoro (mostrando todas as tarefas incompletas)",
+  },
+  noDescription: {
+    en: "No description",
+    pt: "Sem descrição",
+  },
+  focusOnYourTasks: {
+    en: "Focus on your tasks with timed work sessions",
+    pt: "Concentre-se em suas tarefas com sessões de trabalho cronometradas",
+  },
+  back: {
+    en: "Back",
+    pt: "Voltar",
+  },
+  "Nenhuma tarefa disponível para seleção": {
+    en: "No tasks available for selection",
+    pt: "Nenhuma tarefa disponível para seleção",
   },
 
   // Ações
@@ -134,6 +174,10 @@ export const translations: Translations = {
   cancel: {
     en: "Cancel",
     pt: "Cancelar",
+  },
+  close: {
+    en: "Close",
+    pt: "Fechar",
   },
 
   // Formulários
@@ -1497,6 +1541,102 @@ export const translations: Translations = {
   "Task Notifications": {
     en: "Task Notifications",
     pt: "Notificações de Tarefas"
+  },
+  "No tasks available": {
+    en: "No tasks available",
+    pt: "Nenhuma tarefa disponível"
+  },
+  "Invalid response format": {
+    en: "Invalid response format",
+    pt: "Formato de resposta inválido"
+  },
+  "Task uncompleted": {
+    en: "Task uncompleted",
+    pt: "Tarefa desmarcada"
+  },
+  "The task has been marked as incomplete.": {
+    en: "The task has been marked as incomplete.",
+    pt: "A tarefa foi desmarcada como concluída."
+  },
+  "Failed to update task": {
+    en: "Failed to update task",
+    pt: "Falha ao atualizar tarefa"
+  },
+  "Please try again later.": {
+    en: "Please try again later.",
+    pt: "Por favor, tente novamente mais tarde."
+  },
+  workMinutes: {
+    en: "Work Minutes",
+    pt: "Minutos de Trabalho",
+  },
+  shortBreakMinutes: {
+    en: "Short Break Minutes",
+    pt: "Minutos de Pausa Curta",
+  },
+  longBreakMinutes: {
+    en: "Long Break Minutes",
+    pt: "Minutos de Pausa Longa",
+  },
+  longBreakInterval: {
+    en: "Long Break Interval",
+    pt: "Intervalo de Pausa Longa",
+  },
+  enableSound: {
+    en: "Enable Sound",
+    pt: "Ativar Som",
+  },
+  enableSoundDescription: {
+    en: "Play a sound when the timer completes.",
+    pt: "Tocar um som quando o temporizador terminar.",
+  },
+  enableDesktopNotifications: {
+    en: "Enable Desktop Notifications",
+    pt: "Ativar Notificações de Desktop",
+  },
+  enableDesktopNotificationsDescription: {
+    en: "Show desktop notifications when the timer completes.",
+    pt: "Mostrar notificações na área de trabalho quando o temporizador terminar.",
+  },
+  selectSound: {
+    en: "Select Sound",
+    pt: "Selecionar Som",
+  },
+  notification: {
+    en: "Notification",
+    pt: "Notificação",
+  },
+  ding: {
+    en: "Ding",
+    pt: "Campainha",
+  },
+  "Notifications not supported": {
+    en: "Notifications not supported",
+    pt: "Notificações não suportadas",
+  },
+  "Your browser does not support desktop notifications.": {
+    en: "Your browser does not support desktop notifications.",
+    pt: "Seu navegador não suporta notificações de desktop.",
+  },
+  "Please enable notifications in your browser settings.": {
+    en: "Please enable notifications in your browser settings.",
+    pt: "Habilite as notificações nas configurações do seu navegador.",
+  },
+  "Notifications enabled": {
+    en: "Notifications enabled",
+    pt: "Notificações habilitadas",
+  },
+  "You will now receive desktop notifications when timers complete.": {
+    en: "You will now receive desktop notifications when timers complete.",
+    pt: "Agora você receberá notificações de desktop quando os temporizadores terminarem.",
+  },
+  "Desktop notifications will not be shown.": {
+    en: "Desktop notifications will not be shown.",
+    pt: "Notificações de desktop não serão exibidas.",
+  },
+  "Failed to request notification permissions.": {
+    en: "Failed to request notification permissions.",
+    pt: "Falha ao solicitar permissões de notificação.",
   },
 }
 

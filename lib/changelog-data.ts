@@ -15,6 +15,53 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.4.0',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'pomodoro-and-ui-improvements',
+        title: 'Melhorias no Pomodoro e Interface',
+        description: 'Atualizações na interface do usuário e correções no sistema Pomodoro',
+        items: [
+          {
+            type: 'improvement',
+            content: 'Adicionados efeitos visuais ao passar o mouse sobre botões e tarefas'
+          },
+          {
+            type: 'improvement',
+            content: 'Melhoria na visualização de descrições de tarefas com opção de expandir/recolher'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface mais responsiva com feedback visual ao interagir com elementos'
+          },
+          {
+            type: 'improvement',
+            content: 'Tradução completa das configurações do Pomodoro para português'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigido problema em que o botão de expandir descrição abria os detalhes da tarefa'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigido problema com o botão "Iniciar Pomodoro" que abria a tarefa em vez de ir para a página do Pomodoro'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigida duplicação de elementos na visualização de detalhes da tarefa'
+          }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date(),
     version: '2.3.0',
     author: {
       name: 'Igor Silva',
@@ -46,7 +93,7 @@ export const CHANGELOG_DATA: ChangelogData[] = [
         ]
       }
     ],
-    isNew: true
+    isNew: false
   },
   {
     date: new Date(),

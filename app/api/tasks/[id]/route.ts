@@ -33,6 +33,29 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const taskId = Number.parseInt(resolvedParams.id)
     const updates = await request.json()
 
+    // Validar a data se fornecida
+    if (updates.dueDate !== undefined) {
+      console.log(`[PATCH /api/tasks/${taskId}] Data recebida para atualização: ${updates.dueDate}`);
+      
+      if (updates.dueDate !== null) {
+        try {
+          const dateObj = new Date(updates.dueDate);
+          console.log(`[PATCH /api/tasks/${taskId}] Data convertida: ${dateObj.toString()}`);
+          
+          // Verificar se a data é válida
+          if (isNaN(dateObj.getTime())) {
+            console.error(`[PATCH /api/tasks/${taskId}] Erro: Data inválida ${updates.dueDate}`);
+            return NextResponse.json({ message: "Invalid date format" }, { status: 400 });
+          }
+        } catch (error) {
+          console.error(`[PATCH /api/tasks/${taskId}] Erro ao processar data: ${error}`);
+          return NextResponse.json({ message: "Invalid date format" }, { status: 400 });
+        }
+      } else {
+        console.log(`[PATCH /api/tasks/${taskId}] Removendo data da tarefa`);
+      }
+    }
+
     const task = await updateTask(taskId, session.user.id, updates)
 
     return NextResponse.json({ task })

@@ -19,6 +19,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Title is required" }, { status: 400 })
     }
 
+    // Validar a data se fornecida
+    if (dueDate) {
+      try {
+        const dateObj = new Date(dueDate);
+        console.log(`[POST /api/tasks] Data recebida: ${dueDate}`);
+        console.log(`[POST /api/tasks] Data convertida: ${dateObj.toString()}`);
+        
+        // Verificar se a data é válida
+        if (isNaN(dateObj.getTime())) {
+          console.error(`[POST /api/tasks] Erro: Data inválida ${dueDate}`);
+          return NextResponse.json({ message: "Invalid date format" }, { status: 400 });
+        }
+      } catch (error) {
+        console.error(`[POST /api/tasks] Erro ao processar data: ${error}`);
+        return NextResponse.json({ message: "Invalid date format" }, { status: 400 });
+      }
+    }
+
     const task = await createTask(session.user.id, title, description, dueDate, priority, projectId)
 
     // Adicionar etiquetas à tarefa, se fornecidas

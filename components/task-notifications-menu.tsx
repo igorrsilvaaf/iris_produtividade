@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState, useRef, useCallback } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { formatDistanceToNow, isToday, isTomorrow } from "date-fns"
 import { pt, enUS } from "date-fns/locale"
 import { Bell, Check } from "lucide-react"
@@ -20,6 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useTranslation } from "@/lib/i18n"
 import { useToast } from "@/components/ui/use-toast"
 import type { Todo } from "@/lib/todos"
+import { TaskDetail } from "@/components/task-detail"
 
 interface TaskNotification {
   enabled: boolean
@@ -37,12 +38,15 @@ interface TaskNotification {
 export function TaskNotificationsMenu() {
   const { t, language } = useTranslation()
   const router = useRouter()
+  const pathname = usePathname()
   const { toast } = useToast()
   
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [viewed, setViewed] = useState(false)
   const [completingTask, setCompletingTask] = useState<number | null>(null)
+  const [selectedTask, setSelectedTask] = useState<Todo | null>(null)
+  const [showTaskDetail, setShowTaskDetail] = useState(false)
   const [notifications, setNotifications] = useState<TaskNotification>({
     enabled: false,
     overdueCount: 0,
@@ -191,15 +195,28 @@ export function TaskNotificationsMenu() {
     }
   }
 
-  const handleViewTask = (taskId: number) => {
-    setOpen(false)
-    router.push(`/app/tasks/${taskId}`)
-  }
+  const handleViewTask = (task: Todo) => {
+    try {
+      console.log("Abrindo tarefa:", task);
+      console.log("Pathname atual:", pathname);
+      setOpen(false);
+      setSelectedTask({...task});
+      setShowTaskDetail(true);
+    } catch (error) {
+      console.error("Erro ao abrir detalhes da tarefa:", error);
+      toast({
+        variant: "destructive",
+        title: t("Erro"),
+        description: t("Não foi possível abrir os detalhes da tarefa."),
+      });
+    }
+  };
 
   // Só mostra o contador de notificações se houver notificações e elas não estiverem vistas
   const showNotificationBadge = notifications.totalCount > 0 && !viewed
 
   return (
+    <>
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
@@ -215,8 +232,13 @@ export function TaskNotificationsMenu() {
           <span className="sr-only">{t("notifications")}</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 md:w-[450px]" align="end">
-        <div className="flex items-center justify-between">
+      <PopoverContent 
+        className="w-[95vw] sm:w-80 md:w-96 p-0 overflow-hidden"
+        align="center"
+        side="bottom"
+        sideOffset={12}
+      >
+        <div className="flex items-center justify-between p-3 border-b">
           <h4 className="font-medium text-base">{t("notifications")}</h4>
           <Button 
             variant="link" 
@@ -230,139 +252,163 @@ export function TaskNotificationsMenu() {
             {t("viewAllNotifications")}
           </Button>
         </div>
-        <Separator className="my-2" />
 
-        <ScrollArea className="h-[400px] pr-4">
-          {loading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex flex-col gap-1">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ))}
-            </div>
-          ) : notifications.totalCount === 0 ? (
-            <div className="flex h-[250px] items-center justify-center flex-col p-4 text-center">
-              <Bell className="h-12 w-12 text-muted-foreground/50 mb-4" />
-              <p className="text-sm text-muted-foreground">{t("noNotifications")}</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {notifications.overdueCount > 0 && (
-                <div>
-                  <h5 className="text-base font-medium text-rose-600 mb-3">
-                    {t("youHaveNTasks").replace("{count}", String(notifications.overdueCount))} {t("overdue")}
-                  </h5>
-                  <div className="space-y-3">
-                    {notifications.tasks.overdueTasks.map(task => (
-                      <Card key={task.id} className="cursor-pointer hover:bg-rose-50 dark:hover:bg-rose-900/10 border-rose-200 dark:border-rose-800">
-                        <CardContent 
-                          className="p-4 pb-2" 
-                          onClick={() => handleViewTask(task.id)}
-                        >
-                          <CardTitle className="text-base mb-1 line-clamp-1">
-                            {task.title}
-                          </CardTitle>
-                          <p className="text-sm text-rose-600 dark:text-rose-400">
-                            {formatDate(task.due_date!)}
-                          </p>
-                        </CardContent>
-                        <CardFooter className="p-2 pt-0 flex justify-end">
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-7 px-2 gap-1 text-xs hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-900/10"
-                            onClick={(e) => handleCompleteTask(e, task.id)}
-                            disabled={completingTask === task.id}
-                          >
-                            <Check className="h-3 w-3" />
-                            {t("Complete")}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))}
+        {/* Usar alturas diferentes baseado no tamanho da tela */}
+        <ScrollArea className="h-[65vh] sm:h-[420px]">
+          <div className="p-3">
+            {loading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex flex-col gap-1">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-12 w-full" />
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
+            ) : notifications.totalCount === 0 ? (
+              <div className="flex h-[250px] items-center justify-center flex-col p-4 text-center">
+                <Bell className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-sm text-muted-foreground">{t("noNotifications")}</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {notifications.overdueCount > 0 && (
+                  <div>
+                    <h5 className="text-base font-medium text-rose-600 mb-3">
+                      {t("youHaveNTasks").replace("{count}", String(notifications.overdueCount))} {t("overdue")}
+                    </h5>
+                    <div className="space-y-3">
+                      {notifications.tasks.overdueTasks.map(task => (
+                        <Card key={task.id} className="cursor-pointer hover:bg-rose-50 dark:hover:bg-rose-900/10 border-rose-200 dark:border-rose-800 overflow-hidden">
+                          <div className="flex flex-col md:flex-row md:items-center">
+                            <CardContent 
+                              className="p-3 flex-1" 
+                              onClick={() => handleViewTask(task)}
+                            >
+                              <CardTitle className="text-sm sm:text-base mb-1 line-clamp-1">
+                                {task.title}
+                              </CardTitle>
+                              <p className="text-xs sm:text-sm text-rose-600 dark:text-rose-400">
+                                {formatDate(task.due_date!)}
+                              </p>
+                            </CardContent>
+                            <div className="flex justify-end border-t md:border-t-0 md:border-l p-2">
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-6 px-1.5 gap-1 text-xs hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-900/10"
+                                onClick={(e) => handleCompleteTask(e, task.id)}
+                                disabled={completingTask === task.id}
+                              >
+                                <Check className="h-3 w-3" />
+                                {t("Complete")}
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-              {notifications.dueTodayCount > 0 && (
-                <div>
-                  <h5 className="text-base font-medium text-amber-600 mb-3">
-                    {t("youHaveNTasks").replace("{count}", String(notifications.dueTodayCount))} {t("dueToday")}
-                  </h5>
-                  <div className="space-y-3">
-                    {notifications.tasks.dueTodayTasks.map(task => (
-                      <Card key={task.id} className="cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-900/10 border-amber-200 dark:border-amber-800">
-                        <CardContent 
-                          className="p-4 pb-2" 
-                          onClick={() => handleViewTask(task.id)}
-                        >
-                          <CardTitle className="text-base mb-1 line-clamp-1">
-                            {task.title}
-                          </CardTitle>
-                          <p className="text-sm text-amber-600 dark:text-amber-400">
-                            {formatDate(task.due_date!)}
-                          </p>
-                        </CardContent>
-                        <CardFooter className="p-2 pt-0 flex justify-end">
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-7 px-2 gap-1 text-xs hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-900/10"
-                            onClick={(e) => handleCompleteTask(e, task.id)}
-                            disabled={completingTask === task.id}
-                          >
-                            <Check className="h-3 w-3" />
-                            {t("Complete")}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))}
+                {notifications.dueTodayCount > 0 && (
+                  <div>
+                    <h5 className="text-base font-medium text-amber-600 mb-3">
+                      {t("youHaveNTasks").replace("{count}", String(notifications.dueTodayCount))} {t("dueToday")}
+                    </h5>
+                    <div className="space-y-3">
+                      {notifications.tasks.dueTodayTasks.map(task => (
+                        <Card key={task.id} className="cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-900/10 border-amber-200 dark:border-amber-800 overflow-hidden">
+                          <div className="flex flex-col md:flex-row md:items-center">
+                            <CardContent 
+                              className="p-3 flex-1" 
+                              onClick={() => handleViewTask(task)}
+                            >
+                              <CardTitle className="text-sm sm:text-base mb-1 line-clamp-1">
+                                {task.title}
+                              </CardTitle>
+                              <p className="text-xs sm:text-sm text-amber-600 dark:text-amber-400">
+                                {formatDate(task.due_date!)}
+                              </p>
+                            </CardContent>
+                            <div className="flex justify-end border-t md:border-t-0 md:border-l p-2">
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-6 px-1.5 gap-1 text-xs hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-900/10"
+                                onClick={(e) => handleCompleteTask(e, task.id)}
+                                disabled={completingTask === task.id}
+                              >
+                                <Check className="h-3 w-3" />
+                                {t("Complete")}
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {notifications.upcomingCount > 0 && (
-                <div>
-                  <h5 className="text-base font-medium text-blue-600 mb-3">
-                    {t("youHaveNTasks").replace("{count}", String(notifications.upcomingCount))} {t("dueInNextDays").replace("{days}", String(3))}
-                  </h5>
-                  <div className="space-y-3">
-                    {notifications.tasks.upcomingTasks.map(task => (
-                      <Card key={task.id} className="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/10 border-blue-200 dark:border-blue-800">
-                        <CardContent 
-                          className="p-4 pb-2" 
-                          onClick={() => handleViewTask(task.id)}
-                        >
-                          <CardTitle className="text-base mb-1 line-clamp-1">
-                            {task.title}
-                          </CardTitle>
-                          <p className="text-sm text-blue-600 dark:text-blue-400">
-                            {formatDate(task.due_date!)}
-                          </p>
-                        </CardContent>
-                        <CardFooter className="p-2 pt-0 flex justify-end">
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-7 px-2 gap-1 text-xs hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/10"
-                            onClick={(e) => handleCompleteTask(e, task.id)}
-                            disabled={completingTask === task.id}
-                          >
-                            <Check className="h-3 w-3" />
-                            {t("Complete")}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))}
+                {notifications.upcomingCount > 0 && (
+                  <div>
+                    <h5 className="text-base font-medium text-blue-600 mb-3">
+                      {t("youHaveNTasks").replace("{count}", String(notifications.upcomingCount))} {t("dueInNextDays").replace("{days}", String(3))}
+                    </h5>
+                    <div className="space-y-3">
+                      {notifications.tasks.upcomingTasks.map(task => (
+                        <Card key={task.id} className="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/10 border-blue-200 dark:border-blue-800 overflow-hidden">
+                          <div className="flex flex-col md:flex-row md:items-center">
+                            <CardContent 
+                              className="p-3 flex-1" 
+                              onClick={() => handleViewTask(task)}
+                            >
+                              <CardTitle className="text-sm sm:text-base mb-1 line-clamp-1">
+                                {task.title}
+                              </CardTitle>
+                              <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400">
+                                {formatDate(task.due_date!)}
+                              </p>
+                            </CardContent>
+                            <div className="flex justify-end border-t md:border-t-0 md:border-l p-2">
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-6 px-1.5 gap-1 text-xs hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/10"
+                                onClick={(e) => handleCompleteTask(e, task.id)}
+                                disabled={completingTask === task.id}
+                              >
+                                <Check className="h-3 w-3" />
+                                {t("Complete")}
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
         </ScrollArea>
       </PopoverContent>
     </Popover>
+    
+    {selectedTask && (
+      <TaskDetail 
+        task={selectedTask} 
+        open={showTaskDetail} 
+        onOpenChange={(open) => {
+          console.log("Alterando estado do modal:", open);
+          setShowTaskDetail(open);
+          if (!open) {
+            // Limpar a tarefa selecionada quando fechar o modal
+            setTimeout(() => setSelectedTask(null), 300);
+          }
+        }} 
+      />
+    )}
+    </>
   )
 } 

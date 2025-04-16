@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
-import { Play, Pause, RotateCcw, Settings } from "lucide-react"
+import { Play, Pause, RotateCcw, Settings, FileText } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -21,15 +21,18 @@ interface PomodoroTimerProps {
     notification_sound: string
     enable_desktop_notifications: boolean
   }
+  selectedTaskId?: number | null
+  fullScreen?: boolean
 }
 
 type TimerMode = "work" | "shortBreak" | "longBreak"
 
-export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
+export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = false }: PomodoroTimerProps) {
   const [isRunning, setIsRunning] = useState(false)
   const [mode, setMode] = useState<TimerMode>("work")
   const [timeLeft, setTimeLeft] = useState(initialSettings.pomodoro_work_minutes * 60)
   const [cycles, setCycles] = useState(0)
+  const [selectedTask, setSelectedTask] = useState<any>(null)
   const [settings, setSettings] = useState({
     workMinutes: initialSettings.pomodoro_work_minutes,
     shortBreakMinutes: initialSettings.pomodoro_break_minutes,
@@ -45,6 +48,28 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
   const { toast } = useToast()
   const { t } = useTranslation()
   const { playSound } = useAudioPlayer()
+
+  // Fetch task details if selectedTaskId is provided
+  useEffect(() => {
+    const fetchTaskDetails = async () => {
+      if (!selectedTaskId) {
+        setSelectedTask(null)
+        return
+      }
+      
+      try {
+        const response = await fetch(`/api/tasks/${selectedTaskId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setSelectedTask(data.task)
+        }
+      } catch (error) {
+        console.error("Error fetching task details:", error)
+      }
+    }
+    
+    fetchTaskDetails()
+  }, [selectedTaskId])
 
   useEffect(() => {
     if (isRunning) {
@@ -82,7 +107,9 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
     // Show desktop notification if enabled
     if (settings.enableDesktopNotifications && Notification.permission === "granted") {
       const title = mode === "work" ? t("workSessionCompleted") : t("breakTimeOver")
-      const body = mode === "work" ? t("timeForBreak") : t("backToWork")
+      const body = mode === "work" 
+        ? (selectedTask ? `${t("timeForBreak")} (${selectedTask.title})` : t("timeForBreak"))
+        : (selectedTask ? `${t("backToWork")} (${selectedTask.title})` : t("backToWork"))
 
       new Notification(title, {
         body,
@@ -93,7 +120,9 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
     // Show toast notification
     toast({
       title: mode === "work" ? t("workSessionCompleted") : t("breakTimeOver"),
-      description: mode === "work" ? t("timeForBreak") : t("backToWork"),
+      description: mode === "work" 
+        ? (selectedTask ? `${t("timeForBreak")} (${selectedTask.title})` : t("timeForBreak"))
+        : (selectedTask ? `${t("backToWork")} (${selectedTask.title})` : t("backToWork")),
     })
 
     // Switch to next mode
@@ -124,13 +153,14 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
       const minutes = Math.floor(timeLeft / 60)
       const seconds = timeLeft % 60
       const time = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
-      document.title = `${time} - ${mode === "work" ? t("work") : t(mode === "shortBreak" ? "shortBreak" : "longBreak")}`
+      const taskInfo = selectedTask ? ` - ${selectedTask.title}` : ""
+      document.title = `${time} - ${mode === "work" ? t("work") : t(mode === "shortBreak" ? "shortBreak" : "longBreak")}${taskInfo}`
     }
 
     return () => {
       document.title = originalTitle
     }
-  }, [timeLeft, isRunning, mode, t])
+  }, [timeLeft, isRunning, mode, t, selectedTask])
 
   const toggleTimer = () => {
     setIsRunning(!isRunning)
@@ -191,15 +221,22 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
 
   return (
     <>
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+      <Card className={fullScreen ? "h-full border-0 rounded-none shadow-none" : ""}>
+        <CardHeader className={`pb-2 flex flex-row items-center justify-between ${fullScreen ? 'pt-4' : ''}`}>
           <CardTitle className="text-lg sm:text-xl">{t("pomodoroTimer")}</CardTitle>
           <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
             <Settings className="h-4 w-4" />
             <span className="sr-only">{t("settings")}</span>
           </Button>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className={`pt-0 ${fullScreen ? 'flex flex-col items-center justify-center flex-1' : ''}`}>
+          {selectedTask && (
+            <div className="mb-4 flex items-center space-x-2 text-sm">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">{selectedTask.title}</span>
+            </div>
+          )}
+          
           <Tabs
             defaultValue="work"
             value={mode}
@@ -219,16 +256,16 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
             </TabsList>
           </Tabs>
 
-          <div className="mt-4 sm:mt-6 flex flex-col items-center">
-            <div className="text-4xl sm:text-5xl font-bold tabular-nums">{formatTime(timeLeft)}</div>
+          <div className={`mt-4 sm:mt-6 flex flex-col items-center ${fullScreen ? 'flex-1 justify-center' : ''}`}>
+            <div className={`${fullScreen ? 'text-6xl' : 'text-4xl sm:text-5xl'} font-bold tabular-nums`}>{formatTime(timeLeft)}</div>
             <Progress value={getProgress()} className="mt-4 h-2 w-full" />
 
             <div className="mt-4 sm:mt-6 flex items-center gap-4">
-              <Button variant="outline" size="icon" onClick={toggleTimer} className="h-12 w-12 rounded-full">
-                {isRunning ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+              <Button variant="outline" size="icon" onClick={toggleTimer} className={`${fullScreen ? 'h-16 w-16' : 'h-12 w-12'} rounded-full`}>
+                {isRunning ? <Pause className={fullScreen ? "h-8 w-8" : "h-6 w-6"} /> : <Play className={fullScreen ? "h-8 w-8" : "h-6 w-6"} />}
               </Button>
-              <Button variant="outline" size="icon" onClick={resetTimer} className="h-10 w-10 rounded-full">
-                <RotateCcw className="h-4 w-4" />
+              <Button variant="outline" size="icon" onClick={resetTimer} className={`${fullScreen ? 'h-12 w-12' : 'h-10 w-10'} rounded-full`}>
+                <RotateCcw className={fullScreen ? "h-5 w-5" : "h-4 w-4"} />
               </Button>
             </div>
 
@@ -253,8 +290,18 @@ export function PomodoroTimer({ initialSettings }: PomodoroTimerProps) {
         }}
         onSave={(newSettings) => {
           setSettings(newSettings)
-          setTimeLeft(newSettings.workMinutes * 60)
-          setShowSettings(false)
+          // Reset the current timer with the new settings
+          switch (mode) {
+            case "work":
+              setTimeLeft(newSettings.workMinutes * 60)
+              break
+            case "shortBreak":
+              setTimeLeft(newSettings.shortBreakMinutes * 60)
+              break
+            case "longBreak":
+              setTimeLeft(newSettings.longBreakMinutes * 60)
+              break
+          }
         }}
       />
     </>
