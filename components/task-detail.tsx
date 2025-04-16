@@ -708,13 +708,16 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      // If closing, reset edit mode
-      if (!newOpen && isEditMode) {
-        setIsEditMode(false);
-      }
-      onOpenChange(newOpen);
-    }}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(newOpen) => {
+        // If closing, reset edit mode
+        if (!newOpen && isEditMode) {
+          setIsEditMode(false);
+        }
+        onOpenChange(newOpen);
+      }}
+    >
       <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-auto">
         <DialogHeader className="flex flex-col space-y-1">
           <div className="flex flex-row items-center w-full">
