@@ -21,6 +21,22 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  webpack: (config) => {
+    // Aumentar o timeout dos chunks para evitar erros de timeout
+    config.watchOptions = {
+      ...config.watchOptions,
+      aggregateTimeout: 300,
+      poll: 1000,
+    };
+    
+    // Configurar os limites de tempo para carregar os chunks
+    config.output = {
+      ...config.output,
+      chunkLoadTimeout: 60000, // 60 segundos (valor padrão: 120000 ms)
+    };
+    
+    return config;
+  },
 }
 
 mergeConfig(nextConfig, userConfig)

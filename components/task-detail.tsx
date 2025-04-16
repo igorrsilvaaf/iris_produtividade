@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar as CalendarIcon, Flag, Trash, Clock, X, Save, Edit, CheckSquare, Square, Link, Plus } from "lucide-react"
+import { Calendar as CalendarIcon, Flag, Trash, Clock, X, Save, Edit, CheckSquare, Square, Link, Plus, Timer, ArrowLeft } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
 import { useTranslation } from "@/lib/i18n"
@@ -12,6 +12,7 @@ import remarkGfm from 'remark-gfm';
 import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
+import { BackButton } from "@/components/ui/back-button"
 import {
   Dialog,
   DialogContent,
@@ -31,8 +32,12 @@ import { Calendar } from "@/components/ui/calendar"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ProjectForm } from "@/components/project-form"
 
+type TodoWithEditMode = Todo & {
+  isEditMode?: boolean;
+}
+
 interface TaskDetailProps {
-  task: Todo
+  task: TodoWithEditMode
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -71,6 +76,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         : new Date(task.due_date).toTimeString().slice(0, 5)
       : "12:00"
   )
+  const [dueTimeUpdate, setDueTimeUpdate] = useState(false)
   const [isAllDay, setIsAllDay] = useState(
     task.due_date
       ? new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
@@ -124,15 +130,38 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
   useEffect(() => {
     if (open) {
-      // Reset to view mode when opening
-      setIsEditMode(false)
+      // Reset to view mode when opening, unless isEditMode is specified in the task
+      setIsEditMode(task.isEditMode === true)
       
       // Reset form values to task values
       setTitle(task.title)
       setDescription(task.description || "")
-      setDueDate(task.due_date ? new Date(task.due_date) : undefined)
-      setDueTime(getTimeFromDate(task.due_date))
-      setIsAllDay(isAllDayDate(task.due_date))
+      
+      // Ajustar a data de vencimento corretamente
+      if (task.due_date) {
+        console.log(`[TaskDetail] Data da tarefa: ${task.due_date}`)
+        try {
+          const dueDate = new Date(task.due_date)
+          setDueDate(dueDate)
+          setDueTime(
+            dueDate.getHours() === 0 && dueDate.getMinutes() === 0
+              ? "12:00" // horário padrão para tarefas de dia inteiro
+              : dueDate.toTimeString().slice(0, 5)
+          )
+          setIsAllDay(dueDate.getHours() === 0 && dueDate.getMinutes() === 0)
+          console.log(`[TaskDetail] Data configurada: ${dueDate}, isAllDay: ${dueDate.getHours() === 0 && dueDate.getMinutes() === 0}, hora: ${dueDate.toTimeString().slice(0, 5)}`)
+        } catch (error) {
+          console.error(`[TaskDetail] Erro ao processar data: ${error}`)
+          setDueDate(undefined)
+          setDueTime("12:00")
+          setIsAllDay(true)
+        }
+      } else {
+        setDueDate(undefined)
+        setDueTime("12:00")
+        setIsAllDay(true)
+      }
+      
       setPriority(task.priority.toString())
     }
   }, [open, task])
@@ -184,13 +213,43 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       let dueDateWithTime = null;
       
       if (dueDate) {
+        // Garantir que a data é um objeto Date válido
+        if (!(dueDate instanceof Date) || isNaN(dueDate.getTime())) {
+          console.error(`[TaskDetail] Data inválida detectada: ${dueDate}`);
+          toast({
+            variant: "destructive",
+            title: t("Data inválida"),
+            description: t("A data selecionada é inválida. Por favor, selecione novamente."),
+          });
+          setIsSaving(false);
+          return;
+        }
+        
+        // Clonar a data para evitar mutação
+        const date = new Date(dueDate.getTime());
+        
         if (isAllDay) {
-          dueDateWithTime = dueDate.toISOString().split('T')[0] + 'T00:00:00Z';
-        } else {
-          const date = new Date(dueDate);
-          const [hours, minutes] = (dueTime || "12:00").split(':').map(Number);
-          date.setHours(hours, minutes);
+          // Para o dia todo, força horário 00:00 UTC
+          date.setHours(0, 0, 0, 0);
           dueDateWithTime = date.toISOString();
+          console.log(`[TaskDetail] Data para dia todo: ${dueDateWithTime}, objeto date: ${date.toString()}`);
+        } else {
+          // Validar o formato da hora
+          if (!dueTime || !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(dueTime)) {
+            console.error(`[TaskDetail] Formato de hora inválido: ${dueTime}`);
+            toast({
+              variant: "destructive",
+              title: t("Formato de hora inválido"),
+              description: t("Por favor, use o formato HH:MM."),
+            });
+            setIsSaving(false);
+            return;
+          }
+          
+          const [hours, minutes] = (dueTime || "12:00").split(':').map(Number);
+          date.setHours(hours, minutes, 0, 0);
+          dueDateWithTime = date.toISOString();
+          console.log(`[TaskDetail] Data com hora específica: ${dueDateWithTime}, objeto date: ${date.toString()}`);
         }
       }
 
@@ -434,7 +493,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     return description.split('\n').map((line, lineIndex) => {
       // Se a linha estiver vazia, retorna um <br>
       if (line.trim() === '') {
-        return <br key={`line-${lineIndex}`} />;
+        return <br key={`empty-line-${lineIndex}`} />;
       }
       
       // Verifica se a linha começa com traço (bullet point)
@@ -448,7 +507,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         globalCheckboxIndex += processedContent.checkboxCount;
         
         return (
-          <p key={`line-${lineIndex}`} className="mb-2 flex">
+          <p key={`bullet-line-${lineIndex}`} className="mb-2 flex">
             <span className="mr-2">•</span>
             <span>{processedContent.content}</span>
           </p>
@@ -461,7 +520,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       globalCheckboxIndex += processedLine.checkboxCount;
       
       return (
-        <p key={`line-${lineIndex}`} className="mb-2">
+        <p key={`regular-line-${lineIndex}`} className="mb-2">
           {processedLine.content}
         </p>
       );
@@ -478,6 +537,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     let segments = [];
     let lastIndex = 0;
     let checkboxCount = 0;
+    let segmentIndex = 0;
     
     // Regex para checkboxes e URLs
     const combinedRegex = /(\[([ x]?)\]|https?:\/\/[^\s]+)/g;
@@ -493,14 +553,14 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         if (lastCheckbox && lastCheckbox.isChecked) {
           segments.push(
             <span 
-              key={`text-${lineIndex}-${lastIndex}`}
+              key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}
               className="line-through text-muted-foreground"
             >
               {textSegment}
             </span>
           );
         } else {
-          segments.push(<span key={`text-${lineIndex}-${lastIndex}`}>{textSegment}</span>);
+          segments.push(<span key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}>{textSegment}</span>);
         }
         lastCheckbox = null; // Reseta após processar o texto
       }
@@ -512,7 +572,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         
         // Adiciona checkbox interativo com ícones menores e brancos
         segments.push(
-          <span key={`checkbox-${lineIndex}-${match.index}`} className="inline-flex items-center align-middle">
+          <span key={`checkbox-${lineIndex}-${match.index}-${segmentIndex++}`} className="inline-flex items-center align-middle">
             <button
               type="button"
               onClick={(e) => {
@@ -543,7 +603,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       else if (match[0].match(/https?:\/\//)) {
         segments.push(
           <a 
-            key={`url-${lineIndex}-${match.index}`}
+            key={`url-${lineIndex}-${match.index}-${segmentIndex++}`}
             href={match[0]}
             target="_blank"
             rel="noopener noreferrer"
@@ -563,14 +623,14 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       if (lastCheckbox && lastCheckbox.isChecked) {
         segments.push(
           <span 
-            key={`text-${lineIndex}-${lastIndex}`}
+            key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}
             className="line-through text-muted-foreground"
           >
             {restText}
           </span>
         );
       } else {
-        segments.push(<span key={`text-${lineIndex}-${lastIndex}`}>{restText}</span>);
+        segments.push(<span key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}>{restText}</span>);
       }
     }
     
@@ -581,35 +641,112 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     };
   };
 
+  // Adicionar efeito para limpar variáveis relacionadas à data quando a data é alterada
+  useEffect(() => {
+    if (dueTimeUpdate) {
+      setDueTimeUpdate(false);
+      // Se houve atualização do horário, podemos usar aqui para atualizar a visualização se necessário
+    }
+  }, [dueTimeUpdate]);
+
+  // Efeito para verificar se a data está correta quando o modal é aberto
+  useEffect(() => {
+    if (open && task.due_date) {
+      console.log(`[TaskDetail] Verificando data ao abrir: ${task.due_date}`);
+      if (dueDate === undefined) {
+        console.warn("[TaskDetail] Data indefinida detectada, tentando reparar");
+        try {
+          setDueDate(new Date(task.due_date));
+        } catch (error) {
+          console.error(`[TaskDetail] Falha ao reparar data: ${error}`);
+        }
+      }
+    }
+  }, [open, task.due_date, dueDate]);
+
+  const startPomodoro = () => {
+    router.push(`/app/pomodoro?taskId=${task.id}`);
+    onOpenChange(false);
+  }
+
+  // Função para alternar o status de conclusão da tarefa
+  const toggleCompletion = async () => {
+    try {
+      const newStatus = !task.completed;
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ completed: newStatus }),
+      });
+
+      if (response.ok) {
+        // Não precisamos atualizar o estado aqui pois o componente será recarregado
+        toast({
+          title: newStatus ? t("Task completed") : t("Task uncompleted"),
+          description: newStatus ? t("The task has been marked as complete.") : t("The task has been marked as incomplete."),
+        });
+        
+        // Forçar atualização para refletir a mudança
+        router.refresh();
+      } else {
+        toast({
+          variant: "destructive",
+          title: t("Failed to update task"),
+          description: t("Please try again later."),
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling task completion:", error);
+      toast({
+        variant: "destructive",
+        title: t("Failed to update task"),
+        description: t("Please try again later."),
+      });
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>{isEditMode ? t("editTask") : t("taskDetails")}</span>
-          </DialogTitle>
-          <DialogDescription>
-            {isEditMode 
-              ? t("View and edit task details.") 
-              : t("View task details.")}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              {t("title")}
-            </label>
-            {isEditMode ? (
-              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("Task title")} />
-            ) : (
-              <p className="p-2 border rounded-md bg-muted/30">{title}</p>
-            )}
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      // If closing, reset edit mode
+      if (!newOpen && isEditMode) {
+        setIsEditMode(false);
+      }
+      onOpenChange(newOpen);
+    }}>
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-auto">
+        <DialogHeader className="flex flex-col space-y-1">
+          <div className="flex flex-row items-center w-full">
+            <BackButton 
+              onClick={() => onOpenChange(false)} 
+              className="md:hidden mr-2"
+            />
+            <DialogTitle>{t("Detalhes da Tarefa")}</DialogTitle>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              {t("description")}
-            </label>
-            {isEditMode ? (
+          <DialogDescription className="text-xl font-bold">{title}</DialogDescription>
+        </DialogHeader>
+
+        {isEditMode ? (
+          // Modo de edição
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("title")}
+              </label>
+              <Textarea 
+                id="title" 
+                value={title} 
+                onChange={(e) => setTitle(e.target.value)} 
+                placeholder={t("Task title")}
+                className="min-h-[80px] text-base"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("description")}
+              </label>
               <Textarea
                 id="description"
                 value={description}
@@ -618,18 +755,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 rows={8}
                 className="min-h-[200px] text-base"
               />
-            ) : (
-              <div className="p-3 border rounded-md bg-muted/30 min-h-[200px] overflow-y-auto">
-                {renderDescription()}
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("dueDate")}
-              </label>
-              {isEditMode ? (
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t("dueDate")}
+                </label>
                 <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -650,17 +781,46 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                     className="w-auto p-0" 
                     align="start" 
                     side="bottom"
+                    sideOffset={8}
+                    alignOffset={0}
+                    onInteractOutside={(e) => e.preventDefault()}
                   >
                     <div className="p-3">
-                      <Calendar 
-                        mode="single" 
-                        selected={dueDate} 
-                        onSelect={(date) => {
-                          setDueDate(date);
-                        }}
-                        initialFocus
-                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                      />
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium">{t("pickDate")}</span>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0 rounded-full" 
+                          onClick={() => setDatePickerOpen(false)}
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">{t("close")}</span>
+                        </Button>
+                      </div>
+                      <div className="calendar-container">
+                        <Calendar 
+                          mode="single" 
+                          selected={dueDate} 
+                          onSelect={(date) => {
+                            setDueDate(date);
+                          }}
+                          initialFocus
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          className="mobile-calendar-fix" 
+                        />
+                        {/* Estilos adicionados via CSS regular em vez de jsx global */}
+                        <style>
+                          {`
+                            @media (max-width: 640px) {
+                              .mobile-calendar-fix {
+                                width: 100% !important;
+                                min-width: 260px !important;
+                              }
+                            }
+                          `}
+                        </style>
+                      </div>
                       <div className="pt-3 pb-2 border-t mt-3">
                         <div className="flex flex-row items-center space-x-3 space-y-0 h-9">
                           <Checkbox
@@ -668,8 +828,15 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                             checked={isAllDay}
                             onCheckedChange={(checked) => {
                               setIsAllDay(checked === true);
+                              // Se ativar "dia todo", atualiza o horário para 00:00
+                              if (checked) {
+                                setDueTime("00:00");
+                              } else {
+                                // Se desativar, volta para 12:00 ou o horário atual
+                                setDueTime(dueTime !== "00:00" ? dueTime : "12:00");
+                              }
                               setTimeout(() => {
-                                setDueTime(dueTime);
+                                // Forçar atualização
                               }, 0);
                             }}
                           />
@@ -683,44 +850,35 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                           <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
                           <Input 
                             type="time" 
-                            value={dueTime || "12:00"}
-                            onChange={(e) => setDueTime(e.target.value || "12:00")}
+                            value={dueTime}
+                            onChange={(e) => {
+                              setDueTime(e.target.value || "12:00");
+                              setDueTimeUpdate(true);
+                            }}
                             className="w-full"
-                            inputMode="none"
+                            inputMode="text"
+                            pattern="[0-9]{2}:[0-9]{2}"
+                            placeholder="HH:MM"
                             onClick={(e) => {
                               const target = e.target as HTMLInputElement;
                               target.focus();
+                              if (typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                                setTimeout(() => {
+                                  target.click();
+                                }, 100);
+                              }
                             }}
                           />
                         </div>
                       </div>
-                      <Button 
-                        className="w-full mt-3" 
-                        type="button"
-                        onClick={() => {
-                          setDatePickerOpen(false);
-                        }}
-                      >
-                        {t("confirm")}
-                      </Button>
                     </div>
                   </PopoverContent>
                 </Popover>
-              ) : (
-                <div className="p-2 border rounded-md bg-muted/30">
-                  {dueDate 
-                    ? isAllDay 
-                      ? format(dueDate, "PPP") 
-                      : `${format(dueDate, "PPP")} - ${dueTime || "12:00"}`
-                    : <span className="text-muted-foreground">{t("No due date")}</span>}
-                </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("priority")}
-              </label>
-              {isEditMode ? (
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t("priority")}
+                </label>
                 <Select value={priority} onValueChange={setPriority}>
                   <SelectTrigger>
                     <SelectValue placeholder={t("Select priority")} />
@@ -752,19 +910,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-              ) : (
-                <div className="p-2 border rounded-md bg-muted/30 flex items-center">
-                  <Flag className={`mr-2 h-4 w-4 ${getPriorityColor(priority)}`} />
-                  {getPriorityName(priority)}
-                </div>
-              )}
+              </div>
             </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              {t("project")}
-            </label>
-            {isEditMode ? (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("project")}
+              </label>
               <div className="space-y-2">
                 {projectId ? (
                   <div className="flex items-center justify-between p-2 border rounded">
@@ -865,7 +1016,74 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   </DialogContent>
                 </Dialog>
               </div>
-            ) : (
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("Etiquetas")}
+              </label>
+              <TaskLabels key={taskLabelsKey} taskId={task.id} readOnly={!isEditMode} />
+            </div>
+          </div>
+        ) : (
+          // Modo de visualização
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <h2 className="sr-only">
+                  {task.title}
+                </h2>
+              </div>
+              <div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs flex items-center gap-1 hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
+                  onClick={startPomodoro}
+                >
+                  <Timer className="h-3.5 w-3.5" />
+                  {t("startPomodoro")}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("description")}
+              </label>
+              <div className="p-3 border rounded-md bg-muted/30 min-h-[200px] overflow-y-auto">
+                {renderDescription()}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t("dueDate")}
+                </label>
+                <div className="p-2 border rounded-md bg-muted/30">
+                  {dueDate 
+                    ? isAllDay 
+                      ? format(dueDate, "PPP") 
+                      : `${format(dueDate, "PPP")} - ${dueTime || "12:00"}`
+                    : <span className="text-muted-foreground">{t("No due date")}</span>}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t("priority")}
+                </label>
+                <div className="p-2 border rounded-md bg-muted/30 flex items-center">
+                  <Flag className={`mr-2 h-4 w-4 ${getPriorityColor(priority)}`} />
+                  {getPriorityName(priority)}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("project")}
+              </label>
               <div className="p-2 border rounded-md bg-muted/30">
                 {projectId ? (
                   <div className="flex items-center">
@@ -881,27 +1099,28 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   <span className="text-muted-foreground">{t("noProject")}</span>
                 )}
               </div>
-            )}
-          </div>
+            </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              {t("Etiquetas")}
-            </label>
-            <TaskLabels key={taskLabelsKey} taskId={task.id} readOnly={!isEditMode} />
-          </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("Etiquetas")}
+              </label>
+              <TaskLabels key={taskLabelsKey} taskId={task.id} readOnly={!isEditMode} />
+            </div>
 
-          <div className="text-xs text-muted-foreground">
-            <p>
-              {t("created")}: {format(new Date(task.created_at), "PPP p")}
-            </p>
-            {task.updated_at && (
+            <div className="text-xs text-muted-foreground">
               <p>
-                {t("updated")}: {format(new Date(task.updated_at), "PPP p")}
+                {t("created")}: {format(new Date(task.created_at), "PPP p")}
               </p>
-            )}
+              {task.updated_at && (
+                <p>
+                  {t("updated")}: {format(new Date(task.updated_at), "PPP p")}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
+
         <DialogFooter className="flex flex-col sm:flex-row justify-between items-center w-full gap-4 sm:gap-2">
           <Button 
             variant="secondary" 

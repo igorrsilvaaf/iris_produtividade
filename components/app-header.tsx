@@ -18,7 +18,7 @@ import { TaskNotificationsMenu } from "@/components/task-notifications-menu"
 import { useTranslation } from "@/lib/i18n"
 import { CHANGELOG_DATA } from "@/lib/changelog-data"
 import { useState } from "react"
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetFooter } from "@/components/ui/sheet"
 import { AppSidebar } from "@/components/app-sidebar"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
 
@@ -107,6 +107,19 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
         <div className="flex items-center gap-1">
           <TaskNotificationsMenu />
           
+          {/* Calendar button for mobile */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden rounded-full h-9 w-9 hover:bg-accent/50 hover:text-accent-foreground transition-colors" 
+            asChild
+          >
+            <a href="/app/calendar">
+              <Calendar className="h-4.5 w-4.5" />
+              <span className="sr-only">{t("calendar")}</span>
+            </a>
+          </Button>
+          
           <Button 
             variant="ghost" 
             size="icon" 
@@ -119,7 +132,7 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
             </a>
           </Button>
           
-          <ModeToggle className="rounded-full h-9 w-9 hover:bg-accent/50" />
+          <ModeToggle className="rounded-full h-9 w-9 hover:bg-accent/50 hidden md:flex" />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -180,6 +193,41 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
                     {t("changelog")}
                   </a>
                 </DropdownMenuItem>
+                
+                {/* Theme toggle for mobile */}
+                <div className="md:hidden">
+                  <DropdownMenuSeparator className="my-1" />
+                  <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center">
+                        <svg
+                          className="mr-2 h-4 w-4"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <circle cx="12" cy="12" r="4" />
+                          <path d="M12 2v2" />
+                          <path d="M12 20v2" />
+                          <path d="m4.93 4.93 1.41 1.41" />
+                          <path d="m17.66 17.66 1.41 1.41" />
+                          <path d="M2 12h2" />
+                          <path d="M20 12h2" />
+                          <path d="m6.34 17.66-1.41 1.41" />
+                          <path d="m19.07 4.93-1.41 1.41" />
+                        </svg>
+                        {t("theme")}
+                      </div>
+                      <ModeToggle showText={false} />
+                    </div>
+                  </DropdownMenuItem>
+                </div>
                 
                 <DropdownMenuItem 
                   onClick={handleLogout} 

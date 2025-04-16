@@ -81,6 +81,20 @@ export async function createTask(
   projectId: number | null = null,
 ): Promise<Todo> {
   const now = new Date().toISOString()
+  
+  console.log(`[createTask] Criando tarefa para usuário ${userId}`)
+  console.log(`[createTask] Título: ${title}`)
+  console.log(`[createTask] Data de vencimento: ${dueDate}`)
+  
+  if (dueDate) {
+    try {
+      const date = new Date(dueDate)
+      console.log(`[createTask] Data convertida: ${date.toString()}`)
+      console.log(`[createTask] Horário: ${date.getHours()}:${date.getMinutes()}`)
+    } catch (error) {
+      console.error(`[createTask] Erro ao processar data: ${error}`)
+    }
+  }
 
   const [task] = await sql`
     INSERT INTO todos (user_id, title, description, due_date, priority, created_at)
@@ -94,12 +108,37 @@ export async function createTask(
       VALUES (${task.id}, ${projectId})
     `
   }
-
+  
+  console.log(`[createTask] Tarefa criada: ID=${task.id}, data=${task.due_date}`)
+  
   return task as Todo
 }
 
 export async function updateTask(taskId: number, userId: number, updates: Partial<Todo>): Promise<Todo> {
   const now = new Date().toISOString()
+  
+  console.log(`[updateTask] Atualizando tarefa ${taskId} para usuário ${userId}`);
+  
+  // Diagnóstico de data
+  if (updates.due_date !== undefined) {
+    console.log(`[updateTask] Nova data: ${updates.due_date}`);
+    try {
+      if (updates.due_date !== null) {
+        const date = new Date(updates.due_date);
+        console.log(`[updateTask] Data convertida: ${date.toString()}`);
+        console.log(`[updateTask] Horário: ${date.getHours()}:${date.getMinutes()}`);
+        
+        // Verificar se a data está em formato válido
+        if (isNaN(date.getTime())) {
+          console.error(`[updateTask] ERRO: Data inválida fornecida: ${updates.due_date}`);
+        }
+      } else {
+        console.log(`[updateTask] Removendo data da tarefa`);
+      }
+    } catch (error) {
+      console.error(`[updateTask] Erro ao processar data: ${error}`);
+    }
+  }
 
   const [task] = await sql`
     UPDATE todos
@@ -113,6 +152,8 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
     WHERE id = ${taskId} AND user_id = ${userId}
     RETURNING *
   `
+  
+  console.log(`[updateTask] Tarefa atualizada: ID=${task.id}, nova data=${task.due_date}`);
 
   return task as Todo
 }

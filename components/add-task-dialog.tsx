@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { CalendarIcon, Flag, Tag, X, Clock, Plus } from "lucide-react"
+import { CalendarIcon, Flag, Tag, X, Clock, Plus, PlusCircle, CircleAlert } from "lucide-react"
 import { format } from "date-fns"
 import type { Project } from "@/lib/projects"
 import type { Label } from "@/lib/labels"
@@ -35,6 +35,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Checkbox } from "@/components/ui/checkbox"
 import { LabelForm } from "@/components/label-form"
 import { ProjectForm } from "@/components/project-form"
+import { BackButton } from "@/components/ui/back-button"
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -184,14 +185,40 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
         // Clone da data para evitar problemas de referência
         const date = new Date(values.dueDate);
         
+        // Garantir que a data não esteja no formato inválido
+        if (isNaN(date.getTime())) {
+          console.error(`[AddTask] Data inválida: ${values.dueDate}`);
+          toast({
+            variant: "destructive",
+            title: t("Data inválida"),
+            description: t("Por favor, selecione uma data válida."),
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log(`[AddTask] Processando data: ${date.toString()}`);
+        
         if (values.isAllDay) {
           // Para dia todo, definir para meia-noite UTC
-          date.setUTCHours(0, 0, 0, 0);
+          date.setHours(0, 0, 0, 0);
           dueDateTime = date.toISOString();
           console.log(`[AddTask] Data para dia todo: ${dueDateTime}`);
         } else if (values.dueTime) {
           // Para hora específica, converter para UTC
           const [hours, minutes] = values.dueTime.split(':').map(Number);
+          
+          // Validar o formato da hora
+          if (isNaN(hours) || isNaN(minutes)) {
+            console.error(`[AddTask] Formato de hora inválido: ${values.dueTime}`);
+            toast({
+              variant: "destructive",
+              title: t("Formato de hora inválido"),
+              description: t("Por favor, use o formato HH:MM."),
+            });
+            setIsLoading(false);
+            return;
+          }
           
           // Definir a hora considerando o fuso
           date.setHours(hours, minutes, 0, 0);
@@ -243,7 +270,12 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t("addTask")}</DialogTitle>
+          <div className="flex items-center">
+            <div className="md:hidden">
+              <BackButton onClick={() => setOpen(false)} className="mr-2" />
+            </div>
+            <DialogTitle>{t("addTask")}</DialogTitle>
+          </div>
           <DialogDescription>{t("Create a new task to keep track of your work.")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -255,7 +287,12 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                 <FormItem>
                   <FormLabel>{t("title")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t("Task title")} {...field} />
+                    <Textarea
+                      placeholder={t("Task title")}
+                      className="min-h-[80px] text-base"
+                      rows={3}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -307,11 +344,24 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start" side="bottom">
                         <div className="p-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-medium">{t("pickDate")}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-7 w-7 p-0 rounded-full" 
+                              onClick={() => setDatePickerOpen(false)}
+                            >
+                              <X className="h-4 w-4" />
+                              <span className="sr-only">{t("close")}</span>
+                            </Button>
+                          </div>
                           <Calendar 
                             mode="single" 
                             selected={field.value} 
                             onSelect={(date) => {
                               field.onChange(date);
+                              // Não fechamos o popover, permitindo ajustes adicionais
                             }}
                             initialFocus 
                             disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
@@ -328,6 +378,13 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                                       checked={field.value}
                                       onCheckedChange={(checked) => {
                                         field.onChange(checked);
+                                        // Se ativar "dia todo", atualiza o horário para 00:00
+                                        if (checked) {
+                                          form.setValue("dueTime", "00:00");
+                                        } else {
+                                          // Se desativar, volta para 12:00 ou o horário atual
+                                          form.setValue("dueTime", "12:00");
+                                        }
                                         // Força uma re-renderização para dispositivos iOS
                                         if (typeof window !== 'undefined') {
                                           setTimeout(() => {
@@ -357,7 +414,9 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                                       value={field.value || "12:00"}
                                       onChange={(e) => field.onChange(e.target.value || "12:00")}
                                       className="w-full"
-                                      inputMode="none"
+                                      inputMode="text"
+                                      pattern="[0-9]{2}:[0-9]{2}"
+                                      placeholder="HH:MM"
                                       onClick={(e) => {
                                         const target = e.target as HTMLInputElement;
                                         target.focus();
@@ -373,16 +432,6 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                               </FormItem>
                             )}
                           />
-                          <Button 
-                            className="w-full mt-3" 
-                            type="button"
-                            onClick={() => {
-                              // Feche o popover usando o estado
-                              setDatePickerOpen(false);
-                            }}
-                          >
-                            {t("confirm")}
-                          </Button>
                         </div>
                       </PopoverContent>
                     </Popover>

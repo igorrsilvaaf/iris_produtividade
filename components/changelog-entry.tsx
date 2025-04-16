@@ -56,12 +56,12 @@ export function ChangelogEntry({
 
   return (
     <div className="mb-16">
-      <div className="flex items-center mb-6 justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center mb-6 gap-4 sm:justify-between">
         <div>
           <div className="text-sm text-muted-foreground">
             {format(date, 'MMMM d', { locale })}
           </div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex flex-wrap items-center gap-2">
             {entries[0].title}
             <span className="text-muted-foreground text-base font-normal ml-2">v{version}</span>
             {isNew && (
@@ -73,7 +73,7 @@ export function ChangelogEntry({
         </div>
         
         {author && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-2 sm:mt-0">
             <Avatar className="h-8 w-8 bg-gray-300">
               <AvatarFallback>{author.initials || author.name.charAt(0)}</AvatarFallback>
             </Avatar>
