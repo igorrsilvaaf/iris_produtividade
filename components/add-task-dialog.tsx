@@ -166,6 +166,21 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
       .then((response) => response.json())
       .then((data) => {
         setProjects(data.projects)
+        if (data.projects && data.projects.length > 0) {
+          const newProject = data.projects[data.projects.length - 1];
+          
+          form.setValue("projectId", newProject.id.toString(), { 
+            shouldValidate: true,
+            shouldDirty: true,
+            shouldTouch: true
+          });
+          
+          setShowAddProject(false);
+          
+          setTimeout(() => {
+            form.trigger("projectId");
+          }, 100);
+        }
       })
       .catch((error) => {
         console.error("Failed to refresh projects:", error)
@@ -585,26 +600,27 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                   <FormLabel>{t("Labels")}</FormLabel>
                   <div className="space-y-2">
                     <div className="flex flex-wrap gap-2 min-h-[36px] p-1">
-                      {selectedLabels.map((label) => (
-                        <Badge
-                          key={label.id}
-                          className="flex items-center gap-1 text-white"
-                          style={{
-                            backgroundColor: label.color,
-                            color: label.text_color || "#ffffff"
-                          }}
-                        >
-                          <Tag className="h-3 w-3" />
-                          {label.name}
-                          <button 
-                            type="button"
-                            onClick={() => removeLabel(label.id)}
-                            className="ml-1 hover:bg-black/10 rounded-full p-0.5"
-                            aria-label={`Remove ${label.name} label`}
+                      {selectedLabels.map((label, index) => (
+                        <div key={label.id} className="flex items-center mt-1 space-x-2">
+                          <div
+                            className="flex items-center justify-between px-3 py-1 rounded-md"
+                            style={{
+                              backgroundColor: label.color,
+                              color: "#ffffff"
+                            }}
                           >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
+                            <Tag className="h-3 w-3" />
+                            {label.name}
+                            <button 
+                              type="button"
+                              onClick={() => removeLabel(label.id)}
+                              className="ml-1 hover:bg-black/10 rounded-full p-0.5"
+                              aria-label={`Remove ${label.name} label`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
                       ))}
                       {selectedLabels.length === 0 && (
                         <span className="text-sm text-muted-foreground">{t("No labels selected")}</span>
