@@ -155,12 +155,25 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
     
     // Formatar a parte da data
     let dateDisplay;
-    if (date.toDateString() === today.toDateString()) {
+    
+    // Comparação completa de datas para garantir que estamos no mesmo ano
+    const isSameDate = (date1: Date, date2: Date) => {
+      return date1.getDate() === date2.getDate() && 
+             date1.getMonth() === date2.getMonth() && 
+             date1.getFullYear() === date2.getFullYear();
+    };
+    
+    if (isSameDate(date, today)) {
       dateDisplay = t("today");
-    } else if (date.toDateString() === tomorrow.toDateString()) {
+    } else if (isSameDate(date, tomorrow)) {
       dateDisplay = t("tomorrow");
     } else {
-      dateDisplay = format(date, "MMM d");
+      // Para datas em outros anos, incluir o ano na formatação
+      if (date.getFullYear() !== today.getFullYear()) {
+        dateDisplay = format(date, "MMM d, yyyy");
+      } else {
+        dateDisplay = format(date, "MMM d");
+      }
     }
     
     // Adicionar horário se não for 'dia todo'

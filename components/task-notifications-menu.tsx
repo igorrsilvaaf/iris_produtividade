@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { formatDistanceToNow, isToday, isTomorrow } from "date-fns"
+import { formatDistanceToNow, isToday, isTomorrow, format } from "date-fns"
 import { pt, enUS } from "date-fns/locale"
 import { Bell, Check } from "lucide-react"
 
@@ -124,19 +124,37 @@ export function TaskNotificationsMenu() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     const dateLocale = language === "pt" ? pt : enUS
+    const now = new Date()
+    
+    // Comparação completa de datas para garantir que estamos no mesmo ano
+    const isSameDateAs = (date1: Date, date2: Date) => {
+      return date1.getDate() === date2.getDate() && 
+             date1.getMonth() === date2.getMonth() && 
+             date1.getFullYear() === date2.getFullYear();
+    };
+    
+    // Verificar se é hoje ou amanhã considerando o ano
+    const today = new Date()
+    const tomorrow = new Date()
+    tomorrow.setDate(today.getDate() + 1)
 
-    if (isToday(date)) {
+    if (isSameDateAs(date, today)) {
       return t("taskDueToday")
-    } else if (isTomorrow(date)) {
+    } else if (isSameDateAs(date, tomorrow)) {
       return t("taskDueTomorrow")
-    } else if (date < new Date()) {
+    } else if (date < now) {
       // Tarefa atrasada
       const distance = formatDistanceToNow(date, { locale: dateLocale, addSuffix: false })
       return t("taskOverdue").replace("{days}", distance)
     } else {
       // Tarefa futura
-      const distance = formatDistanceToNow(date, { locale: dateLocale, addSuffix: false })
-      return t("taskDueInDays").replace("{days}", distance)
+      // Para datas em anos futuros, incluir o ano na formatação
+      if (date.getFullYear() !== now.getFullYear()) {
+        return format(date, "MMM d, yyyy", { locale: dateLocale });
+      } else {
+        const distance = formatDistanceToNow(date, { locale: dateLocale, addSuffix: false })
+        return t("taskDueInDays").replace("{days}", distance)
+      }
     }
   }
 

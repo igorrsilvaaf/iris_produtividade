@@ -195,9 +195,9 @@ export default function PomodoroPage() {
               ) : (
                 <div className="mb-6">
                   <Select
-                    value={selectedTaskId ? selectedTaskId.toString() : ""}
+                    value={selectedTaskId ? selectedTaskId.toString() : "none"}
                     onValueChange={(value) => {
-                      const taskId = value ? parseInt(value) : null
+                      const taskId = value !== "none" ? parseInt(value) : null
                       setSelectedTaskId(taskId)
                       
                       // Update the URL with the selected task ID
@@ -214,7 +214,7 @@ export default function PomodoroPage() {
                       <SelectValue placeholder={t("selectATask")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">{t("noTask")}</SelectItem>
+                      <SelectItem value="none">{t("noTask")}</SelectItem>
                       {tasks.map((task) => (
                         <SelectItem key={task.id} value={task.id.toString()}>
                           {task.title}

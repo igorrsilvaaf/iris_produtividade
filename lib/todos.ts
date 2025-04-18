@@ -356,6 +356,13 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
     const futureDate = new Date(today);
     futureDate.setDate(futureDate.getDate() + daysAhead);
     
+    // Adicionar logs detalhados para depuração
+    console.log("==== NOTIFICATION DATE DEBUGGING ====");
+    console.log(`Current date: ${now.toISOString()}`);
+    console.log(`Today (start): ${today.toISOString()}`);
+    console.log(`Tomorrow (start): ${tomorrow.toISOString()}`);
+    console.log(`Future date (based on daysAhead=${daysAhead}): ${futureDate.toISOString()}`);
+    
     // Tarefas já vencidas (antes de hoje)
     const overdueTasks = await sql`
       SELECT t.*, p.name as project_name, p.color as project_color
@@ -386,19 +393,59 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
     `;
     
     // Tarefas que vencem nos próximos dias (até o limite definido)
-    const upcomingTasks = await sql`
-      SELECT t.*, p.name as project_name, p.color as project_color
-      FROM todos t
-      LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-      LEFT JOIN projects p ON tp.project_id = p.id
-      WHERE t.user_id = ${userId}
-      AND t.due_date IS NOT NULL
-      AND t.due_date >= ${tomorrow.toISOString()}
-      AND t.due_date < ${futureDate.toISOString()}
-      AND t.completed = false
-      ORDER BY t.due_date ASC, t.priority ASC
-      LIMIT 10
-    `;
+    // Corrigimos a consulta para garantir que recuperamos tarefas futuras
+    // Mesmo quando daysAhead = 1 (que significa apenas incluir amanhã)
+    let upcomingTasksQuery;
+    
+    if (daysAhead === 1) {
+      // Quando daysAhead=1, queremos tarefas de amanhã
+      upcomingTasksQuery = await sql`
+        SELECT t.*, p.name as project_name, p.color as project_color
+        FROM todos t
+        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+        LEFT JOIN projects p ON tp.project_id = p.id
+        WHERE t.user_id = ${userId}
+        AND t.due_date IS NOT NULL
+        AND CAST(t.due_date AS DATE) = CAST(${tomorrow.toISOString()} AS DATE)
+        AND t.completed = false
+        ORDER BY t.due_date ASC, t.priority ASC
+        LIMIT 10
+      `;
+    } else {
+      // Para outros valores de daysAhead, usar o intervalo completo
+      upcomingTasksQuery = await sql`
+        SELECT t.*, p.name as project_name, p.color as project_color
+        FROM todos t
+        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+        LEFT JOIN projects p ON tp.project_id = p.id
+        WHERE t.user_id = ${userId}
+        AND t.due_date IS NOT NULL
+        AND t.due_date >= ${tomorrow.toISOString()}
+        AND t.due_date < ${futureDate.toISOString()}
+        AND t.completed = false
+        ORDER BY t.due_date ASC, t.priority ASC
+        LIMIT 10
+      `;
+    }
+    
+    const upcomingTasks = upcomingTasksQuery;
+    
+    // Log detalhado para depuração
+    console.log(`Overdue tasks found: ${overdueTasks.length}`);
+    console.log(`Due today tasks found: ${dueTodayTasks.length}`);
+    console.log(`Upcoming tasks found: ${upcomingTasks.length}`);
+    
+    overdueTasks.forEach((task: any) => {
+      console.log(`Overdue task: ${task.title}, due: ${task.due_date}`);
+    });
+    
+    dueTodayTasks.forEach((task: any) => {
+      console.log(`Today task: ${task.title}, due: ${task.due_date}`);
+    });
+    
+    upcomingTasks.forEach((task: any) => {
+      console.log(`Upcoming task: ${task.title}, due: ${task.due_date}`);
+    });
     
     return {
       overdueCount: overdueTasks.length,
