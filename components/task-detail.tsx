@@ -208,45 +208,24 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
   const handleSave = async () => {
     setIsSaving(true)
-
+    
     try {
+      console.log(`[TaskDetail] Salvando alterações para tarefa ${task.id}`);
+
+      // Prepare due date
       let dueDateWithTime = null;
       
       if (dueDate) {
-        // Garantir que a data é um objeto Date válido
-        if (!(dueDate instanceof Date) || isNaN(dueDate.getTime())) {
-          console.error(`[TaskDetail] Data inválida detectada: ${dueDate}`);
-          toast({
-            variant: "destructive",
-            title: t("Data inválida"),
-            description: t("A data selecionada é inválida. Por favor, selecione novamente."),
-          });
-          setIsSaving(false);
-          return;
-        }
-        
-        // Clonar a data para evitar mutação
-        const date = new Date(dueDate.getTime());
-        
         if (isAllDay) {
-          // Para o dia todo, força horário 00:00 UTC
+          // For all day events, set time to midnight UTC
+          const date = new Date(dueDate);
           date.setHours(0, 0, 0, 0);
           dueDateWithTime = date.toISOString();
           console.log(`[TaskDetail] Data para dia todo: ${dueDateWithTime}, objeto date: ${date.toString()}`);
-        } else {
-          // Validar o formato da hora
-          if (!dueTime || !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(dueTime)) {
-            console.error(`[TaskDetail] Formato de hora inválido: ${dueTime}`);
-            toast({
-              variant: "destructive",
-              title: t("Formato de hora inválido"),
-              description: t("Por favor, use o formato HH:MM."),
-            });
-            setIsSaving(false);
-            return;
-          }
-          
-          const [hours, minutes] = (dueTime || "12:00").split(':').map(Number);
+        } else if (dueTime) {
+          // Combine date and time
+          const date = new Date(dueDate);
+          const [hours, minutes] = dueTime.split(':').map(Number);
           date.setHours(hours, minutes, 0, 0);
           dueDateWithTime = date.toISOString();
           console.log(`[TaskDetail] Data com hora específica: ${dueDateWithTime}, objeto date: ${date.toString()}`);
@@ -255,24 +234,32 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
       console.log(`[TaskDetail] Salvando alterações para tarefa ${task.id}`);
       console.log(`[TaskDetail] Nova data: ${dueDateWithTime}`);
+      console.log(`[TaskDetail] Nova descrição: "${description}"`);
+      console.log(`[TaskDetail] Descrição está vazia: ${description === ""}`);
 
-      // Primeiro, atualize os detalhes da tarefa
+      // First, update task details
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          description: description || null,
+          description: description,
           due_date: dueDateWithTime,
           priority: Number.parseInt(priority),
         }),
-      })
+      });
 
       if (!taskResponse.ok) {
-        throw new Error("Failed to update task")
+        const errorData = await taskResponse.json();
+        console.error(`[TaskDetail] Erro ao atualizar tarefa:`, errorData);
+        throw new Error("Failed to update task");
       }
 
-      // Depois, atualize o projeto da tarefa apenas se necessário
+      // Get the updated task data
+      const updatedTaskData = await taskResponse.json();
+      console.log(`[TaskDetail] Resposta da atualização:`, updatedTaskData);
+
+      // Then, update the task project if needed
       const projectIdInt = projectId ? parseInt(projectId, 10) : null;
       
       console.log(`[TaskDetail] Atualizando projeto para tarefa ${task.id} para ${projectIdInt}`);
@@ -291,7 +278,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         throw new Error("Failed to update task project")
       }
 
-      // Atualizar o nome do projeto no estado local
+      // Update project name in local state
       if (projectIdInt) {
         const selectedProject = projects.find(p => p.id === projectIdInt);
         if (selectedProject) {
@@ -306,10 +293,10 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Task has been updated successfully."),
       })
 
-      // Mudamos para não recarregar automaticamente, apenas atualizar o estado local
+      // Exit edit mode
       setIsEditMode(false)
       
-      // Forçar atualização completa da página para refletir as mudanças
+      // Force refresh to reflect changes
       router.refresh();
     } catch (error) {
       console.error(`[TaskDetail] Erro ao salvar tarefa:`, error);
@@ -437,27 +424,37 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   };
   
-  // Função para atualizar a descrição da tarefa no servidor
+  // Function to update task description on the server
   const updateTaskDescription = async (newDescription: string) => {
     try {
+      console.log(`[TaskDetail] Atualizando descrição da tarefa ${task.id}:`, newDescription);
+      console.log(`[TaskDetail] Descrição está vazia: ${newDescription === ""}`);
+      
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          // Enviamos a descrição exatamente como está, mesmo que vazia
           description: newDescription,
         }),
       });
       
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error(`[TaskDetail] Erro ao atualizar descrição:`, errorData);
         throw new Error("Failed to update task description");
       }
+      
+      // Get the updated task data
+      const updatedData = await response.json();
+      console.log(`[TaskDetail] Descrição atualizada com sucesso:`, updatedData);
       
       toast({
         title: t("Task updated"),
         description: t("Checklist item has been updated."),
       });
       
-      // Atualiza a visão
+      // Refresh the view
       router.refresh();
     } catch (error) {
       console.error(`[TaskDetail] Erro ao atualizar descrição:`, error);
@@ -582,15 +579,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 toggleCheckboxInDescription(currentCheckboxIndex);
               }}
               disabled={isEditMode}
-              className="p-1 mr-1 inline-flex items-center justify-center focus:outline-none hover:bg-gray-800 rounded"
-              aria-checked={isChecked}
+              className="inline-flex items-center justify-center w-[18px] h-[18px] rounded mr-2 border border-input hover:bg-accent hover:text-accent-foreground"
               role="checkbox"
+              data-state={isChecked ? "checked" : "unchecked"}
+              aria-checked="false"
             >
-              {isChecked ? (
-                <CheckSquare className="h-3.5 w-3.5 text-white" />
-              ) : (
-                <Square className="h-3.5 w-3.5 text-white" />
-              )}
+              {isChecked && <Check className="h-3 w-3" />}
             </button>
           </span>
         );

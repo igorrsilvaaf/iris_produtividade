@@ -6,13 +6,14 @@ import { useRef, useEffect } from "react"
 
 // Mapeamento de nomes de sons para URLs
 export const SOUND_URLS = {
-  default: "/sounds/pomodoro.mp3",
+  none: "", // Nenhum som
+  pomodoro: "/sounds/pomodoro.mp3", // Som padrão do pomodoro
+  default: "/sounds/default.mp3",
   bell: "/sounds/bell.mp3",
   chime: "/sounds/chime.mp3",
   digital: "/sounds/digital.mp3",
   ding: "/sounds/ding.mp3",
   notification: "/sounds/notification.mp3",
-  success: "/sounds/chime.mp3", // Usar chime como som de sucesso por enquanto
 }
 
 // Hook para reproduzir sons com tratamento de erros simplificado
@@ -26,7 +27,7 @@ export function useAudioPlayer() {
     if (typeof window === 'undefined') return;
 
     Object.entries(SOUND_URLS).forEach(([name, url]) => {
-      if (!audioCache.current.has(name)) {
+      if (!audioCache.current.has(name) && url) { // Só carrega se tiver URL (ignora 'none')
         try {
           const audio = new Audio(url);
           audio.preload = "auto";
@@ -50,20 +51,30 @@ export function useAudioPlayer() {
 
     try {
       // Verificar se o som existe no mapeamento
-      const soundUrl = SOUND_URLS[soundName as keyof typeof SOUND_URLS] || SOUND_URLS.default;
+      const validSoundName = Object.keys(SOUND_URLS).includes(soundName) ? soundName : 'pomodoro';
+      
+      // Se for "nenhum", não tocar som
+      if (validSoundName === 'none') {
+        console.log('Som desativado: nenhum som será tocado');
+        return;
+      }
+      
+      const soundUrl = SOUND_URLS[validSoundName as keyof typeof SOUND_URLS];
+      
+      console.log(`Tocando som: ${validSoundName}, URL: ${soundUrl}`);
       
       // Tentar usar o áudio do cache primeiro
-      let audio = audioCache.current.get(soundName);
+      let audio = audioCache.current.get(validSoundName);
       
       // Se não estiver no cache, criar novo
       if (!audio) {
         audio = new Audio(soundUrl);
-        audioCache.current.set(soundName, audio);
+        audioCache.current.set(validSoundName, audio);
       }
 
       // Redefinir o áudio para garantir que possa ser reproduzido novamente
       audio.currentTime = 0;
-      audio.volume = 0.4;
+      audio.volume = 0.6; // Aumentar um pouco o volume para melhor audibilidade
 
       try {
         await audio.play();

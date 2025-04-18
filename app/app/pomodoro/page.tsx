@@ -26,12 +26,38 @@ export default function PomodoroPage() {
   const router = useRouter()
   
   console.log("PomodoroPage inicializado")
+  console.log("Current pomodoro settings:", settings)
   
   const [tasks, setTasks] = useState<Todo[]>([])
   const [selectedTaskId, setSelectedTaskId] = useState<string>("none")
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
   const [isMobile, setIsMobile] = useState(false)
+  const [pomodoroSettings, setPomodoroSettings] = useState({
+    pomodoro_work_minutes: settings.workMinutes,
+    pomodoro_break_minutes: settings.shortBreakMinutes,
+    pomodoro_long_break_minutes: settings.longBreakMinutes,
+    pomodoro_cycles: settings.longBreakInterval,
+    enable_sound: settings.enableSound,
+    notification_sound: settings.notificationSound,
+    pomodoro_sound: settings.pomodoroSound,
+    enable_desktop_notifications: settings.enableDesktopNotifications,
+  })
+
+  // Update local settings when the store changes
+  useEffect(() => {
+    setPomodoroSettings({
+      pomodoro_work_minutes: settings.workMinutes,
+      pomodoro_break_minutes: settings.shortBreakMinutes,
+      pomodoro_long_break_minutes: settings.longBreakMinutes,
+      pomodoro_cycles: settings.longBreakInterval,
+      enable_sound: settings.enableSound,
+      notification_sound: settings.notificationSound,
+      pomodoro_sound: settings.pomodoroSound,
+      enable_desktop_notifications: settings.enableDesktopNotifications,
+    })
+    console.log("Updated pomodoro settings from store:", settings)
+  }, [settings])
 
   // Check if it's a mobile device
   useEffect(() => {
@@ -167,45 +193,42 @@ export default function PomodoroPage() {
                   {t("No tasks available")}
                 </div>
               ) : (
-                <Select
-                  value={selectedTaskId}
-                  onValueChange={setSelectedTaskId}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("selectTaskForPomodoro")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">{t("noTask")}</SelectItem>
-                    {tasks.map((task) => (
-                      <SelectItem key={task.id} value={task.id.toString()}>
-                        {task.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              
-              {selectedTaskId !== "none" && (
-                <div className="mt-4 p-3 bg-secondary/50 rounded-md">
-                  <p className="text-sm text-muted-foreground">
-                    {tasks.find(task => task.id.toString() === selectedTaskId)?.description || t("noDescription")}
-                  </p>
+                <div className="mb-6">
+                  <Select
+                    value={selectedTaskId ? selectedTaskId.toString() : ""}
+                    onValueChange={(value) => {
+                      const taskId = value ? parseInt(value) : null
+                      setSelectedTaskId(taskId)
+                      
+                      // Update the URL with the selected task ID
+                      const url = new URL(window.location.href)
+                      if (taskId) {
+                        url.searchParams.set("taskId", taskId.toString())
+                      } else {
+                        url.searchParams.delete("taskId")
+                      }
+                      window.history.pushState({}, "", url.toString())
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("selectATask")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">{t("noTask")}</SelectItem>
+                      {tasks.map((task) => (
+                        <SelectItem key={task.id} value={task.id.toString()}>
+                          {task.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
               
               <div className={`mt-6 ${isMobile ? "flex-1 flex items-center justify-center" : ""}`}>
                 <PomodoroTimer
-                  initialSettings={{
-                    pomodoro_work_minutes: settings.workMinutes,
-                    pomodoro_break_minutes: settings.shortBreakMinutes,
-                    pomodoro_long_break_minutes: settings.longBreakMinutes,
-                    pomodoro_cycles: settings.longBreakInterval,
-                    enable_sound: settings.enableSound,
-                    notification_sound: settings.notificationSound,
-                    enable_desktop_notifications: settings.enableDesktopNotifications,
-                  }}
-                  selectedTaskId={selectedTaskId !== "none" ? parseInt(selectedTaskId) : null}
-                  fullScreen={isMobile}
+                  initialSettings={pomodoroSettings}
+                  selectedTaskId={selectedTaskId}
                 />
               </div>
             </CardContent>

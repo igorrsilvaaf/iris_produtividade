@@ -14,6 +14,7 @@ export async function PATCH(request: NextRequest) {
     // Obter os dados da requisição
     const settings = await request.json()
     console.log(`[API Settings] Atualizando configurações para o usuário ${session.user.id}:`, settings);
+    console.log(`[API Settings] Dias de notificação recebidos:`, settings.task_notification_days, "tipo:", typeof settings.task_notification_days);
 
     // Verificar se há alterações no idioma
     if (settings.language) {
@@ -23,6 +24,7 @@ export async function PATCH(request: NextRequest) {
     try {
       const updatedSettings = await updateUserSettings(session.user.id, settings)
       console.log(`[API Settings] Configurações atualizadas com sucesso:`, updatedSettings);
+      console.log(`[API Settings] Dias de notificação salvos:`, updatedSettings.task_notification_days, "tipo:", typeof updatedSettings.task_notification_days);
 
       // Definir cookie de idioma no lado do servidor (apenas para consistência)
       if (settings.language) {

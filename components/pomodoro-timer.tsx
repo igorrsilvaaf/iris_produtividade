@@ -19,6 +19,7 @@ interface PomodoroTimerProps {
     pomodoro_cycles: number
     enable_sound: boolean
     notification_sound: string
+    pomodoro_sound: string
     enable_desktop_notifications: boolean
   }
   selectedTaskId?: number | null
@@ -40,6 +41,7 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
     longBreakInterval: initialSettings.pomodoro_cycles,
     enableSound: initialSettings.enable_sound,
     notificationSound: initialSettings.notification_sound,
+    pomodoroSound: initialSettings.pomodoro_sound || "pomodoro",
     enableDesktopNotifications: initialSettings.enable_desktop_notifications,
   })
   const [showSettings, setShowSettings] = useState(false)
@@ -76,10 +78,12 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
       intervalRef.current = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 1) {
-            handleTimerComplete()
-            return 0
+            clearInterval(intervalRef.current!);
+            intervalRef.current = null;
+            setTimeout(() => handleTimerComplete(), 0);
+            return 0;
           }
-          return prevTime - 1
+          return prevTime - 1;
         })
       }, 1000)
     } else if (intervalRef.current) {
@@ -96,53 +100,64 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
   }, [isRunning])
 
   const handleTimerComplete = () => {
-    clearInterval(intervalRef.current!)
-    intervalRef.current = null
-
-    // Play sound if enabled
-    if (settings.enableSound) {
-      playSound(settings.notificationSound)
-    }
-
-    // Show desktop notification if enabled
-    if (settings.enableDesktopNotifications && Notification.permission === "granted") {
-      const title = mode === "work" ? t("workSessionCompleted") : t("breakTimeOver")
-      const body = mode === "work" 
-        ? (selectedTask ? `${t("timeForBreak")} (${selectedTask.title})` : t("timeForBreak"))
-        : (selectedTask ? `${t("backToWork")} (${selectedTask.title})` : t("backToWork"))
-
-      new Notification(title, {
-        body,
-        icon: "/favicon.ico",
-      })
-    }
-
-    // Show toast notification
-    toast({
-      title: mode === "work" ? t("workSessionCompleted") : t("breakTimeOver"),
-      description: mode === "work" 
-        ? (selectedTask ? `${t("timeForBreak")} (${selectedTask.title})` : t("timeForBreak"))
-        : (selectedTask ? `${t("backToWork")} (${selectedTask.title})` : t("backToWork")),
-    })
-
-    // Switch to next mode
-    if (mode === "work") {
-      const newCycles = cycles + 1
-      setCycles(newCycles)
-
-      if (newCycles % settings.longBreakInterval === 0) {
-        setMode("longBreak")
-        setTimeLeft(settings.longBreakMinutes * 60)
-      } else {
-        setMode("shortBreak")
-        setTimeLeft(settings.shortBreakMinutes * 60)
+    try {
+      // Play sound if enabled and a sound is selected
+      if (settings.enableSound && settings.pomodoroSound !== 'none') {
+        console.log(`Tocando som do pomodoro ao completar timer: ${settings.pomodoroSound}`);
+        playSound(settings.pomodoroSound);
+      } else if (settings.enableSound) {
+        console.log("Som do pomodoro desativado (none)");
       }
-    } else {
-      setMode("work")
-      setTimeLeft(settings.workMinutes * 60)
-    }
 
-    setIsRunning(false)
+      // Show desktop notification if enabled
+      if (settings.enableDesktopNotifications && Notification.permission === "granted") {
+        const title = mode === "work" ? t("workSessionCompleted") : t("breakTimeOver")
+        const body = mode === "work" 
+          ? (selectedTask ? `${t("timeForBreak")} (${selectedTask.title})` : t("timeForBreak"))
+          : (selectedTask ? `${t("backToWork")} (${selectedTask.title})` : t("backToWork"))
+
+        try {
+          new Notification(title, {
+            body,
+            icon: "/favicon.ico",
+          })
+        } catch (error) {
+          console.error("Error showing notification:", error);
+        }
+      }
+
+      // Show toast notification
+      toast({
+        title: mode === "work" ? t("workSessionCompleted") : t("breakTimeOver"),
+        description: mode === "work" 
+          ? (selectedTask ? `${t("timeForBreak")} (${selectedTask.title})` : t("timeForBreak"))
+          : (selectedTask ? `${t("backToWork")} (${selectedTask.title})` : t("backToWork")),
+      })
+
+      // Switch to next mode
+      if (mode === "work") {
+        const newCycles = cycles + 1
+        setCycles(newCycles)
+
+        if (newCycles % settings.longBreakInterval === 0) {
+          setMode("longBreak")
+          setTimeLeft(settings.longBreakMinutes * 60)
+        } else {
+          setMode("shortBreak")
+          setTimeLeft(settings.shortBreakMinutes * 60)
+        }
+      } else {
+        setMode("work")
+        setTimeLeft(settings.workMinutes * 60)
+      }
+
+      setIsRunning(false)
+    } catch (error) {
+      console.error("Error in handleTimerComplete:", error);
+      // Ensure timer is stopped and reset to a safe state
+      setIsRunning(false);
+      setTimeLeft(settings.workMinutes * 60);
+    }
   }
 
   // Set document title
@@ -281,6 +296,7 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
           longBreakInterval: number;
           enableSound: boolean;
           notificationSound: string;
+          pomodoroSound: string;
           enableDesktopNotifications: boolean;
         }) => {
           setSettings(newSettings)
