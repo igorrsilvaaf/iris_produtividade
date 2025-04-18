@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
     const settings = await getUserSettings(session.user.id)
     const { task_notification_days } = settings
     
+    console.log(`[API] Task notification days configurados: ${task_notification_days}, tipo: ${typeof task_notification_days}`);
+    
     // Somente retornar notificações se estiverem habilitadas
     if (!settings.enable_task_notifications) {
       return NextResponse.json({ 
