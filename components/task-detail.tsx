@@ -35,7 +35,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ProjectForm } from "@/components/project-form"
 
-type TodoWithEditMode = Todo & {
+export type TodoWithEditMode = Todo & {
   isEditMode?: boolean;
 }
 

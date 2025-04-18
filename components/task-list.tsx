@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { Calendar, Check, ChevronRight, Edit, Flag, MoreHorizontal, Trash, ArrowUpDown, Clock, FileText, Link, Timer } from "lucide-react"
 import type { Todo } from "@/lib/todos"
+import type { TodoWithEditMode } from "@/components/task-detail"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -181,7 +182,7 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
   }
 
   const openTaskDetailInEditMode = (task: Todo) => {
-    setSelectedTask({...task, isEditMode: true})
+    setSelectedTask({...task, isEditMode: true} as TodoWithEditMode)
     setShowTaskDetail(true)
   }
 
@@ -283,6 +284,17 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
                       <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(task.priority)}`} />
                       <span>{getPriorityLabel(task.priority)}</span>
                     </div>
+                    {task.project_name && (
+                      <div
+                        className="flex items-center text-xs rounded-full px-2 py-0.5 whitespace-nowrap"
+                        style={{ 
+                          backgroundColor: `${task.project_color}10`,
+                          color: task.project_color 
+                        }}
+                      >
+                        <span>{task.project_name}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

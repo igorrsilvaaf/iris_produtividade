@@ -480,7 +480,8 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                       <div className="flex items-center justify-between p-2 border rounded">
                         <div className="flex items-center">
                           <div
-                            className={`w-4 h-4 rounded-full mr-2 bg-[${projects.find(p => p.id.toString() === field.value)?.color || "#ccc"}]`}
+                            className={`w-4 h-4 rounded-full mr-2`}
+                            style={{ backgroundColor: projects.find(p => p.id.toString() === field.value)?.color || "#ccc" }}
                           />
                           <span>{projects.find(p => p.id.toString() === field.value)?.name || t("Unknown project")}</span>
                         </div>
@@ -535,7 +536,8 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                               >
                             <div className="flex items-center">
                                   <div
-                                    className={`w-4 h-4 rounded-full mr-2 bg-[${project.color}]`}
+                                    className="w-4 h-4 rounded-full mr-2"
+                                    style={{ backgroundColor: project.color }}
                                   />
                                   <span>{project.name}</span>
                             </div>
@@ -586,7 +588,11 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                       {selectedLabels.map((label) => (
                         <Badge
                           key={label.id}
-                          className={`flex items-center gap-1 bg-[${label.color}] text-white`}
+                          className="flex items-center gap-1 text-white"
+                          style={{
+                            backgroundColor: label.color,
+                            color: label.text_color || "#ffffff"
+                          }}
                         >
                           <Tag className="h-3 w-3" />
                           {label.name}
@@ -638,7 +644,8 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                                 >
                                   <div className="flex items-center">
                                     <div
-                                      className={`w-4 h-4 rounded-full mr-2 bg-[${label.color}]`}
+                                      className={`w-4 h-4 rounded-full mr-2`}
+                                      style={{ backgroundColor: label.color }}
                                     />
                                     <span>{label.name}</span>
                                   </div>

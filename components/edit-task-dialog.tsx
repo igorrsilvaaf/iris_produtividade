@@ -431,7 +431,8 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                       <div className="flex items-center justify-between p-2 border rounded">
                         <div className="flex items-center">
                           <div
-                            className={`w-4 h-4 rounded-full mr-2 bg-[${projects.find(p => p.id.toString() === field.value)?.color || "#ccc"}]`}
+                            style={{ backgroundColor: projects.find(p => p.id.toString() === field.value)?.color || "#ccc" }}
+                            className="w-4 h-4 rounded-full mr-2"
                           />
                           <span>{projects.find(p => p.id.toString() === field.value)?.name || t("Unknown project")}</span>
                         </div>
@@ -486,7 +487,8 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                               >
                                 <div className="flex items-center">
                                   <div
-                                    className={`w-4 h-4 rounded-full mr-2 bg-[${project.color}]`}
+                                    style={{ backgroundColor: project.color }}
+                                    className="w-4 h-4 rounded-full mr-2"
                                   />
                                   <span>{project.name}</span>
                                 </div>

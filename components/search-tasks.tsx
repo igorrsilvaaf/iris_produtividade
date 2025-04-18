@@ -320,7 +320,11 @@ export function SearchTasks() {
                       </div>
                       {task.project_name && (
                         <div
-                          className={`ml-2 flex-shrink-0 flex items-center rounded-full px-2 py-0.5 text-xs whitespace-nowrap bg-opacity-10 bg-[${task.project_color}10] text-[${task.project_color}]`}
+                          className="ml-2 flex-shrink-0 flex items-center rounded-full px-2 py-0.5 text-xs whitespace-nowrap bg-opacity-10"
+                          style={{ 
+                            backgroundColor: `${task.project_color}10`,
+                            color: task.project_color 
+                          }}
                         >
                           {task.project_name}
                         </div>
