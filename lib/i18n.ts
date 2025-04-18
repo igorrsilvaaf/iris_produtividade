@@ -1472,16 +1472,28 @@ export const translations: Translations = {
 
   // Changelog
   changelog: {
-    en: "Changelog",
-    pt: "Notas de Versão",
-  },
-  releaseNotes: {
     en: "Release Notes",
-    pt: "Notas de Lançamento",
+    pt: "Notas de versão",
   },
-  version: {
-    en: "Version",
-    pt: "Versão",
+  newChanges: {
+    en: "New updates available",
+    pt: "Novas atualizações disponíveis",
+  },
+  newChangesDescription: {
+    en: "We have improved the app with new features and bug fixes. Check out what's new!",
+    pt: "Melhoramos o aplicativo com novos recursos e correções de bugs. Confira as novidades!",
+  },
+  viewChangelog: {
+    en: "View Updates",
+    pt: "Ver Atualizações",
+  },
+  dismiss: {
+    en: "Dismiss",
+    pt: "Fechar",
+  },
+  new: {
+    en: "New",
+    pt: "Novo",
   },
   newFeatures: {
     en: "New Features",
@@ -1494,10 +1506,6 @@ export const translations: Translations = {
   bugFixes: {
     en: "Bug Fixes",
     pt: "Correções de Bugs",
-  },
-  new: {
-    en: "New",
-    pt: "Novo",
   },
   // Novas traduções para notificações de tarefas
   "taskNotifications": {

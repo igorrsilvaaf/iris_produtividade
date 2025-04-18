@@ -378,13 +378,6 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
     const futureDate = new Date(today);
     futureDate.setDate(futureDate.getDate() + daysAhead);
     
-    // Adicionar logs detalhados para depuração
-    console.log("==== NOTIFICATION DATE DEBUGGING ====");
-    console.log(`Current date: ${now.toISOString()}`);
-    console.log(`Today (start): ${today.toISOString()}`);
-    console.log(`Tomorrow (start): ${tomorrow.toISOString()}`);
-    console.log(`Future date (based on daysAhead=${daysAhead}): ${futureDate.toISOString()}`);
-    
     // Tarefas já vencidas (antes de hoje)
     const overdueTasks = await sql`
       SELECT t.*, p.name as project_name, p.color as project_color
