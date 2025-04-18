@@ -16,6 +16,7 @@ interface PomodoroState {
     longBreakInterval: number
     enableSound: boolean
     notificationSound: string
+    pomodoroSound: string
     enableDesktopNotifications: boolean
   }
   toggleTimer: () => void
@@ -35,6 +36,7 @@ const DEFAULT_SETTINGS = {
   longBreakInterval: 4,
   enableSound: true,
   notificationSound: "bell",
+  pomodoroSound: "pomodoro",
   enableDesktopNotifications: true,
 }
 

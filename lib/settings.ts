@@ -11,6 +11,7 @@ export type UserSettings = {
   pomodoro_cycles: number
   enable_sound: boolean
   notification_sound: string
+  pomodoro_sound: string
   enable_desktop_notifications: boolean
   enable_task_notifications: boolean
   task_notification_days: number
@@ -43,6 +44,7 @@ async function ensureUserSettingsTable() {
           pomodoro_cycles INTEGER NOT NULL DEFAULT 4,
           enable_sound BOOLEAN NOT NULL DEFAULT true,
           notification_sound VARCHAR(50) NOT NULL DEFAULT 'default',
+          pomodoro_sound VARCHAR(50) NOT NULL DEFAULT 'pomodoro',
           enable_desktop_notifications BOOLEAN NOT NULL DEFAULT true,
           enable_task_notifications BOOLEAN NOT NULL DEFAULT true,
           task_notification_days INTEGER NOT NULL DEFAULT 3,
@@ -58,7 +60,8 @@ async function ensureUserSettingsTable() {
       const columnsExist = await sql`
         SELECT 
           EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='enable_task_notifications') as enable_task_notifications_exists,
-          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='task_notification_days') as task_notification_days_exists
+          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='task_notification_days') as task_notification_days_exists,
+          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='pomodoro_sound') as pomodoro_sound_exists
       `;
       
       if (!columnsExist[0].enable_task_notifications_exists) {
@@ -69,6 +72,11 @@ async function ensureUserSettingsTable() {
       if (!columnsExist[0].task_notification_days_exists) {
         console.log("Adding task_notification_days column to user_settings table...");
         await sql`ALTER TABLE user_settings ADD COLUMN task_notification_days INTEGER NOT NULL DEFAULT 3`;
+      }
+      
+      if (!columnsExist[0].pomodoro_sound_exists) {
+        console.log("Adding pomodoro_sound column to user_settings table...");
+        await sql`ALTER TABLE user_settings ADD COLUMN pomodoro_sound VARCHAR(50) NOT NULL DEFAULT 'pomodoro'`;
       }
     }
   } catch (error) {
@@ -98,6 +106,7 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
       pomodoro_cycles: 4,
       enable_sound: true,
       notification_sound: "default",
+      pomodoro_sound: "pomodoro",
       enable_desktop_notifications: true,
       enable_task_notifications: true,
       task_notification_days: 3
@@ -114,6 +123,7 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
         pomodoro_cycles,
         enable_sound,
         notification_sound,
+        pomodoro_sound,
         enable_desktop_notifications,
         enable_task_notifications,
         task_notification_days
@@ -128,6 +138,7 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
         ${defaultSettings.pomodoro_cycles},
         ${defaultSettings.enable_sound},
         ${defaultSettings.notification_sound},
+        ${defaultSettings.pomodoro_sound},
         ${defaultSettings.enable_desktop_notifications},
         ${defaultSettings.enable_task_notifications},
         ${defaultSettings.task_notification_days}
@@ -147,6 +158,7 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
       pomodoro_cycles: 4,
       enable_sound: true,
       notification_sound: "default",
+      pomodoro_sound: "pomodoro",
       enable_desktop_notifications: true,
       enable_task_notifications: true,
       task_notification_days: 3
@@ -157,6 +169,10 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
 export async function updateUserSettings(userId: number, settings: Partial<UserSettings>): Promise<UserSettings> {
   try {
     await ensureUserSettingsTable();
+    
+    console.log("[Settings] Atualizando configurações do usuário:", userId);
+    console.log("[Settings] Valores recebidos:", settings);
+    console.log("[Settings] Dias de notificação:", settings.task_notification_days, "tipo:", typeof settings.task_notification_days);
     
     const now = new Date().toISOString()
 
@@ -171,6 +187,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
         pomodoro_cycles = COALESCE(${settings.pomodoro_cycles}, pomodoro_cycles),
         enable_sound = COALESCE(${settings.enable_sound}, enable_sound),
         notification_sound = COALESCE(${settings.notification_sound}, notification_sound),
+        pomodoro_sound = COALESCE(${settings.pomodoro_sound}, pomodoro_sound),
         enable_desktop_notifications = COALESCE(${settings.enable_desktop_notifications}, enable_desktop_notifications),
         enable_task_notifications = COALESCE(${settings.enable_task_notifications}, enable_task_notifications),
         task_notification_days = COALESCE(${settings.task_notification_days}, task_notification_days),
@@ -192,6 +209,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
       pomodoro_cycles: 4,
       enable_sound: true,
       notification_sound: "default",
+      pomodoro_sound: "pomodoro",
       enable_desktop_notifications: true,
       enable_task_notifications: true,
       task_notification_days: 3,
@@ -209,6 +227,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
         pomodoro_cycles,
         enable_sound,
         notification_sound,
+        pomodoro_sound,
         enable_desktop_notifications,
         enable_task_notifications,
         task_notification_days,
@@ -224,6 +243,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
         ${defaultSettings.pomodoro_cycles},
         ${defaultSettings.enable_sound},
         ${defaultSettings.notification_sound},
+        ${defaultSettings.pomodoro_sound},
         ${defaultSettings.enable_desktop_notifications},
         ${defaultSettings.enable_task_notifications},
         ${defaultSettings.task_notification_days},

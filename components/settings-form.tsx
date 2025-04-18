@@ -28,9 +28,21 @@ const formSchema = z.object({
   pomodoro_cycles: z.coerce.number().min(1).max(10),
   enable_sound: z.boolean().default(true),
   notification_sound: z.string(),
+  pomodoro_sound: z.string().default("pomodoro"),
   enable_desktop_notifications: z.boolean().default(true),
   enable_task_notifications: z.boolean().default(true),
-  task_notification_days: z.coerce.number().min(1).max(14).default(3),
+  task_notification_days: z.coerce
+    .number()
+    .min(1, { message: "Deve ser no mínimo 1 dia" })
+    .max(14, { message: "Deve ser no máximo 14 dias" })
+    .int({ message: "Deve ser um número inteiro" })
+    .default(3)
+    .transform(val => {
+      console.log("Zod transformando task_notification_days:", val, "tipo:", typeof val);
+      // Garantir que é um número
+      const parsed = parseInt(String(val), 10);
+      return isNaN(parsed) ? 3 : parsed;
+    }),
 })
 
 export function SettingsForm({ settings }: { settings: UserSettings }) {
@@ -69,6 +81,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
       pomodoro_cycles: settings.pomodoro_cycles,
       enable_sound: settings.enable_sound,
       notification_sound: settings.notification_sound || "default",
+      pomodoro_sound: settings.pomodoro_sound || "pomodoro",
       enable_desktop_notifications: settings.enable_desktop_notifications,
       enable_task_notifications: settings.enable_task_notifications,
       task_notification_days: settings.task_notification_days,
@@ -79,12 +92,21 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
     setIsLoading(true)
     
     try {
-      console.log("Atualizando configurações:", values);
+      // Garantir que task_notification_days seja um número
+      const processedValues = {
+        ...values,
+        task_notification_days: typeof values.task_notification_days === 'string' 
+          ? parseInt(values.task_notification_days, 10) 
+          : values.task_notification_days
+      };
+      
+      console.log("Atualizando configurações:", processedValues);
+      console.log("Dias de notificação enviados:", processedValues.task_notification_days, "tipo:", typeof processedValues.task_notification_days);
       
       const response = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(processedValues),
       })
 
       if (!response.ok) {
@@ -95,6 +117,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
 
       const result = await response.json();
       console.log("Configurações atualizadas com sucesso:", result);
+      console.log("Dias de notificação retornados:", result.settings?.task_notification_days);
 
       // Update theme if changed
       if (values.theme !== settings.theme) {
@@ -123,7 +146,14 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
 
       // Tocar um som de sucesso se os sons estiverem habilitados
       if (values.enable_sound) {
-        playSound('success');
+        // Aqui estava tocando sempre o som fixo 'success' que não existe
+        // Vamos tocar o som de notificação escolhido pelo usuário para que ele possa testar
+        if (values.notification_sound !== 'none') {
+          console.log("Tocando som após salvar configurações:", values.notification_sound);
+          playSound(values.notification_sound);
+        } else {
+          console.log("Som de notificação desativado (none)");
+        }
       }
 
       // Mostrar notificação de sucesso
@@ -315,6 +345,65 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                   />
                 </div>
 
+                {form.watch("enable_sound") && (
+                  <FormField
+                    control={form.control}
+                    name="pomodoro_sound"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("pomodoroSound")}</FormLabel>
+                        <div className="flex items-center gap-2">
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t("Select a sound")} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">{t("noSound")}</SelectItem>
+                              <SelectItem value="pomodoro">{t("pomodoro")} ({t("defaultSound")})</SelectItem>
+                              <SelectItem value="bell">{t("bell")}</SelectItem>
+                              <SelectItem value="chime">{t("chime")}</SelectItem>
+                              <SelectItem value="digital">{t("digital")}</SelectItem>
+                              <SelectItem value="ding">{t("ding")}</SelectItem>
+                              <SelectItem value="notification">{t("notification")}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => {
+                              console.log("Testando som do pomodoro:", field.value);
+                              playSound(field.value);
+                            }}
+                          >
+                            <span className="sr-only">{t("Play sound")}</span>
+                            ▶️
+                          </Button>
+                        </div>
+                        <FormDescription>{t("chooseSound")} ({t("forPomodoroTimer")})</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? t("Salvando...") : t("save")}
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("notifications")}</CardTitle>
+                <CardDescription>{t("Manage how you receive notifications.")}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
                 <FormField
                   control={form.control}
                   name="enable_sound"
@@ -346,62 +435,35 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="default">{t("defaultSound")}</SelectItem>
+                              <SelectItem value="none">{t("noSound")}</SelectItem>
+                              <SelectItem value="pomodoro">{t("pomodoro")} ({t("defaultSound")})</SelectItem>
                               <SelectItem value="bell">{t("bell")}</SelectItem>
                               <SelectItem value="chime">{t("chime")}</SelectItem>
                               <SelectItem value="digital">{t("digital")}</SelectItem>
+                              <SelectItem value="ding">{t("ding")}</SelectItem>
+                              <SelectItem value="notification">{t("notification")}</SelectItem>
+                              <SelectItem value="default">{t("defaultSound")}</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Button type="button" variant="outline" size="icon" onClick={() => playSound(field.value)}>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => {
+                              console.log("Testando som de notificação:", field.value);
+                              playSound(field.value);
+                            }}
+                          >
                             <span className="sr-only">{t("Play sound")}</span>
                             ▶️
                           </Button>
                         </div>
-                        <FormDescription>{t("chooseSound")}</FormDescription>
+                        <FormDescription>{t("chooseSound")} ({t("forGeneralNotifications")})</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 )}
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? t("Salvando...") : t("save")}
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("notifications")}</CardTitle>
-                <CardDescription>{t("Manage how you receive notifications.")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="enable_desktop_notifications"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">{t("desktopNotifications")}</FormLabel>
-                        <FormDescription>{t("desktopNotificationsDescription")}</FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={(checked) => {
-                            field.onChange(checked)
-                            if (checked) {
-                              requestNotificationPermission()
-                            }
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={form.control}
@@ -431,13 +493,47 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                         <FormLabel>{t("notificationDays")}</FormLabel>
                         <FormDescription>{t("numberOfDaysBeforeToShowNotifications")}</FormDescription>
                         <FormControl>
-                          <Input type="number" min="1" max="14" {...field} />
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            max="14" 
+                            {...field} 
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value, 10);
+                              console.log("Campo dias de notificação alterado para:", value, "tipo:", typeof value);
+                              field.onChange(value);
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 )}
+
+                <FormField
+                  control={form.control}
+                  name="enable_desktop_notifications"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">{t("desktopNotifications")}</FormLabel>
+                        <FormDescription>{t("desktopNotificationsDescription")}</FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked)
+                            if (checked) {
+                              requestNotificationPermission()
+                            }
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </CardContent>
               <CardFooter>
                 <Button type="submit" disabled={isLoading}>

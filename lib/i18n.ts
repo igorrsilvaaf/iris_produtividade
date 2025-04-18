@@ -90,6 +90,64 @@ export const translations: Translations = {
     pt: "Nenhuma tarefa disponível para seleção",
   },
 
+  // Sons e Notificações
+  noSound: {
+    en: "No sound",
+    pt: "Nenhum som",
+  },
+  soundNotifications: {
+    en: "Sound Notifications",
+    pt: "Notificações Sonoras",
+  },
+  soundDescription: {
+    en: "Play a sound when a timer ends",
+    pt: "Tocar um som quando um temporizador terminar",
+  },
+  notificationSound: {
+    en: "Notification Sound",
+    pt: "Som de Notificação",
+  },
+  pomodoroSound: {
+    en: "Pomodoro Sound",
+    pt: "Som do Pomodoro",
+  },
+  chooseSound: {
+    en: "Choose a sound to play",
+    pt: "Escolha um som para reproduzir",
+  },
+  forGeneralNotifications: {
+    en: "for general notifications",
+    pt: "para notificações gerais",
+  },
+  forPomodoroTimer: {
+    en: "for Pomodoro timer",
+    pt: "para o temporizador Pomodoro",
+  },
+  defaultSound: {
+    en: "Default",
+    pt: "Padrão", 
+  },
+  bell: {
+    en: "Bell",
+    pt: "Sino",
+  },
+  chime: {
+    en: "Chime",
+    pt: "Carrilhão",
+  },
+  digital: {
+    en: "Digital",
+    pt: "Digital",
+  },
+  ding: {
+    en: "Ding",
+    pt: "Campainha",
+  },
+  notification: {
+    en: "Notification",
+    pt: "Notificação",
+  },
+
   // Ações
   addTask: {
     en: "Add Task",
@@ -1637,6 +1695,14 @@ export const translations: Translations = {
   "Failed to request notification permissions.": {
     en: "Failed to request notification permissions.",
     pt: "Falha ao solicitar permissões de notificação.",
+  },
+  options: {
+    en: "options",
+    pt: "opções",
+  },
+  view: {
+    en: "view",
+    pt: "visualizar",
   },
 }
 
