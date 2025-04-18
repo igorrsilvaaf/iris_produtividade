@@ -51,7 +51,6 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
   const { t } = useTranslation()
   const { playSound } = useAudioPlayer()
 
-  // Fetch task details if selectedTaskId is provided
   useEffect(() => {
     const fetchTaskDetails = async () => {
       if (!selectedTaskId) {
@@ -101,7 +100,6 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
 
   const handleTimerComplete = () => {
     try {
-      // Play sound if enabled and a sound is selected
       if (settings.enableSound && settings.pomodoroSound !== 'none') {
         console.log(`Tocando som do pomodoro ao completar timer: ${settings.pomodoroSound}`);
         playSound(settings.pomodoroSound);
@@ -109,7 +107,6 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
         console.log("Som do pomodoro desativado (none)");
       }
 
-      // Show desktop notification if enabled
       if (settings.enableDesktopNotifications && Notification.permission === "granted") {
         const title = mode === "work" ? t("workSessionCompleted") : t("breakTimeOver")
         const body = mode === "work" 
@@ -126,7 +123,6 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
         }
       }
 
-      // Show toast notification
       toast({
         title: mode === "work" ? t("workSessionCompleted") : t("breakTimeOver"),
         description: mode === "work" 
@@ -134,7 +130,6 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
           : (selectedTask ? `${t("backToWork")} (${selectedTask.title})` : t("backToWork")),
       })
 
-      // Switch to next mode
       if (mode === "work") {
         const newCycles = cycles + 1
         setCycles(newCycles)
@@ -154,13 +149,11 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
       setIsRunning(false)
     } catch (error) {
       console.error("Error in handleTimerComplete:", error);
-      // Ensure timer is stopped and reset to a safe state
       setIsRunning(false);
       setTimeLeft(settings.workMinutes * 60);
     }
   }
 
-  // Set document title
   useEffect(() => {
     const originalTitle = document.title
 
@@ -316,7 +309,6 @@ export function PomodoroTimer({ initialSettings, selectedTaskId, fullScreen = fa
           enableDesktopNotifications: boolean;
         }) => {
           setSettings(newSettings)
-          // Reset the current timer with the new settings
           switch (mode) {
             case "work":
               setTimeLeft(newSettings.workMinutes * 60)

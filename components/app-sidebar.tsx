@@ -45,7 +45,6 @@ type NavItem = {
   translationKey: string
 }
 
-// Adicionar um novo item de navegação após o item "Completed"
 const navItems: NavItem[] = [
   {
     href: "/app",
@@ -91,7 +90,6 @@ export function AppSidebar({ user }: { user: User }) {
   const { toast } = useToast()
   const { t, language } = useTranslation()
 
-  // Detectar se é dispositivo móvel
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768)
@@ -105,19 +103,16 @@ export function AppSidebar({ user }: { user: User }) {
     }
   }, [])
 
-  // Buscar projetos e etiquetas
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        // Buscar projetos
         const projectsResponse = await fetch("/api/projects")
         if (projectsResponse.ok) {
           const projectsData = await projectsResponse.json()
           setProjects(projectsData.projects)
         }
 
-        // Buscar etiquetas
         const labelsResponse = await fetch("/api/labels")
         if (labelsResponse.ok) {
           const labelsData = await labelsResponse.json()
@@ -265,7 +260,6 @@ export function AppSidebar({ user }: { user: User }) {
     </div>
   )
 
-  // For both mobile and desktop, render the SidebarContent directly
   return <SidebarContent />;
 }
 

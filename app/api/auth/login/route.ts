@@ -4,23 +4,24 @@ import { updateUserSettings } from "@/lib/settings"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, preferredLanguage } = await request.json()
+    const { email, password, preferredLanguage, rememberMe } = await request.json()
 
     if (!email || !password) {
       return NextResponse.json({ message: "Email and password are required" }, { status: 400 })
     }
 
     const user = await login(email, password)
-    await createSession(user.id)
+    
+    console.log(`Login: Usuário ${user.id} (${user.email}) - Lembrar de mim: ${rememberMe === true ? 'Ativado' : 'Desativado'}`)
+    
+    await createSession(user.id, rememberMe === true)
 
-    // Se o cliente enviou o idioma preferido, atualizamos as configurações do usuário
     if (preferredLanguage && (preferredLanguage === "en" || preferredLanguage === "pt")) {
       try {
         await updateUserSettings(user.id, { language: preferredLanguage })
         console.log(`Login: Idioma do usuário ${user.id} atualizado para ${preferredLanguage}`)
       } catch (settingsError) {
         console.error("Erro ao atualizar o idioma do usuário:", settingsError)
-        // Não falharemos o login apenas por causa disso
       }
     }
 

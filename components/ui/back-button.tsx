@@ -17,25 +17,20 @@ export function BackButton({ fallbackPath = "/app", className = "", onClick }: B
 
   const handleBack = () => {
     if (onClick) {
-      // Se uma função de clique personalizada for fornecida, use-a
       onClick()
       return
     }
     
     try {
-      // Tenta voltar para a página anterior
       router.back()
       
-      // Como backup, se não houver histórico, navega para o caminho alternativo após 100ms
       setTimeout(() => {
-        // Verifica se ainda estamos na mesma página
         if (typeof window !== 'undefined' && 
             window.location.pathname === window.location.pathname) {
           router.push(fallbackPath)
         }
       }, 100)
     } catch (e) {
-      // Fallback para navegação direta
       router.push(fallbackPath)
     }
   }

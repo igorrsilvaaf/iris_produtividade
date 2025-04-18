@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "Search query is required" }, { status: 400 });
     }
     
-    // Limitar o tamanho da consulta para evitar sobrecarga
     const trimmedQuery = query.trim().slice(0, 50);
     console.log("Consultando tarefas para o usuário", session.user.id, "com termo:", trimmedQuery);
     
@@ -34,7 +33,6 @@ export async function GET(request: NextRequest) {
       const tasks = await searchTasks(session.user.id, trimmedQuery);
       console.log("Busca completada, encontradas", tasks.length, "tarefas");
       
-      // Verificar se o resultado é um array válido
       if (!Array.isArray(tasks)) {
         console.error("Erro: searchTasks não retornou um array válido");
         return NextResponse.json({ 
@@ -43,12 +41,10 @@ export async function GET(request: NextRequest) {
         }, { status: 500 });
       }
       
-      // Log detalhado do primeiro resultado (se houver)
       if (tasks.length > 0) {
         console.log("Exemplo do primeiro resultado:", JSON.stringify(tasks[0]));
       }
       
-      // Definir cabeçalhos para evitar problemas de cache
       const response = NextResponse.json({ tasks }, {
         headers: {
           'Content-Type': 'application/json',

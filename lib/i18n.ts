@@ -20,7 +20,6 @@ function setCookie(name: string, value: string) {
 }
 
 export const translations: Translations = {
-  // Navegação
   today: {
     en: "Today",
     pt: "Hoje",
@@ -1731,31 +1730,24 @@ export const useLanguageStore = create<LanguageState>()(
       isHydrated: false,
       setHydrated: (hydrated: boolean) => set({ isHydrated: hydrated }),
       setLanguage: (language: Language) => {
-        // Definir cookie imediatamente quando a linguagem for alterada
         if (typeof document !== 'undefined') {
-          // Limpar cookie antigo
           document.cookie = `language-storage=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
           
-          // Definir novo cookie com opções mais seguras
           setCookie('user-language', language);
           
           console.log('[i18n] Language changed to:', language);
           
-          // Definir também o atributo lang no HTML
           document.documentElement.lang = language === "en" ? "en" : "pt-BR";
           console.log('[i18n] HTML language attribute set to:', document.documentElement.lang);
           
-          // Definir attribute data-language para facilitar debugging
           document.documentElement.setAttribute('data-language', language);
           
-          // Verificar se o cookie foi definido corretamente
           setTimeout(() => {
             const cookies = document.cookie.split(';').map(c => c.trim());
             const langCookie = cookies.find(c => c.startsWith('user-language='));
             console.log('[i18n] Cookie check after setting:', langCookie);
           }, 100);
           
-          // Disparar evento personalizado para notificar a mudança de idioma
           try {
             const event = new Event('languageChanged');
             window.dispatchEvent(event);
@@ -1769,16 +1761,13 @@ export const useLanguageStore = create<LanguageState>()(
     }),
     {
       name: "language-storage",
-      // Quando a store é hidratada do localStorage, marcar como hidratada
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.setHydrated(true);
           
-          // Definir cookie imediatamente após hidratação
           if (typeof document !== 'undefined') {
             setCookie('user-language', state.language);
             
-            // Definir atributo lang no HTML
             document.documentElement.lang = state.language === "en" ? "en" : "pt-BR";
           }
         }
@@ -1787,20 +1776,16 @@ export const useLanguageStore = create<LanguageState>()(
   )
 )
 
-// Função de tradução
 export function useTranslation() {
   const { language, setLanguage, isHydrated } = useLanguageStore()
   
-  // Obter o idioma do navegador ou a partir dos cookies
   useEffect(() => {
-    // ...existindo código...
   }, [])
 
   const t = (key: string): string => {
     if (!translations[key]) {
       console.warn(`[TRADUÇÃO FALTANDO] Key: "${key}" para o idioma: ${language}`)
       
-      // Crie um snippet para facilitar a adição da tradução
       const suggestion = `  "${key}": {
     en: "${key}",
     pt: "TRADUÇÃO PENDENTE",
@@ -1811,7 +1796,6 @@ export function useTranslation() {
     
     const translated = translations[key][language] || translations[key]['en'] || key
     
-    // Log adicional para chaves importantes
     if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
       console.log(`[useTranslation] Tradução: "${key}" -> "${translated}" (idioma: ${language})`)
     }
@@ -1822,7 +1806,6 @@ export function useTranslation() {
   return { t, language, setLanguage }
 }
 
-// Função para usar em componentes do servidor
 export function getServerTranslation(key: string, language: "en" | "pt" = "pt"): string {
   if (!translations[key]) {
     console.warn(`[getServerTranslation] Tradução não encontrada para: ${key}`)
@@ -1831,7 +1814,6 @@ export function getServerTranslation(key: string, language: "en" | "pt" = "pt"):
   
   const translated = translations[key][language] || key
   
-  // Log apenas para depuração
   if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
     console.log(`[getServerTranslation] Tradução: "${key}" -> "${translated}" (idioma: ${language})`)
   }

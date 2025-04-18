@@ -51,7 +51,6 @@ export function ChangelogEntry({
     }
   }
 
-  // Determinar o locale baseado no idioma atual
   const locale = language === 'pt' ? ptBR : enUS
 
   return (

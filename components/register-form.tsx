@@ -55,7 +55,6 @@ export function RegisterForm() {
     },
   })
 
-  // Check if email already exists
   const checkEmailAvailability = async (email: string) => {
     if (!email || !form.formState.dirtyFields.email) return
     

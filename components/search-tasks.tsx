@@ -15,7 +15,6 @@ import { format } from "date-fns"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
 import { cn } from "@/lib/utils"
 
-// Componente DialogContent personalizado sem o botão de fechar
 const CustomDialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
@@ -70,7 +69,6 @@ export function SearchTasks() {
       performSearch(query)
     }
     
-    // Focar no input quando o diálogo abrir
     if (open && inputRef.current) {
       setTimeout(() => {
         inputRef.current?.focus()
@@ -127,7 +125,6 @@ export function SearchTasks() {
             return
           }
         } catch (e) {
-          // Erro ao analisar resposta
         }
         throw new Error(errorMessage)
       }
@@ -323,10 +320,10 @@ export function SearchTasks() {
                       </div>
                       {task.project_name && (
                         <div
-                          className="ml-2 flex-shrink-0 flex items-center rounded-full px-2 py-0.5 text-xs whitespace-nowrap"
-                          style={{
-                            backgroundColor: `${task.project_color}15`,
-                            color: task.project_color,
+                          className="ml-2 flex-shrink-0 flex items-center rounded-full px-2 py-0.5 text-xs whitespace-nowrap bg-opacity-10"
+                          style={{ 
+                            backgroundColor: `${task.project_color}10`,
+                            color: task.project_color 
                           }}
                         >
                           {task.project_name}

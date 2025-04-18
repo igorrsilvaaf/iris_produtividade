@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-// Tipo estendido para incluir o avatar_url
 type UserWithAvatar = User & {
   avatar_url?: string | null
 }
@@ -77,7 +76,6 @@ export function ProfileForm({ user }: { user: UserWithAvatar }) {
     }
   }
 
-  // Função para converter imagem para Base64
   const convertToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -87,33 +85,27 @@ export function ProfileForm({ user }: { user: UserWithAvatar }) {
     });
   }
 
-  // Função para processar a imagem antes de convertê-la para base64
   const processImage = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
-        // Determinar o tamanho do recorte quadrado (menor lado da imagem)
         const size = Math.min(img.width, img.height);
         const x = (img.width - size) / 2;
         const y = (img.height - size) / 2;
         
-        // Criar canvas com tamanho ideal para o avatar (256x256)
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // Dimensão para o avatar (256x256 é um bom tamanho para avatares)
         canvas.width = 256;
         canvas.height = 256;
         
         if (ctx) {
-          // Recortar a imagem para um quadrado e redimensioná-la
           ctx.drawImage(
             img,
-            x, y, size, size,  // Coordenadas de recorte
-            0, 0, 256, 256     // Destino
+            x, y, size, size,  
+            0, 0, 256, 256     
           );
           
-          // Converter o canvas para blob
           canvas.toBlob(
             (blob) => {
               if (blob) {
@@ -122,8 +114,8 @@ export function ProfileForm({ user }: { user: UserWithAvatar }) {
                 reject(new Error('Failed to process image'));
               }
             },
-            'image/jpeg',  // Formato JPEG para melhor compatibilidade
-            0.85           // Qualidade de compressão (85%)
+            'image/jpeg',  
+            0.85           
           );
         } else {
           reject(new Error('Could not get canvas context'));
@@ -134,17 +126,14 @@ export function ProfileForm({ user }: { user: UserWithAvatar }) {
         reject(new Error('Failed to load image'));
       };
       
-      // Carregar a imagem do arquivo
       img.src = URL.createObjectURL(file);
     });
   };
 
-  // Função para lidar com o upload da imagem
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     
-    // Validar o tipo do arquivo
     if (!file.type.startsWith('image/')) {
       toast({
         variant: "destructive",
@@ -154,7 +143,6 @@ export function ProfileForm({ user }: { user: UserWithAvatar }) {
       return;
     }
     
-    // Validar o tamanho do arquivo (max 5MB para o arquivo original)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         variant: "destructive",
@@ -167,10 +155,8 @@ export function ProfileForm({ user }: { user: UserWithAvatar }) {
     setUploadingAvatar(true);
     
     try {
-      // Processar a imagem (recortar para quadrado e redimensionar)
       const processedImageBlob = await processImage(file);
       
-      // Converter a imagem processada para base64
       const base64String = await convertToBase64(new File([processedImageBlob], file.name, { type: 'image/jpeg' }));
       setAvatarBase64(base64String);
       

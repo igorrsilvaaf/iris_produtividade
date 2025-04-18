@@ -12,7 +12,7 @@ const VisuallyHidden = React.forwardRef<
       ref={ref}
       className={cn(
         "absolute h-px w-px overflow-hidden whitespace-nowrap border-0 p-0",
-        "clip-[rect(0,0,0,0)]", // Using clip instead of deprecated clip-rect
+        "clip-[rect(0,0,0,0)]", 
         className
       )}
       {...props}

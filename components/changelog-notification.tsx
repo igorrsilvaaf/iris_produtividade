@@ -24,26 +24,19 @@ export function ChangelogNotification() {
   useEffect(() => {
     const checkForNewChangelog = () => {
       const changelogData = getChangelogData()
-      
-      // Verificar se existem novidades no changelog (marcadas com isNew: true)
       const newChanges = changelogData.filter(item => item.isNew)
       
       if (newChanges.length === 0) return
       
-      // Obter a versão mais recente que tem novidades
       const latestNewVersion = newChanges[0].version
-      
-      // Verificar no localStorage a última versão visualizada pelo usuário
       const lastSeenVersion = localStorage.getItem('lastSeenChangelogVersion')
       
-      // Se a versão mais recente for diferente da última vista, mostrar a notificação
       if (lastSeenVersion !== latestNewVersion) {
         setLatestChangelog(latestNewVersion)
         setOpen(true)
       }
     }
     
-    // Verificar após um curto delay para garantir que outros componentes foram carregados
     const timer = setTimeout(checkForNewChangelog, 1500)
     
     return () => clearTimeout(timer)
@@ -51,7 +44,6 @@ export function ChangelogNotification() {
 
   const handleDismiss = () => {
     if (latestChangelog) {
-      // Salvar a versão atual como vista no localStorage
       localStorage.setItem('lastSeenChangelogVersion', latestChangelog)
     }
     setOpen(false)
@@ -59,11 +51,9 @@ export function ChangelogNotification() {
 
   const handleViewChangelog = () => {
     if (latestChangelog) {
-      // Salvar a versão atual como vista no localStorage
       localStorage.setItem('lastSeenChangelogVersion', latestChangelog)
     }
     setOpen(false)
-    // Navegar para a página de changelog
     router.push('/app/changelog')
   }
 

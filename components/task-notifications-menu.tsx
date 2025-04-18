@@ -80,21 +80,17 @@ export function TaskNotificationsMenu() {
   useEffect(() => {
     if (open) {
       fetchTaskNotifications()
-      // Marcar como "vistas" quando o usuário abrir o menu
       setViewed(true)
     }
   }, [open])
   
-  // Carregar notificações ao montar o componente para mostrar o contador corretamente
   useEffect(() => {
     fetchTaskNotifications()
     
-    // Verificar notificações a cada 5 minutos
     const interval = setInterval(() => {
       fetchTaskNotifications()
-      // Se o usuário já visualizou antes, mantenha como visualizado
       if (!open) {
-        setViewed(false) // Resetar estado "viewed" apenas se o menu estiver fechado
+        setViewed(false)
       }
     }, 5 * 60 * 1000)
     
@@ -103,13 +99,12 @@ export function TaskNotificationsMenu() {
     }
   }, [open])
 
-  // Refetch notificações ao retornar à página
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         fetchTaskNotifications()
         if (!open) {
-          setViewed(false) // Resetar estado "viewed" quando a página voltar a ser visível
+          setViewed(false)
         }
       }
     }
@@ -125,15 +120,12 @@ export function TaskNotificationsMenu() {
     const date = new Date(dateString)
     const dateLocale = language === "pt" ? pt : enUS
     const now = new Date()
-    
-    // Comparação completa de datas para garantir que estamos no mesmo ano
     const isSameDateAs = (date1: Date, date2: Date) => {
       return date1.getDate() === date2.getDate() && 
              date1.getMonth() === date2.getMonth() && 
              date1.getFullYear() === date2.getFullYear();
     };
     
-    // Verificar se é hoje ou amanhã considerando o ano
     const today = new Date()
     const tomorrow = new Date()
     tomorrow.setDate(today.getDate() + 1)
@@ -143,12 +135,9 @@ export function TaskNotificationsMenu() {
     } else if (isSameDateAs(date, tomorrow)) {
       return t("taskDueTomorrow")
     } else if (date < now) {
-      // Tarefa atrasada
       const distance = formatDistanceToNow(date, { locale: dateLocale, addSuffix: false })
       return t("taskOverdue").replace("{days}", distance)
     } else {
-      // Tarefa futura
-      // Para datas em anos futuros, incluir o ano na formatação
       if (date.getFullYear() !== now.getFullYear()) {
         return format(date, "MMM d, yyyy", { locale: dateLocale });
       } else {
@@ -159,7 +148,7 @@ export function TaskNotificationsMenu() {
   }
 
   const handleCompleteTask = async (e: React.MouseEvent, taskId: number) => {
-    e.stopPropagation() // Prevent triggering the card click
+    e.stopPropagation() 
     setCompletingTask(taskId)
     
     try {
@@ -171,12 +160,8 @@ export function TaskNotificationsMenu() {
         throw new Error("Failed to complete task")
       }
 
-      // Update local state to remove the completed task
       setNotifications(prev => {
-        // Helper function to filter out the completed task
         const filterTask = (tasks: Todo[]) => tasks.filter(task => task.id !== taskId)
-        
-        // Calculate new counts
         const newOverdueTasks = filterTask(prev.tasks.overdueTasks)
         const newDueTodayTasks = filterTask(prev.tasks.dueTodayTasks)
         const newUpcomingTasks = filterTask(prev.tasks.upcomingTasks)
@@ -215,8 +200,6 @@ export function TaskNotificationsMenu() {
 
   const handleViewTask = (task: Todo) => {
     try {
-      console.log("Abrindo tarefa:", task);
-      console.log("Pathname atual:", pathname);
       setOpen(false);
       setSelectedTask({...task});
       setShowTaskDetail(true);
@@ -230,7 +213,6 @@ export function TaskNotificationsMenu() {
     }
   };
 
-  // Só mostra o contador de notificações se houver notificações e elas não estiverem vistas
   const showNotificationBadge = notifications.totalCount > 0 && !viewed
 
   return (
@@ -372,7 +354,6 @@ export function TaskNotificationsMenu() {
                   <div>
                     <h5 className="text-base font-medium text-blue-600 mb-3">
                       {(() => {
-                        // Verificar se há apenas uma tarefa e se ela vence amanhã
                         if (notifications.upcomingCount === 1 && 
                             notifications.tasks.upcomingTasks.length === 1 && 
                             isTomorrow(new Date(notifications.tasks.upcomingTasks[0].due_date!))) {
@@ -431,7 +412,6 @@ export function TaskNotificationsMenu() {
           console.log("Alterando estado do modal:", open);
           setShowTaskDetail(open);
           if (!open) {
-            // Limpar a tarefa selecionada quando fechar o modal
             setTimeout(() => setSelectedTask(null), 300);
           }
         }} 

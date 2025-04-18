@@ -27,8 +27,6 @@ Command.displayName = CommandPrimitive.displayName
 
 const CommandDialog = ({ children, ...props }: DialogProps) => {
   const { t } = useTranslation();
-  
-  // Check if DialogTitle exists in children
   const hasDialogTitle = React.Children.toArray(children).some(
     (child) => React.isValidElement(child) && child.type === DialogTitle
   );
