@@ -220,7 +220,18 @@ export function TaskNotificationsList({ taskNotifications, daysAhead }: TaskNoti
         {/* Tarefas para os próximos dias */}
         {taskNotifications.upcomingCount > 0 && (
           <div>
-            <h3 className="mb-4 text-blue-600 font-semibold text-lg">{t("dueTasks")} - {t("Next {days} days").replace("{days}", String(daysAhead))}</h3>
+            <h3 className="mb-4 text-blue-600 font-semibold text-lg">
+              {(() => {
+                // Verificar se há apenas uma tarefa e se ela vence amanhã
+                if (taskNotifications.upcomingCount === 1 && 
+                    taskNotifications.upcomingTasks.length === 1 && 
+                    isTomorrow(new Date(taskNotifications.upcomingTasks[0].due_date!))) {
+                  return t("dueTasks") + " - " + t("Tomorrow");
+                } else {
+                  return t("dueTasks") + " - " + t("Next {days} days").replace("{days}", String(daysAhead));
+                }
+              })()}
+            </h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {taskNotifications.upcomingTasks.map((task) => (
                 <Card 
