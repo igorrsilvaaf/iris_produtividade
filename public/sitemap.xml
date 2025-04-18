@@ -1,114 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Páginas Públicas -->
   <url>
     <loc>https://v5-todoist-app.vercel.app/</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://v5-todoist-app.vercel.app/login</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://v5-todoist-app.vercel.app/register</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
-  <url>
-    <loc>https://v5-todoist-app.vercel.app/forgot-password</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://v5-todoist-app.vercel.app/reset-password</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <!-- Páginas do App (Principais) -->
   <url>
     <loc>https://v5-todoist-app.vercel.app/app</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://v5-todoist-app.vercel.app/app/dashboard</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://v5-todoist-app.vercel.app/app/inbox</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
   </url>
-
-  <!-- Páginas do App (Funcionalidades) -->
   <url>
     <loc>https://v5-todoist-app.vercel.app/app/today</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://v5-todoist-app.vercel.app/app/upcoming</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://v5-todoist-app.vercel.app/app/completed</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://v5-todoist-app.vercel.app/app/calendar</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://v5-todoist-app.vercel.app/app/pomodoro</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Configurações e Perfil -->
-  <url>
-    <loc>https://v5-todoist-app.vercel.app/app/profile</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://v5-todoist-app.vercel.app/app/settings</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://v5-todoist-app.vercel.app/app/notifications</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
   </url>
-
-  <!-- Documentação e Informação -->
   <url>
     <loc>https://v5-todoist-app.vercel.app/app/changelog</loc>
-    <lastmod>2024-04-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
   </url>
 </urlset> 
