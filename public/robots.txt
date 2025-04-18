@@ -1,0 +1,11 @@
+# To-Do-Ist Robots.txt
+User-agent: *
+Allow: /
+
+# Disallow admin-related paths
+Disallow: /app/settings
+Disallow: /app/profile
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://v5-todoist-app.vercel.app/sitemap.xml 
