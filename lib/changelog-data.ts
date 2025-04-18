@@ -15,6 +15,49 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.5.0',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'pomodoro-interface-improvements',
+        title: 'Melhorias na Interface do Pomodoro',
+        description: 'Ajustes na interface do Pomodoro e correções de bugs importantes',
+        items: [
+          {
+            type: 'improvement',
+            content: 'Ocultação da descrição da tarefa no seletor do Pomodoro para uma interface mais limpa'
+          },
+          {
+            type: 'improvement',
+            content: 'Ajustes adicionais na interface para uma experiência mais focada durante as sessões'
+          },
+          {
+            type: 'improvement',
+            content: 'Otimização do layout do temporizador para melhor visualização em todos os dispositivos'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigido erro "A `<Select.Item />` must have a value prop that is not an empty string" no seletor de tarefas do Pomodoro'
+          },
+          {
+            type: 'bugfix',
+            content: 'Resolvido problema com a exibição das tarefas disponíveis no seletor do Pomodoro'
+          },
+          {
+            type: 'bugfix',
+            content: 'Melhorada a estabilidade geral do componente Pomodoro'
+          }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date(),
     version: '2.4.0',
     author: {
       name: 'Igor Silva',

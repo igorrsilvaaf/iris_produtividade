@@ -6,6 +6,7 @@ import { getUserSettings } from "@/lib/settings"
 import { AppSidebar } from "@/components/app-sidebar"
 import { AppHeader } from "@/components/app-header"
 import { LanguageProvider } from "@/components/language-provider"
+import { ChangelogNotification } from "@/components/changelog-notification"
 
 export default async function AppLayout({
   children,
@@ -46,7 +47,10 @@ export default async function AppLayout({
         </div>
         <div className="flex flex-1 flex-col overflow-hidden">
           <AppHeader user={session.user} />
-          <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+          <main className="flex-1 overflow-auto p-4 md:p-6">
+            <ChangelogNotification />
+            {children}
+          </main>
         </div>
       </div>
     </LanguageProvider>

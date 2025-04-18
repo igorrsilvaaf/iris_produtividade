@@ -11,10 +11,11 @@
 7. [Internacionalização (i18n)](#internacionalização-i18n)
 8. [Fluxos de Trabalho](#fluxos-de-trabalho)
 9. [API Endpoints](#api-endpoints)
-10. [Guia de Uso](#guia-de-uso)
-11. [Performance e Otimização](#performance-e-otimização)
-12. [Segurança](#segurança)
-13. [Manutenção e Suporte](#manutenção-e-suporte)
+10. [APIs e Integrações Detalhadas](#apis-e-integrações-detalhadas)
+11. [Guia de Uso](#guia-de-uso)
+12. [Performance e Otimização](#performance-e-otimização)
+13. [Segurança](#segurança)
+14. [Manutenção e Suporte](#manutenção-e-suporte)
 
 ## Visão Geral
 
@@ -354,6 +355,699 @@ const { t, language, setLanguage } = useTranslation();
 ### Usuários
 - `POST /api/auth/register`: Registra um novo usuário
 - `POST /api/auth/login`: Autentica um usuário
+
+## APIs e Integrações Detalhadas
+
+Esta seção fornece informações detalhadas sobre todas as APIs disponíveis no sistema, incluindo parâmetros, respostas, códigos de erro e exemplos de uso. A documentação cobre tanto as APIs internas quanto as integrações com serviços externos.
+
+### Estrutura das Respostas da API
+
+Todas as APIs do sistema seguem uma estrutura de resposta padronizada:
+
+#### Resposta de Sucesso
+```json
+{
+  "status": "success",
+  "data": { /* Dados retornados */ }
+}
+```
+
+#### Resposta de Erro
+```json
+{
+  "status": "error",
+  "message": "Descrição do erro",
+  "code": "ERRO_CODE"
+}
+```
+
+### Códigos de Status HTTP
+
+- `200 OK`: Requisição bem-sucedida
+- `201 Created`: Recurso criado com sucesso
+- `400 Bad Request`: Parâmetros inválidos ou ausentes
+- `401 Unauthorized`: Autenticação necessária
+- `403 Forbidden`: Sem permissão para acessar o recurso
+- `404 Not Found`: Recurso não encontrado
+- `500 Internal Server Error`: Erro interno do servidor
+
+### APIs de Autenticação
+
+#### Registro de Usuário
+- **Endpoint**: `POST /api/auth/register`
+- **Descrição**: Registra um novo usuário no sistema
+- **Parâmetros de Requisição**:
+  ```json
+  {
+    "email": "usuario@exemplo.com",
+    "password": "senha123",
+    "name": "Nome do Usuário"
+  }
+  ```
+- **Resposta de Sucesso** (201 Created):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "id": 123,
+      "email": "usuario@exemplo.com",
+      "name": "Nome do Usuário",
+      "created_at": "2023-01-01T00:00:00Z"
+    }
+  }
+  ```
+- **Erros Possíveis**:
+  - `400 Bad Request`: Email inválido ou senha muito curta
+  - `409 Conflict`: Email já registrado
+
+#### Login de Usuário
+- **Endpoint**: `POST /api/auth/login`
+- **Descrição**: Autentica um usuário existente
+- **Parâmetros de Requisição**:
+  ```json
+  {
+    "email": "usuario@exemplo.com",
+    "password": "senha123"
+  }
+  ```
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "id": 123,
+      "email": "usuario@exemplo.com",
+      "name": "Nome do Usuário",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+  }
+  ```
+- **Erros Possíveis**:
+  - `400 Bad Request`: Parâmetros inválidos
+  - `401 Unauthorized`: Credenciais inválidas
+
+#### Logout
+- **Endpoint**: `POST /api/auth/logout`
+- **Descrição**: Finaliza a sessão do usuário
+- **Parâmetros de Requisição**: Nenhum
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "message": "Logout realizado com sucesso"
+    }
+  }
+  ```
+
+### APIs de Tarefas
+
+#### Listar Tarefas de Hoje
+- **Endpoint**: `GET /api/tasks/today`
+- **Descrição**: Retorna todas as tarefas com vencimento no dia atual
+- **Parâmetros de Query**:
+  - `sort`: Campo para ordenação (opcional, default: `priority`)
+  - `order`: Direção da ordenação (`asc` ou `desc`, opcional, default: `asc`)
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "tasks": [
+        {
+          "id": 1,
+          "title": "Concluir relatório",
+          "description": "Finalizar relatório de vendas do mês",
+          "due_date": "2023-05-20T23:59:59Z",
+          "priority": 2,
+          "completed": false,
+          "created_at": "2023-05-19T14:30:00Z",
+          "updated_at": null,
+          "project_name": "Marketing",
+          "project_color": "#ff5722"
+        },
+        // ... outras tarefas
+      ]
+    }
+  }
+  ```
+
+#### Listar Tarefas da Caixa de Entrada
+- **Endpoint**: `GET /api/tasks/inbox`
+- **Descrição**: Retorna todas as tarefas não concluídas
+- **Parâmetros de Query**:
+  - `sort`: Campo para ordenação (opcional, default: `created_at`)
+  - `order`: Direção da ordenação (`asc` ou `desc`, opcional, default: `desc`)
+  - `page`: Número da página (opcional, default: 1)
+  - `limit`: Itens por página (opcional, default: 50)
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "tasks": [
+        // Array de tarefas (mesmo formato do endpoint anterior)
+      ],
+      "pagination": {
+        "total": 120,
+        "page": 1,
+        "limit": 50,
+        "pages": 3
+      }
+    }
+  }
+  ```
+
+#### Listar Tarefas Próximas
+- **Endpoint**: `GET /api/tasks/upcoming`
+- **Descrição**: Retorna tarefas com vencimento futuro
+- **Parâmetros de Query**: Mesmos do endpoint de inbox
+- **Resposta de Sucesso**: Mesmo formato do endpoint de inbox
+
+#### Listar Tarefas Concluídas
+- **Endpoint**: `GET /api/tasks/completed`
+- **Descrição**: Retorna tarefas já concluídas
+- **Parâmetros de Query**: 
+  - Mesmos do endpoint de inbox
+  - `since`: Data de início para filtro (opcional, formato ISO 8601)
+- **Resposta de Sucesso**: Mesmo formato do endpoint de inbox
+
+#### Obter Detalhes de uma Tarefa
+- **Endpoint**: `GET /api/tasks/[id]`
+- **Descrição**: Retorna detalhes de uma tarefa específica
+- **Parâmetros de URL**: 
+  - `id`: ID da tarefa
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "task": {
+        "id": 1,
+        "title": "Concluir relatório",
+        "description": "Finalizar relatório de vendas do mês",
+        "due_date": "2023-05-20T23:59:59Z",
+        "priority": 2,
+        "completed": false,
+        "created_at": "2023-05-19T14:30:00Z",
+        "updated_at": null,
+        "project_name": "Marketing",
+        "project_color": "#ff5722",
+        "labels": [
+          {
+            "id": 3,
+            "name": "Importante",
+            "color": "#e91e63"
+          }
+        ]
+      }
+    }
+  }
+  ```
+- **Erros Possíveis**:
+  - `404 Not Found`: Tarefa não encontrada
+
+#### Criar Tarefa
+- **Endpoint**: `POST /api/tasks`
+- **Descrição**: Cria uma nova tarefa
+- **Parâmetros de Requisição**:
+  ```json
+  {
+    "title": "Nova tarefa",
+    "description": "Descrição da tarefa",
+    "dueDate": "2023-05-25T23:59:59Z",
+    "priority": 3,
+    "projectId": 2,
+    "labelIds": [1, 3]
+  }
+  ```
+- **Resposta de Sucesso** (201 Created):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "task": {
+        "id": 42,
+        "title": "Nova tarefa",
+        "description": "Descrição da tarefa",
+        "due_date": "2023-05-25T23:59:59Z",
+        "priority": 3,
+        "completed": false,
+        "created_at": "2023-05-20T15:45:30Z",
+        "updated_at": null
+      }
+    }
+  }
+  ```
+- **Observações de Implementação**:
+  - A data de vencimento (`dueDate`) é normalizada para 23:59:59 do dia especificado
+  - Prioridades válidas: 1 (Grave), 2 (Alta), 3 (Média), 4 (Baixa)
+
+#### Atualizar Tarefa
+- **Endpoint**: `PATCH /api/tasks/[id]`
+- **Descrição**: Atualiza uma tarefa existente
+- **Parâmetros de URL**: 
+  - `id`: ID da tarefa
+- **Parâmetros de Requisição** (todos opcionais):
+  ```json
+  {
+    "title": "Título atualizado",
+    "description": "Nova descrição",
+    "dueDate": "2023-05-26T23:59:59Z",
+    "priority": 2,
+    "completed": true
+  }
+  ```
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "task": {
+        // Dados da tarefa atualizada
+      }
+    }
+  }
+  ```
+- **Erros Possíveis**:
+  - `404 Not Found`: Tarefa não encontrada
+  - `400 Bad Request`: Dados inválidos
+
+#### Alternar Status de Conclusão
+- **Endpoint**: `PATCH /api/tasks/[id]/toggle`
+- **Descrição**: Alterna o status de conclusão de uma tarefa (concluída ↔ não concluída)
+- **Parâmetros de URL**: 
+  - `id`: ID da tarefa
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "task": {
+        // Dados da tarefa com status atualizado
+        "completed": true,
+        "updated_at": "2023-05-20T16:30:45Z"
+      }
+    }
+  }
+  ```
+
+#### Excluir Tarefa
+- **Endpoint**: `DELETE /api/tasks/[id]`
+- **Descrição**: Remove permanentemente uma tarefa
+- **Parâmetros de URL**: 
+  - `id`: ID da tarefa
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "message": "Tarefa excluída com sucesso"
+    }
+  }
+  ```
+
+### APIs de Projetos
+
+#### Listar Projetos
+- **Endpoint**: `GET /api/projects`
+- **Descrição**: Retorna todos os projetos do usuário
+- **Parâmetros de Query**:
+  - `includeTaskCount`: Inclui contagem de tarefas (opcional, default: `false`)
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "projects": [
+        {
+          "id": 1,
+          "name": "Marketing",
+          "color": "#ff5722",
+          "is_favorite": true,
+          "created_at": "2023-04-10T09:15:00Z",
+          "task_count": 12
+        },
+        // ... outros projetos
+      ]
+    }
+  }
+  ```
+
+#### Obter Detalhes de um Projeto
+- **Endpoint**: `GET /api/projects/[id]`
+- **Descrição**: Retorna detalhes de um projeto específico
+- **Parâmetros de URL**: 
+  - `id`: ID do projeto
+- **Parâmetros de Query**:
+  - `includeTasks`: Inclui tarefas do projeto (opcional, default: `false`)
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "project": {
+        "id": 1,
+        "name": "Marketing",
+        "color": "#ff5722",
+        "is_favorite": true,
+        "created_at": "2023-04-10T09:15:00Z",
+        "tasks": [
+          // Array de tarefas se includeTasks=true
+        ]
+      }
+    }
+  }
+  ```
+
+#### Criar Projeto
+- **Endpoint**: `POST /api/projects`
+- **Descrição**: Cria um novo projeto
+- **Parâmetros de Requisição**:
+  ```json
+  {
+    "name": "Novo Projeto",
+    "color": "#4caf50",
+    "is_favorite": false
+  }
+  ```
+- **Resposta de Sucesso** (201 Created):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "project": {
+        "id": 5,
+        "name": "Novo Projeto",
+        "color": "#4caf50",
+        "is_favorite": false,
+        "created_at": "2023-05-20T17:00:00Z"
+      }
+    }
+  }
+  ```
+
+#### Atualizar Projeto
+- **Endpoint**: `PATCH /api/projects/[id]`
+- **Descrição**: Atualiza um projeto existente
+- **Parâmetros de URL**: 
+  - `id`: ID do projeto
+- **Parâmetros de Requisição** (todos opcionais):
+  ```json
+  {
+    "name": "Nome Atualizado",
+    "color": "#2196f3",
+    "is_favorite": true
+  }
+  ```
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "project": {
+        // Dados do projeto atualizado
+      }
+    }
+  }
+  ```
+
+#### Excluir Projeto
+- **Endpoint**: `DELETE /api/projects/[id]`
+- **Descrição**: Remove um projeto e opcionalmente suas tarefas
+- **Parâmetros de URL**: 
+  - `id`: ID do projeto
+- **Parâmetros de Query**:
+  - `deleteTasks`: Se deve excluir as tarefas (opcional, default: `false`)
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "message": "Projeto excluído com sucesso"
+    }
+  }
+  ```
+
+### APIs de Etiquetas
+
+#### Listar Etiquetas
+- **Endpoint**: `GET /api/labels`
+- **Descrição**: Retorna todas as etiquetas do usuário
+- **Parâmetros de Query**:
+  - `includeTaskCount`: Inclui contagem de tarefas (opcional, default: `false`)
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "labels": [
+        {
+          "id": 1,
+          "name": "Importante",
+          "color": "#e91e63",
+          "created_at": "2023-04-15T10:20:00Z",
+          "task_count": 8
+        },
+        // ... outras etiquetas
+      ]
+    }
+  }
+  ```
+
+#### Obter Detalhes de uma Etiqueta
+- **Endpoint**: `GET /api/labels/[id]`
+- **Descrição**: Retorna detalhes de uma etiqueta específica
+- **Parâmetros de URL**: 
+  - `id`: ID da etiqueta
+- **Parâmetros de Query**:
+  - `includeTasks`: Inclui tarefas com esta etiqueta (opcional, default: `false`)
+- **Resposta de Sucesso**: Similar à resposta de detalhes de projeto
+
+#### Criar Etiqueta
+- **Endpoint**: `POST /api/labels`
+- **Descrição**: Cria uma nova etiqueta
+- **Parâmetros de Requisição**:
+  ```json
+  {
+    "name": "Nova Etiqueta",
+    "color": "#9c27b0"
+  }
+  ```
+- **Resposta de Sucesso** (201 Created):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "label": {
+        "id": 4,
+        "name": "Nova Etiqueta",
+        "color": "#9c27b0",
+        "created_at": "2023-05-20T17:30:00Z"
+      }
+    }
+  }
+  ```
+
+#### Atualizar Etiqueta
+- **Endpoint**: `PATCH /api/labels/[id]`
+- **Descrição**: Atualiza uma etiqueta existente
+- **Parâmetros de URL**: 
+  - `id`: ID da etiqueta
+- **Parâmetros de Requisição** (todos opcionais):
+  ```json
+  {
+    "name": "Nome Atualizado",
+    "color": "#673ab7"
+  }
+  ```
+- **Resposta de Sucesso** (200 OK): Similar à resposta de atualização de projeto
+
+#### Excluir Etiqueta
+- **Endpoint**: `DELETE /api/labels/[id]`
+- **Descrição**: Remove uma etiqueta (não afeta as tarefas)
+- **Parâmetros de URL**: 
+  - `id`: ID da etiqueta
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "message": "Etiqueta excluída com sucesso"
+    }
+  }
+  ```
+
+### APIs de Configurações
+
+#### Obter Configurações do Usuário
+- **Endpoint**: `GET /api/settings`
+- **Descrição**: Retorna as configurações do usuário atual
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "settings": {
+        "language": "pt",
+        "theme": "dark",
+        "start_day_of_week": 1,
+        "default_view": "today",
+        "pomodoro_work_minutes": 25,
+        "pomodoro_break_minutes": 5,
+        "pomodoro_long_break_minutes": 15,
+        "pomodoro_cycles": 4,
+        "enable_sound": true,
+        "notification_sound": "bell",
+        "enable_desktop_notifications": true,
+        "enable_task_notifications": true,
+        "task_notification_days": 3
+      }
+    }
+  }
+  ```
+
+#### Atualizar Configurações
+- **Endpoint**: `PATCH /api/settings`
+- **Descrição**: Atualiza as configurações do usuário
+- **Parâmetros de Requisição** (todos opcionais):
+  ```json
+  {
+    "language": "en",
+    "theme": "light",
+    "start_day_of_week": 0,
+    "pomodoro_work_minutes": 30
+    // ... outras configurações
+  }
+  ```
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "settings": {
+        // Configurações atualizadas
+      }
+    }
+  }
+  ```
+
+### APIs de Notificações
+
+#### Obter Notificações de Tarefas
+- **Endpoint**: `GET /api/notifications/tasks`
+- **Descrição**: Retorna tarefas vencidas, de hoje e próximas para notificações
+- **Parâmetros de Query**:
+  - `ignoreRead`: Ignorar status de leitura (opcional, default: `false`)
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "enabled": true,
+      "overdueCount": 2,
+      "dueTodayCount": 3,
+      "upcomingCount": 5,
+      "totalCount": 10,
+      "tasks": {
+        "overdueTasks": [
+          // Array de tarefas vencidas
+        ],
+        "dueTodayTasks": [
+          // Array de tarefas para hoje
+        ],
+        "upcomingTasks": [
+          // Array de tarefas próximas
+        ]
+      }
+    }
+  }
+  ```
+
+### APIs de Pesquisa
+
+#### Pesquisar Tarefas
+- **Endpoint**: `GET /api/search`
+- **Descrição**: Pesquisa tarefas por texto
+- **Parâmetros de Query**:
+  - `q`: Texto de pesquisa (obrigatório)
+  - `includeCompleted`: Inclui tarefas concluídas (opcional, default: `false`)
+- **Resposta de Sucesso** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "results": [
+        // Array de tarefas correspondentes
+      ],
+      "count": 15
+    }
+  }
+  ```
+
+### Exemplo de Integração Completa
+
+Para demonstrar a integração completa, veja um exemplo de fluxo para criação e atualização de tarefas:
+
+#### Criação de Tarefa com Projeto e Etiquetas
+
+```javascript
+// 1. Buscar projetos disponíveis
+const projectsResponse = await fetch('/api/projects');
+const projects = await projectsResponse.json();
+
+// 2. Buscar etiquetas disponíveis
+const labelsResponse = await fetch('/api/labels');
+const labels = await labelsResponse.json();
+
+// 3. Criar nova tarefa
+const createTaskResponse = await fetch('/api/tasks', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    title: 'Implementar nova funcionalidade',
+    description: 'Adicionar sistema de notificações',
+    dueDate: '2023-06-01T12:00:00Z',
+    priority: 2,
+    projectId: projects.data.projects[0].id,
+    labelIds: [labels.data.labels[0].id, labels.data.labels[2].id]
+  }),
+});
+
+const newTask = await createTaskResponse.json();
+const taskId = newTask.data.task.id;
+
+// 4. Obter detalhes da tarefa criada
+const taskDetailsResponse = await fetch(`/api/tasks/${taskId}`);
+const taskDetails = await taskDetailsResponse.json();
+
+// 5. Atualizar a tarefa (por exemplo, marcar como concluída)
+const updateTaskResponse = await fetch(`/api/tasks/${taskId}`, {
+  method: 'PATCH',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    completed: true
+  }),
+});
+
+const updatedTask = await updateTaskResponse.json();
+```
+
+### Considerações Técnicas e Boas Práticas
+
+1. **Autenticação**: Todas as APIs (exceto registro e login) requerem autenticação.
+2. **Rate Limiting**: As requisições são limitadas a 100 por minuto por usuário.
+3. **Validação**: Todos os dados de entrada são validados antes do processamento.
+4. **Tratamento de Datas**: 
+   - Todas as datas são armazenadas e retornadas em formato ISO 8601 (UTC)
+   - Datas de vencimento são normalizadas para 23:59:59 do dia especificado
+5. **Formatos Suportados**:
+   - Todas as APIs aceitam e retornam dados em formato JSON
+   - POST/PATCH/PUT APIs requerem Content-Type: application/json
 
 ## Guia de Uso
 
