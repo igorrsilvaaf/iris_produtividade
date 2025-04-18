@@ -125,6 +125,21 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
       .then((response) => response.json())
       .then((data) => {
         setProjects(data.projects)
+        if (data.projects && data.projects.length > 0) {
+          const newProject = data.projects[data.projects.length - 1];
+          
+          form.setValue("projectId", newProject.id.toString(), { 
+            shouldValidate: true,
+            shouldDirty: true,
+            shouldTouch: true
+          });
+          
+          setShowAddProject(false);
+          
+          setTimeout(() => {
+            form.trigger("projectId");
+          }, 100);
+        }
       })
       .catch((error) => {
         console.error("Failed to refresh projects:", error)

@@ -195,6 +195,29 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       .then((response) => response.json())
       .then((data) => {
         setProjects(data.projects);
+        if (data.projects && data.projects.length > 0) {
+          const newProject = data.projects[data.projects.length - 1];
+          setProjectId(newProject.id.toString());
+          setProjectName(newProject.name);
+          setShowAddProject(false);
+          
+          fetch(`/api/tasks/${task.id}/project`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              projectId: newProject.id,
+            }),
+          }).then((response) => {
+            if (response.ok) {
+              console.log(`[TaskDetail] Projeto associado automaticamente: ${newProject.id} - ${newProject.name}`);
+              setTimeout(() => {
+                router.refresh();
+              }, 100);
+            }
+          }).catch((error) => {
+            console.error("Falha ao associar o projeto à tarefa:", error);
+          });
+        }
       })
       .catch((error) => {
         console.error("Failed to refresh projects:", error);
