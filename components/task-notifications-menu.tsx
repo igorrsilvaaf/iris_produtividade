@@ -371,7 +371,17 @@ export function TaskNotificationsMenu() {
                 {notifications.upcomingCount > 0 && (
                   <div>
                     <h5 className="text-base font-medium text-blue-600 mb-3">
-                      {t("youHaveNTasks").replace("{count}", String(notifications.upcomingCount))} {t("dueInNextDays").replace("{days}", String(3))}
+                      {(() => {
+                        // Verificar se há apenas uma tarefa e se ela vence amanhã
+                        if (notifications.upcomingCount === 1 && 
+                            notifications.tasks.upcomingTasks.length === 1 && 
+                            isTomorrow(new Date(notifications.tasks.upcomingTasks[0].due_date!))) {
+                          return t("youHaveNTasks").replace("{count}", "1") + " " + t("taskDueTomorrow");
+                        } else {
+                          return t("youHaveNTasks").replace("{count}", String(notifications.upcomingCount)) + " " + 
+                                 t("dueInNextDays").replace("{days}", String(3));
+                        }
+                      })()}
                     </h5>
                     <div className="space-y-3">
                       {notifications.tasks.upcomingTasks.map(task => (

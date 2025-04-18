@@ -18,9 +18,19 @@ export type Todo = {
 export async function getTodayTasks(userId: number): Promise<Todo[]> {
   // Obter data atual no formato YYYY-MM-DD
   const now = new Date();
-  const todayDate = now.toISOString().split('T')[0];
+  
+  // Definir início do dia atual (hoje à meia-noite)
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  
+  // Definir início do dia seguinte (amanhã à meia-noite)
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  console.log(`[getTodayTasks] Today start: ${today.toISOString()}`);
+  console.log(`[getTodayTasks] Tomorrow start: ${tomorrow.toISOString()}`);
 
-  // Consulta usando CAST para ignorar a hora e considerar apenas a data
+  // Consulta usando intervalo de tempo para pegar qualquer tarefa que vence hoje
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
     FROM todos t
@@ -28,7 +38,8 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
     AND t.due_date IS NOT NULL
-    AND CAST(t.due_date AS DATE) = CURRENT_DATE
+    AND t.due_date >= ${today.toISOString()}
+    AND t.due_date < ${tomorrow.toISOString()}
     AND t.completed = false
     ORDER BY t.priority ASC, t.due_date ASC
   `;
@@ -84,21 +95,30 @@ export async function createTask(
   
   console.log(`[createTask] Criando tarefa para usuário ${userId}`)
   console.log(`[createTask] Título: ${title}`)
-  console.log(`[createTask] Data de vencimento: ${dueDate}`)
+  console.log(`[createTask] Data de vencimento original: ${dueDate}`)
   
+  // Normalizar a data de vencimento para 23:59:59 do dia especificado
+  let normalizedDueDate = dueDate;
   if (dueDate) {
     try {
-      const date = new Date(dueDate)
-      console.log(`[createTask] Data convertida: ${date.toString()}`)
-      console.log(`[createTask] Horário: ${date.getHours()}:${date.getMinutes()}`)
+      const date = new Date(dueDate);
+      // Verificar se a data é válida
+      if (!isNaN(date.getTime())) {
+        // Definir o horário para 23:59:59
+        date.setHours(23, 59, 59, 999);
+        normalizedDueDate = date.toISOString();
+        console.log(`[createTask] Data normalizada: ${normalizedDueDate}`);
+      } else {
+        console.error(`[createTask] ERRO: Data inválida fornecida: ${dueDate}`);
+      }
     } catch (error) {
-      console.error(`[createTask] Erro ao processar data: ${error}`)
+      console.error(`[createTask] Erro ao processar data: ${error}`);
     }
   }
 
   const [task] = await sql`
     INSERT INTO todos (user_id, title, description, due_date, priority, created_at)
-    VALUES (${userId}, ${title}, ${description}, ${dueDate}, ${priority}, ${now})
+    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now})
     RETURNING *
   `
 
@@ -119,17 +139,19 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
   
   console.log(`[updateTask] Atualizando tarefa ${taskId} para usuário ${userId}`);
   
-  // Diagnóstico de data
+  // Normalizar a data de vencimento para 23:59:59
   if (updates.due_date !== undefined) {
-    console.log(`[updateTask] Nova data: ${updates.due_date}`);
+    console.log(`[updateTask] Data original: ${updates.due_date}`);
     try {
       if (updates.due_date !== null) {
         const date = new Date(updates.due_date);
-        console.log(`[updateTask] Data convertida: ${date.toString()}`);
-        console.log(`[updateTask] Horário: ${date.getHours()}:${date.getMinutes()}`);
-        
-        // Verificar se a data está em formato válido
-        if (isNaN(date.getTime())) {
+        // Verificar se a data é válida
+        if (!isNaN(date.getTime())) {
+          // Definir o horário para 23:59:59
+          date.setHours(23, 59, 59, 999);
+          updates.due_date = date.toISOString();
+          console.log(`[updateTask] Data normalizada: ${updates.due_date}`);
+        } else {
           console.error(`[updateTask] ERRO: Data inválida fornecida: ${updates.due_date}`);
         }
       } else {

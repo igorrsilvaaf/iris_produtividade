@@ -156,7 +156,7 @@ export default function PomodoroPage() {
         <p className="text-muted-foreground">{t("focusOnYourTasks")}</p>
       </div>
 
-      <div className={isMobile ? "fixed inset-0 z-50 bg-background" : ""}>
+      <div className={isMobile ? "fixed inset-0 z-50 bg-background flex flex-col" : ""}>
         {isMobile && (
           <div className="flex items-center p-4 border-b">
             <BackButton onClick={() => {
@@ -178,22 +178,22 @@ export default function PomodoroPage() {
           </div>
         )}
 
-        <div className={isMobile ? "p-0 h-[calc(100%-60px)]" : ""}>
-          <Card className={isMobile ? "border-0 shadow-none rounded-none h-full flex flex-col" : ""}>
-            <CardHeader className={`pb-2 ${isMobile ? "px-4 py-3" : ""}`}>
-              <CardTitle className="text-lg">{t("selectTask")}</CardTitle>
-            </CardHeader>
-            <CardContent className={isMobile ? "flex-1 flex flex-col px-4" : ""}>
-              {isLoading ? (
-                <div className="flex justify-center py-4">
-                  <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
-                </div>
-              ) : tasks.length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground">
-                  {t("No tasks available")}
-                </div>
-              ) : (
-                <div className="mb-6">
+        <div className={isMobile ? "flex-1 flex flex-col overflow-hidden" : ""}>
+          {isMobile ? (
+            <div className="flex flex-col h-full">
+              <div className="px-4 py-3 border-b">
+                <h3 className="text-lg font-semibold">{t("selectTask")}</h3>
+              </div>
+              <div className="p-4">
+                {isLoading ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                  </div>
+                ) : tasks.length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    {t("No tasks available")}
+                  </div>
+                ) : (
                   <Select
                     value={selectedTaskId ? selectedTaskId.toString() : "none"}
                     onValueChange={(value) => {
@@ -222,17 +222,72 @@ export default function PomodoroPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-              )}
-              
-              <div className={`mt-6 ${isMobile ? "flex-1 flex items-center justify-center" : ""}`}>
+                )}
+              </div>
+              <div className="flex-1 flex items-center justify-center p-4">
                 <PomodoroTimer
                   initialSettings={pomodoroSettings}
                   selectedTaskId={selectedTaskId}
+                  fullScreen={true}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          ) : (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">{t("selectTask")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                  </div>
+                ) : tasks.length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    {t("No tasks available")}
+                  </div>
+                ) : (
+                  <div className="mb-6">
+                    <Select
+                      value={selectedTaskId ? selectedTaskId.toString() : "none"}
+                      onValueChange={(value) => {
+                        const taskId = value !== "none" ? parseInt(value) : null
+                        setSelectedTaskId(taskId)
+                        
+                        // Update the URL with the selected task ID
+                        const url = new URL(window.location.href)
+                        if (taskId) {
+                          url.searchParams.set("taskId", taskId.toString())
+                        } else {
+                          url.searchParams.delete("taskId")
+                        }
+                        window.history.pushState({}, "", url.toString())
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectATask")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">{t("noTask")}</SelectItem>
+                        {tasks.map((task) => (
+                          <SelectItem key={task.id} value={task.id.toString()}>
+                            {task.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                <div className="mt-6">
+                  <PomodoroTimer
+                    initialSettings={pomodoroSettings}
+                    selectedTaskId={selectedTaskId}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
