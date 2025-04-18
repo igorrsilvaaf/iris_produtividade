@@ -62,10 +62,17 @@ export async function requireAuth() {
   return session
 }
 
-export async function createSession(userId: number): Promise<string> {
+export async function createSession(userId: number, rememberMe: boolean = false): Promise<string> {
   const sessionToken = crypto.randomUUID()
   const expires = new Date()
-  expires.setDate(expires.getDate() + 30) // 30 days from now
+  
+  if (rememberMe) {
+    expires.setDate(expires.getDate() + 30)
+    console.log(`Criando sessão para usuário ${userId} com "Lembrar de mim" ativado. Expiração: ${expires.toISOString()}`)
+  } else {
+    expires.setHours(expires.getHours() + 24)
+    console.log(`Criando sessão para usuário ${userId} sem "Lembrar de mim". Expiração: ${expires.toISOString()}`)
+  }
 
   await sql`
   INSERT INTO sessions (user_id, session_token, expires)
@@ -148,29 +155,24 @@ export async function logout() {
   cookieStore.delete("session_token")
 }
 
-// Função para criar um token de reset de senha
 export async function createPasswordResetToken(email: string): Promise<string | null> {
-  // Verificar se o e-mail existe
   const users = await sql`
     SELECT id FROM users WHERE email = ${email}
   `
 
   if (!users || users.length === 0) {
-    // Não retornamos erro para evitar vazamento de informações sobre quais emails existem
     return null
   }
 
   const userId = users[0].id
   const resetToken = crypto.randomUUID()
   const expires = new Date()
-  expires.setHours(expires.getHours() + 1) // 1 hora para expirar
+  expires.setHours(expires.getHours() + 1)
 
-  // Excluir qualquer token existente para este usuário
   await sql`
     DELETE FROM password_reset_tokens WHERE user_id = ${userId}
   `
 
-  // Criar novo token
   await sql`
     INSERT INTO password_reset_tokens (user_id, token, expires)
     VALUES (${userId}, ${resetToken}, ${expires.toISOString()})
@@ -179,7 +181,6 @@ export async function createPasswordResetToken(email: string): Promise<string | 
   return resetToken
 }
 
-// Função para verificar a validade do token de reset
 export async function verifyPasswordResetToken(token: string): Promise<number | null> {
   try {
     const tokens = await sql`
@@ -199,7 +200,6 @@ export async function verifyPasswordResetToken(token: string): Promise<number | 
   }
 }
 
-// Função para atualizar a senha do usuário após validação do token
 export async function resetPassword(token: string, newPassword: string): Promise<boolean> {
   const userId = await verifyPasswordResetToken(token)
 
@@ -215,12 +215,10 @@ export async function resetPassword(token: string, newPassword: string): Promise
       WHERE id = ${userId}
     `
 
-    // Remover o token usado
     await sql`
       DELETE FROM password_reset_tokens WHERE token = ${token}
     `
 
-    // Invalidar todas as sessões existentes para este usuário
     await sql`
       DELETE FROM sessions WHERE user_id = ${userId}
     `

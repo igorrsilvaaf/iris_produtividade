@@ -4,6 +4,12 @@ import { useEffect } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { useTranslation } from '@/lib/i18n'
 
+declare global {
+  interface Window {
+    safeClipboardWrite?: (text: string) => Promise<void>;
+  }
+}
+
 export function ServiceWorkerRegistration() {
   const { toast } = useToast()
   const { t } = useTranslation()
@@ -29,28 +35,21 @@ export function ServiceWorkerRegistration() {
       console.log("Service Workers não são suportados neste navegador.");
     }
 
-    // Shim para navegadores que não suportam clipboard
-    if (!navigator.clipboard) {
-      navigator.clipboard = {
-        writeText: function(text) {
-          // Implementação de fallback que não faz nada e retorna uma promessa resolvida
-          console.warn("API Clipboard não é suportada neste navegador");
-          return Promise.resolve();
-        },
-        readText: function() {
-          console.warn("API Clipboard não é suportada neste navegador");
-          return Promise.resolve("");
-        }
-      } as any;
-    }
+    const safeClipboardWrite = async (text: string): Promise<void> => {
+      if (navigator.clipboard) {
+        return navigator.clipboard.writeText(text);
+      } else {
+        console.warn("API Clipboard não é suportada neste navegador");
+        return Promise.resolve();
+      }
+    };
 
-    // Verificar permissão de notificação existente
+    window.safeClipboardWrite = safeClipboardWrite;
+
     if ('Notification' in window) {
-      // Se já temos permissão, não precisamos fazer nada
       if (Notification.permission === 'granted') {
         console.log('Permissão para notificações já concedida')
       }
-      // Se as permissões foram negadas, informar ao usuário
       else if (Notification.permission === 'denied') {
         console.log('Permissão para notificações foi negada pelo usuário')
       }
@@ -58,7 +57,6 @@ export function ServiceWorkerRegistration() {
       console.log('Este navegador não suporta notificações desktop')
     }
 
-    // Limpar o listener quando o componente for desmontado
     return () => {
       window.removeEventListener('load', () => {})
     }

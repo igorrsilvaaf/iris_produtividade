@@ -135,7 +135,6 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
         throw new Error("Failed to remove label from task")
       }
 
-      // Atualizar o estado local em vez de fazer nova requisição
       setLabels(labels.filter((label) => label.id !== labelId))
 
       toast({
@@ -143,7 +142,6 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
         description: t("Label has been removed from the task successfully."),
       })
 
-      // Remover o router.refresh() para evitar múltiplas chamadas de API
     } catch (error) {
       console.error(`[TaskLabels] Erro ao remover label:`, error);
       toast({
@@ -157,7 +155,6 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
   const handleCreateLabelSuccess = () => {
     setShowCreateLabel(false)
 
-    // Atualizar todas as etiquetas sem triggar refresh
     fetch("/api/labels")
       .then((response) => response.json())
       .then((data) => {

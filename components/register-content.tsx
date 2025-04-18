@@ -12,7 +12,6 @@ export function RegisterContent() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    // Ajustar layout para telas muito grandes
     const handleResize = () => {
       const isVeryLargeScreen = window.innerWidth >= 1920;
       document.body.classList.toggle('very-large-screen', isVeryLargeScreen);

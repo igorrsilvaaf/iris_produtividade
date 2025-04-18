@@ -169,11 +169,9 @@ export function PomodoroSettings({ open, onOpenChange, onSave }: PomodoroSetting
     });
   }
 
-  // Reproduzir som de prévia
   const handlePlaySound = (soundName: string) => {
     console.log("PomodoroSettings - Testando som:", soundName);
     
-    // Se for "none", não tocar nenhum som
     if (soundName === 'none') {
       console.log("Nenhum som será reproduzido");
       return;

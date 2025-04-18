@@ -38,8 +38,6 @@ const formSchema = z.object({
     .int({ message: "Deve ser um número inteiro" })
     .default(3)
     .transform(val => {
-      console.log("Zod transformando task_notification_days:", val, "tipo:", typeof val);
-      // Garantir que é um número
       const parsed = parseInt(String(val), 10);
       return isNaN(parsed) ? 3 : parsed;
     }),
@@ -53,19 +51,16 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
   const { playSound } = useAudioPlayer()
   const [isLoading, setIsLoading] = useState(false)
 
-  // Sincronizar o idioma do formulário com o idioma atual
   useEffect(() => {
     if (settings.language && (settings.language === "en" || settings.language === "pt")) {
       setLanguage(settings.language as "en" | "pt")
     }
   }, [settings.language, setLanguage])
 
-  // Função para definir cookie diretamente
   function setCookie(name: string, value: string) {
     document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Lax`
   }
   
-  // Função para limpar um cookie
   function clearCookie(name: string) {
     document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`
   }
@@ -92,16 +87,12 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
     setIsLoading(true)
     
     try {
-      // Garantir que task_notification_days seja um número
       const processedValues = {
         ...values,
         task_notification_days: typeof values.task_notification_days === 'string' 
           ? parseInt(values.task_notification_days, 10) 
           : values.task_notification_days
       };
-      
-      console.log("Atualizando configurações:", processedValues);
-      console.log("Dias de notificação enviados:", processedValues.task_notification_days, "tipo:", typeof processedValues.task_notification_days);
       
       const response = await fetch("/api/settings", {
         method: "PATCH",
@@ -119,35 +110,26 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
       console.log("Configurações atualizadas com sucesso:", result);
       console.log("Dias de notificação retornados:", result.settings?.task_notification_days);
 
-      // Update theme if changed
       if (values.theme !== settings.theme) {
         setTheme(values.theme)
       }
 
-      // Update language if changed
       if (values.language !== language) {
         console.log(`Alterando idioma de ${language} para ${values.language}`);
         
-        // Atualizar o idioma na store do Zustand
         setLanguage(values.language)
         
-        // Limpar cookies antigos de idioma
         clearCookie("language-storage")
         
-        // Definir o novo cookie de idioma com opções mais seguras
         document.cookie = `user-language=${values.language}; path=/; max-age=31536000; SameSite=Strict`;
         
         console.log("Cookies de idioma atualizados:");
         console.log(document.cookie.split(';').filter(c => c.trim().startsWith('user-language') || c.trim().startsWith('language-storage')));
         
-        // Atualizar o atributo lang no documento HTML
         document.documentElement.lang = values.language === 'en' ? 'en' : 'pt-BR';
       }
 
-      // Tocar um som de sucesso se os sons estiverem habilitados
       if (values.enable_sound) {
-        // Aqui estava tocando sempre o som fixo 'success' que não existe
-        // Vamos tocar o som de notificação escolhido pelo usuário para que ele possa testar
         if (values.notification_sound !== 'none') {
           console.log("Tocando som após salvar configurações:", values.notification_sound);
           playSound(values.notification_sound);
@@ -156,16 +138,13 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
         }
       }
 
-      // Mostrar notificação de sucesso
       toast({
         title: t("Settings updated"),
         description: t("Your settings have been updated successfully."),
         variant: "success",
-        duration: 5000,
-        position: "top-right"
+        duration: 5000
       })
 
-      // Forçar um refresh para garantir que todas as alterações sejam aplicadas
       setTimeout(() => {
         router.refresh();
       }, 500);
@@ -181,7 +160,6 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
     }
   }
 
-  // Request notification permission if enabled
   const requestNotificationPermission = async () => {
     if (Notification.permission !== "granted") {
       const permission = await Notification.requestPermission()

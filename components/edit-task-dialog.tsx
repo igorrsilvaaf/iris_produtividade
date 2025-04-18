@@ -67,18 +67,17 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
       dueDate: task.due_date ? new Date(task.due_date) : undefined,
       dueTime: task.due_date 
         ? new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
-          ? "12:00" // Se for dia todo (00:00), define um horário padrão para o seletor
+          ? "12:00"
           : new Date(task.due_date).toTimeString().slice(0, 5)
         : "12:00",
       isAllDay: task.due_date 
         ? new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
         : true,
       priority: task.priority.toString(),
-      projectId: "noProject", // Valor padrão, será atualizado após carregar da API
+      projectId: "noProject",
     },
   })
 
-  // Buscar o projeto da tarefa quando o diálogo for aberto
   useEffect(() => {
     const fetchTaskProject = async () => {
       if (!open || !task.id) return;
@@ -122,7 +121,6 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
   const handleCreateProjectSuccess = () => {
     setShowCreateProject(false)
-    // Refresh projects
     fetch("/api/projects")
       .then((response) => response.json())
       .then((data) => {
@@ -135,18 +133,15 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Prepare due date with time
       let dueDateWithTime = null;
       
       if (values.dueDate) {
         if (values.isAllDay) {
-          // Para o dia todo, força horário 00:00 UTC
           const date = new Date(values.dueDate);
           date.setHours(0, 0, 0, 0);
           dueDateWithTime = date.toISOString();
           console.log('[EditTask] Data para dia todo:', dueDateWithTime);
         } else if (values.dueTime) {
-          // Combina data e hora
           const date = new Date(values.dueDate);
           const [hours, minutes] = values.dueTime.split(':').map(Number);
           date.setHours(hours, minutes, 0, 0);
@@ -155,7 +150,6 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         }
       }
 
-      // Atualiza os detalhes da tarefa
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -171,7 +165,6 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         throw new Error("Failed to update task details");
       }
 
-      // Atualiza o projeto da tarefa
       const projectId = values.projectId && values.projectId !== "noProject" 
         ? Number.parseInt(values.projectId) 
         : null;
@@ -296,7 +289,6 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                             selected={field.value} 
                             onSelect={(date) => {
                               field.onChange(date);
-                              // Não fechamos o popover, permitindo ajustes adicionais
                             }}
                             initialFocus 
                             disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
@@ -313,14 +305,11 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                                       checked={field.value}
                                       onCheckedChange={(checked) => {
                                         field.onChange(checked);
-                                        // Se ativar "dia todo", atualiza o horário para 00:00
                                         if (checked) {
                                           form.setValue("dueTime", "00:00");
                                         } else {
-                                          // Se desativar, volta para 12:00 ou o horário atual
                                           form.setValue("dueTime", "12:00");
                                         }
-                                        // Força uma re-renderização para dispositivos iOS
                                         if (typeof window !== 'undefined') {
                                           setTimeout(() => {
                                             form.trigger("dueTime");
@@ -348,34 +337,27 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                                       type="text" 
                                       value={field.value || "12:00"}
                                       onChange={(e) => {
-                                        // Allow direct typing with validation
                                         const value = e.target.value;
-                                        // Basic validation for time format
                                         if (!value || /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value) || /^([0-1]?[0-9]|2[0-3]):[0-5]?$/.test(value) || /^([0-1]?[0-9]|2[0-3])?$/.test(value)) {
                                           field.onChange(value || "12:00");
                                         }
                                       }}
                                       onBlur={(e) => {
-                                        // Format properly on blur
                                         let value = e.target.value;
                                         if (!value) {
                                           field.onChange("12:00");
                                           return;
                                         }
                                         
-                                        // If just hours entered, add minutes
                                         if (/^([0-1]?[0-9]|2[0-3])$/.test(value)) {
                                           value = `${value}:00`;
                                         }
                                         
-                                        // If valid time format, keep it
                                         if (/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
-                                          // Ensure 2-digit format for hours and minutes
                                           const [hours, minutes] = value.split(':');
                                           const formattedTime = `${hours.padStart(2, '0')}:${minutes}`;
                                           field.onChange(formattedTime);
                                         } else {
-                                          // Revert to default if invalid
                                           field.onChange("12:00");
                                         }
                                       }}
@@ -449,10 +431,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                       <div className="flex items-center justify-between p-2 border rounded">
                         <div className="flex items-center">
                           <div
-                            className="w-4 h-4 rounded-full mr-2"
-                            style={{ 
-                              backgroundColor: projects.find(p => p.id.toString() === field.value)?.color || "#ccc" 
-                            }}
+                            className={`w-4 h-4 rounded-full mr-2 bg-[${projects.find(p => p.id.toString() === field.value)?.color || "#ccc"}]`}
                           />
                           <span>{projects.find(p => p.id.toString() === field.value)?.name || t("Unknown project")}</span>
                         </div>
@@ -507,8 +486,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                               >
                                 <div className="flex items-center">
                                   <div
-                                    className="w-4 h-4 rounded-full mr-2"
-                                    style={{ backgroundColor: project.color }}
+                                    className={`w-4 h-4 rounded-full mr-2 bg-[${project.color}]`}
                                   />
                                   <span>{project.name}</span>
                                 </div>

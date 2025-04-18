@@ -47,8 +47,9 @@ export function LoginForm() {
     setIsLoading(true)
 
     try {
-      // Capturar o idioma atual para enviá-lo ao servidor
       const currentLanguage = (language && ["pt", "en"].includes(language)) ? language : "pt"
+      
+      console.log("Tentando login com rememberMe:", values.rememberMe)
       
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -64,7 +65,6 @@ export function LoginForm() {
       if (!response.ok) {
         setLoginAttempts(prev => prev + 1)
         
-        // Translate error messages from the server
         let errorMessage = "";
         if (data.message.includes("Invalid email or password")) {
           errorMessage = loginAttempts >= 2 
@@ -77,7 +77,6 @@ export function LoginForm() {
         throw new Error(errorMessage);
       }
 
-      // Reset login attempts on successful login
       setLoginAttempts(0)
       
       toast({

@@ -31,7 +31,6 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const { toast } = useToast()
   const { t } = useTranslation()
 
-  // Validar o token na montagem do componente
   useEffect(() => {
     const verifyToken = async () => {
       try {

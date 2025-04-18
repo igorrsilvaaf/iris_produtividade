@@ -3,7 +3,10 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar as CalendarIcon, Flag, Trash, Clock, X, Save, Edit, CheckSquare, Square, Link, Plus, Timer, ArrowLeft } from "lucide-react"
+import { 
+  CalendarIcon, Flag, Tag, X, FilePlus, Trash, MoreHorizontal, Clock, 
+  TimerOff, Timer, Check, Plus, Save, Edit, CheckSquare, Square, Link, ArrowLeft
+} from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
 import { useTranslation } from "@/lib/i18n"
@@ -42,7 +45,6 @@ interface TaskDetailProps {
   onOpenChange: (open: boolean) => void
 }
 
-// Helper function to safely check if date is all-day (00:00)
 function isAllDayDate(dateString: string | null): boolean {
   if (!dateString) return true;
   try {
@@ -53,7 +55,6 @@ function isAllDayDate(dateString: string | null): boolean {
   }
 }
 
-// Helper function to safely extract time from date
 function getTimeFromDate(dateString: string | null): string {
   if (!dateString) return "12:00";
   try {
@@ -72,7 +73,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const [dueTime, setDueTime] = useState<string | undefined>(
     task.due_date
       ? new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
-        ? "12:00" // Se for dia todo (00:00), define um horário padrão para o seletor
+        ? "12:00"
         : new Date(task.due_date).toTimeString().slice(0, 5)
       : "12:00"
   )
@@ -98,7 +99,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const { toast } = useToast()
   const { t } = useTranslation()
 
-  // Buscar o projeto da tarefa
   useEffect(() => {
     const fetchTaskProject = async () => {
       if (!open || task.id === undefined) return;
@@ -130,14 +130,11 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
   useEffect(() => {
     if (open) {
-      // Reset to view mode when opening, unless isEditMode is specified in the task
       setIsEditMode(task.isEditMode === true)
       
-      // Reset form values to task values
       setTitle(task.title)
       setDescription(task.description || "")
       
-      // Ajustar a data de vencimento corretamente
       if (task.due_date) {
         console.log(`[TaskDetail] Data da tarefa: ${task.due_date}`)
         try {
@@ -145,7 +142,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           setDueDate(dueDate)
           setDueTime(
             dueDate.getHours() === 0 && dueDate.getMinutes() === 0
-              ? "12:00" // horário padrão para tarefas de dia inteiro
+              ? "12:00"
               : dueDate.toTimeString().slice(0, 5)
           )
           setIsAllDay(dueDate.getHours() === 0 && dueDate.getMinutes() === 0)
@@ -175,7 +172,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           const data = await response.json();
           setProjects(data.projects);
           
-          // Se tiver um projectId, busque o nome do projeto
           if (projectId) {
             const project = data.projects.find((p: Project) => p.id.toString() === projectId);
             if (project) {
@@ -195,7 +191,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
   const handleCreateProjectSuccess = () => {
     setShowCreateProject(false);
-    // Refresh projects
     fetch("/api/projects")
       .then((response) => response.json())
       .then((data) => {
@@ -212,18 +207,15 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     try {
       console.log(`[TaskDetail] Salvando alterações para tarefa ${task.id}`);
 
-      // Prepare due date
       let dueDateWithTime = null;
       
       if (dueDate) {
         if (isAllDay) {
-          // For all day events, set time to midnight UTC
           const date = new Date(dueDate);
           date.setHours(0, 0, 0, 0);
           dueDateWithTime = date.toISOString();
           console.log(`[TaskDetail] Data para dia todo: ${dueDateWithTime}, objeto date: ${date.toString()}`);
         } else if (dueTime) {
-          // Combine date and time
           const date = new Date(dueDate);
           const [hours, minutes] = dueTime.split(':').map(Number);
           date.setHours(hours, minutes, 0, 0);
@@ -237,7 +229,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       console.log(`[TaskDetail] Nova descrição: "${description}"`);
       console.log(`[TaskDetail] Descrição está vazia: ${description === ""}`);
 
-      // First, update task details
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -250,107 +241,97 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       });
 
       if (!taskResponse.ok) {
-        const errorData = await taskResponse.json();
-        console.error(`[TaskDetail] Erro ao atualizar tarefa:`, errorData);
-        throw new Error("Failed to update task");
+        throw new Error("Failed to update task details");
       }
 
-      // Get the updated task data
-      const updatedTaskData = await taskResponse.json();
-      console.log(`[TaskDetail] Resposta da atualização:`, updatedTaskData);
+      console.log(`[TaskDetail] Resposta da API para atualização de detalhes da tarefa:`, taskResponse.status);
+      console.log(`[TaskDetail] ID do projeto atual:`, projectId);
 
-      // Then, update the task project if needed
-      const projectIdInt = projectId ? parseInt(projectId, 10) : null;
-      
-      console.log(`[TaskDetail] Atualizando projeto para tarefa ${task.id} para ${projectIdInt}`);
+      const updatedTaskData = await taskResponse.json();
+      console.log(`[TaskDetail] Dados atualizados da tarefa:`, updatedTaskData);
+
+      const currentProjectId = projectId ? Number.parseInt(projectId) : null;
       
       const projectResponse = await fetch(`/api/tasks/${task.id}/project`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          projectId: projectIdInt,
+          projectId: currentProjectId,
         }),
-      })
+      });
 
       if (!projectResponse.ok) {
-        const errorData = await projectResponse.json();
-        console.error(`[TaskDetail] Erro ao atualizar projeto:`, errorData);
-        throw new Error("Failed to update task project")
+        throw new Error("Failed to update task project");
       }
 
-      // Update project name in local state
-      if (projectIdInt) {
-        const selectedProject = projects.find(p => p.id === projectIdInt);
-        if (selectedProject) {
-          setProjectName(selectedProject.name);
+      console.log(`[TaskDetail] Projeto atualizado com sucesso:`, currentProjectId);
+      
+      if (currentProjectId) {
+        const project = projects.find(p => p.id === currentProjectId);
+        if (project) {
+          setProjectName(project.name);
         }
       } else {
         setProjectName("");
       }
 
-      toast({
-        title: t("taskUpdated"),
-        description: t("Task has been updated successfully."),
-      })
-
-      // Exit edit mode
-      setIsEditMode(false)
+      setIsEditMode(false);
       
-      // Force refresh to reflect changes
       router.refresh();
+
+      toast({
+        title: t("Task updated"),
+        description: t("Your task has been updated successfully."),
+        variant: "success",
+      });
     } catch (error) {
-      console.error(`[TaskDetail] Erro ao salvar tarefa:`, error);
+      console.error(`[TaskDetail] Erro ao salvar alterações:`, error);
       toast({
         variant: "destructive",
         title: t("Failed to update task"),
         description: t("Please try again."),
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
   const handleDelete = async () => {
-    setIsDeleting(true)
-
+    if (!task.id) return;
+    
+    setIsDeleting(true);
+    
     try {
-      console.log(`[TaskDetail] Excluindo tarefa ${task.id}`);
-      
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: "DELETE",
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to delete task")
-      }
-
-      toast({
-        title: t("taskDeleted"),
-        description: t("Task has been deleted successfully."),
-      })
-
-      // Fechar o modal sem causar recargas adicionais
-      onOpenChange(false)
+      });
       
-      // Atualização seletiva sem recarregar a página inteira
-      if (typeof window !== 'undefined') {
-        console.log(`[TaskDetail] Tarefa ${task.id} excluída com sucesso`);
-        // Damos um pequeno atraso antes de redirecionar para garantir que o toast seja exibido
-        setTimeout(() => {
-          router.refresh();
-        }, 500);
+      if (!response.ok) {
+        throw new Error("Failed to delete task");
       }
+      
+      onOpenChange(false);
+      
+      toast({
+        title: t("Task deleted"),
+        description: t("Your task has been deleted successfully."),
+        variant: "success",
+      });
+      
+      setTimeout(() => {
+        router.refresh();
+      }, 300);
     } catch (error) {
       console.error(`[TaskDetail] Erro ao excluir tarefa:`, error);
       toast({
         variant: "destructive",
         title: t("Failed to delete task"),
         description: t("Please try again."),
-      })
+      });
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   const getPriorityColor = (p: string) => {
     switch (p) {
@@ -380,51 +361,36 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }
 
-  // Função para alternar estado do checkbox na descrição
   const toggleCheckboxInDescription = (index: number) => {
-    if (isEditMode) return; // Não permitir alterações no modo de edição
+    if (isEditMode) return;
     
-    console.log(`Alternando checkbox ${index} na descrição`);
-    
-    // Encontrar todos os checkboxes na descrição
-    const checkboxRegex = /\[([ x]?)\]/g;
-    let checkboxPositions = [];
+    const regex = /\[([x ])\]/g;
     let match;
+    const checkboxPositions = [];
     
-    // Primeiro, encontre todas as posições de checkbox no texto
-    while ((match = checkboxRegex.exec(description)) !== null) {
-      const isChecked = match[1] === 'x' || match[1] === 'X';
+    while ((match = regex.exec(description)) !== null) {
       checkboxPositions.push({
-        index: match.index,
-        length: match[0].length,
-        isChecked
+        position: match.index,
+        checked: match[1] === 'x'
       });
     }
     
-    console.log(`Encontrados ${checkboxPositions.length} checkboxes na descrição`);
-    
-    // Verificar se temos o índice solicitado
-    if (index >= 0 && index < checkboxPositions.length) {
-      const targetCheckbox = checkboxPositions[index];
-      
-      // Criar a nova descrição com o checkbox alternado
-      const before = description.substring(0, targetCheckbox.index);
-      const after = description.substring(targetCheckbox.index + targetCheckbox.length);
-      const newCheckbox = targetCheckbox.isChecked ? '[ ]' : '[x]';
-      
-      const newDescription = before + newCheckbox + after;
-      
-      console.log(`Checkbox alternado de ${targetCheckbox.isChecked ? '[x]' : '[ ]'} para ${newCheckbox}`);
-      
-      // Atualiza o estado e salva no servidor
-      setDescription(newDescription);
-      updateTaskDescription(newDescription);
-    } else {
-      console.error(`Índice de checkbox inválido: ${index}, total de checkboxes: ${checkboxPositions.length}`);
+    if (index >= checkboxPositions.length) {
+      return;
     }
+    
+    const position = checkboxPositions[index];
+    const newDescription = description.substring(0, position.position + 1) + 
+      (position.checked ? ' ' : 'x') + 
+      description.substring(position.position + 2);
+    
+    setDescription(newDescription);
+    
+    setTimeout(() => {
+      updateTaskDescription(newDescription);
+    }, 100);
   };
   
-  // Function to update task description on the server
   const updateTaskDescription = async (newDescription: string) => {
     try {
       console.log(`[TaskDetail] Atualizando descrição da tarefa ${task.id}:`, newDescription);
@@ -434,7 +400,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // Enviamos a descrição exatamente como está, mesmo que vazia
           description: newDescription,
         }),
       });
@@ -445,7 +410,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         throw new Error("Failed to update task description");
       }
       
-      // Get the updated task data
       const updatedData = await response.json();
       console.log(`[TaskDetail] Descrição atualizada com sucesso:`, updatedData);
       
@@ -454,7 +418,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Checklist item has been updated."),
       });
       
-      // Refresh the view
       router.refresh();
     } catch (error) {
       console.error(`[TaskDetail] Erro ao atualizar descrição:`, error);
@@ -466,11 +429,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   };
   
-  // Função para renderizar a descrição com checkboxes interativos
   const renderDescription = () => {
     if (!description) return <p className="text-muted-foreground">{t("No description")}</p>;
     
-    // Primeiro, encontre todos os checkboxes para termos a contagem global
     const allCheckboxes = [];
     const checkboxRegex = /\[([ x]?)\]/g;
     let match;
@@ -485,22 +446,16 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     
     console.log(`Total de checkboxes encontrados: ${allCheckboxes.length}`);
     
-    // Divide a descrição em linhas
     let globalCheckboxIndex = 0;
     return description.split('\n').map((line, lineIndex) => {
-      // Se a linha estiver vazia, retorna um <br>
       if (line.trim() === '') {
         return <br key={`empty-line-${lineIndex}`} />;
       }
       
-      // Verifica se a linha começa com traço (bullet point)
       const isBullet = line.trim().match(/^-\s(.+)$/);
       if (isBullet) {
-        // Extrai o conteúdo após o traço
         const bulletContent = isBullet[1];
-        // Processamos o conteúdo normal, mas com um estilo de bullet point
         const processedContent = processBulletContent(bulletContent, lineIndex, globalCheckboxIndex);
-        // Atualiza o índice global com base em quantos checkboxes foram encontrados na linha
         globalCheckboxIndex += processedContent.checkboxCount;
         
         return (
@@ -511,9 +466,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         );
       }
       
-      // Processamento de checkboxes e links para linhas normais
       const processedLine = processLineContent(line, lineIndex, globalCheckboxIndex);
-      // Atualiza o índice global
       globalCheckboxIndex += processedLine.checkboxCount;
       
       return (
@@ -524,29 +477,23 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     });
   };
   
-  // Processa o conteúdo de um bullet point
   const processBulletContent = (content: string, lineIndex: number, startCheckboxIndex: number) => {
     return processLineContent(content, lineIndex, startCheckboxIndex);
   };
   
-  // Processa o conteúdo de uma linha (checkboxes e URLs)
   const processLineContent = (line: string, lineIndex: number, startCheckboxIndex: number) => {
     let segments = [];
     let lastIndex = 0;
     let checkboxCount = 0;
     let segmentIndex = 0;
     
-    // Regex para checkboxes e URLs
     const combinedRegex = /(\[([ x]?)\]|https?:\/\/[^\s]+)/g;
     let match;
     let lastCheckbox = null;
     
-    // Para cada checkbox ou URL na linha
     while ((match = combinedRegex.exec(line)) !== null) {
-      // Adiciona o texto antes do match
       if (match.index > lastIndex) {
         const textSegment = line.substring(lastIndex, match.index);
-        // Se o último elemento foi um checkbox marcado, aplica o estilo taxado
         if (lastCheckbox && lastCheckbox.isChecked) {
           segments.push(
             <span 
@@ -559,15 +506,13 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         } else {
           segments.push(<span key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}>{textSegment}</span>);
         }
-        lastCheckbox = null; // Reseta após processar o texto
+        lastCheckbox = null;
       }
       
-      // Verifica se é um checkbox
       if (match[0].startsWith('[')) {
         const isChecked = match[2] === 'x' || match[2] === 'X';
         const currentCheckboxIndex = startCheckboxIndex + checkboxCount;
         
-        // Adiciona checkbox interativo com ícones menores e brancos
         segments.push(
           <span key={`checkbox-${lineIndex}-${match.index}-${segmentIndex++}`} className="inline-flex items-center align-middle">
             <button
@@ -589,11 +534,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           </span>
         );
         
-        // Guarda informação sobre este checkbox para aplicar estilo no texto que segue
         lastCheckbox = { isChecked };
         checkboxCount++;
       } 
-      // Se for uma URL
       else if (match[0].match(/https?:\/\//)) {
         segments.push(
           <a 
@@ -611,7 +554,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       lastIndex = match.index + match[0].length;
     }
     
-    // Adiciona o texto restante após o último match
     if (lastIndex < line.length) {
       const restText = line.substring(lastIndex);
       if (lastCheckbox && lastCheckbox.isChecked) {
@@ -628,22 +570,18 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       }
     }
     
-    // Retorna os segmentos e a contagem de checkboxes
     return {
       content: segments.length > 0 ? segments : line,
       checkboxCount
     };
   };
 
-  // Adicionar efeito para limpar variáveis relacionadas à data quando a data é alterada
   useEffect(() => {
     if (dueTimeUpdate) {
       setDueTimeUpdate(false);
-      // Se houve atualização do horário, podemos usar aqui para atualizar a visualização se necessário
     }
   }, [dueTimeUpdate]);
 
-  // Efeito para verificar se a data está correta quando o modal é aberto
   useEffect(() => {
     if (open && task.due_date) {
       console.log(`[TaskDetail] Verificando data ao abrir: ${task.due_date}`);
@@ -663,49 +601,61 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     onOpenChange(false);
   }
 
-  // Função para alternar o status de conclusão da tarefa
   const toggleCompletion = async () => {
     try {
-      const newStatus = !task.completed;
-      const response = await fetch(`/api/tasks/${task.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ completed: newStatus }),
+      const response = await fetch(`/api/tasks/${task.id}/complete`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completed: !task.completed,
+        }),
       });
 
-      if (response.ok) {
-        // Não precisamos atualizar o estado aqui pois o componente será recarregado
-        toast({
-          title: newStatus ? t("Task completed") : t("Task uncompleted"),
-          description: newStatus ? t("The task has been marked as complete.") : t("The task has been marked as incomplete."),
-        });
-        
-        // Forçar atualização para refletir a mudança
-        router.refresh();
-      } else {
-        toast({
-          variant: "destructive",
-          title: t("Failed to update task"),
-          description: t("Please try again later."),
-        });
+      if (!response.ok) {
+        throw new Error("Failed to update task completion status");
       }
+      
+      router.refresh();
+      
+      toast({
+        title: task.completed ? t("Task marked as incomplete") : t("Task marked as complete"),
+        variant: "success",
+      });
     } catch (error) {
-      console.error("Error toggling task completion:", error);
+      console.error(`[TaskDetail] Erro ao atualizar status de conclusão:`, error);
       toast({
         variant: "destructive",
         title: t("Failed to update task"),
-        description: t("Please try again later."),
+        description: t("Please try again."),
       });
     }
   };
+
+  const handleCloseWithoutSaving = useCallback(() => {
+    if (isEditMode) {
+      setIsEditMode(false);
+      setTitle(task.title);
+      setDescription(task.description || "");
+      
+      if (task.due_date) {
+        const dueDate = new Date(task.due_date);
+        setDueDate(dueDate);
+        setDueTime(dueDate.toTimeString().slice(0, 5));
+        setIsAllDay(dueDate.getHours() === 0 && dueDate.getMinutes() === 0);
+      } else {
+        setDueDate(undefined);
+        setDueTime("12:00");
+        setIsAllDay(true);
+      }
+      
+      setPriority(task.priority.toString());
+    }
+  }, [isEditMode, task]);
 
   return (
     <Dialog 
       open={open} 
       onOpenChange={(newOpen) => {
-        // If closing, reset edit mode
         if (!newOpen && isEditMode) {
           setIsEditMode(false);
         }
@@ -725,7 +675,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         </DialogHeader>
 
         {isEditMode ? (
-          // Modo de edição
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">
@@ -824,17 +773,17 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                             id="taskDetailAllDay"
                             checked={isAllDay}
                             onCheckedChange={(checked) => {
-                              setIsAllDay(checked === true);
-                              // Se ativar "dia todo", atualiza o horário para 00:00
+                              setIsAllDay(checked);
                               if (checked) {
                                 setDueTime("00:00");
                               } else {
-                                // Se desativar, volta para 12:00 ou o horário atual
-                                setDueTime(dueTime !== "00:00" ? dueTime : "12:00");
+                                setDueTime("12:00");
                               }
-                              setTimeout(() => {
-                                // Forçar atualização
-                              }, 0);
+                              if (typeof window !== 'undefined') {
+                                setTimeout(() => {
+                                  setDueTimeUpdate(!dueTimeUpdate);
+                                }, 0);
+                              }
                             }}
                           />
                           <label className="text-sm font-normal cursor-pointer" htmlFor="taskDetailAllDay">
@@ -947,7 +896,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                       size="sm"
                       className="mt-2"
                     >
-                      <Plus className="mr-1 h-3 w-3" />
+                      <FilePlus className="mr-1 h-3 w-3" />
                       {t("Add Project")}
                     </Button>
                   </DialogTrigger>
@@ -1023,7 +972,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             </div>
           </div>
         ) : (
-          // Modo de visualização
           <div className="space-y-4 py-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -1147,7 +1095,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   disabled={isSaving}
                   className="w-full sm:w-28"
                 >
-                  <Save className="mr-1 h-4 w-4" />
+                  <Check className="mr-1 h-4 w-4" />
                   {isSaving ? t("Saving...") : t("save")}
                 </Button>
               </>
@@ -1157,7 +1105,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 onClick={() => setIsEditMode(true)}
                 className="w-full sm:w-28"
               >
-                <Edit className="mr-1 h-4 w-4" />
+                <Check className="mr-1 h-4 w-4" />
                 {t("edit")}
               </Button>
             )}

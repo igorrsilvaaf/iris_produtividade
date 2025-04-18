@@ -132,12 +132,10 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
     const labelIds = form.getValues("labelIds") || []
 
     if (labelIds.includes(label.id)) {
-      // Remove label
       const updatedLabelIds = labelIds.filter((id) => id !== label.id)
       form.setValue("labelIds", updatedLabelIds)
       setSelectedLabels(selectedLabels.filter((l) => l.id !== label.id))
     } else {
-      // Add label
       form.setValue("labelIds", [...labelIds, label.id])
       setSelectedLabels([...selectedLabels, label])
     }
@@ -152,7 +150,6 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
 
   const handleCreateLabelSuccess = () => {
     setShowCreateLabel(false)
-    // Refresh labels
     fetch("/api/labels")
       .then((response) => response.json())
       .then((data) => {
@@ -165,7 +162,6 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
 
   const handleCreateProjectSuccess = () => {
     setShowCreateProject(false)
-    // Refresh projects
     fetch("/api/projects")
       .then((response) => response.json())
       .then((data) => {
@@ -182,10 +178,8 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
       let dueDateTime = null;
       
       if (values.dueDate) {
-        // Clone da data para evitar problemas de referência
         const date = new Date(values.dueDate);
         
-        // Garantir que a data não esteja no formato inválido
         if (isNaN(date.getTime())) {
           console.error(`[AddTask] Data inválida: ${values.dueDate}`);
           toast({
@@ -200,15 +194,12 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
         console.log(`[AddTask] Processando data: ${date.toString()}`);
         
         if (values.isAllDay) {
-          // Para dia todo, definir para meia-noite UTC
           date.setHours(0, 0, 0, 0);
           dueDateTime = date.toISOString();
           console.log(`[AddTask] Data para dia todo: ${dueDateTime}`);
         } else if (values.dueTime) {
-          // Para hora específica, converter para UTC
           const [hours, minutes] = values.dueTime.split(':').map(Number);
           
-          // Validar o formato da hora
           if (isNaN(hours) || isNaN(minutes)) {
             console.error(`[AddTask] Formato de hora inválido: ${values.dueTime}`);
             toast({
@@ -220,7 +211,6 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
             return;
           }
           
-          // Definir a hora considerando o fuso
           date.setHours(hours, minutes, 0, 0);
           dueDateTime = date.toISOString();
           
@@ -361,7 +351,6 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                             selected={field.value} 
                             onSelect={(date) => {
                               field.onChange(date);
-                              // Não fechamos o popover, permitindo ajustes adicionais
                             }}
                             initialFocus 
                             disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
@@ -378,14 +367,11 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                                       checked={field.value}
                                       onCheckedChange={(checked) => {
                                         field.onChange(checked);
-                                        // Se ativar "dia todo", atualiza o horário para 00:00
                                         if (checked) {
                                           form.setValue("dueTime", "00:00");
                                         } else {
-                                          // Se desativar, volta para 12:00 ou o horário atual
                                           form.setValue("dueTime", "12:00");
                                         }
-                                        // Força uma re-renderização para dispositivos iOS
                                         if (typeof window !== 'undefined') {
                                           setTimeout(() => {
                                             form.trigger("dueTime");
@@ -494,10 +480,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                       <div className="flex items-center justify-between p-2 border rounded">
                         <div className="flex items-center">
                           <div
-                            className="w-4 h-4 rounded-full mr-2"
-                            style={{ 
-                              backgroundColor: projects.find(p => p.id.toString() === field.value)?.color || "#ccc" 
-                            }}
+                            className={`w-4 h-4 rounded-full mr-2 bg-[${projects.find(p => p.id.toString() === field.value)?.color || "#ccc"}]`}
                           />
                           <span>{projects.find(p => p.id.toString() === field.value)?.name || t("Unknown project")}</span>
                         </div>
@@ -552,8 +535,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                               >
                             <div className="flex items-center">
                                   <div
-                                    className="w-4 h-4 rounded-full mr-2"
-                                    style={{ backgroundColor: project.color }}
+                                    className={`w-4 h-4 rounded-full mr-2 bg-[${project.color}]`}
                                   />
                                   <span>{project.name}</span>
                             </div>
@@ -604,11 +586,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                       {selectedLabels.map((label) => (
                         <Badge
                           key={label.id}
-                          style={{
-                            backgroundColor: label.color,
-                            color: label.text_color || "#ffffff",
-                          }}
-                          className="flex items-center gap-1"
+                          className={`flex items-center gap-1 bg-[${label.color}] text-white`}
                         >
                           <Tag className="h-3 w-3" />
                           {label.name}
@@ -660,8 +638,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
                                 >
                                   <div className="flex items-center">
                                     <div
-                                      className="w-4 h-4 rounded-full mr-2"
-                                      style={{ backgroundColor: label.color }}
+                                      className={`w-4 h-4 rounded-full mr-2 bg-[${label.color}]`}
                                     />
                                     <span>{label.name}</span>
                                   </div>

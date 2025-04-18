@@ -300,25 +300,20 @@ export async function searchTasks(userId: number, searchText: string): Promise<T
   }
 
   try {
-    // Normalize search text - garantir case insensitive
     const normalizedSearchText = searchText.toLowerCase().trim();
-    // Criar padrão LIKE com % no início e fim para busca parcial
     const pattern = `%${normalizedSearchText}%`;
     
     console.log(`Buscando tarefas com padrão: "${pattern}"`);
     
-    // Verificar se o usuário existe
     const userCheck = await sql`SELECT id FROM users WHERE id = ${userId} LIMIT 1`;
     if (userCheck.length === 0) {
       console.log(`Usuário com ID ${userId} não encontrado`);
       return [];
     }
     
-    // Verificar se há tarefas para este usuário
     const taskCount = await sql`SELECT COUNT(*) as count FROM todos WHERE user_id = ${userId}`;
     console.log(`Total de tarefas do usuário: ${taskCount[0]?.count || 0}`);
     
-    // Query para encontrar tarefas que correspondam - garantir LOWER nas colunas
     const result = await sql`
       SELECT * 
       FROM todos 
@@ -333,7 +328,6 @@ export async function searchTasks(userId: number, searchText: string): Promise<T
     
     console.log(`Resultados encontrados: ${result.length}`);
     
-    // Se encontramos resultados, buscar informações de projeto
     if (result.length > 0) {
       for (const task of result) {
         const projectInfo = await sql`
@@ -367,7 +361,6 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
   upcomingTasks: Todo[]
 }> {
   try {
-    // Calcular datas relevantes
     const now = new Date();
     const today = new Date(now);
     today.setHours(0, 0, 0, 0);
@@ -378,7 +371,6 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
     const futureDate = new Date(today);
     futureDate.setDate(futureDate.getDate() + daysAhead);
     
-    // Tarefas já vencidas (antes de hoje)
     const overdueTasks = await sql`
       SELECT t.*, p.name as project_name, p.color as project_color
       FROM todos t
@@ -392,7 +384,6 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
       LIMIT 10
     `;
     
-    // Tarefas que vencem hoje
     const dueTodayTasks = await sql`
       SELECT t.*, p.name as project_name, p.color as project_color
       FROM todos t
@@ -407,13 +398,9 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
       LIMIT 10
     `;
     
-    // Tarefas que vencem nos próximos dias (até o limite definido)
-    // Corrigimos a consulta para garantir que recuperamos tarefas futuras
-    // Mesmo quando daysAhead = 1 (que significa apenas incluir amanhã)
     let upcomingTasksQuery;
     
     if (daysAhead === 1) {
-      // Quando daysAhead=1, queremos tarefas de amanhã
       upcomingTasksQuery = await sql`
         SELECT t.*, p.name as project_name, p.color as project_color
         FROM todos t
@@ -427,7 +414,6 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
         LIMIT 10
       `;
     } else {
-      // Para outros valores de daysAhead, usar o intervalo completo
       upcomingTasksQuery = await sql`
         SELECT t.*, p.name as project_name, p.color as project_color
         FROM todos t
@@ -445,7 +431,6 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
     
     const upcomingTasks = upcomingTasksQuery;
     
-    // Log detalhado para depuração
     console.log(`Overdue tasks found: ${overdueTasks.length}`);
     console.log(`Due today tasks found: ${dueTodayTasks.length}`);
     console.log(`Upcoming tasks found: ${upcomingTasks.length}`);

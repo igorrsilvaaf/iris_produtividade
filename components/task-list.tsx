@@ -23,11 +23,9 @@ import {
 
 type SortOption = "priority" | "title" | "dueDate" | "createdAt"
 
-// Função para processar texto da descrição
 const processDescription = (text: string) => {
   if (!text) return "";
   
-  // Substituir [x] ou [ ] por checkbox
   const checkboxText = text.replace(/\[([ xX]?)\]/g, (match, inside) => {
     if (inside === 'x' || inside === 'X') {
       return '✓ ';
@@ -35,7 +33,6 @@ const processDescription = (text: string) => {
     return '□ ';
   });
   
-  // Substituir linhas que começam com - por bullet points
   return checkboxText.replace(/^-\s(.+)$/gm, '• $1');
 };
 
@@ -48,7 +45,6 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
   const { toast } = useToast()
   const { t } = useTranslation()
 
-  // Ordenar tarefas com base na opção selecionada
   const sortedTasks = useMemo(() => {
     const tasksCopy = [...tasks];
     
@@ -150,13 +146,10 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
     const tomorrow = new Date()
     tomorrow.setDate(today.getDate() + 1)
 
-    // Verificar se é uma tarefa "dia todo" (00:00:00)
     const isAllDay = date.getHours() === 0 && date.getMinutes() === 0;
     
-    // Formatar a parte da data
     let dateDisplay;
     
-    // Comparação completa de datas para garantir que estamos no mesmo ano
     const isSameDate = (date1: Date, date2: Date) => {
       return date1.getDate() === date2.getDate() && 
              date1.getMonth() === date2.getMonth() && 
@@ -168,7 +161,6 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
     } else if (isSameDate(date, tomorrow)) {
       dateDisplay = t("tomorrow");
     } else {
-      // Para datas em outros anos, incluir o ano na formatação
       if (date.getFullYear() !== today.getFullYear()) {
         dateDisplay = format(date, "MMM d, yyyy");
       } else {
@@ -176,7 +168,6 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
       }
     }
     
-    // Adicionar horário se não for 'dia todo'
     if (!isAllDay) {
       return `${dateDisplay} ${format(date, "HH:mm")}`;
     }
@@ -347,7 +338,6 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
                   className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Implementar função para expandir apenas a descrição (observações)
                     setExpandedTask(expandedTask === task.id ? null : task.id);
                   }}
                 >

@@ -38,15 +38,12 @@ export function TaskNotificationsList({ taskNotifications, daysAhead }: TaskNoti
     const date = new Date(dateString)
     const dateLocale = language === "pt" ? pt : enUS
     const now = new Date()
-    
-    // Comparação completa de datas para garantir que estamos no mesmo ano
     const isSameDateAs = (date1: Date, date2: Date) => {
       return date1.getDate() === date2.getDate() && 
              date1.getMonth() === date2.getMonth() && 
              date1.getFullYear() === date2.getFullYear();
     };
     
-    // Verificar se é hoje ou amanhã considerando o ano
     const today = new Date()
     const tomorrow = new Date()
     tomorrow.setDate(today.getDate() + 1)
@@ -56,12 +53,9 @@ export function TaskNotificationsList({ taskNotifications, daysAhead }: TaskNoti
     } else if (isSameDateAs(date, tomorrow)) {
       return t("taskDueTomorrow")
     } else if (date < now) {
-      // Tarefa atrasada
       const distance = formatDistanceToNow(date, { locale: dateLocale, addSuffix: false })
       return t("taskOverdue").replace("{days}", distance)
     } else {
-      // Tarefa futura
-      // Para datas em anos futuros, incluir o ano na formatação
       if (date.getFullYear() !== now.getFullYear()) {
         return format(date, "MMM d, yyyy", { locale: dateLocale });
       } else {
@@ -222,7 +216,6 @@ export function TaskNotificationsList({ taskNotifications, daysAhead }: TaskNoti
           <div>
             <h3 className="mb-4 text-blue-600 font-semibold text-lg">
               {(() => {
-                // Verificar se há apenas uma tarefa e se ela vence amanhã
                 if (taskNotifications.upcomingCount === 1 && 
                     taskNotifications.upcomingTasks.length === 1 && 
                     isTomorrow(new Date(taskNotifications.upcomingTasks[0].due_date!))) {
@@ -279,7 +272,6 @@ export function TaskNotificationsList({ taskNotifications, daysAhead }: TaskNoti
             console.log("Alterando estado do modal da lista:", open);
             setShowTaskDetail(open);
             if (!open) {
-              // Limpar a tarefa selecionada quando fechar o modal
               setTimeout(() => setSelectedTask(null), 300);
             }
           }} 

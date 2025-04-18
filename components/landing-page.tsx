@@ -25,7 +25,6 @@ export default function LandingPage() {
       }
     }
     
-    // Ajustar layout para telas muito grandes
     const handleResize = () => {
       const isVeryLargeScreen = window.innerWidth >= 1920;
       document.body.classList.toggle('very-large-screen', isVeryLargeScreen);

@@ -39,7 +39,6 @@ export function ForgotPasswordForm() {
     setIsLoading(true)
 
     try {
-      // Primeiro, verificar a estrutura do banco de dados
       console.log("Verificando estrutura do banco de dados...");
       await fetch("/api/auth/verify-db").then(res => res.json());
       console.log("Estrutura do banco de dados verificada");
@@ -58,7 +57,6 @@ export function ForgotPasswordForm() {
 
       setIsSubmitted(true)
       
-      // Toast de sucesso
       toast({
         variant: "success",
         title: t("Request submitted"),
