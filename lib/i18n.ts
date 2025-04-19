@@ -1747,6 +1747,94 @@ export const translations: Translations = {
     en: "Organize your workflow",
     pt: "Organize seu fluxo de trabalho",
   },
+  "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, notificações, modo escuro e muito mais.": {
+    en: "Stay organized and productive with our Íris task manager. Includes Pomodoro timer, notifications, dark mode, and more.",
+    pt: "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, notificações, modo escuro e muito mais.",
+  },
+  "Gratuito": {
+    en: "Free",
+    pt: "Gratuito",
+  },
+  "Fácil de usar": {
+    en: "Easy to use",
+    pt: "Fácil de usar",
+  },
+  "Seguro": {
+    en: "Secure",
+    pt: "Seguro",
+  },
+  "Recursos avançados de produtividade": {
+    en: "Advanced productivity features",
+    pt: "Recursos avançados de produtividade",
+  },
+  "Tudo o que você precisa para se manter organizado e produtivo em um só lugar": {
+    en: "Everything you need to stay organized and productive in one place",
+    pt: "Tudo o que você precisa para se manter organizado e produtivo em um só lugar",
+  },
+  "Temporizador Pomodoro": {
+    en: "Pomodoro Timer",
+    pt: "Temporizador Pomodoro",
+  },
+  "Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.": {
+    en: "Stay focused with integrated Pomodoro timer to increase your productivity and manage work and rest periods.",
+    pt: "Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.",
+  },
+  "Gerenciamento de Tarefas": {
+    en: "Task Management",
+    pt: "Gerenciamento de Tarefas",
+  },
+  "Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.": {
+    en: "Organize tasks with custom projects, priority levels, and due dates to keep your workflow organized.",
+    pt: "Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.",
+  },
+  "Visualização de Calendário": {
+    en: "Calendar View",
+    pt: "Visualização de Calendário",
+  },
+  "Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.": {
+    en: "View your tasks in a calendar view to efficiently plan your week and never miss important deadlines.",
+    pt: "Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.",
+  },
+  "Sistema de Notificações": {
+    en: "Notification System",
+    pt: "Sistema de Notificações",
+  },
+  "Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.": {
+    en: "Receive alerts about upcoming, overdue tasks and important events to never miss a deadline.",
+    pt: "Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.",
+  },
+  "Modo Escuro": {
+    en: "Dark Mode",
+    pt: "Modo Escuro",
+  },
+  "Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.": {
+    en: "Switch between light and dark themes to reduce eye strain and adapt the interface to your preferences.",
+    pt: "Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.",
+  },
+  "Personalização": {
+    en: "Customization",
+    pt: "Personalização",
+  },
+  "Adapte o aplicativo ao seu estilo com cores personalizáveis, diferentes sons de notificação e preferências de exibição.": {
+    en: "Adapt the app to your style with customizable colors, different notification sounds, and display preferences.",
+    pt: "Adapte o aplicativo ao seu estilo com cores personalizáveis, diferentes sons de notificação e preferências de exibição.",
+  },
+  "Comece a usar hoje": {
+    en: "Start using today",
+    pt: "Comece a usar hoje",
+  },
+  "Registre-se gratuitamente e comece a organizar suas tarefas e aumentar sua produtividade": {
+    en: "Sign up for free and start organizing your tasks and increasing your productivity",
+    pt: "Registre-se gratuitamente e comece a organizar suas tarefas e aumentar sua produtividade",
+  },
+  "Criar conta grátis": {
+    en: "Create free account",
+    pt: "Criar conta grátis",
+  },
+  "Fazer login": {
+    en: "Log in",
+    pt: "Fazer login",
+  },
 }
 
 type LanguageState = {

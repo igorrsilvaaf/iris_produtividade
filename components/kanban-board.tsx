@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { ptBR, enUS } from "date-fns/locale"
+import { AddTaskDialog } from "@/components/add-task-dialog"
 
 // Definir o tipo para a função de tradução para evitar problemas de tipo
 type TranslationFunction = (key: string) => string;
@@ -46,24 +47,30 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
     <Card 
       ref={setNodeRef} 
       style={style} 
-      className="mb-2 cursor-move shadow-sm hover:shadow-md transition-shadow bg-card" 
+      className="mb-2 cursor-move shadow-sm hover:shadow-md transition-shadow bg-card relative" 
       data-card-id={card.id} 
       data-type="card" 
       data-column={card.column}
       {...attributes} 
       {...listeners}
     >
-      <CardContent className="p-3 pb-0">
-        <div className="font-medium mb-1">{card.title}</div>
+      <div className="absolute inset-0 flex items-center justify-center bg-primary/10 opacity-0 hover:opacity-20 transition-opacity rounded-md cursor-grab">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 9l4-4 4 4"/>
+          <path d="M5 15l4 4 4-4"/>
+        </svg>
+      </div>
+      <CardContent className="p-2 pb-0">
+        <div className="font-medium mb-1 text-sm">{card.title}</div>
         {card.description && (
-          <div className="text-sm text-muted-foreground mb-2">
+          <div className="text-xs text-muted-foreground mb-1">
             {card.description.length > 50 
               ? `${card.description.substring(0, 50)}...`
               : card.description}
           </div>
         )}
         {card.due_date && (
-          <div className="flex items-center text-xs text-muted-foreground mb-2">
+          <div className="flex items-center text-xs text-muted-foreground mb-1">
             <Calendar className="h-3 w-3 mr-1" />
             {format(new Date(card.due_date), 'PPP', { locale: localeObj })}
           </div>
@@ -71,14 +78,14 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
         {card.project_name && (
           <Badge 
             variant="outline" 
-            className="text-xs mb-2" 
+            className="text-xs mb-1" 
             style={{ borderColor: card.project_color || '#888', color: card.project_color || '#888' }}
           >
             {card.project_name}
           </Badge>
         )}
       </CardContent>
-      <CardFooter className="p-2 pt-1 flex justify-end">
+      <CardFooter className="p-1 pt-0 flex justify-end">
         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={(e) => {
           e.stopPropagation();
           onEdit(card.id);
@@ -107,6 +114,9 @@ const DroppableColumn = ({
   createNewCard,
   onDeleteCard,
   onEditCard,
+  language,
+  highlightedColumn,
+  activeCardId
 }: { 
   title: string, 
   columnKey: KanbanColumn, 
@@ -118,6 +128,9 @@ const DroppableColumn = ({
   createNewCard: (column: KanbanColumn) => void,
   onDeleteCard: (id: number) => void,
   onEditCard: (id: number) => void,
+  language?: string,
+  highlightedColumn?: KanbanColumn | null,
+  activeCardId?: number | null
 }) => {
   const { t } = useTranslation();
   
@@ -147,9 +160,14 @@ const DroppableColumn = ({
   };
   
   return (
-    <div className="rounded-lg bg-muted/20 shadow-sm mb-4 w-full min-w-[280px]" ref={setNodeRef} data-type="column" data-column={columnKey}>
+    <div 
+      className={`rounded-lg ${highlightedColumn === columnKey ? 'bg-primary/10 shadow-lg' : 'bg-muted/20 shadow-sm'} mb-4 w-[250px] flex-none md:w-[270px] lg:w-[280px] transition-colors`} 
+      ref={setNodeRef} 
+      data-type="column" 
+      data-column={columnKey}
+    >
       <Card className="h-full">
-        <CardHeader className="px-4 py-3 border-b">
+        <CardHeader className="px-3 py-2 border-b">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-semibold">{title}</CardTitle>
             <Badge variant="outline" className="ml-2">
@@ -157,8 +175,8 @@ const DroppableColumn = ({
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="p-3">
-          <ScrollArea className="h-[calc(100vh-260px)] pr-2">
+        <CardContent className="p-2">
+          <ScrollArea className="h-[calc(100vh-450px)] max-h-[500px] pr-2">
             <div className="min-h-[100px] space-y-2">
               <SortableContext items={items.map(card => card.id)} strategy={verticalListSortingStrategy}>
                 {items.length === 0 ? (
@@ -177,7 +195,7 @@ const DroppableColumn = ({
           {activeColumn === columnKey && (
             <div className="mt-3 pt-3 border-t">
               <Input
-                placeholder={t("addCard")}
+                placeholder={t("addTask")}
                 value={newCardTitle}
                 onChange={(e) => setNewCardTitle(e.target.value)}
                 onKeyDown={(e) => {
@@ -188,13 +206,11 @@ const DroppableColumn = ({
                 className="mb-2"
               />
               <div className="flex gap-2 mt-2">
-                <Button 
-                  size="sm" 
-                  onClick={() => createNewCard(columnKey)}
-                  disabled={!newCardTitle.trim()}
-                >
-                  {t("addCard")}
-                </Button>
+                <AddTaskDialog initialLanguage={language || "en"} initialColumn={columnKey}>
+                  <Button size="sm">
+                    {t("addTask")}
+                  </Button>
+                </AddTaskDialog>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -210,13 +226,14 @@ const DroppableColumn = ({
           )}
           
           {activeColumn !== columnKey && (
-            <Button
-              variant="outline"
-              className="w-full mt-3 border-dashed"
-              onClick={() => setActiveColumn(columnKey)}
-            >
-              <Plus className="h-4 w-4 mr-1" /> {t("addCard")}
-            </Button>
+            <AddTaskDialog initialLanguage={language || "en"} initialColumn={columnKey}>
+              <Button
+                variant="outline"
+                className="w-full mt-3 border-dashed"
+              >
+                <Plus className="h-4 w-4 mr-1" /> {t("addTask")}
+              </Button>
+            </AddTaskDialog>
           )}
         </CardContent>
       </Card>
@@ -235,15 +252,17 @@ export function KanbanBoard() {
   const [shouldRefetch, setShouldRefetch] = useState(0);
   const lastFetchTimeRef = useRef<number>(0);
   const initialLoadDoneRef = useRef<boolean>(false);
+  const [highlightedColumn, setHighlightedColumn] = useState<KanbanColumn | null>(null);
   
   const activeCard = activeCardId ? cards.find(card => card.id === activeCardId) : null;
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
+        distance: 3,
       },
-    })
+    }),
+    useSensor(KeyboardSensor)
   );
   
   // Estado para detectar lado do cliente
@@ -653,18 +672,24 @@ export function KanbanBoard() {
       console.log(`Criando nova tarefa no Kanban, coluna: ${column}`);
       setIsLoading(true);
       
+      const taskData = {
+        title: newCardTitle,
+        description: "",
+        kanban_column: column,
+        completed: column === "completed",
+      };
+      
+      console.log(`Dados da tarefa para criação: ${JSON.stringify(taskData)}`);
+      
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          title: newCardTitle,
-          description: "",
-          kanban_column: column,
-          completed: column === "completed",
-        }),
+        body: JSON.stringify(taskData),
       });
+      
+      console.log(`Resposta da criação da tarefa - Status: ${response.status}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -689,6 +714,9 @@ export function KanbanBoard() {
           description: newCardTitle,
         });
       } else {
+        const errorText = await response.text();
+        console.error(`Erro ao criar tarefa na coluna ${column}: Status ${response.status}, Detalhes: ${errorText}`);
+        
         toast({
           variant: "destructive",
           title: t("Failed to create task"),
@@ -698,6 +726,8 @@ export function KanbanBoard() {
         setShouldRefetch(prev => prev + 1);
       }
     } catch (error) {
+      console.error(`Exceção ao criar tarefa na coluna ${column}:`, error);
+      
       toast({
         variant: "destructive",
         title: t("Failed to create task"),
@@ -751,20 +781,31 @@ export function KanbanBoard() {
   const handleDragStart = (event: any) => {
     const { active } = event;
     setActiveCardId(active.id);
+    console.log(`Iniciando arrastar tarefa ID ${active.id}`);
   };
   
   const handleDragOver = (event: any) => {
     const { active, over } = event;
     
-    if (!over) return;
+    if (!over) {
+      setHighlightedColumn(null);
+      return;
+    }
     
     const activeCard = cards.find(card => card.id === active.id);
+    
+    // Log para debug
+    console.log(`Arrastando ID ${active.id} sobre ${over.id}, tipo: ${over.data?.current?.type}`);
     
     // Verificar se o over é um elemento de coluna
     if (over.data?.current?.type === 'column') {
       const newColumn = over.data.current.column as KanbanColumn;
       
+      // Destacar a coluna sobre a qual o cartão está
+      setHighlightedColumn(newColumn);
+      
       if (activeCard && activeCard.column !== newColumn) {
+        console.log(`Mudando coluna temporária para ${newColumn}`);
         setCards(cards.map(card => {
           if (card.id === active.id) {
             return {
@@ -776,12 +817,35 @@ export function KanbanBoard() {
         }));
       }
     }
+    // Se estamos sobre outro cartão
+    else if (over.data?.current?.type === 'card') {
+      const overCard = cards.find(card => card.id === over.id);
+      
+      if (overCard) {
+        // Destacar a coluna do cartão sobre o qual estamos
+        setHighlightedColumn(overCard.column);
+        
+        if (activeCard && activeCard.column !== overCard.column) {
+          console.log(`Mudando para coluna do cartão: ${overCard.column}`);
+          setCards(cards.map(card => {
+            if (card.id === active.id) {
+              return {
+                ...card,
+                column: overCard.column
+              };
+            }
+            return card;
+          }));
+        }
+      }
+    }
   };
   
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
     setActiveCardId(null);
     setActiveColumn(null);
+    setHighlightedColumn(null);
     
     if (!over) return;
     
@@ -950,7 +1014,7 @@ export function KanbanBoard() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4 p-4 w-full mx-auto pb-8 overflow-x-auto">
+        <div className="flex flex-nowrap gap-4 p-4 overflow-x-auto pb-8">
           <DroppableColumn
             title={getColumnTitle("backlog")}
             columnKey="backlog"
@@ -962,6 +1026,9 @@ export function KanbanBoard() {
             createNewCard={createNewCard}
             onDeleteCard={deleteCard}
             onEditCard={editCard}
+            language={language}
+            highlightedColumn={highlightedColumn}
+            activeCardId={activeCardId}
           />
           
           <DroppableColumn
@@ -975,6 +1042,9 @@ export function KanbanBoard() {
             createNewCard={createNewCard}
             onDeleteCard={deleteCard}
             onEditCard={editCard}
+            language={language}
+            highlightedColumn={highlightedColumn}
+            activeCardId={activeCardId}
           />
           
           <DroppableColumn
@@ -988,6 +1058,9 @@ export function KanbanBoard() {
             createNewCard={createNewCard}
             onDeleteCard={deleteCard}
             onEditCard={editCard}
+            language={language}
+            highlightedColumn={highlightedColumn}
+            activeCardId={activeCardId}
           />
           
           <DroppableColumn
@@ -1001,6 +1074,9 @@ export function KanbanBoard() {
             createNewCard={createNewCard}
             onDeleteCard={deleteCard}
             onEditCard={editCard}
+            language={language}
+            highlightedColumn={highlightedColumn}
+            activeCardId={activeCardId}
           />
           
           <DroppableColumn
@@ -1014,16 +1090,19 @@ export function KanbanBoard() {
             createNewCard={createNewCard}
             onDeleteCard={deleteCard}
             onEditCard={editCard}
+            language={language}
+            highlightedColumn={highlightedColumn}
+            activeCardId={activeCardId}
           />
         </div>
         
         <DragOverlay>
           {activeCardId && activeCard ? (
             <Card className="w-68 mb-2 shadow-lg">
-              <CardContent className="p-3">
-                <div className="font-medium">{activeCard.title}</div>
+              <CardContent className="p-2">
+                <div className="font-medium text-sm">{activeCard.title}</div>
                 {activeCard.description && (
-                  <div className="text-sm text-muted-foreground mt-1">
+                  <div className="text-xs text-muted-foreground mt-1">
                     {activeCard.description.length > 50 
                       ? `${activeCard.description.substring(0, 50)}...`
                       : activeCard.description}

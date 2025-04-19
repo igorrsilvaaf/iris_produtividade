@@ -52,9 +52,10 @@ interface AddTaskDialogProps {
   children: React.ReactNode
   initialProjectId?: number
   initialLanguage: string
+  initialColumn?: string
 }
 
-export function AddTaskDialog({ children, initialProjectId, initialLanguage }: AddTaskDialogProps) {
+export function AddTaskDialog({ children, initialProjectId, initialLanguage, initialColumn }: AddTaskDialogProps) {
   const [open, setOpen] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [labels, setLabels] = useState<Label[]>([])
@@ -192,6 +193,8 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
     try {
       let dueDateTime = null;
       
+      console.log(`[AddTaskDialog] Iniciando criação de tarefa na coluna: ${initialColumn || 'sem coluna definida'}`);
+      
       if (values.dueDate) {
         const date = new Date(values.dueDate);
         
@@ -233,22 +236,35 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
         }
       }
 
+      const taskData = {
+        title: values.title,
+        description: values.description || null,
+        dueDate: dueDateTime,
+        priority: Number.parseInt(values.priority),
+        projectId: values.projectId && values.projectId !== "noProject" ? Number.parseInt(values.projectId) : null,
+        labelIds: values.labelIds,
+        kanban_column: initialColumn || null,
+        completed: initialColumn === "completed"
+      };
+      
+      console.log('[AddTaskDialog] Enviando dados da tarefa:', JSON.stringify(taskData));
+
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: values.title,
-          description: values.description || null,
-          dueDate: dueDateTime,
-          priority: Number.parseInt(values.priority),
-          projectId: values.projectId && values.projectId !== "noProject" ? Number.parseInt(values.projectId) : null,
-          labelIds: values.labelIds,
-        }),
+        body: JSON.stringify(taskData),
       })
 
+      console.log(`[AddTaskDialog] Status da resposta: ${response.status}`);
+      
       if (!response.ok) {
-        throw new Error("Failed to create task")
+        const errorData = await response.text();
+        console.error(`[AddTaskDialog] Erro ao criar tarefa: ${errorData}`);
+        throw new Error(`Failed to create task: ${errorData}`);
       }
+
+      const responseData = await response.json();
+      console.log(`[AddTaskDialog] Tarefa criada com sucesso:`, responseData);
 
       toast({
         title: t("taskCreated"),
@@ -260,6 +276,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage }: A
       setOpen(false)
       router.refresh()
     } catch (error) {
+      console.error('[AddTaskDialog] Erro detalhado:', error);
       toast({
         variant: "destructive",
         title: t("Failed to create task"),
