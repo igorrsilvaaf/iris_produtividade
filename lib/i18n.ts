@@ -56,6 +56,26 @@ export const translations: Translations = {
     en: "Pomodoro",
     pt: "Pomodoro",
   },
+  kanban: {
+    en: "Kanban",
+    pt: "Kanban",
+  },
+  backlog: {
+    en: "Backlog",
+    pt: "Backlog",
+  },
+  planning: {
+    en: "Planning",
+    pt: "Planejamento",
+  },
+  inProgress: {
+    en: "In Progress",
+    pt: "Em Andamento",
+  },
+  validation: {
+    en: "Validation",
+    pt: "Validação",
+  },
   startPomodoro: {
     en: "Start Pomodoro",
     pt: "Iniciar Pomodoro",
@@ -1710,6 +1730,22 @@ export const translations: Translations = {
   view: {
     en: "view",
     pt: "visualizar",
+  },
+  addCard: {
+    en: "Add Card",
+    pt: "Adicionar Cartão",
+  },
+  moveCard: {
+    en: "Move Card",
+    pt: "Mover Cartão",
+  },
+  kanbanBoard: {
+    en: "Kanban Board",
+    pt: "Quadro Kanban",
+  },
+  organizeYourWorkflow: {
+    en: "Organize your workflow",
+    pt: "Organize seu fluxo de trabalho",
   },
 }
 
