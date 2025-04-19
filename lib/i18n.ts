@@ -1864,6 +1864,224 @@ export const translations: Translations = {
     en: "No tasks",
     pt: "Sem tarefas",
   },
+  
+  // Relatórios
+  reports: {
+    en: "Reports",
+    pt: "Relatórios",
+  },
+  "Generate Report": {
+    en: "Generate Report",
+    pt: "Gerar Relatório",
+  },
+  "Report History": {
+    en: "Report History",
+    pt: "Histórico de Relatórios",
+  },
+  "Report Settings": {
+    en: "Report Settings",
+    pt: "Configurações do Relatório",
+  },
+  "Configure the parameters for your report": {
+    en: "Configure the parameters for your report",
+    pt: "Configure os parâmetros para seu relatório",
+  },
+  "Report Type": {
+    en: "Report Type",
+    pt: "Tipo de Relatório",
+  },
+  "Date Range": {
+    en: "Date Range",
+    pt: "Período",
+  },
+  "Select a report type": {
+    en: "Select a report type",
+    pt: "Selecione um tipo de relatório",
+  },
+  "Select a date range": {
+    en: "Select a date range",
+    pt: "Selecione um período",
+  },
+  "Pick a date": {
+    en: "Pick a date",
+    pt: "Escolha uma data",
+  },
+  "Reports": {
+    en: "Reports",
+    pt: "Relatórios",
+  },
+  "All Tasks": {
+    en: "All Tasks",
+    pt: "Todas as Tarefas",
+  },
+  "Completed Tasks": {
+    en: "Completed Tasks",
+    pt: "Tarefas Concluídas",
+  },
+  "Pending Tasks": {
+    en: "Pending Tasks",
+    pt: "Tarefas Pendentes",
+  },
+  "Overdue Tasks": {
+    en: "Overdue Tasks",
+    pt: "Tarefas Atrasadas",
+  },
+  "Productivity Analysis": {
+    en: "Productivity Analysis",
+    pt: "Análise de Produtividade",
+  },
+  "Export as Excel": {
+    en: "Export as Excel",
+    pt: "Exportar como Excel",
+  },
+  "Export as PDF": {
+    en: "Export as PDF",
+    pt: "Exportar como PDF",
+  },
+  "Report Preview": {
+    en: "Report Preview",
+    pt: "Prévia do Relatório",
+  },
+  "Preview of your report based on selected parameters": {
+    en: "Preview of your report based on selected parameters",
+    pt: "Prévia do seu relatório com base nos parâmetros selecionados",
+  },
+  "Select a date range to preview your report": {
+    en: "Select a date range to preview your report",
+    pt: "Selecione um período para visualizar seu relatório",
+  },
+  "Recent Reports": {
+    en: "Recent Reports",
+    pt: "Relatórios Recentes",
+  },
+  "Your previously generated reports": {
+    en: "Your previously generated reports",
+    pt: "Seus relatórios gerados anteriormente",
+  },
+  "No reports generated yet": {
+    en: "No reports generated yet",
+    pt: "Nenhum relatório gerado ainda",
+  },
+  "Generate and download reports of your tasks and activities": {
+    en: "Generate and download reports of your tasks and activities",
+    pt: "Gere e baixe relatórios de suas tarefas e atividades",
+  },
+  "Date range required": {
+    en: "Date range required",
+    pt: "Período obrigatório",
+  },
+  "Please select a date range for your report": {
+    en: "Please select a date range for your report",
+    pt: "Por favor, selecione um período para seu relatório",
+  },
+  "Report generated": {
+    en: "Report generated",
+    pt: "Relatório gerado",
+  },
+  "Your report has been generated and is downloading": {
+    en: "Your report has been generated and is downloading",
+    pt: "Seu relatório foi gerado e está sendo baixado",
+  },
+  "Export failed": {
+    en: "Export failed",
+    pt: "Falha na exportação",
+  },
+  "There was an error exporting your report": {
+    en: "There was an error exporting your report",
+    pt: "Ocorreu um erro ao exportar seu relatório",
+  },
+  "Type": {
+    en: "Type",
+    pt: "Tipo",
+  },
+  "Format": {
+    en: "Format",
+    pt: "Formato",
+  },
+  "Date": {
+    en: "Date",
+    pt: "Data",
+  },
+  "Action": {
+    en: "Action",
+    pt: "Ação",
+  },
+  "Download": {
+    en: "Download",
+    pt: "Baixar",
+  },
+  "Report Configuration": {
+    en: "Report Configuration",
+    pt: "Configuração do Relatório",
+  },
+  "Period": {
+    en: "Period",
+    pt: "Período",
+  },
+  "Generate": {
+    en: "Generate",
+    pt: "Gerar",
+  },
+  "Set parameters above and click Export to download your report": {
+    en: "Set parameters above and click Export to download your report",
+    pt: "Defina os parâmetros acima e clique em Exportar para baixar seu relatório",
+  },
+  Tasks: {
+    en: "Tasks",
+    pt: "Tarefas",
+  },
+  Productivity: {
+    en: "Productivity",
+    pt: "Produtividade",
+  },
+  Pending: {
+    en: "Pending",
+    pt: "Pendentes",
+  },
+  Overdue: {
+    en: "Overdue",
+    pt: "Atrasadas",
+  },
+  "Start Date": {
+    en: "Start Date",
+    pt: "Data Inicial",
+  },
+  "End Date": {
+    en: "End Date",
+    pt: "Data Final",
+  },
+  "Generating...": {
+    en: "Generating...",
+    pt: "Gerando...",
+  },
+  "Coming Soon": {
+    en: "Coming Soon",
+    pt: "Em Breve",
+  },
+  "Customizable Reports": {
+    en: "Customizable Reports",
+    pt: "Relatórios Personalizáveis",
+  },
+  "Generate reports based on your specific needs.": {
+    en: "Generate reports based on your specific needs.",
+    pt: "Gere relatórios baseados em suas necessidades específicas.",
+  },
+  "Multiple Export Formats": {
+    en: "Multiple Export Formats",
+    pt: "Múltiplos Formatos de Exportação",
+  },
+  "Download your reports in PDF, Excel, and more.": {
+    en: "Download your reports in PDF, Excel, and more.",
+    pt: "Baixe seus relatórios em PDF, Excel e outros formatos.",
+  },
+  "Data Visualization": {
+    en: "Data Visualization",
+    pt: "Visualização de Dados",
+  },
+  "View your tasks data with beautiful charts and graphs.": {
+    en: "View your tasks data with beautiful charts and graphs.",
+    pt: "Visualize seus dados de tarefas com belos gráficos e diagramas.",
+  },
 }
 
 type LanguageState = {
