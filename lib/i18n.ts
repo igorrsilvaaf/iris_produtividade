@@ -131,8 +131,8 @@ export const translations: Translations = {
     pt: "Som do Pomodoro",
   },
   chooseSound: {
-    en: "Choose a sound to play",
-    pt: "Escolha um som para reproduzir",
+    en: "Choose the sound to play when a timer completes.",
+    pt: "Escolha o som a ser reproduzido quando um temporizador terminar.",
   },
   forGeneralNotifications: {
     en: "for general notifications",
@@ -1838,6 +1838,31 @@ export const translations: Translations = {
   "Fazer login": {
     en: "Log in",
     pt: "Fazer login",
+  },
+  // Mensagens do Kanban quando não há tarefas
+  "No tasks in planning": {
+    en: "No tasks in planning",
+    pt: "Sem tarefas no planejamento",
+  },
+  "No tasks in backlog": {
+    en: "No tasks in backlog",
+    pt: "Sem tarefas no backlog",
+  },
+  "No tasks in progress": {
+    en: "No tasks in progress",
+    pt: "Sem tarefas em progresso",
+  },
+  "No tasks in validation": {
+    en: "No tasks in validation",
+    pt: "Sem tarefas em validação",
+  },
+  "No completed tasks": {
+    en: "No completed tasks",
+    pt: "Sem tarefas concluídas",
+  },
+  "No tasks": {
+    en: "No tasks",
+    pt: "Sem tarefas",
   },
 }
 

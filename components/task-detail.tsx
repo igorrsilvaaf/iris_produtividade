@@ -752,7 +752,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                     side="bottom"
                     sideOffset={8}
                     alignOffset={0}
-                    onInteractOutside={(e) => e.preventDefault()}
                   >
                     <div className="p-3">
                       <div className="flex justify-between items-center mb-2">
@@ -767,29 +766,17 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                           <span className="sr-only">{t("close")}</span>
                         </Button>
                       </div>
-                      <div className="calendar-container">
-                        <Calendar 
-                          mode="single" 
-                          selected={dueDate} 
-                          onSelect={(date) => {
+                      <Calendar 
+                        mode="single" 
+                        selected={dueDate} 
+                        onSelect={(date) => {
+                          if (date) {
                             setDueDate(date);
-                          }}
-                          initialFocus
-                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                          className="mobile-calendar-fix" 
-                        />
-                        {/* Estilos adicionados via CSS regular em vez de jsx global */}
-                        <style>
-                          {`
-                            @media (max-width: 640px) {
-                              .mobile-calendar-fix {
-                                width: 100% !important;
-                                min-width: 260px !important;
-                              }
-                            }
-                          `}
-                        </style>
-                      </div>
+                            setTimeout(() => setDatePickerOpen(false), 100);
+                          }
+                        }}
+                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      />
                       <div className="pt-3 pb-2 border-t mt-3">
                         <div className="flex flex-row items-center space-x-3 space-y-0 h-9">
                           <Checkbox

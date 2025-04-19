@@ -382,9 +382,11 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                             mode="single" 
                             selected={field.value} 
                             onSelect={(date) => {
-                              field.onChange(date);
+                              if (date) {
+                                field.onChange(date);
+                                setTimeout(() => setDatePickerOpen(false), 100);
+                              }
                             }}
-                            initialFocus 
                             disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                           />
                           <div className="pt-3 pb-2 border-t mt-3">

@@ -78,6 +78,57 @@
   .hover-action {
     opacity: 1 !important;
   }
+
+  /* Melhoria para interação em dispositivos touch */
+  .rdp-day, 
+  .rdp-nav_button,
+  .calendar-container {
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  .touch-active {
+    background-color: var(--accent) !important;
+    opacity: 0.9 !important;
+  }
+
+  /* Fix para dispositivos iOS */
+  input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+}
+
+/* Correções para o calendário em todos os dispositivos */
+.rdp {
+  margin: 0 !important;
+}
+
+.rdp-day {
+  border-radius: var(--radius) !important;
+}
+
+.rdp-button:focus:not([disabled]) {
+  background-color: hsl(var(--accent)) !important;
+}
+
+.rdp-button:hover:not([disabled]) {
+  background-color: hsl(var(--accent)) !important;
+}
+
+.rdp-day_selected:not([disabled]) {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.rdp-day_selected:hover:not([disabled]) {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Fix para popover do calendário */
+[data-radix-popper-content-wrapper] {
+  z-index: 50 !important;
 }
 
 /* Ajusta a altura da viewport para dispositivos móveis */
