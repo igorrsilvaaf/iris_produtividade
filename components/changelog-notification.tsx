@@ -18,10 +18,18 @@ import {
 export function ChangelogNotification() {
   const [open, setOpen] = useState(false)
   const [latestChangelog, setLatestChangelog] = useState<string | null>(null)
+  const [isClient, setIsClient] = useState(false)
   const router = useRouter()
   const { t } = useTranslation()
 
+  // Detectar quando está no cliente
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isClient) return
+    
     const checkForNewChangelog = () => {
       const changelogData = getChangelogData()
       const newChanges = changelogData.filter(item => item.isNew)
@@ -40,7 +48,7 @@ export function ChangelogNotification() {
     const timer = setTimeout(checkForNewChangelog, 1500)
     
     return () => clearTimeout(timer)
-  }, [])
+  }, [isClient])
 
   const handleDismiss = () => {
     if (latestChangelog) {

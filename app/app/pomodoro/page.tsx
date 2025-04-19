@@ -43,6 +43,12 @@ export default function PomodoroPage() {
     pomodoro_sound: settings.pomodoroSound,
     enable_desktop_notifications: settings.enableDesktopNotifications,
   })
+  const [isClient, setIsClient] = useState(false)
+
+  // Detectar quando está no cliente
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Update local settings when the store changes
   useEffect(() => {
@@ -61,6 +67,8 @@ export default function PomodoroPage() {
 
   // Check if it's a mobile device
   useEffect(() => {
+    if (!isClient) return
+    
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
@@ -71,7 +79,7 @@ export default function PomodoroPage() {
     return () => {
       window.removeEventListener("resize", checkIfMobile)
     }
-  }, [])
+  }, [isClient])
 
   // Set selectedTaskId from URL parameter if available
   useEffect(() => {
@@ -82,8 +90,10 @@ export default function PomodoroPage() {
 
   // Fetch tasks - execute apenas uma vez na montagem do componente
   useEffect(() => {
+    if (!isClient) return
+    
     // Flag para controlar se o componente está montado
-    let isMounted = true;
+    let isMounted = true
     
     // Função para buscar tarefas que será chamada apenas na montagem
     const fetchTasks = async () => {
@@ -100,7 +110,7 @@ export default function PomodoroPage() {
           console.log("Dados recebidos:", data)
           
           // Verificar se o componente ainda está montado
-          if (!isMounted) return;
+          if (!isMounted) return
           
           // Verificar se data.tasks existe
           if (data && data.tasks && Array.isArray(data.tasks)) {
@@ -143,11 +153,11 @@ export default function PomodoroPage() {
     
     // Função de limpeza para evitar memory leaks
     return () => {
-      isMounted = false;
+      isMounted = false
     }
   // Incluir apenas o mínimo necessário de dependências para não causar re-renders excessivos
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Executar apenas na montagem do componente
+  }, [isClient]) // Executar apenas na montagem do componente
 
   return (
     <div className={`container mx-auto py-6 ${isMobile ? "px-0" : "px-6"}`}>

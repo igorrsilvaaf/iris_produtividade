@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -235,6 +234,7 @@ export function KanbanBoard() {
   const [activeCardId, setActiveCardId] = useState<number | null>(null);
   const [shouldRefetch, setShouldRefetch] = useState(0);
   const lastFetchTimeRef = useRef<number>(0);
+  const initialLoadDoneRef = useRef<boolean>(false);
   
   const activeCard = activeCardId ? cards.find(card => card.id === activeCardId) : null;
   
@@ -246,14 +246,82 @@ export function KanbanBoard() {
     })
   );
   
-  // Função para obter todas as tarefas existentes e distribuí-las nas colunas apropriadas
-  const fetchAndDistributeTasks = useCallback(async (signal?: AbortSignal) => {
-    const now = Date.now();
-    const cacheTime = 1000; // 1 segundo
-    
-    if (now - lastFetchTimeRef.current < cacheTime) {
-      return;
+  // Estado para detectar lado do cliente
+  const [isClient, setIsClient] = useState(false);
+  
+  // Estado para rastrear erro crítico
+  const [hasCriticalError, setHasCriticalError] = useState<boolean>(false);
+  
+  // Executar apenas uma vez após a renderização para determinar se estamos no cliente
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
+  // Atualizar a coluna de uma tarefa no servidor
+  const updateColumnOnServer = async (taskId: number, column: KanbanColumn, completed: boolean) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          kanban_column: column,
+          completed: completed,
+        }),
+      });
+      
+      if (response.ok) {
+        console.log(`Tarefa ID ${taskId} atualizada no servidor => ${column}`);
+        
+        // Atualizar o estado localmente para refletir a mudança
+        setCards(prevCards => 
+          prevCards.map(card => {
+            if (card.id === taskId) {
+              return {
+                ...card,
+                column,
+                completed
+              };
+            }
+            return card;
+          })
+        );
+      } else {
+        toast({
+          variant: "destructive",
+          title: t("Failed to update task"),
+          description: t("Please try again"),
+        });
+        console.error(`Erro ao atualizar tarefa ID ${taskId}: ${response.status}`);
+        // Recarregar tarefas se houver falha
+        setShouldRefetch(prev => prev + 1);
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: t("Failed to update task"),
+        description: t("Please try again"),
+      });
+      console.error(`Erro ao atualizar tarefa ID ${taskId}:`, error);
+      // Recarregar tarefas se houver falha
+      setShouldRefetch(prev => prev + 1);
     }
+  };
+  
+  // Função para obter todas as tarefas existentes e distribuí-las nas colunas apropriadas
+  const fetchAndDistributeTasks = useCallback(async (signal?: AbortSignal): Promise<void> => {
+    const now = Date.now();
+    const cacheTime = 5000; // Aumentar para 5 segundos para reduzir solicitações
+    
+    // Não recarregar se foi carregado recentemente, a menos que seja a primeira vez
+    if (now - lastFetchTimeRef.current < cacheTime && initialLoadDoneRef.current) {
+      console.log("Ignorando solicitação recente, dados carregados há menos de 5 segundos");
+      return Promise.resolve();
+    }
+    
+    // Atualizar o timestamp antes de começar, para evitar chamadas múltiplas em paralelo
+    lastFetchTimeRef.current = now;
     
     try {
       setIsLoading(true);
@@ -278,6 +346,7 @@ export function KanbanBoard() {
           description: t("Please refresh the page to try again"),
         });
         setIsLoading(false);
+        setHasCriticalError(true);
         return;
       }
       
@@ -367,42 +436,41 @@ export function KanbanBoard() {
           if (task.completed) {
             column = "completed";
             console.log(`Tarefa concluída ID ${task.id} => coluna: completed`);
+            
+            // Atualizar coluna no servidor
+            setTimeout(() => {
+              updateColumnOnServer(task.id, "completed", true);
+            }, 0);
           } 
           // Tarefas de hoje vão para "planning"
           else if (todayList.some((t: any) => t.id === task.id)) {
             column = "planning";
             console.log(`Tarefa de hoje ID ${task.id} => coluna: planning`);
+            
+            // Atualizar coluna no servidor
+            setTimeout(() => {
+              updateColumnOnServer(task.id, "planning", false);
+            }, 0);
           } 
-          // Tarefas próximas vão para "backlog"
           // Verificar explicitamente se a tarefa está na lista de próximos
           else if (upcomingList.some((t: any) => t.id === task.id)) {
             column = "backlog";
             console.log(`Tarefa em Próximos ID ${task.id} => coluna: backlog`);
+            
+            // Atualizar coluna no servidor
+            setTimeout(() => {
+              updateColumnOnServer(task.id, "backlog", false);
+            }, 0);
           }
           // Qualquer outra tarefa não categorizada vai para backlog
           else {
             column = "backlog";
             console.log(`Tarefa não categorizada ID ${task.id} => coluna: backlog`);
             
-            // Atualizar a tarefa no servidor para definir a coluna como backlog
-            // para garantir que ela apareça corretamente na próxima vez
-            try {
-              (async () => {
-                await fetch(`/api/tasks/${task.id}`, {
-                  method: "PATCH",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    kanban_column: "backlog",
-                    completed: false,
-                  }),
-                });
-                console.log(`Tarefa ID ${task.id} atualizada no servidor como backlog`);
-              })();
-            } catch (error) {
-              console.error(`Erro ao atualizar tarefa ID ${task.id}:`, error);
-            }
+            // Atualizar coluna no servidor
+            setTimeout(() => {
+              updateColumnOnServer(task.id, "backlog", false);
+            }, 0);
           }
         }
         
@@ -440,6 +508,9 @@ export function KanbanBoard() {
           console.log("ATENÇÃO: Nenhuma tarefa encontrada!");
         }
       }, 100);
+      
+      // Marcar que a carga inicial foi concluída
+      initialLoadDoneRef.current = true;
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error("Erro ao buscar tarefas:", error);
@@ -448,68 +519,131 @@ export function KanbanBoard() {
           title: t("Failed to load tasks"),
           description: t("Please refresh the page to try again"),
         });
+        setHasCriticalError(true);
       }
     } finally {
-      lastFetchTimeRef.current = now;
       setIsLoading(false);
     }
-  }, [toast, t]);
+  }, [toast, t, updateColumnOnServer]);
   
   // Carregar tarefas quando o componente é montado
   useEffect(() => {
+    if (!isClient) return; // Não executar no servidor
+    
     const controller = new AbortController();
-    fetchAndDistributeTasks(controller.signal);
+    let mounted = true;
+    
+    // Tentar carregar do localStorage primeiro para exibição imediata
+    // Importante: movido para dentro do useEffect para evitar erro de hidratação
+    const loadFromLocalStorage = () => {
+      if (initialLoadDoneRef.current) return; // Evitar carregamento repetido
+      
+      try {
+        const savedCards = localStorage.getItem('kanban-cards');
+        if (savedCards) {
+          const parsedCards = JSON.parse(savedCards) as KanbanCard[];
+          console.log(`Carregados ${parsedCards.length} cartões do localStorage`);
+          setCards(parsedCards);
+          setIsLoading(false);
+          // Marcar que já carregamos do localStorage
+          initialLoadDoneRef.current = true;
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados do localStorage:", error);
+      }
+    };
+    
+    // Executar no lado do cliente após a montagem do componente
+    loadFromLocalStorage();
+    
+    // Busca inicial de tarefas do servidor
+    console.log("Inicializando Kanban - busca inicial de tarefas");
+    fetchAndDistributeTasks(controller.signal)
+      .then(() => {
+        if (mounted) {
+          console.log("Inicialização do Kanban concluída");
+        }
+      })
+      .catch(error => {
+        if (mounted) {
+          console.error("Erro na inicialização do Kanban:", error);
+        }
+      });
     
     // Configurar atualização periódica das tarefas para manter sincronizado com outras páginas
     const intervalId = setInterval(() => {
-      console.log("Atualizando tarefas do Kanban automaticamente...");
-      fetchAndDistributeTasks();
-    }, 30000); // Atualizar a cada 30 segundos
+      if (mounted && document.visibilityState === 'visible') {
+        console.log("Atualizando tarefas do Kanban automaticamente...");
+        fetchAndDistributeTasks().catch(err => {
+          console.error("Erro na atualização automática:", err);
+        });
+      }
+    }, 120000); // Reduzido para a cada 2 minutos em vez de 30 segundos
     
     return () => {
+      mounted = false;
       controller.abort();
       clearInterval(intervalId);
     };
-  }, [fetchAndDistributeTasks, shouldRefetch]);
+  }, [fetchAndDistributeTasks, shouldRefetch, isClient]);
   
-  // Atualizar a coluna de uma tarefa no servidor
-  const updateTaskColumn = async (taskId: number, column: KanbanColumn): Promise<void> => {
-    try {
-      // Verifica se a coluna está mudando para "completed" e atualiza o status completed
-      const completed = column === "completed";
-      
-      const response = await fetch(`/api/tasks/${taskId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          kanban_column: column,
-          completed: completed,
-        }),
-      });
-      
-      if (!response.ok) {
-        toast({
-          variant: "destructive",
-          title: t("Failed to update task"),
-          description: t("Please try again"),
-        });
-        // Recarregar tarefas se houver falha
-        setShouldRefetch(prev => prev + 1);
-        throw new Error(`Failed to update task: ${response.status}`);
+  // Salvar dados no localStorage quando o estado dos cards mudar
+  // Só executa se estivermos no cliente
+  useEffect(() => {
+    if (!isClient || isLoading || cards.length === 0) return;
+    
+    // Usar um timeout para debounce
+    const timeoutId = setTimeout(() => {
+      try {
+        const cardsJson = JSON.stringify(cards);
+        localStorage.setItem('kanban-cards', cardsJson);
+        console.log(`Salvos ${cards.length} cartões no localStorage`);
+      } catch (error) {
+        console.error("Erro ao salvar no localStorage:", error);
       }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("Failed to update task"),
-        description: t("Please try again"),
-      });
-      // Recarregar tarefas se houver falha
-      setShouldRefetch(prev => prev + 1);
-      throw error;
-    }
-  };
+    }, 2000); // Salvar após 2 segundos de inatividade
+    
+    return () => clearTimeout(timeoutId);
+  }, [cards, isLoading, isClient]);
+  
+  // Recarregar dados quando a página se torna visível novamente
+  useEffect(() => {
+    let isRefreshing = false;
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !isRefreshing) {
+        isRefreshing = true;
+        console.log("Página voltou a ficar visível, recarregando tarefas...");
+        
+        fetchAndDistributeTasks()
+          .finally(() => {
+            isRefreshing = false;
+          });
+      }
+    };
+    
+    // Recarregar dados quando o foco retorna à janela
+    const handleFocus = () => {
+      // Evitar recarregar se a chamada já foi feita pelo evento de visibilidade
+      if (!isRefreshing) {
+        isRefreshing = true;
+        console.log("Janela ganhou foco, recarregando tarefas...");
+        
+        fetchAndDistributeTasks()
+          .finally(() => {
+            isRefreshing = false;
+          });
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [fetchAndDistributeTasks]);
   
   // Criar nova tarefa
   const createNewCard = async (column: KanbanColumn) => {
@@ -538,16 +672,7 @@ export function KanbanBoard() {
         
         // Forçar sincronização com servidor para garantir que a tarefa seja salva com a coluna correta
         try {
-          await fetch(`/api/tasks/${data.task.id}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              kanban_column: column,
-              completed: column === "completed",
-            }),
-          });
+          await updateColumnOnServer(data.task.id, column, column === "completed");
           console.log(`Coluna da tarefa ${data.task.id} definida como ${column}`);
         } catch (error) {
           console.error("Erro ao definir coluna da tarefa:", error);
@@ -684,7 +809,7 @@ export function KanbanBoard() {
         }));
         
         // Atualizar no servidor
-        updateTaskColumn(active.id, newColumn)
+        updateColumnOnServer(active.id, newColumn, newColumn === "completed")
           .then(() => {
             console.log(`Tarefa ID ${active.id} movida com sucesso para ${newColumn}`);
             
@@ -719,7 +844,7 @@ export function KanbanBoard() {
         }));
         
         // Atualizar no servidor
-        updateTaskColumn(active.id, newColumn);
+        updateColumnOnServer(active.id, newColumn, newColumn === "completed");
       }
     }
   };
@@ -742,6 +867,27 @@ export function KanbanBoard() {
     }
   };
   
+  if (hasCriticalError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+        <div className="text-destructive text-5xl mb-4">⚠️</div>
+        <h2 className="text-xl font-bold mb-2">{t("Error loading Kanban")}</h2>
+        <p className="text-muted-foreground mb-4">{t("There was a problem loading your tasks")}</p>
+        <Button 
+          onClick={() => {
+            setHasCriticalError(false);
+            setIsLoading(true);
+            fetchAndDistributeTasks()
+              .catch(() => setHasCriticalError(true))
+              .finally(() => setIsLoading(false));
+          }}
+        >
+          {t("Try again")}
+        </Button>
+      </div>
+    );
+  }
+  
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -758,12 +904,36 @@ export function KanbanBoard() {
           variant="outline" 
           size="sm" 
           onClick={() => {
+            // Evitar atualização se já estiver carregando
+            if (isLoading) return;
+            
             // Forçar atualização das tarefas
+            console.log("Atualizando manualmente todas as tarefas do Kanban...");
+            setIsLoading(true);
+            
+            // Primeiro vamos buscar as tarefas
+            fetchAndDistributeTasks()
+              .then(() => {
+                console.log("Atualização manual concluída com sucesso!");
+                toast({
+                  variant: "default",
+                  title: t("Tasks updated"),
+                  description: t("Kanban board is now up to date")
+                });
+              })
+              .catch(error => {
+                console.error("Erro na atualização manual:", error);
+                toast({
+                  variant: "destructive",
+                  title: t("Failed to update tasks"),
+                  description: t("Please try again")
+                });
+              })
+              .finally(() => {
+                setIsLoading(false);
+              });
+            
             setShouldRefetch(prev => prev + 1);
-            toast({
-              title: t("Updating tasks"),
-              description: t("Please wait...")
-            });
           }}
           disabled={isLoading}
           className="flex items-center gap-1"
