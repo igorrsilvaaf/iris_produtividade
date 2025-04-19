@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { ptBR, enUS } from "date-fns/locale"
 import { AddTaskDialog } from "@/components/add-task-dialog"
+import { TaskDetail } from "@/components/task-detail"
 
 // Definir o tipo para a função de tradução para evitar problemas de tipo
 type TranslationFunction = (key: string) => string;
@@ -43,24 +44,37 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
   
   const localeObj = language === 'pt' ? ptBR : enUS;
   
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger navigation if clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    // Navigate to task detail
+    onEdit(card.id);
+  };
+  
   return (
     <Card 
       ref={setNodeRef} 
       style={style} 
-      className="mb-2 cursor-move shadow-sm hover:shadow-md transition-shadow bg-card relative" 
+      className="mb-2 shadow-sm hover:shadow-md transition-shadow bg-card relative cursor-pointer" 
       data-card-id={card.id} 
       data-type="card" 
       data-column={card.column}
+      onClick={handleCardClick}
       {...attributes} 
-      {...listeners}
     >
-      <div className="absolute inset-0 flex items-center justify-center bg-primary/10 opacity-0 hover:opacity-20 transition-opacity rounded-md cursor-grab">
+      {/* Drag handle area - now doesn't cover the entire card */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-8 flex items-center justify-center bg-primary/10 opacity-0 hover:opacity-20 transition-opacity rounded-t-md cursor-grab"
+        {...listeners}
+      >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M5 9l4-4 4 4"/>
           <path d="M5 15l4 4 4-4"/>
         </svg>
       </div>
-      <CardContent className="p-2 pb-0">
+      <CardContent className="p-2 pb-0 cursor-default">
         <div className="font-medium mb-1 text-sm">{card.title}</div>
         {card.description && (
           <div className="text-xs text-muted-foreground mb-1">
@@ -86,16 +100,28 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
         )}
       </CardContent>
       <CardFooter className="p-1 pt-0 flex justify-end">
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={(e) => {
-          e.stopPropagation();
-          onEdit(card.id);
-        }}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer" 
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onEdit(card.id);
+          }}
+        >
           <Edit className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => {
-          e.stopPropagation();
-          onDelete(card.id);
-        }}>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-destructive cursor-pointer" 
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onDelete(card.id);
+          }}
+        >
           <Trash2 className="h-4 w-4" />
         </Button>
       </CardFooter>
@@ -253,6 +279,8 @@ export function KanbanBoard() {
   const lastFetchTimeRef = useRef<number>(0);
   const initialLoadDoneRef = useRef<boolean>(false);
   const [highlightedColumn, setHighlightedColumn] = useState<KanbanColumn | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Todo | null>(null)
+  const [showTaskDetail, setShowTaskDetail] = useState(false)
   
   const activeCard = activeCardId ? cards.find(card => card.id === activeCardId) : null;
   
@@ -740,8 +768,13 @@ export function KanbanBoard() {
   
   // Editar tarefa
   const editCard = (taskId: number) => {
-    // Redirecionar para a página de edição da tarefa
-    window.location.href = `/tasks/${taskId}`;
+    // Find the task by ID
+    const task = cards.find(card => card.id === taskId)
+    if (task) {
+      // Open the task detail modal
+      setSelectedTask(task)
+      setShowTaskDetail(true)
+    }
   };
   
   // Excluir tarefa
@@ -1122,6 +1155,15 @@ export function KanbanBoard() {
           ) : null}
         </DragOverlay>
       </DndContext>
+      
+      {/* Add TaskDetail component */}
+      {selectedTask && (
+        <TaskDetail 
+          task={selectedTask} 
+          open={showTaskDetail} 
+          onOpenChange={setShowTaskDetail} 
+        />
+      )}
     </>
   );
 }
