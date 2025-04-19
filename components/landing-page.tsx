@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -11,8 +11,16 @@ import { Check, Clock, Calendar, List, Moon, Bell, Star } from "lucide-react";
 
 export default function LandingPage() {
   const { t, language, setLanguage } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
+
+  // Detectar quando está no cliente
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
+    if (!isClient) return;
+    
     const savedLanguage = localStorage.getItem("language-storage");
     if (savedLanguage) {
       try {
@@ -36,7 +44,7 @@ export default function LandingPage() {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [setLanguage]);
+  }, [setLanguage, isClient]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { useTranslation } from '@/lib/i18n'
 
@@ -13,8 +13,16 @@ declare global {
 export function ServiceWorkerRegistration() {
   const { toast } = useToast()
   const { t } = useTranslation()
+  const [isClient, setIsClient] = useState(false)
+
+  // Detectar quando está no cliente
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
+    if (!isClient) return
+    
     if ("serviceWorker" in navigator) {
       try {
         navigator.serviceWorker
@@ -60,7 +68,7 @@ export function ServiceWorkerRegistration() {
     return () => {
       window.removeEventListener('load', () => {})
     }
-  }, [])
+  }, [isClient])
 
   return null
 } 

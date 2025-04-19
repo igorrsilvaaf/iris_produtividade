@@ -56,6 +56,26 @@ export const translations: Translations = {
     en: "Pomodoro",
     pt: "Pomodoro",
   },
+  kanban: {
+    en: "Kanban",
+    pt: "Kanban",
+  },
+  backlog: {
+    en: "Backlog",
+    pt: "Backlog",
+  },
+  planning: {
+    en: "Planning",
+    pt: "Planejamento",
+  },
+  inProgress: {
+    en: "In Progress",
+    pt: "Em Andamento",
+  },
+  validation: {
+    en: "Validation",
+    pt: "Validação",
+  },
   startPomodoro: {
     en: "Start Pomodoro",
     pt: "Iniciar Pomodoro",
@@ -111,8 +131,8 @@ export const translations: Translations = {
     pt: "Som do Pomodoro",
   },
   chooseSound: {
-    en: "Choose a sound to play",
-    pt: "Escolha um som para reproduzir",
+    en: "Choose the sound to play when a timer completes.",
+    pt: "Escolha o som a ser reproduzido quando um temporizador terminar.",
   },
   forGeneralNotifications: {
     en: "for general notifications",
@@ -1482,6 +1502,10 @@ export const translations: Translations = {
     en: "We have improved the app with new features and bug fixes. Check out what's new!",
     pt: "Melhoramos o aplicativo com novos recursos e correções de bugs. Confira as novidades!",
   },
+  latestUpdateInfo: {
+    en: "Our latest update includes the new Kanban Board and several improvements.",
+    pt: "Nossa mais recente atualização inclui o novo Quadro Kanban e diversas melhorias."
+  },
   viewChangelog: {
     en: "View Updates",
     pt: "Ver Atualizações",
@@ -1710,6 +1734,135 @@ export const translations: Translations = {
   view: {
     en: "view",
     pt: "visualizar",
+  },
+  addCard: {
+    en: "Add Card",
+    pt: "Adicionar Cartão",
+  },
+  moveCard: {
+    en: "Move Card",
+    pt: "Mover Cartão",
+  },
+  kanbanBoard: {
+    en: "Kanban Board",
+    pt: "Quadro Kanban",
+  },
+  organizeYourWorkflow: {
+    en: "Organize your workflow",
+    pt: "Organize seu fluxo de trabalho",
+  },
+  "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, notificações, modo escuro e muito mais.": {
+    en: "Stay organized and productive with our Íris task manager. Includes Pomodoro timer, notifications, dark mode, and more.",
+    pt: "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, notificações, modo escuro e muito mais.",
+  },
+  "Gratuito": {
+    en: "Free",
+    pt: "Gratuito",
+  },
+  "Fácil de usar": {
+    en: "Easy to use",
+    pt: "Fácil de usar",
+  },
+  "Seguro": {
+    en: "Secure",
+    pt: "Seguro",
+  },
+  "Recursos avançados de produtividade": {
+    en: "Advanced productivity features",
+    pt: "Recursos avançados de produtividade",
+  },
+  "Tudo o que você precisa para se manter organizado e produtivo em um só lugar": {
+    en: "Everything you need to stay organized and productive in one place",
+    pt: "Tudo o que você precisa para se manter organizado e produtivo em um só lugar",
+  },
+  "Temporizador Pomodoro": {
+    en: "Pomodoro Timer",
+    pt: "Temporizador Pomodoro",
+  },
+  "Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.": {
+    en: "Stay focused with integrated Pomodoro timer to increase your productivity and manage work and rest periods.",
+    pt: "Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.",
+  },
+  "Gerenciamento de Tarefas": {
+    en: "Task Management",
+    pt: "Gerenciamento de Tarefas",
+  },
+  "Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.": {
+    en: "Organize tasks with custom projects, priority levels, and due dates to keep your workflow organized.",
+    pt: "Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.",
+  },
+  "Visualização de Calendário": {
+    en: "Calendar View",
+    pt: "Visualização de Calendário",
+  },
+  "Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.": {
+    en: "View your tasks in a calendar view to efficiently plan your week and never miss important deadlines.",
+    pt: "Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.",
+  },
+  "Sistema de Notificações": {
+    en: "Notification System",
+    pt: "Sistema de Notificações",
+  },
+  "Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.": {
+    en: "Receive alerts about upcoming, overdue tasks and important events to never miss a deadline.",
+    pt: "Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.",
+  },
+  "Modo Escuro": {
+    en: "Dark Mode",
+    pt: "Modo Escuro",
+  },
+  "Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.": {
+    en: "Switch between light and dark themes to reduce eye strain and adapt the interface to your preferences.",
+    pt: "Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.",
+  },
+  "Personalização": {
+    en: "Customization",
+    pt: "Personalização",
+  },
+  "Adapte o aplicativo ao seu estilo com cores personalizáveis, diferentes sons de notificação e preferências de exibição.": {
+    en: "Adapt the app to your style with customizable colors, different notification sounds, and display preferences.",
+    pt: "Adapte o aplicativo ao seu estilo com cores personalizáveis, diferentes sons de notificação e preferências de exibição.",
+  },
+  "Comece a usar hoje": {
+    en: "Start using today",
+    pt: "Comece a usar hoje",
+  },
+  "Registre-se gratuitamente e comece a organizar suas tarefas e aumentar sua produtividade": {
+    en: "Sign up for free and start organizing your tasks and increasing your productivity",
+    pt: "Registre-se gratuitamente e comece a organizar suas tarefas e aumentar sua produtividade",
+  },
+  "Criar conta grátis": {
+    en: "Create free account",
+    pt: "Criar conta grátis",
+  },
+  "Fazer login": {
+    en: "Log in",
+    pt: "Fazer login",
+  },
+  // Mensagens do Kanban quando não há tarefas
+  "No tasks in planning": {
+    en: "No tasks in planning",
+    pt: "Sem tarefas no planejamento",
+  },
+  "No tasks in backlog": {
+    en: "No tasks in backlog",
+    pt: "Sem tarefas no backlog",
+  },
+  "No tasks in progress": {
+    en: "No tasks in progress",
+    pt: "Sem tarefas em progresso",
+  },
+  "No tasks in validation": {
+    en: "No tasks in validation",
+    pt: "Sem tarefas em validação",
+  },
+  "No completed tasks": {
+    en: "No completed tasks",
+    pt: "Sem tarefas concluídas",
+  },
+  "No tasks": {
+    en: "No tasks",
+    pt: "Sem tarefas",
   },
 }
 

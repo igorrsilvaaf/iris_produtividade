@@ -15,7 +15,50 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
-    version: '2.5.0',
+    version: '2.6.0',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'kanban-board-feature',
+        title: 'Novo Quadro Kanban',
+        description: 'Adicionado um quadro Kanban para visualização e gerenciamento de tarefas',
+        items: [
+          {
+            type: 'feature',
+            content: 'Implementação de quadro Kanban com colunas para Backlog, Planejamento, Em Progresso, Validação e Concluídas'
+          },
+          {
+            type: 'feature',
+            content: 'Funcionalidade de arrastar e soltar para mover tarefas entre colunas'
+          },
+          {
+            type: 'feature',
+            content: 'Atualização automática do status da tarefa ao mover entre colunas'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface visual moderna e responsiva para o quadro Kanban'
+          },
+          {
+            type: 'improvement',
+            content: 'Integração com o sistema de projetos existente para exibir cores e nomes de projetos nos cartões'
+          },
+          {
+            type: 'improvement',
+            content: 'Suporte para criação rápida de tarefas diretamente em qualquer coluna'
+          }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date('2024-04-10'),
+    version: '2.5.1',
     author: {
       name: 'Igor Silva',
       role: 'Desenvolvedor',
@@ -54,11 +97,50 @@ export const CHANGELOG_DATA: ChangelogData[] = [
         ]
       }
     ],
-    isNew: true
+    isNew: false
   },
   {
-    date: new Date(),
-    version: '2.4.0',
+    date: new Date('2024-04-01'),
+    version: '2.5.0',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'pomodoro-feature',
+        title: 'Novo Temporizador Pomodoro',
+        description: 'Adicionado temporizador Pomodoro para gerenciamento de tempo e produtividade',
+        items: [
+          {
+            type: 'feature',
+            content: 'Implementação do sistema Pomodoro com temporizadores configuráveis'
+          },
+          {
+            type: 'feature',
+            content: 'Seleção de tarefas para sessões de foco Pomodoro'
+          },
+          {
+            type: 'feature',
+            content: 'Alternância automática entre períodos de trabalho e pausa'
+          },
+          {
+            type: 'feature',
+            content: 'Notificações sonoras e visuais ao final de cada sessão'
+          },
+          {
+            type: 'feature',
+            content: 'Configurações personalizáveis para durações de trabalho e pausas'
+          }
+        ]
+      }
+    ],
+    isNew: false
+  },
+  {
+    date: new Date('2024-03-28'),
+    version: '2.4.2',
     author: {
       name: 'Igor Silva',
       role: 'Desenvolvedor',
@@ -67,8 +149,8 @@ export const CHANGELOG_DATA: ChangelogData[] = [
     entries: [
       {
         id: 'pomodoro-and-ui-improvements',
-        title: 'Melhorias no Pomodoro e Interface',
-        description: 'Atualizações na interface do usuário e correções no sistema Pomodoro',
+        title: 'Melhorias na Interface e Correções',
+        description: 'Atualizações na interface do usuário e correções de bugs',
         items: [
           {
             type: 'improvement',
@@ -101,11 +183,11 @@ export const CHANGELOG_DATA: ChangelogData[] = [
         ]
       }
     ],
-    isNew: true
+    isNew: false
   },
   {
-    date: new Date(),
-    version: '2.3.0',
+    date: new Date('2024-03-15'),
+    version: '2.4.1',
     author: {
       name: 'Igor Silva',
       role: 'Desenvolvedor',
@@ -139,8 +221,8 @@ export const CHANGELOG_DATA: ChangelogData[] = [
     isNew: false
   },
   {
-    date: new Date(),
-    version: '2.2.0',
+    date: new Date('2024-03-01'),
+    version: '2.4.0',
     author: {
       name: 'Igor Silva',
       role: 'Desenvolvedor',
@@ -222,11 +304,11 @@ export const CHANGELOG_DATA: ChangelogData[] = [
         ]
       }
     ],
-    isNew: true
+    isNew: false
   },
   {
-    date: new Date('2024-04-15'),
-    version: '2.1.0',
+    date: new Date('2024-02-15'),
+    version: '2.3.0',
     author: {
       name: 'Igor Silva',
       role: 'Desenvolvedor',
@@ -236,7 +318,7 @@ export const CHANGELOG_DATA: ChangelogData[] = [
       {
         id: 'recent-updates',
         title: 'Melhoria na Interface do Usuário',
-        description: 'Atualizações recentes para melhorar a experiência do usuário',
+        description: 'Adicionada página de changelog e melhorias na interface',
         items: [
           {
             type: 'feature',
@@ -273,7 +355,7 @@ export const CHANGELOG_DATA: ChangelogData[] = [
   },
   {
     date: new Date('2024-01-10'),
-    version: '1.0.0',
+    version: '2.0.0',
     author: {
       name: 'Igor Silva',
       role: 'Desenvolvedor',
