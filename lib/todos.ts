@@ -13,6 +13,7 @@ export type Todo = {
   updated_at: string | null
   project_name?: string
   project_color?: string
+  kanban_column?: "backlog" | "planning" | "inProgress" | "validation" | "completed" | null
 }
 
 export async function getTodayTasks(userId: number): Promise<Todo[]> {
@@ -90,12 +91,14 @@ export async function createTask(
   dueDate: string | null = null,
   priority = 4,
   projectId: number | null = null,
+  kanbanColumn: "backlog" | "planning" | "inProgress" | "validation" | "completed" | null = null,
 ): Promise<Todo> {
   const now = new Date().toISOString()
   
   console.log(`[createTask] Criando tarefa para usuário ${userId}`)
   console.log(`[createTask] Título: ${title}`)
   console.log(`[createTask] Data de vencimento original: ${dueDate}`)
+  console.log(`[createTask] Coluna Kanban: ${kanbanColumn}`)
   
   // Normalizar a data de vencimento para 23:59:59 do dia especificado
   let normalizedDueDate = dueDate;
@@ -117,8 +120,8 @@ export async function createTask(
   }
 
   const [task] = await sql`
-    INSERT INTO todos (user_id, title, description, due_date, priority, created_at)
-    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now})
+    INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column)
+    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now}, ${kanbanColumn})
     RETURNING *
   `
 
@@ -129,7 +132,7 @@ export async function createTask(
     `
   }
   
-  console.log(`[createTask] Tarefa criada: ID=${task.id}, data=${task.due_date}`)
+  console.log(`[createTask] Tarefa criada: ID=${task.id}, data=${task.due_date}, coluna=${task.kanban_column}`)
   
   return task as Todo
 }
@@ -162,6 +165,10 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
     }
   }
 
+  if (updates.kanban_column !== undefined) {
+    console.log(`[updateTask] Atualizando coluna Kanban: ${updates.kanban_column}`);
+  }
+
   const [task] = await sql`
     UPDATE todos
     SET
@@ -170,12 +177,13 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
       due_date = COALESCE(${updates.due_date}, due_date),
       priority = COALESCE(${updates.priority}, priority),
       completed = COALESCE(${updates.completed}, completed),
+      kanban_column = COALESCE(${updates.kanban_column}, kanban_column),
       updated_at = ${now}
     WHERE id = ${taskId} AND user_id = ${userId}
     RETURNING *
   `
   
-  console.log(`[updateTask] Tarefa atualizada: ID=${task.id}, nova data=${task.due_date}`);
+  console.log(`[updateTask] Tarefa atualizada: ID=${task.id}, nova data=${task.due_date}, coluna=${task.kanban_column}`);
 
   return task as Todo
 }
