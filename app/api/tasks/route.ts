@@ -22,11 +22,28 @@ export async function GET(request: NextRequest) {
     const completed = searchParams.get("completed");
     const overdue = searchParams.get("overdue");
     const searchText = searchParams.get("search");
+    const all = searchParams.get("all");
     
     let tasks = [];
     
+    // Opção para retornar todas as tarefas (necessário para o Kanban)
+    if (all === "true") {
+      console.log("Buscando TODAS as tarefas para o usuário");
+      
+      // Usar consulta SQL direta para obter todas as tarefas com informação de projeto
+      tasks = await sql`
+        SELECT t.*, p.name as project_name, p.color as project_color
+        FROM todos t
+        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+        LEFT JOIN projects p ON tp.project_id = p.id
+        WHERE t.user_id = ${userId}
+        ORDER BY t.created_at DESC
+      `;
+      
+      console.log(`Encontradas ${tasks.length} tarefas no total`);
+    }
     // Use funções específicas baseadas nos parâmetros
-    if (searchText) {
+    else if (searchText) {
       // Usar a função de busca se houver texto de pesquisa
       tasks = await searchTasks(userId, searchText);
     } else if (completed === "true") {
