@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { getTaskById, updateTask, deleteTask } from "@/lib/todos";
 
 export async function GET(
   request: NextRequest,
@@ -14,22 +14,14 @@ export async function GET(
     }
 
     const userId = session.user.id;
-    const taskId = params.id;
+    const taskId = parseInt(params.id, 10);
+
+    if (isNaN(taskId)) {
+      return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
+    }
 
     // Fetch task
-    const task = await prisma.task.findUnique({
-      where: {
-        id: taskId,
-        user_id: userId,
-      },
-      include: {
-        project: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
+    const task = await getTaskById(taskId, userId);
 
     if (!task) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
@@ -57,36 +49,30 @@ export async function PUT(
     }
 
     const userId = session.user.id;
-    const taskId = params.id;
+    const taskId = parseInt(params.id, 10);
+
+    if (isNaN(taskId)) {
+      return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
+    }
+
     const body = await request.json();
 
-    // Check if task exists and belongs to user
-    const existingTask = await prisma.task.findUnique({
-      where: {
-        id: taskId,
-        user_id: userId,
-      },
-    });
+    // Verificar se a tarefa existe
+    const existingTask = await getTaskById(taskId, userId);
 
     if (!existingTask) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // Update task
-    const updatedTask = await prisma.task.update({
-      where: {
-        id: taskId,
-      },
-      data: {
-        title: body.title !== undefined ? body.title : existingTask.title,
-        description: body.description !== undefined ? body.description : existingTask.description,
-        due_date: body.due_date !== undefined ? new Date(body.due_date) : existingTask.due_date,
-        priority: body.priority !== undefined ? body.priority : existingTask.priority,
-        completed: body.completed !== undefined ? body.completed : existingTask.completed,
-        project_id: body.project_id !== undefined ? body.project_id : existingTask.project_id,
-        kanban_column: body.kanban_column !== undefined ? body.kanban_column : existingTask.kanban_column,
-        points: body.points !== undefined ? body.points : existingTask.points,
-      },
+    // Update task usando a função do lib/todos
+    const updatedTask = await updateTask(taskId, userId, {
+      title: body.title,
+      description: body.description,
+      due_date: body.due_date,
+      priority: body.priority,
+      completed: body.completed,
+      kanban_column: body.kanban_column,
+      points: body.points
     });
 
     return NextResponse.json(updatedTask);
@@ -111,31 +97,23 @@ export async function PATCH(
     }
 
     const userId = session.user.id;
-    const taskId = params.id;
+    const taskId = parseInt(params.id, 10);
+
+    if (isNaN(taskId)) {
+      return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
+    }
+
     const body = await request.json();
 
-    // Check if task exists and belongs to user
-    const existingTask = await prisma.task.findUnique({
-      where: {
-        id: taskId,
-        user_id: userId,
-      },
-    });
+    // Verificar se a tarefa existe
+    const existingTask = await getTaskById(taskId, userId);
 
     if (!existingTask) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // Update task with partial data
-    const updatedTask = await prisma.task.update({
-      where: {
-        id: taskId,
-      },
-      data: {
-        ...body,
-        due_date: body.due_date !== undefined ? new Date(body.due_date) : existingTask.due_date,
-      },
-    });
+    // Update parcial da tarefa
+    const updatedTask = await updateTask(taskId, userId, body);
 
     return NextResponse.json(updatedTask);
   } catch (error) {
@@ -159,26 +137,21 @@ export async function DELETE(
     }
 
     const userId = session.user.id;
-    const taskId = params.id;
+    const taskId = parseInt(params.id, 10);
 
-    // Check if task exists and belongs to user
-    const existingTask = await prisma.task.findUnique({
-      where: {
-        id: taskId,
-        user_id: userId,
-      },
-    });
+    if (isNaN(taskId)) {
+      return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
+    }
+
+    // Verificar se a tarefa existe
+    const existingTask = await getTaskById(taskId, userId);
 
     if (!existingTask) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // Delete task
-    await prisma.task.delete({
-      where: {
-        id: taskId,
-      },
-    });
+    // Excluir tarefa usando a função do lib/todos
+    await deleteTask(taskId, userId);
 
     return NextResponse.json({ message: "Task deleted successfully" });
   } catch (error) {
