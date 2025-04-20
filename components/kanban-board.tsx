@@ -53,6 +53,28 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
     onEdit(card.id);
   };
   
+  const getPointsBadgeColor = (points: number) => {
+    switch(points) {
+      case 1: return 'bg-green-100 text-green-800';
+      case 2: return 'bg-blue-100 text-blue-800';
+      case 3: return 'bg-yellow-100 text-yellow-800';
+      case 4: return 'bg-orange-100 text-orange-800';
+      case 5: return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const getPointsLabel = (points: number) => {
+    switch(points) {
+      case 1: return t("veryEasy") || "Muito fácil";
+      case 2: return t("easy") || "Fácil";
+      case 3: return t("medium") || "Médio";
+      case 4: return t("hard") || "Difícil";
+      case 5: return t("veryHard") || "Muito difícil";
+      default: return "";
+    }
+  };
+  
   return (
     <Card 
       ref={setNodeRef} 
@@ -83,12 +105,19 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
               : card.description}
           </div>
         )}
-        {card.due_date && (
-          <div className="flex items-center text-xs text-muted-foreground mb-1">
-            <Calendar className="h-3 w-3 mr-1" />
-            {format(new Date(card.due_date), 'PPP', { locale: localeObj })}
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-1 mb-1">
+          {card.due_date && (
+            <div className="flex items-center text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3 mr-1" />
+              {format(new Date(card.due_date), 'PPP', { locale: localeObj })}
+            </div>
+          )}
+          {card.points !== undefined && (
+            <div className={`text-xs px-1.5 py-0.5 rounded-full ${getPointsBadgeColor(card.points)}`}>
+              {card.points} {getPointsLabel(card.points) && `- ${getPointsLabel(card.points)}`}
+            </div>
+          )}
+        </div>
         {card.project_name && (
           <Badge 
             variant="outline" 
@@ -1141,6 +1170,20 @@ export function KanbanBoard() {
                       : activeCard.description}
                   </div>
                 )}
+                <div className="flex flex-wrap items-center gap-1 mt-1">
+                  {activeCard.points !== undefined && (
+                    <div className={`text-xs px-1.5 py-0.5 rounded-full ${
+                      activeCard.points === 1 ? 'bg-green-100 text-green-800' :
+                      activeCard.points === 2 ? 'bg-blue-100 text-blue-800' :
+                      activeCard.points === 3 ? 'bg-yellow-100 text-yellow-800' :
+                      activeCard.points === 4 ? 'bg-orange-100 text-orange-800' :
+                      activeCard.points === 5 ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {activeCard.points}
+                    </div>
+                  )}
+                </div>
                 {activeCard.project_name && (
                   <Badge 
                     variant="outline" 

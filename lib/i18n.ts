@@ -1530,7 +1530,6 @@ export const translations: Translations = {
     en: "Bug Fixes",
     pt: "Correções de Bugs",
   },
-  // Novas traduções para notificações de tarefas
   "taskNotifications": {
     en: "Task Notifications",
     pt: "Notificações de Tarefas"
@@ -2082,6 +2081,35 @@ export const translations: Translations = {
     en: "View your tasks data with beautiful charts and graphs.",
     pt: "Visualize seus dados de tarefas com belos gráficos e diagramas.",
   },
+  // Pontos (task difficulty)
+  points: {
+    en: "Points",
+    pt: "Pontos",
+  },
+  veryEasy: {
+    en: "Very Easy",
+    pt: "Muito Fácil",
+  },
+  easy: {
+    en: "Easy",
+    pt: "Fácil",
+  },
+  medium: {
+    en: "Medium",
+    pt: "Médio",
+  },
+  hard: {
+    en: "Hard",
+    pt: "Difícil",
+  },
+  veryHard: {
+    en: "Very Hard",
+    pt: "Muito Difícil",
+  },
+  "Select points": {
+    en: "Select points",
+    pt: "Selecione os pontos",
+  },
 }
 
 type LanguageState = {
@@ -2091,7 +2119,6 @@ type LanguageState = {
   setHydrated: (hydrated: boolean) => void
 }
 
-// Estado padrão é português
 const DEFAULT_LANGUAGE: Language = "pt"
 
 export const useLanguageStore = create<LanguageState>()(

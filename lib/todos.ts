@@ -14,24 +14,17 @@ export type Todo = {
   project_name?: string
   project_color?: string
   kanban_column?: "backlog" | "planning" | "inProgress" | "validation" | "completed" | null
+  points?: number
 }
 
 export async function getTodayTasks(userId: number): Promise<Todo[]> {
-  // Obter data atual no formato YYYY-MM-DD
   const now = new Date();
-  
-  // Definir início do dia atual (hoje à meia-noite)
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
   
-  // Definir início do dia seguinte (amanhã à meia-noite)
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  
-  console.log(`[getTodayTasks] Today start: ${today.toISOString()}`);
-  console.log(`[getTodayTasks] Tomorrow start: ${tomorrow.toISOString()}`);
 
-  // Consulta usando intervalo de tempo para pegar qualquer tarefa que vence hoje
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
     FROM todos t
@@ -44,10 +37,7 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     AND t.completed = false
     ORDER BY t.priority ASC, t.due_date ASC
   `;
-
-  console.log(`[getTodayTasks] Encontradas ${tasks.length} tarefas para hoje`);
   
-  // Mostrar detalhes para debug
   tasks.forEach((task: any) => {
     console.log(`[getTodayTasks] ID: ${task.id}, Título: ${task.title}, Data: ${task.due_date}`);
   });
@@ -92,22 +82,15 @@ export async function createTask(
   priority = 4,
   projectId: number | null = null,
   kanbanColumn: "backlog" | "planning" | "inProgress" | "validation" | "completed" | null = null,
+  points: number = 3,
 ): Promise<Todo> {
   const now = new Date().toISOString()
   
-  console.log(`[createTask] Criando tarefa para usuário ${userId}`)
-  console.log(`[createTask] Título: ${title}`)
-  console.log(`[createTask] Data de vencimento original: ${dueDate}`)
-  console.log(`[createTask] Coluna Kanban: ${kanbanColumn}`)
-  
-  // Normalizar a data de vencimento para 23:59:59 do dia especificado
   let normalizedDueDate = dueDate;
   if (dueDate) {
     try {
       const date = new Date(dueDate);
-      // Verificar se a data é válida
       if (!isNaN(date.getTime())) {
-        // Definir o horário para 23:59:59
         date.setHours(23, 59, 59, 999);
         normalizedDueDate = date.toISOString();
         console.log(`[createTask] Data normalizada: ${normalizedDueDate}`);
@@ -120,8 +103,8 @@ export async function createTask(
   }
 
   const [task] = await sql`
-    INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column)
-    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now}, ${kanbanColumn})
+    INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column, points)
+    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now}, ${kanbanColumn}, ${points})
     RETURNING *
   `
 
@@ -132,7 +115,7 @@ export async function createTask(
     `
   }
   
-  console.log(`[createTask] Tarefa criada: ID=${task.id}, data=${task.due_date}, coluna=${task.kanban_column}`)
+  console.log(`[createTask] Tarefa criada: ID=${task.id}, data=${task.due_date}, coluna=${task.kanban_column}, pontos=${task.points}`)
   
   return task as Todo
 }
@@ -140,17 +123,12 @@ export async function createTask(
 export async function updateTask(taskId: number, userId: number, updates: Partial<Todo>): Promise<Todo> {
   const now = new Date().toISOString()
   
-  console.log(`[updateTask] Atualizando tarefa ${taskId} para usuário ${userId}`);
-  
-  // Normalizar a data de vencimento para 23:59:59
   if (updates.due_date !== undefined) {
     console.log(`[updateTask] Data original: ${updates.due_date}`);
     try {
       if (updates.due_date !== null) {
         const date = new Date(updates.due_date);
-        // Verificar se a data é válida
         if (!isNaN(date.getTime())) {
-          // Definir o horário para 23:59:59
           date.setHours(23, 59, 59, 999);
           updates.due_date = date.toISOString();
           console.log(`[updateTask] Data normalizada: ${updates.due_date}`);
@@ -169,6 +147,10 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
     console.log(`[updateTask] Atualizando coluna Kanban: ${updates.kanban_column}`);
   }
 
+  if (updates.points !== undefined) {
+    console.log(`[updateTask] Atualizando pontos: ${updates.points}`);
+  }
+
   const [task] = await sql`
     UPDATE todos
     SET
@@ -178,12 +160,13 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
       priority = COALESCE(${updates.priority}, priority),
       completed = COALESCE(${updates.completed}, completed),
       kanban_column = COALESCE(${updates.kanban_column}, kanban_column),
+      points = COALESCE(${updates.points}, points),
       updated_at = ${now}
     WHERE id = ${taskId} AND user_id = ${userId}
     RETURNING *
   `
   
-  console.log(`[updateTask] Tarefa atualizada: ID=${task.id}, nova data=${task.due_date}, coluna=${task.kanban_column}`);
+  console.log(`[updateTask] Tarefa atualizada: ID=${task.id}, nova data=${task.due_date}, coluna=${task.kanban_column}, pontos=${task.points}`);
 
   return task as Todo
 }
@@ -241,14 +224,12 @@ export async function setTaskProject(taskId: number, projectId: number | null): 
   }
   
   try {
-    // First, remove any existing project association
     console.log(`[setTaskProject] Removendo associações existentes para taskId=${taskId}`);
     await sql`
       DELETE FROM todo_projects
       WHERE todo_id = ${taskId}
     `;
   
-    // Then, if a project ID is provided, add the new association
     if (projectId !== null && projectId > 0) {
       console.log(`[setTaskProject] Adicionando nova associação: taskId=${taskId}, projectId=${projectId}`);
       await sql`
@@ -267,14 +248,10 @@ export async function setTaskProject(taskId: number, projectId: number | null): 
 }
 
 export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
-  // Data e hora atual
   const now = new Date();
   const nowIsoString = now.toISOString();
   const todayDate = now.toISOString().split('T')[0];
-  
-  console.log(`[getUpcomingTasks] Buscando tarefas futuras a partir de ${nowIsoString}`);
 
-  // Consulta usando CAST para tratar datas corretamente
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
     FROM todos t
@@ -292,9 +269,7 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
     ORDER BY t.due_date ASC, t.priority ASC
   `;
 
-  console.log(`[getUpcomingTasks] Encontradas ${tasks.length} tarefas futuras`);
   
-  // Mostrar detalhes para debug
   tasks.forEach((task: any) => {
     console.log(`[getUpcomingTasks] ID: ${task.id}, Título: ${task.title}, Data: ${task.due_date}`);
   });

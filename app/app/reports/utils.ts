@@ -60,12 +60,10 @@ export async function fetchTasks(reportType: string, startDate: string, endDate:
     console.log(`Recebidas ${data.tasks?.length || 0} tarefas do servidor`);
     
     if (safeFilters.projectIds && safeFilters.projectIds.length > 0) {
-      // Verificação adicional para garantir que apenas tarefas dos projetos selecionados sejam retornadas
       const projectIds = safeFilters.projectIds;
       const filteredTasks = data.tasks?.filter((task: Todo) => 
         task.project_name && 
         projectIds.some(id => {
-          // Verificamos o ID de forma segura, permitindo tanto string quanto número
           const projectId = id.toString();
           return task.project_id ? task.project_id.toString() === projectId : false;
         })

@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar, Check, ChevronRight, Edit, Flag, MoreHorizontal, Trash, ArrowUpDown, Clock, FileText, Link, Timer } from "lucide-react"
+import { Calendar, Check, ChevronRight, Edit, Flag, MoreHorizontal, Trash, ArrowUpDown, Clock, FileText, Link, Timer, CircleDot } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import type { TodoWithEditMode } from "@/components/task-detail"
 import { cn } from "@/lib/utils"
@@ -121,6 +121,40 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
         return "text-blue-500"
       default:
         return "text-gray-400"
+    }
+  }
+
+  const getPointsColor = (points: number) => {
+    switch (points) {
+      case 1:
+        return "text-green-500"
+      case 2:
+        return "text-blue-500"
+      case 3:
+        return "text-yellow-500"
+      case 4:
+        return "text-orange-500"
+      case 5:
+        return "text-red-500"
+      default:
+        return "text-gray-400"
+    }
+  }
+
+  const getPointsLabel = (points: number) => {
+    switch (points) {
+      case 1:
+        return t("veryEasy") || "Muito fácil"
+      case 2:
+        return t("easy") || "Fácil"
+      case 3:
+        return t("medium") || "Médio"
+      case 4:
+        return t("hard") || "Difícil"
+      case 5:
+        return t("veryHard") || "Muito difícil"
+      default:
+        return t("medium") || "Médio"
     }
   }
 
@@ -284,6 +318,12 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
                       <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(task.priority)}`} />
                       <span>{getPriorityLabel(task.priority)}</span>
                     </div>
+                    {task.points && (
+                      <div className="flex items-center text-xs">
+                        <CircleDot className={`mr-1 h-3 w-3 ${getPointsColor(task.points)}`} />
+                        <span>{task.points} - {getPointsLabel(task.points)}</span>
+                      </div>
+                    )}
                     {task.project_name && (
                       <div
                         className="flex items-center text-xs rounded-full px-2 py-0.5 whitespace-nowrap"

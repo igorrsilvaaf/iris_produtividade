@@ -122,6 +122,7 @@ export async function POST(request: NextRequest) {
         completed: body.completed || false,
         user_id: userId,
         project_id: body.project_id || null,
+        points: body.points || 3,
       },
     });
 

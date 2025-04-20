@@ -85,6 +85,7 @@ export async function PUT(
         completed: body.completed !== undefined ? body.completed : existingTask.completed,
         project_id: body.project_id !== undefined ? body.project_id : existingTask.project_id,
         kanban_column: body.kanban_column !== undefined ? body.kanban_column : existingTask.kanban_column,
+        points: body.points !== undefined ? body.points : existingTask.points,
       },
     });
 
