@@ -612,7 +612,7 @@ export function generateHTML(data: ReportData): string {
           display: block;
           font-size: 24px;
           font-weight: 700;
-          color: #1e40af;
+          color: #3b82f6;
         }
         
         .stat-label {
@@ -687,7 +687,7 @@ export function generateHTML(data: ReportData): string {
         }
         
         th { 
-          background-color: #1e40af; 
+          background-color: #3b82f6; 
           color: white;
           text-align: left; 
           padding: 12px 15px;
@@ -821,7 +821,15 @@ export function generateFileName(type: string, format: string): string {
   const date = new Date().toISOString().split('T')[0];
   const reportName = type.charAt(0).toUpperCase() + type.slice(1);
   // Usar as extensões corretas para cada formato
-  return `Relatorio_${reportName}_${date}.${format === 'pdf' ? 'html' : 'csv'}`;
+  let extension = 'html';
+  
+  if (format === 'excel') {
+    extension = 'csv';
+  } else if (format === 'web' || format === 'pdf') {
+    extension = 'html';
+  }
+  
+  return `Relatorio_${reportName}_${date}.${extension}`;
 }
 
 // Função para disparar o download

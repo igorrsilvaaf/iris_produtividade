@@ -36,13 +36,13 @@ import {
   triggerDownload 
 } from "./utils"
 import type { Project } from "@/lib/projects"
-import type { Label } from "@/lib/labels"
+import { type Label as TaskLabel } from "@/lib/labels"
 
 // Define types for reports
 interface Report {
   id: string
   type: string
-  format: "pdf" | "excel"
+  format: "web" | "pdf" | "excel"
   date: string
   filters?: ReportFilters
 }
@@ -53,13 +53,13 @@ export default function ReportsPage() {
   const [reportType, setReportType] = useState("tasks")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
-  const [reportFormat, setReportFormat] = useState<"pdf" | "excel">("pdf")
+  const [reportFormat, setReportFormat] = useState<"web" | "pdf" | "excel">("web")
   const [isLoading, setIsLoading] = useState(false)
   const [recentReports, setRecentReports] = useState<Report[]>([])
   
   // Estado para os filtros novos
   const [projects, setProjects] = useState<Project[]>([])
-  const [labels, setLabels] = useState<Label[]>([])
+  const [labels, setLabels] = useState<TaskLabel[]>([])
   const [selectedProjects, setSelectedProjects] = useState<string[]>([])
   const [selectedLabels, setSelectedLabels] = useState<string[]>([])
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([])
@@ -229,44 +229,132 @@ export default function ReportsPage() {
         customColumns: customColumns.length > 0 ? customColumns : undefined
       };
       
-      // Buscar dados reais das tarefas
-      const tasks = await fetchTasks(reportType, startDate, endDate, filters);
-      
-      // Criar estrutura de dados do relatório
-      const reportData: ReportData = {
-        title: `Relatório de ${reportType === 'tasks' ? 'Todas as Tarefas' : 
-                reportType === 'completed' ? 'Tarefas Concluídas' : 
-                reportType === 'pending' ? 'Tarefas Pendentes' : 
-                reportType === 'overdue' ? 'Tarefas Atrasadas' : 
-                'Análise de Produtividade'}`,
-        period: { start: startDate, end: endDate },
-        generatedAt: new Date().toISOString(),
-        items: tasks,
-        filters // Incluir filtros para exibição no relatório
-      };
-      
-      // Gerar o arquivo baseado no formato selecionado
-      let content: string;
-      let mimeType: string;
-      let fileName: string;
-      let toastMessage: string;
-      
-      if (reportFormat === 'excel') {
-        // Para Excel, geramos um CSV
-        content = generateCSV(reportData);
-        mimeType = 'text/csv;charset=utf-8;';
-        fileName = generateFileName(reportType, 'excel');
-        toastMessage = "Abra o arquivo .csv no Excel ou outro programa de planilhas";
+      // Se formato for PDF real, usar endpoint de PDF
+      if (reportFormat === 'pdf') {
+        try {
+          // Configuração para o fetch com AbortController para timeout
+          const controller = new AbortController();
+          const signal = controller.signal;
+          const timeout = setTimeout(() => controller.abort(), 60000); // 60 segundos de timeout
+          
+          // Chamar o novo endpoint de PDF com tratamento adequado de erros
+          const response = await fetch('/api/reports/pdf', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              reportType,
+              startDate,
+              endDate,
+              projectIds: filters.projectIds,
+              labelIds: filters.labelIds,
+              priorities: filters.priorities,
+              customColumns: filters.customColumns
+            }),
+            signal: signal,
+            // Garantir que credenciais sejam enviadas
+            credentials: 'same-origin',
+          });
+          
+          // Limpar o timeout após a resposta
+          clearTimeout(timeout);
+  
+          if (!response.ok) {
+            // Se for erro 408 (timeout) ou 413 (payload too large)
+            if (response.status === 408 || response.status === 413) {
+              throw new Error("O relatório é muito grande para ser processado. Por favor, reduza o período ou o número de filtros.");
+            }
+            
+            // Tentar ler o erro do corpo da resposta
+            let errorMessage = `Erro ao gerar PDF: ${response.statusText}`;
+            try {
+              const errorData = await response.json();
+              if (errorData && errorData.error) {
+                errorMessage = errorData.error;
+              }
+            } catch (e) {
+              // Se não conseguir ler o JSON, usar a mensagem padrão
+            }
+            
+            throw new Error(errorMessage);
+          }
+  
+          // Obter o blob do PDF
+          const pdfBlob = await response.blob();
+          
+          // Criar URL do blob e iniciar download
+          const url = URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          const date = new Date().toISOString().split('T')[0];
+          link.download = `Relatorio_${reportType.charAt(0).toUpperCase() + reportType.slice(1)}_${date}.pdf`;
+          document.body.appendChild(link);
+          link.dispatchEvent(new MouseEvent('click'));
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          // Mostrar mensagem de sucesso
+          toast({
+            title: "Relatório gerado",
+            description: "O PDF foi gerado e baixado com sucesso.",
+          });
+        } catch (pdfError) {
+          console.error("Erro específico ao gerar PDF:", pdfError);
+          
+          // Verificar se é um erro de timeout/abort
+          if (pdfError instanceof Error && pdfError.name === 'AbortError') {
+            throw new Error("A solicitação do relatório demorou muito tempo e foi cancelada. Tente reduzir o período ou o número de filtros.");
+          }
+          
+          // Repassar o erro para ser tratado no bloco catch externo
+          throw pdfError;
+        }
       } else {
-        // Para PDF, geramos HTML (que pode ser renderizado como PDF pelo navegador)
-        content = generateHTML(reportData);
-        mimeType = 'text/html;charset=utf-8;';
-        fileName = generateFileName(reportType, 'pdf');
-        toastMessage = "Abra o arquivo .html no navegador e use a opção Imprimir para salvar como PDF";
+        // Buscar dados reais das tarefas pelo método antigo
+        const tasks = await fetchTasks(reportType, startDate, endDate, filters);
+        
+        // Criar estrutura de dados do relatório
+        const reportData: ReportData = {
+          title: `Relatório de ${reportType === 'tasks' ? 'Todas as Tarefas' : 
+                  reportType === 'completed' ? 'Tarefas Concluídas' : 
+                  reportType === 'pending' ? 'Tarefas Pendentes' : 
+                  reportType === 'overdue' ? 'Tarefas Atrasadas' : 
+                  'Análise de Produtividade'}`,
+          period: { start: startDate, end: endDate },
+          generatedAt: new Date().toISOString(),
+          items: tasks,
+          filters // Incluir filtros para exibição no relatório
+        };
+        
+        // Gerar o arquivo baseado no formato selecionado
+        let content: string;
+        let mimeType: string;
+        let fileName: string;
+        let toastMessage: string;
+        
+        if (reportFormat === 'excel') {
+          // Para Excel, geramos um CSV
+          content = generateCSV(reportData);
+          mimeType = 'text/csv;charset=utf-8;';
+          fileName = generateFileName(reportType, 'excel');
+          toastMessage = "Abra o arquivo .csv no Excel ou outro programa de planilhas";
+        } else {
+          // Para Web (HTML), geramos HTML
+          content = generateHTML(reportData);
+          mimeType = 'text/html;charset=utf-8;';
+          fileName = generateFileName(reportType, 'web');
+          toastMessage = "Visualize o relatório no navegador ou use a opção Imprimir para salvar como PDF";
+        }
+        
+        // Disparar o download
+        triggerDownload(content, fileName, mimeType);
+        
+        toast({
+          title: "Relatório gerado",
+          description: toastMessage,
+        })
       }
-      
-      // Disparar o download
-      triggerDownload(content, fileName, mimeType);
       
       // Adicionar ao histórico de relatórios
       const newReport: Report = {
@@ -287,16 +375,14 @@ export default function ReportsPage() {
         console.error("Erro ao salvar histórico de relatórios:", error);
       }
       
-      toast({
-        title: "Relatório gerado",
-        description: toastMessage,
-      })
     } catch (error) {
-      console.error("Export error:", error)
+      console.error("Export error:", error);
       toast({
         variant: "destructive",
         title: "Falha na exportação",
-        description: "Ocorreu um erro ao exportar seu relatório",
+        description: error instanceof Error 
+          ? error.message 
+          : "Ocorreu um erro desconhecido ao exportar seu relatório. Tente novamente mais tarde.",
       })
     } finally {
       setIsLoading(false)
@@ -576,6 +662,23 @@ export default function ReportsPage() {
                     <div className="flex items-center">
                       <input
                         type="radio"
+                        id="format-web"
+                        name="format"
+                        value="web"
+                        checked={reportFormat === "web"}
+                        onChange={() => setReportFormat("web")}
+                        className="mr-2 h-4 w-4"
+                        aria-label="Web"
+                        title="Web"
+                      />
+                      <Label htmlFor="format-web" className="text-sm font-normal cursor-pointer flex items-center">
+                        <FilePdf className="h-4 w-4 mr-1" />
+                        Web
+                      </Label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
                         id="format-pdf"
                         name="format"
                         value="pdf"
@@ -763,31 +866,60 @@ export default function ReportsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
-                  <h3 className="text-base font-medium mb-1">Para Relatórios em PDF</h3>
-                  <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground ml-2">
-                    <li>Um arquivo HTML será gerado e baixado</li>
-                    <li>Abra este arquivo em qualquer navegador</li>
-                    <li>Use a opção "Imprimir" (Ctrl+P ou Cmd+P) para salvar como PDF</li>
-                    <li>Selecione "Salvar como PDF" nas opções da impressora</li>
+                  <h3 className="text-base font-medium mb-2">Para Relatórios em Web</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground ml-2">
+                    <li>Um arquivo HTML será gerado e baixado automaticamente</li>
+                    <li>Abra este arquivo em qualquer navegador moderno (Chrome, Firefox, Edge, Safari)</li>
+                    <li>O relatório inclui todos os dados e formatação, pronto para visualização</li>
+                    <li>Você pode compartilhar este arquivo HTML diretamente ou salvá-lo para referência futura</li>
+                    <li>Para imprimir, use a opção "Imprimir" do navegador (Ctrl+P ou Cmd+P)</li>
                   </ol>
                 </div>
+                
                 <div>
-                  <h3 className="text-base font-medium mb-1">Para Relatórios em Excel</h3>
-                  <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground ml-2">
-                    <li>Um arquivo CSV será gerado e baixado</li>
-                    <li>Abra o Microsoft Excel ou outro programa de planilhas</li>
+                  <h3 className="text-base font-medium mb-2">Para Relatórios em PDF</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground ml-2">
+                    <li>Um arquivo PDF será gerado e baixado automaticamente</li>
+                    <li>Este formato é ideal para compartilhar com clientes ou colegas</li>
+                    <li>Abra com qualquer leitor de PDF (Adobe Reader, Preview, etc.)</li>
+                    <li>O relatório mantém toda a formatação e é otimizado para impressão</li>
+                    <li>Todas as tabelas incluem cabeçalhos em cada página para fácil leitura</li>
+                  </ol>
+                </div>
+                
+                <div>
+                  <h3 className="text-base font-medium mb-2">Para Relatórios em Excel</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground ml-2">
+                    <li>Um arquivo CSV (valores separados por vírgula) será gerado e baixado</li>
+                    <li>Abra o Microsoft Excel ou outro programa de planilhas (Google Sheets, LibreOffice)</li>
                     <li>Use a opção "Abrir arquivo" e selecione o CSV baixado</li>
-                    <li>Se necessário, confirme o formato de importação (delimitado por vírgulas)</li>
+                    <li>Se solicitado, confirme o formato de importação como "delimitado por vírgulas" e codificação "UTF-8"</li>
+                    <li>Após abrir, você pode formatar, filtrar e analisar os dados como desejar</li>
+                    <li>Para preservar a formatação, salve como XLSX após a importação</li>
                   </ol>
                 </div>
+                
                 <div>
-                  <h3 className="text-base font-medium mb-1">Dicas para Relatórios</h3>
-                  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-2">
-                    <li>Use filtros por projetos, etiquetas e prioridades para relatórios mais precisos</li>
-                    <li>Personalize as colunas para incluir apenas as informações relevantes para sua análise</li>
-                    <li>Salve relatórios recorrentes nos favoritos para acesso rápido</li>
+                  <h3 className="text-base font-medium mb-2">Dicas para Melhores Resultados</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground ml-2">
+                    <li><strong>Período adequado:</strong> Selecione um intervalo de datas específico para relatórios mais relevantes</li>
+                    <li><strong>Filtros precisos:</strong> Use filtros por projetos, etiquetas e prioridades para análises direcionadas</li>
+                    <li><strong>Colunas personalizadas:</strong> Inclua apenas as informações necessárias para manter o relatório conciso</li>
+                    <li><strong>Tarefas organizadas:</strong> Mantenha suas tarefas com dados completos para relatórios mais informativos</li>
+                    <li><strong>Relatórios frequentes:</strong> Considere criar relatórios recorrentes (semanais, mensais) para acompanhamento</li>
+                    <li><strong>Compartilhamento:</strong> Para compartilhar com terceiros, o formato PDF geralmente é o mais adequado</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h3 className="text-base font-medium mb-2">Solução de Problemas</h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground ml-2">
+                    <li><strong>Relatório muito grande:</strong> Reduza o período analisado ou aplique mais filtros</li>
+                    <li><strong>Caracteres incorretos no Excel:</strong> Verifique se a importação está usando codificação UTF-8</li>
+                    <li><strong>Falha no download:</strong> Tente novamente ou escolha um formato diferente</li>
+                    <li><strong>Dados ausentes:</strong> Verifique se todas as tarefas possuem as informações necessárias</li>
                   </ul>
                 </div>
               </div>
@@ -822,7 +954,12 @@ export default function ReportsPage() {
                           <tr key={report.id} className="border-b transition-colors hover:bg-muted/50">
                             <td className="p-4">{reportTypes[report.type]}</td>
                             <td className="p-4">
-                              {report.format === "pdf" ? (
+                              {report.format === "web" ? (
+                                <span className="flex items-center">
+                                  <FilePdf className="h-4 w-4 mr-1" />
+                                  Web
+                                </span>
+                              ) : report.format === "pdf" ? (
                                 <span className="flex items-center">
                                   <FilePdf className="h-4 w-4 mr-1" />
                                   PDF
@@ -870,7 +1007,9 @@ export default function ReportsPage() {
                                     report.filters.customColumns && setCustomColumns(report.filters.customColumns);
                                   }
                                   // Mudar para a aba de geração
-                                  document.querySelector('[data-state="inactive"][data-value="generate"]')?.click();
+                                  document.querySelector('[data-state="inactive"][data-value="generate"]')?.dispatchEvent(
+                                    new Event('click', { bubbles: true })
+                                  );
                                 }}
                               >
                                 <Sliders className="h-3.5 w-3.5" />
