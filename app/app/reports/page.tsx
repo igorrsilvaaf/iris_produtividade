@@ -22,6 +22,8 @@ import { Tag } from "lucide-react"
 import { Folder } from "lucide-react"
 import { Flag } from "lucide-react"
 import { Sliders } from "lucide-react"
+import { BarChart3 } from "lucide-react"
+import { PieChart } from "lucide-react"
 
 // Import utility functions and types
 import { 
@@ -658,7 +660,7 @@ export default function ReportsPage() {
 
                 <div className="space-y-2">
                   <Label className="text-base font-medium mb-2 block">Formato</Label>
-                  <div className="flex flex-wrap gap-6">
+                  <div className="flex flex-wrap gap-6 mb-4">
                     <div className="flex items-center">
                       <input
                         type="radio"
@@ -672,8 +674,8 @@ export default function ReportsPage() {
                         title="Web"
                       />
                       <Label htmlFor="format-web" className="text-sm font-normal cursor-pointer flex items-center">
-                        <FilePdf className="h-4 w-4 mr-1" />
-                        Web
+                        <BarChart3 className="h-4 w-4 mr-1" />
+                        Web com Gráficos
                       </Label>
                     </div>
                     <div className="flex items-center">
@@ -872,7 +874,9 @@ export default function ReportsPage() {
                   <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground ml-2">
                     <li>Um arquivo HTML será gerado e baixado automaticamente</li>
                     <li>Abra este arquivo em qualquer navegador moderno (Chrome, Firefox, Edge, Safari)</li>
-                    <li>O relatório inclui todos os dados e formatação, pronto para visualização</li>
+                    <li>O relatório inclui visualizações gráficas interativas e dados detalhados em tabela</li>
+                    <li>Explore gráficos de prioridades, status de tarefas, distribuição por projetos e linha do tempo</li>
+                    <li>Passe o mouse sobre os gráficos para ver detalhes e porcentagens</li>
                     <li>Você pode compartilhar este arquivo HTML diretamente ou salvá-lo para referência futura</li>
                     <li>Para imprimir, use a opção "Imprimir" do navegador (Ctrl+P ou Cmd+P)</li>
                   </ol>
@@ -907,6 +911,8 @@ export default function ReportsPage() {
                     <li><strong>Período adequado:</strong> Selecione um intervalo de datas específico para relatórios mais relevantes</li>
                     <li><strong>Filtros precisos:</strong> Use filtros por projetos, etiquetas e prioridades para análises direcionadas</li>
                     <li><strong>Colunas personalizadas:</strong> Inclua apenas as informações necessárias para manter o relatório conciso</li>
+                    <li><strong>Visualização gráfica:</strong> Utilize o formato Web para acessar os gráficos interativos e análises visuais</li>
+                    <li><strong>Análise visual:</strong> Os gráficos proporcionam insights rápidos sobre distribuição e tendências</li>
                     <li><strong>Tarefas organizadas:</strong> Mantenha suas tarefas com dados completos para relatórios mais informativos</li>
                     <li><strong>Relatórios frequentes:</strong> Considere criar relatórios recorrentes (semanais, mensais) para acompanhamento</li>
                     <li><strong>Compartilhamento:</strong> Para compartilhar com terceiros, o formato PDF geralmente é o mais adequado</li>
@@ -956,8 +962,8 @@ export default function ReportsPage() {
                             <td className="p-4">
                               {report.format === "web" ? (
                                 <span className="flex items-center">
-                                  <FilePdf className="h-4 w-4 mr-1" />
-                                  Web
+                                  <BarChart3 className="h-4 w-4 mr-1" />
+                                  Web com Gráficos
                                 </span>
                               ) : report.format === "pdf" ? (
                                 <span className="flex items-center">

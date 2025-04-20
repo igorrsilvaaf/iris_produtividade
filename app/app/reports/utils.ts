@@ -374,6 +374,8 @@ export function generateHTML(data: ReportData): string {
   
   // Estatísticas rápidas
   let statsSection = '';
+  let chartsSection = '';
+  
   if (data.items && data.items.length > 0) {
     const totalTasks = data.items.length;
     const completedTasks = data.items.filter(task => task.completed).length;
@@ -385,6 +387,9 @@ export function generateHTML(data: ReportData): string {
       if (task.priority) {
         const priorityLabel = priorityLabels[task.priority] || task.priority.toString();
         priorityCounts[priorityLabel] = (priorityCounts[priorityLabel] || 0) + 1;
+      } else {
+        // Se não tiver prioridade definida
+        priorityCounts["Sem prioridade"] = (priorityCounts["Sem prioridade"] || 0) + 1;
       }
     });
     
@@ -393,8 +398,80 @@ export function generateHTML(data: ReportData): string {
     data.items.forEach(task => {
       if (task.project_name) {
         projectsCount[task.project_name] = (projectsCount[task.project_name] || 0) + 1;
+      } else {
+        projectsCount["Sem projeto"] = (projectsCount["Sem projeto"] || 0) + 1;
       }
     });
+    
+    // Contagem por status (concluído/não concluído)
+    const statusData = [
+      { label: "Concluídas", value: completedTasks, color: "#16a34a" },
+      { label: "Pendentes", value: totalTasks - completedTasks, color: "#ef4444" }
+    ];
+    
+    // Contagem por período (agrupa por mês)
+    const monthlyData: Record<string, number> = {};
+    
+    if (data.items[0]?.created_at) {
+      data.items.forEach(task => {
+        if (task.created_at) {
+          const date = new Date(task.created_at);
+          const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
+          monthlyData[monthYear] = (monthlyData[monthYear] || 0) + 1;
+        }
+      });
+    }
+    
+    // Preparando dados para os gráficos
+    const priorityChartData = {
+      labels: Object.keys(priorityCounts),
+      datasets: [{
+        data: Object.values(priorityCounts),
+        backgroundColor: Object.keys(priorityCounts).map(label => {
+          const priorityNumber = Object.entries(priorityLabels).find(([_, pLabel]) => pLabel === label)?.[0];
+          return priorityNumber ? priorityColors[parseInt(priorityNumber, 10)] : '#777';
+        }),
+        borderWidth: 0
+      }]
+    };
+    
+    // Ordenar projetos por quantidade de tarefas (descendente)
+    const sortedProjects = Object.entries(projectsCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10); // Limitar a 10 projetos para melhor visualização
+    
+    const projectChartData = {
+      labels: sortedProjects.map(([project]) => project),
+      datasets: [{
+        label: 'Número de Tarefas',
+        data: sortedProjects.map(([_, count]) => count),
+        backgroundColor: '#3b82f6',
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    };
+    
+    // Ordenando os dados mensais cronologicamente
+    const sortedMonthlyEntries = Object.entries(monthlyData)
+      .sort((a, b) => {
+        const [monthA, yearA] = a[0].split('/').map(Number);
+        const [monthB, yearB] = b[0].split('/').map(Number);
+        
+        if (yearA !== yearB) return yearA - yearB;
+        return monthA - monthB;
+      });
+    
+    const timelineChartData = {
+      labels: sortedMonthlyEntries.map(([date]) => date),
+      datasets: [{
+        label: 'Tarefas Criadas',
+        data: sortedMonthlyEntries.map(([_, count]) => count),
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+        tension: 0.4,
+        fill: true
+      }]
+    };
     
     // Gerar HTML das estatísticas
     statsSection = `
@@ -455,6 +532,193 @@ export function generateHTML(data: ReportData): string {
           ` : ''}
         </div>
       </div>
+    `;
+    
+    // Gerar seção de gráficos
+    chartsSection = `
+      <div class="charts-section">
+        <h3>Visualização Gráfica</h3>
+        
+        <div class="charts-grid">
+          <div class="chart-container">
+            <h4>Distribuição por Prioridade</h4>
+            <div class="chart-wrapper">
+              <canvas id="priorityChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="chart-container">
+            <h4>Status de Conclusão</h4>
+            <div class="chart-wrapper">
+              <canvas id="statusChart"></canvas>
+            </div>
+          </div>
+          
+          ${Object.keys(projectsCount).length > 3 ? `
+            <div class="chart-container chart-full-width">
+              <h4>Tarefas por Projeto</h4>
+              <div class="chart-wrapper">
+                <canvas id="projectChart"></canvas>
+              </div>
+            </div>
+          ` : ''}
+          
+          ${Object.keys(monthlyData).length > 1 ? `
+            <div class="chart-container chart-full-width">
+              <h4>Linha do Tempo de Tarefas</h4>
+              <div class="chart-wrapper">
+                <canvas id="timelineChart"></canvas>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+      
+      <script>
+        // Inicializar os gráficos quando o documento estiver carregado
+        document.addEventListener('DOMContentLoaded', function() {
+          // Configuração global do Chart.js
+          Chart.defaults.font.family = "'Roboto', sans-serif";
+          Chart.defaults.font.size = 12;
+          Chart.defaults.plugins.legend.position = 'bottom';
+          
+          // Gráfico de distribuição por prioridade
+          new Chart(
+            document.getElementById('priorityChart'),
+            {
+              type: 'doughnut',
+              data: ${JSON.stringify(priorityChartData)},
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'right',
+                    labels: {
+                      usePointStyle: true,
+                      boxWidth: 10
+                    }
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const value = context.raw;
+                        const percentage = Math.round((value / total) * 100);
+                        return \`\${context.label}: \${value} (\${percentage}%)\`;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          );
+          
+          // Gráfico de status
+          new Chart(
+            document.getElementById('statusChart'),
+            {
+              type: 'pie',
+              data: {
+                labels: ${JSON.stringify(statusData.map(item => item.label))},
+                datasets: [{
+                  data: ${JSON.stringify(statusData.map(item => item.value))},
+                  backgroundColor: ${JSON.stringify(statusData.map(item => item.color))},
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const value = context.raw;
+                        const percentage = Math.round((value / total) * 100);
+                        return \`\${context.label}: \${value} (\${percentage}%)\`;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          );
+          
+          ${Object.keys(projectsCount).length > 3 ? `
+            // Gráfico de projetos
+            new Chart(
+              document.getElementById('projectChart'),
+              {
+                type: 'bar',
+                data: ${JSON.stringify(projectChartData)},
+                options: {
+                  indexAxis: 'y',
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false
+                    }
+                  },
+                  scales: {
+                    x: {
+                      grid: {
+                        display: false
+                      },
+                      ticks: {
+                        precision: 0
+                      }
+                    },
+                    y: {
+                      grid: {
+                        display: false
+                      }
+                    }
+                  }
+                }
+              }
+            );
+          ` : ''}
+          
+          ${Object.keys(monthlyData).length > 1 ? `
+            // Gráfico de linha do tempo
+            new Chart(
+              document.getElementById('timelineChart'),
+              {
+                type: 'line',
+                data: ${JSON.stringify(timelineChartData)},
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false
+                    }
+                  },
+                  scales: {
+                    y: {
+                      grid: {
+                        drawBorder: false
+                      },
+                      beginAtZero: true,
+                      ticks: {
+                        precision: 0
+                      }
+                    },
+                    x: {
+                      grid: {
+                        display: false
+                      }
+                    }
+                  }
+                }
+              }
+            );
+          ` : ''}
+        });
+      </script>
     `;
   }
   
@@ -523,6 +787,7 @@ export function generateHTML(data: ReportData): string {
     <head>
       <meta charset="UTF-8">
       <title>${data.title}</title>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
         
@@ -653,6 +918,36 @@ export function generateHTML(data: ReportData): string {
           margin-right: 8px;
         }
         
+        /* Gráficos */
+        .charts-section {
+          margin-bottom: 30px;
+        }
+        
+        .charts-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px;
+          margin-top: 15px;
+        }
+        
+        .chart-container {
+          flex: 1 0 calc(50% - 20px);
+          min-width: 250px;
+          background-color: #fff;
+          border-radius: 8px;
+          padding: 15px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-full-width {
+          flex: 1 0 100%;
+        }
+        
+        .chart-wrapper {
+          height: 250px;
+          position: relative;
+        }
+        
         /* Filtros */
         .filters-section { 
           margin-bottom: 20px; 
@@ -768,6 +1063,10 @@ export function generateHTML(data: ReportData): string {
           tr { page-break-inside: avoid; page-break-after: auto; }
           td { page-break-inside: avoid; }
           thead { display: table-header-group; }
+          
+          .chart-wrapper {
+            break-inside: avoid;
+          }
         }
       </style>
     </head>
@@ -782,6 +1081,8 @@ export function generateHTML(data: ReportData): string {
         </div>
         
         ${statsSection}
+        
+        ${chartsSection}
         
         ${filtersSection}
         
