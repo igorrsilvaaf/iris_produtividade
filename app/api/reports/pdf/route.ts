@@ -35,13 +35,19 @@ export async function POST(request: NextRequest) {
       title
     } = body;
 
+    // Garantir que os arrays de filtros sejam tratados corretamente
+    const filteredProjectIds = Array.isArray(projectIds) ? projectIds : [];
+    const filteredLabelIds = Array.isArray(labelIds) ? labelIds : [];
+    const filteredPriorities = Array.isArray(priorities) ? priorities : [];
+    const filteredCustomColumns = Array.isArray(customColumns) ? customColumns : [];
+
     console.log("Parâmetros recebidos:", { 
       reportType, 
       startDate, 
       endDate, 
-      projectIds: projectIds?.length || 0, 
-      labelIds: labelIds?.length || 0, 
-      priorities: priorities?.length || 0 
+      projectIds: filteredProjectIds.length || 0, 
+      labelIds: filteredLabelIds.length || 0, 
+      priorities: filteredPriorities.length || 0 
     });
 
     if (!reportType || !startDate || !endDate) {
@@ -57,9 +63,41 @@ export async function POST(request: NextRequest) {
       SELECT 
         t.*,
         p.name as project_name,
-        p.color as project_color
+        p.color as project_color,
+        tp.project_id as project_id
       FROM 
         todos t
+    `;
+    
+    // Parâmetros para a consulta
+    const params = [session.user.id, startDate, endDate];
+    let paramIndex = 4;
+    
+    // Se há filtros de projeto, usar INNER JOIN para garantir que a filtragem seja eficaz
+    if (filteredProjectIds.length > 0) {
+      query += `
+      INNER JOIN 
+        todo_projects tp ON t.id = tp.todo_id
+      INNER JOIN 
+        projects p ON tp.project_id = p.id 
+      WHERE 
+        t.user_id = $1
+        AND (t.due_date IS NULL OR (t.due_date >= $2 AND t.due_date <= $3))
+        AND tp.project_id IN (
+      `;
+      
+      filteredProjectIds.forEach((id, index) => {
+        query += index === 0 ? `$${paramIndex}` : `, $${paramIndex}`;
+        params.push(parseInt(id, 10));
+        paramIndex++;
+      });
+      
+      query += `)`;
+      
+      console.log(`Aplicando filtro de projetos PDF: ${filteredProjectIds.join(', ')}`);
+    } else {
+      // Se não há filtros de projeto, usar LEFT JOIN para incluir todas as tarefas
+      query += `
       LEFT JOIN 
         todo_projects tp ON t.id = tp.todo_id
       LEFT JOIN 
@@ -67,11 +105,8 @@ export async function POST(request: NextRequest) {
       WHERE 
         t.user_id = $1
         AND (t.due_date IS NULL OR (t.due_date >= $2 AND t.due_date <= $3))
-    `;
-
-    // Parâmetros para a consulta
-    const params = [session.user.id, startDate, endDate];
-    let paramIndex = 4;
+      `;
+    }
 
     // Adicionar condições com base no tipo de relatório
     if (reportType === 'completed') {
@@ -82,32 +117,23 @@ export async function POST(request: NextRequest) {
       query += ` AND t.completed = false AND t.due_date < NOW()`;
     }
 
-    // Filtrar por projetos
-    if (projectIds && projectIds.length > 0) {
-      query += ` AND tp.project_id IN (`;
-      projectIds.forEach((_, index) => {
-        query += index === 0 ? `$${paramIndex}` : `, $${paramIndex}`;
-        params.push(parseInt(projectIds[index], 10));
-        paramIndex++;
-      });
-      query += `)`;
-    }
-
-    // Filtrar por prioridades
-    if (priorities && priorities.length > 0) {
+    // Filtrar por prioridades, apenas se o array não estiver vazio
+    if (filteredPriorities.length > 0) {
       query += ` AND t.priority IN (`;
-      priorities.forEach((_, index) => {
+      filteredPriorities.forEach((_, index) => {
         query += index === 0 ? `$${paramIndex}` : `, $${paramIndex}`;
-        params.push(parseInt(priorities[index], 10));
+        params.push(parseInt(filteredPriorities[index], 10));
         paramIndex++;
       });
       query += `)`;
     }
 
     // Adicionar ordenação e limite
-    query += ` ORDER BY t.due_date ASC, t.priority ASC LIMIT 500`;
+    query += ` ORDER BY t.due_date ASC, t.priority ASC LIMIT 1000`;
     
     console.log("Executando consulta SQL...");
+    console.log("Query:", query);
+    console.log("Params:", params);
 
     try {
       // Executar a consulta com timeout
@@ -128,67 +154,79 @@ export async function POST(request: NextRequest) {
         tasks = [];
       }
       
-      // Se há filtros de etiquetas, precisamos fazer um processamento adicional
-      if (labelIds && labelIds.length > 0) {
-        console.log("Processando filtros de etiquetas");
-        
-        // Obter as IDs das tarefas para uma consulta em lote
-        const taskIds = tasks.filter(t => t && t.id).map(t => t.id);
-        
-        if (taskIds.length > 0) {
-          try {
-            // Buscar todas as etiquetas para todas as tarefas em uma única consulta
-            const labelsQuery = `
-              SELECT tl.todo_id, l.id, l.name, l.color
-              FROM todo_labels tl
-              JOIN labels l ON tl.label_id = l.id
-              WHERE tl.todo_id = ANY($1)
-            `;
-            
-            const labelsResults = await sql.query(labelsQuery, [taskIds]);
-            console.log(`Consulta de etiquetas retornou ${labelsResults.length} registros`);
-            
-            // Agrupar etiquetas por ID de tarefa
-            const labelsByTaskId: Record<number, any[]> = {};
-            
-            if (Array.isArray(labelsResults)) {
-              labelsResults.forEach((label: any) => {
-                if (label && label.todo_id) {
-                  if (!labelsByTaskId[label.todo_id]) {
-                    labelsByTaskId[label.todo_id] = [];
-                  }
-                  labelsByTaskId[label.todo_id].push({
-                    id: label.id,
-                    name: label.name,
-                    color: label.color
-                  });
+      // Buscar todas as etiquetas para todas as tarefas
+      const taskIds = tasks.filter(t => t && t.id).map(t => t.id);
+      
+      if (taskIds.length > 0) {
+        try {
+          // Buscar todas as etiquetas para todas as tarefas em uma única consulta
+          const labelsQuery = `
+            SELECT tl.todo_id, l.id, l.name, l.color
+            FROM todo_labels tl
+            JOIN labels l ON tl.label_id = l.id
+            WHERE tl.todo_id = ANY($1)
+          `;
+          
+          const labelsResults = await sql.query(labelsQuery, [taskIds]);
+          console.log(`Consulta de etiquetas retornou ${labelsResults.length} registros`);
+          
+          // Agrupar etiquetas por ID de tarefa
+          const labelsByTaskId: Record<number, any[]> = {};
+          
+          if (Array.isArray(labelsResults)) {
+            labelsResults.forEach((label: any) => {
+              if (label && label.todo_id) {
+                if (!labelsByTaskId[label.todo_id]) {
+                  labelsByTaskId[label.todo_id] = [];
                 }
-              });
-            }
-            
-            // Adicionar etiquetas a cada tarefa
-            tasks.forEach((task) => {
-              if (task && task.id) {
-                task.labels = labelsByTaskId[task.id] || [];
-              } else {
-                task.labels = [];
+                labelsByTaskId[label.todo_id].push({
+                  id: label.id,
+                  name: label.name,
+                  color: label.color
+                });
               }
             });
-            
-            // Filtrar tarefas que contêm pelo menos um dos rótulos especificados
-            const filteredTasks = tasks.filter((task) => {
-              if (!task || !task.labels || !Array.isArray(task.labels) || task.labels.length === 0) return false;
-              return task.labels.some((label: any) => 
-                label && label.id && labelIds.includes(String(label.id))
-              );
-            });
-            
-            tasks = filteredTasks;
-            console.log(`Após filtro de etiquetas, restam ${tasks.length} tarefas`);
-          } catch (labelError) {
-            console.error("Erro ao processar etiquetas:", labelError);
-            // Continuar sem as etiquetas em caso de erro
           }
+          
+          // Adicionar etiquetas a cada tarefa
+          tasks.forEach((task) => {
+            if (task && task.id) {
+              task.labels = labelsByTaskId[task.id] || [];
+            } else {
+              task.labels = [];
+            }
+          });
+          
+          // Se há filtros de etiquetas, aplicar o filtro apenas depois de ter carregado todas as etiquetas
+          if (filteredLabelIds.length > 0) {
+            console.log(`Aplicando filtro de etiquetas: ${filteredLabelIds.join(', ')}`);
+            
+            // Verificamos se há tarefas com etiquetas
+            if (Array.isArray(tasks) && tasks.length > 0 && tasks.some(t => t.labels && t.labels.length > 0)) {
+              const filteredTasks = tasks.filter((task) => {
+                if (!task || !task.labels || !Array.isArray(task.labels) || task.labels.length === 0) return false;
+                
+                return task.labels.some((label: any) => 
+                  label && label.id && filteredLabelIds.includes(String(label.id))
+                );
+              });
+              
+              // Só substituímos se tivermos tarefas filtradas
+              if (filteredTasks.length > 0) {
+                tasks = filteredTasks;
+                console.log(`Após filtro de etiquetas, restam ${tasks.length} tarefas`);
+              } else {
+                // Se não encontramos nenhuma tarefa com as etiquetas solicitadas,
+                // é provavelmente um erro do usuário, então vamos manter as tarefas originais
+                console.log(`Aviso: Filtro de etiquetas não encontrou resultados. Mantendo resultado original.`);
+              }
+            } else {
+              console.log(`Aviso: Não há etiquetas nas tarefas para filtrar.`);
+            }
+          }
+        } catch (labelError) {
+          console.error("Erro ao processar etiquetas:", labelError);
+          // Continuar sem as etiquetas em caso de erro
         }
       }
       
@@ -234,25 +272,26 @@ export async function POST(request: NextRequest) {
         return sanitizedTask;
       });
       
-      // Formar o título do relatório (se não foi fornecido)
-      const reportTitle = title || `Relatório de ${reportType === 'tasks' ? 'Todas as Tarefas' : 
-        reportType === 'completed' ? 'Tarefas Concluídas' : 
-        reportType === 'pending' ? 'Tarefas Pendentes' : 
-        reportType === 'overdue' ? 'Tarefas Atrasadas' : 
-        'Análise de Produtividade'}`;
-      
-      // Criar estrutura de dados do relatório com os dados sanitizados
+      // Processar e sanitizar os dados antes de enviá-los para o gerador de PDF
+      // Agora incluir os dados do relatório completo
       const reportData = {
-        title: reportTitle,
-        period: { start: startDate, end: endDate },
+        title: `Relatório de ${reportType === 'tasks' ? 'Todas as Tarefas' : 
+                reportType === 'completed' ? 'Tarefas Concluídas' : 
+                reportType === 'pending' ? 'Tarefas Pendentes' : 
+                reportType === 'overdue' ? 'Tarefas Atrasadas' : 
+                'Análise de Produtividade'}`,
+        period: { 
+          start: startDate, 
+          end: endDate 
+        },
         generatedAt: new Date().toISOString(),
         items: sanitizedTasks,
         filters: {
-          projectIds,
-          labelIds,
-          priorities,
-          customColumns
-        } as ReportFilters
+          projectIds: filteredProjectIds,
+          labelIds: filteredLabelIds,
+          priorities: filteredPriorities,
+          customColumns: filteredCustomColumns
+        }
       };
   
       console.log("Iniciando geração do PDF com os dados coletados");

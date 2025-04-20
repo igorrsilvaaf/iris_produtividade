@@ -16,7 +16,6 @@ import {
   DialogTitle,
   DialogClose
 } from '@/components/ui/dialog'
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 export function ChangelogNotification() {
@@ -113,53 +112,26 @@ export function ChangelogNotification() {
         <div className="bg-gradient-to-r from-primary/80 to-primary p-6 text-white">
           <DialogHeader className="text-white pb-2">
             <DialogTitle className="flex items-center gap-2 text-xl">
-              <motion.div
-                initial={{ rotate: -20, scale: 0.8 }}
-                animate={{ rotate: 0, scale: 1 }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 260, 
-                  damping: 20,
-                  delay: 0.1
-                }}
-              >
-                <Sparkles className="h-6 w-6 mr-1" />
-              </motion.div>
-              <motion.span
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-              >
+              <div className="mr-1">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <span>
                 {t('newChanges')}
-              </motion.span>
-              <motion.span 
-                className="text-sm bg-white/30 px-2 py-0.5 rounded-full ml-2 font-mono"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
-              >
+              </span>
+              <span className="text-sm bg-white/30 px-2 py-0.5 rounded-full ml-2 font-mono">
                 v{latestChangelog}
-              </motion.span>
+              </span>
             </DialogTitle>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-            >
+            <div>
               <DialogDescription className="text-white/90 mt-1">
                 {t('newChangesDescription')}
               </DialogDescription>
-            </motion.div>
+            </div>
           </DialogHeader>
         </div>
         
         <div className="p-5">
-          <motion.div
-            className="border-l-4 border-primary/30 pl-3 py-2 mb-4 rounded-sm bg-primary/5"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 }}
-          >
+          <div className="border-l-4 border-primary/30 pl-3 py-2 mb-4 rounded-sm bg-primary/5">
             <p className="text-sm text-muted-foreground">
               {latestChangelog === '2.7.0' ? (
                 <>
@@ -179,7 +151,7 @@ export function ChangelogNotification() {
                 t('latestUpdateInfo')
               )}
             </p>
-          </motion.div>
+          </div>
         
           <DialogFooter className="flex flex-row justify-between gap-2 pt-2">
             <Button 

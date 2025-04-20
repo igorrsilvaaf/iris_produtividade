@@ -198,12 +198,10 @@ export default function ReportsPage() {
   const formatDisplayDate = (dateString: string) => {
     if (!dateString) return ""
     try {
-      const date = new Date(dateString)
-      return date.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      })
+      // Vamos usar a data exatamente como foi fornecida pelo usuário
+      // Converter para o formato brasileiro de data sem alterações de timezone
+      const [year, month, day] = dateString.split('-');
+      return `${day}/${month}/${year}`;
     } catch (error) {
       console.error("Erro ao formatar data:", error)
       return dateString
@@ -223,13 +221,48 @@ export default function ReportsPage() {
     setIsLoading(true)
     
     try {
-      // Preparar os filtros
+      // Preparar os filtros - garantir que arrays vazios sejam undefined
       const filters: ReportFilters = {
-        projectIds: selectedProjects.length > 0 ? selectedProjects : undefined,
-        labelIds: selectedLabels.length > 0 ? selectedLabels : undefined,
-        priorities: selectedPriorities.length > 0 ? selectedPriorities : undefined,
-        customColumns: customColumns.length > 0 ? customColumns : undefined
+        projectIds: selectedProjects.length > 0 ? [...selectedProjects] : undefined,
+        labelIds: selectedLabels.length > 0 ? [...selectedLabels] : undefined,
+        priorities: selectedPriorities.length > 0 ? [...selectedPriorities] : undefined,
+        customColumns: customColumns.length > 0 ? [...customColumns] : undefined
       };
+      
+      console.log("Filtros aplicados no relatório:", JSON.stringify(filters));
+      
+      // Log dos projetos selecionados para depuração
+      if (selectedProjects.length > 0) {
+        const projectNames = selectedProjects.map(id => {
+          const project = projects.find(p => p.id.toString() === id);
+          return project ? `${project.name} (${id})` : id;
+        });
+        console.log(`Projetos selecionados: ${projectNames.join(', ')}`);
+      } else {
+        console.log("Nenhum projeto selecionado");
+      }
+      
+      // Log das etiquetas selecionadas para depuração
+      if (selectedLabels.length > 0) {
+        const labelNames = selectedLabels.map(id => {
+          const label = labels.find(l => l.id.toString() === id);
+          return label ? `${label.name} (${id})` : id;
+        });
+        console.log(`Etiquetas selecionadas: ${labelNames.join(', ')}`);
+      } else {
+        console.log("Nenhuma etiqueta selecionada");
+      }
+      
+      // Log das prioridades selecionadas para depuração
+      if (selectedPriorities.length > 0) {
+        const priorityNames = selectedPriorities.map(priority => {
+          const option = priorityOptions.find(opt => opt.value === priority);
+          return option ? `${option.label} (${priority})` : priority;
+        });
+        console.log(`Prioridades selecionadas: ${priorityNames.join(', ')}`);
+      } else {
+        console.log("Nenhuma prioridade selecionada");
+      }
       
       // Se formato for PDF real, usar endpoint de PDF
       if (reportFormat === 'pdf') {
@@ -323,7 +356,10 @@ export default function ReportsPage() {
                   reportType === 'pending' ? 'Tarefas Pendentes' : 
                   reportType === 'overdue' ? 'Tarefas Atrasadas' : 
                   'Análise de Produtividade'}`,
-          period: { start: startDate, end: endDate },
+          period: { 
+            start: startDate,
+            end: endDate 
+          },
           generatedAt: new Date().toISOString(),
           items: tasks,
           filters // Incluir filtros para exibição no relatório

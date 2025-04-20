@@ -3,16 +3,15 @@ import { getSession } from "@/lib/auth"
 import { createTask, getCompletedTasks, getInboxTasks, getTasksForNotifications } from "@/lib/todos"
 import { neon } from "@neondatabase/serverless"
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 
 const sql = neon(process.env.DATABASE_URL!)
 
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
+    const session = await getSession();
+    if (!session) {
+      console.log("Acesso não autorizado ao endpoint /api/tasks");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -83,7 +82,7 @@ export async function GET(request: NextRequest) {
       ],
     });
 
-    return NextResponse.json(tasks);
+    return NextResponse.json({ tasks });
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return NextResponse.json(
@@ -96,8 +95,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
+    const session = await getSession();
+    if (!session) {
+      console.log("Acesso não autorizado ao endpoint POST /api/tasks");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(task, { status: 201 });
+    return NextResponse.json({ task }, { status: 201 });
   } catch (error) {
     console.error("Error creating task:", error);
     return NextResponse.json(

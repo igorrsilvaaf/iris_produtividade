@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
-import prisma from "@/app/lib/prisma";
+import { getSession } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
@@ -9,8 +8,8 @@ export async function GET(
 ) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -52,8 +51,8 @@ export async function PUT(
 ) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -85,6 +84,55 @@ export async function PUT(
         priority: body.priority !== undefined ? body.priority : existingTask.priority,
         completed: body.completed !== undefined ? body.completed : existingTask.completed,
         project_id: body.project_id !== undefined ? body.project_id : existingTask.project_id,
+        kanban_column: body.kanban_column !== undefined ? body.kanban_column : existingTask.kanban_column,
+      },
+    });
+
+    return NextResponse.json(updatedTask);
+  } catch (error) {
+    console.error("Error updating task:", error);
+    return NextResponse.json(
+      { error: "Failed to update task" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Check authentication
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const taskId = params.id;
+    const body = await request.json();
+
+    // Check if task exists and belongs to user
+    const existingTask = await prisma.task.findUnique({
+      where: {
+        id: taskId,
+        user_id: userId,
+      },
+    });
+
+    if (!existingTask) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    // Update task with partial data
+    const updatedTask = await prisma.task.update({
+      where: {
+        id: taskId,
+      },
+      data: {
+        ...body,
+        due_date: body.due_date !== undefined ? new Date(body.due_date) : existingTask.due_date,
       },
     });
 
@@ -104,8 +152,8 @@ export async function DELETE(
 ) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user?.id) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
