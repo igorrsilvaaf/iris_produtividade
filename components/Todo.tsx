@@ -90,4 +90,7 @@ export function Todo({ todo, onComplete, onDelete }: TodoProps) {
       </div>
     </div>
   )
-} 
+}
+
+// Also export as default for convenience
+export default Todo 

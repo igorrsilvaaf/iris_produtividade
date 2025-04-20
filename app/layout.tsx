@@ -9,7 +9,8 @@ import { getUserSettings } from "@/lib/settings"
 import { getSession } from "@/lib/auth"
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
 
-import "./globals.css"
+// Importação correta do CSS global
+import "@/app/globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,12 +22,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Verificar primeiro o novo cookie user-language
   const userLanguageCookie = cookieStore.get("user-language")
   
-  // Log de todos os cookies para debug
-  console.log("------ COOKIES DISPONÍVEIS NO SERVIDOR ------")
-  for (const cookie of cookieStore.getAll()) {
-    console.log(`Cookie: ${cookie.name} = ${cookie.value.substring(0, 20)}${cookie.value.length > 20 ? '...' : ''}`)
-  }
-  console.log("--------------------------------")
+  // Log de todos os cookies para debug - REDUZIDO para evitar poluição do console
+  // console.log("------ COOKIES DISPONÍVEIS NO SERVIDOR ------")
+  // for (const cookie of cookieStore.getAll()) {
+  //   console.log(`Cookie: ${cookie.name} = ${cookie.value.substring(0, 20)}${cookie.value.length > 20 ? '...' : ''}`)
+  // }
+  // console.log("--------------------------------")
   
   // Definir o idioma padrão como português
   let initialLanguage = "pt" as "pt" | "en"
@@ -38,13 +39,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (settings && settings.language && (settings.language === "en" || settings.language === "pt")) {
     // Prioridade 1: Usar o idioma das configurações salvas no banco
     initialLanguage = settings.language as "pt" | "en"
-    console.log("RootLayout: Usando idioma das configurações do usuário:", initialLanguage)
+    // console.log("RootLayout: Usando idioma das configurações do usuário:", initialLanguage)
   } else if (userLanguageCookie) {
     // Prioridade 2: Usar o valor do cookie se estiver disponível e for válido
     const cookieValue = userLanguageCookie.value
     if (cookieValue === "en" || cookieValue === "pt") {
       initialLanguage = cookieValue
-      console.log("RootLayout: Usando idioma do cookie user-language:", initialLanguage)
+      // console.log("RootLayout: Usando idioma do cookie user-language:", initialLanguage)
     }
   } else {
     // Verificar o cookie antigo como fallback
@@ -54,19 +55,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         const parsedData = JSON.parse(legacyCookie.value)
         if (parsedData.state && parsedData.state.language) {
           initialLanguage = parsedData.state.language as "pt" | "en"
-          console.log("RootLayout: Usando idioma do cookie legacy:", initialLanguage)
+          // console.log("RootLayout: Usando idioma do cookie legacy:", initialLanguage)
         }
       } catch (e) {
         console.error("Error parsing language cookie:", e)
       }
     } else {
-      console.log("RootLayout: Nenhum cookie de idioma encontrado, usando pt como padrão")
+      // console.log("RootLayout: Nenhum cookie de idioma encontrado, usando pt como padrão")
     }
   }
 
-  // Log para debugging
-  console.log("RootLayout: Idioma definido:", initialLanguage)
-  console.log(`RootLayout: HTML lang será definido como: ${initialLanguage === "en" ? "en" : "pt-BR"}`)
+  // Reduzindo logs para evitar poluição do console
+  // console.log("RootLayout: Idioma definido:", initialLanguage)
+  // console.log(`RootLayout: HTML lang será definido como: ${initialLanguage === "en" ? "en" : "pt-BR"}`)
   
   // Para usuários logados, verificar se existe discrepância entre cookie e configurações do banco
   if (session && settings && userLanguageCookie) {

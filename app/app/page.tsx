@@ -95,6 +95,7 @@ export default async function AppPage() {
               pomodoro_cycles: settings.pomodoro_cycles,
               enable_sound: settings.enable_sound,
               notification_sound: settings.notification_sound,
+              pomodoro_sound: settings.pomodoro_sound,
               enable_desktop_notifications: settings.enable_desktop_notifications,
             }}
           />

@@ -62,19 +62,67 @@ export function TaskNotificationsMenu() {
 
   const fetchTaskNotifications = async () => {
     setLoading(true)
-    try {
-      const response = await fetch("/api/notifications/tasks")
-      if (response.ok) {
-        const data = await response.json()
-        setNotifications(data)
-      } else {
-        console.error("Erro ao buscar notificações:", await response.text())
+    
+    const maxRetries = 3;
+    let retryCount = 0;
+    let success = false;
+    
+    while (retryCount < maxRetries && !success) {
+      try {
+        // Verificar se o navegador está online
+        if (!navigator.onLine) {
+          console.log("Navegador offline, aguardando reconexão para buscar notificações");
+          break;
+        }
+        
+        // Adicionar timeout para a requisição
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
+        
+        const response = await fetch("/api/notifications/tasks", {
+          signal: controller.signal,
+          cache: 'no-store',
+          credentials: 'same-origin',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data);
+          success = true;
+        } else {
+          console.error(`Erro ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries}):`, 
+            response.status, response.statusText);
+          retryCount++;
+          
+          // Aguardar antes de tentar novamente (exponential backoff)
+          if (retryCount < maxRetries) {
+            await new Promise(r => setTimeout(r, retryCount * 1000));
+          }
+        }
+      } catch (error) {
+        // Se for um erro de timeout, exibir mensagem específica
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          console.error(`Timeout ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries})`);
+        } else {
+          console.error(`Erro ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries}):`, error);
+        }
+        
+        retryCount++;
+        
+        // Aguardar antes de tentar novamente (exponential backoff)
+        if (retryCount < maxRetries) {
+          await new Promise(r => setTimeout(r, retryCount * 1000));
+        }
       }
-    } catch (error) {
-      console.error("Erro ao buscar notificações:", error)
-    } finally {
-      setLoading(false)
     }
+    
+    setLoading(false);
   }
 
   useEffect(() => {

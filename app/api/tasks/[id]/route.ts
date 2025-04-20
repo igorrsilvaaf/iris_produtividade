@@ -1,85 +1,143 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { getSession } from "@/lib/auth"
-import { updateTask, deleteTask } from "@/lib/todos"
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/lib/auth";
+import prisma from "@/app/lib/prisma";
 
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const session = await getSession()
-
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    // Check authentication
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const resolvedParams = await params
-    const taskId = Number.parseInt(resolvedParams.id)
+    const userId = session.user.id;
+    const taskId = params.id;
 
-    const task = await updateTask(taskId, session.user.id, {})
+    // Fetch task
+    const task = await prisma.task.findUnique({
+      where: {
+        id: taskId,
+        user_id: userId,
+      },
+      include: {
+        project: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
 
-    return NextResponse.json({ task })
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message || "Failed to get task" }, { status: 500 })
+    if (!task) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(task);
+  } catch (error) {
+    console.error("Error fetching task:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch task" },
+      { status: 500 }
+    );
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const session = await getSession()
-
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    // Check authentication
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const resolvedParams = await params
-    const taskId = Number.parseInt(resolvedParams.id)
-    const updates = await request.json()
+    const userId = session.user.id;
+    const taskId = params.id;
+    const body = await request.json();
 
-    // Validar a data se fornecida
-    if (updates.dueDate !== undefined) {
-      console.log(`[PATCH /api/tasks/${taskId}] Data recebida para atualização: ${updates.dueDate}`);
-      
-      if (updates.dueDate !== null) {
-        try {
-          const dateObj = new Date(updates.dueDate);
-          console.log(`[PATCH /api/tasks/${taskId}] Data convertida: ${dateObj.toString()}`);
-          
-          // Verificar se a data é válida
-          if (isNaN(dateObj.getTime())) {
-            console.error(`[PATCH /api/tasks/${taskId}] Erro: Data inválida ${updates.dueDate}`);
-            return NextResponse.json({ message: "Invalid date format" }, { status: 400 });
-          }
-        } catch (error) {
-          console.error(`[PATCH /api/tasks/${taskId}] Erro ao processar data: ${error}`);
-          return NextResponse.json({ message: "Invalid date format" }, { status: 400 });
-        }
-      } else {
-        console.log(`[PATCH /api/tasks/${taskId}] Removendo data da tarefa`);
-      }
+    // Check if task exists and belongs to user
+    const existingTask = await prisma.task.findUnique({
+      where: {
+        id: taskId,
+        user_id: userId,
+      },
+    });
+
+    if (!existingTask) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    const task = await updateTask(taskId, session.user.id, updates)
+    // Update task
+    const updatedTask = await prisma.task.update({
+      where: {
+        id: taskId,
+      },
+      data: {
+        title: body.title !== undefined ? body.title : existingTask.title,
+        description: body.description !== undefined ? body.description : existingTask.description,
+        due_date: body.due_date !== undefined ? new Date(body.due_date) : existingTask.due_date,
+        priority: body.priority !== undefined ? body.priority : existingTask.priority,
+        completed: body.completed !== undefined ? body.completed : existingTask.completed,
+        project_id: body.project_id !== undefined ? body.project_id : existingTask.project_id,
+      },
+    });
 
-    return NextResponse.json({ task })
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message || "Failed to update task" }, { status: 500 })
+    return NextResponse.json(updatedTask);
+  } catch (error) {
+    console.error("Error updating task:", error);
+    return NextResponse.json(
+      { error: "Failed to update task" },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const session = await getSession()
-
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    // Check authentication
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const resolvedParams = await params
-    const taskId = Number.parseInt(resolvedParams.id)
+    const userId = session.user.id;
+    const taskId = params.id;
 
-    await deleteTask(taskId, session.user.id)
+    // Check if task exists and belongs to user
+    const existingTask = await prisma.task.findUnique({
+      where: {
+        id: taskId,
+        user_id: userId,
+      },
+    });
 
-    return NextResponse.json({ message: "Task deleted successfully" })
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message || "Failed to delete task" }, { status: 500 })
+    if (!existingTask) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    // Delete task
+    await prisma.task.delete({
+      where: {
+        id: taskId,
+      },
+    });
+
+    return NextResponse.json({ message: "Task deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    return NextResponse.json(
+      { error: "Failed to delete task" },
+      { status: 500 }
+    );
   }
 }
 

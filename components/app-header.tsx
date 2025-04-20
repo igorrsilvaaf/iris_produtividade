@@ -187,6 +187,35 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
                   </a>
                 </DropdownMenuItem>
                 
+                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5">
+                  <a href="/app/reports" className="flex items-center">
+                    <svg 
+                      className="mr-2 h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="24" 
+                      height="24" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                      <path d="M8 2h1" />
+                      <path d="M8 16v-3.5a2.5 2.5 0 0 1 5 0V16" />
+                      <path d="M8 14h5" />
+                      <rect width="16" height="18" x="4" y="2" rx="2" />
+                      <path d="M16 12h.01" />
+                      <path d="M16 16h.01" />
+                      <path d="M12 12h.01" />
+                      <path d="M12 16h.01" />
+                      <path d="M8 12h.01" />
+                    </svg>
+                    {t("reports")}
+                  </a>
+                </DropdownMenuItem>
+                
                 {/* Theme toggle for mobile */}
                 <div className="md:hidden">
                   <DropdownMenuSeparator className="my-1" />
