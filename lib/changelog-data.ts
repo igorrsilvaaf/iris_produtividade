@@ -15,6 +15,84 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.7.0',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'enhanced-reports',
+        title: 'Sistema de Relatórios Aprimorado',
+        description: 'Melhorias significativas no sistema de relatórios com múltiplos formatos de exportação',
+        items: [
+          {
+            type: 'feature',
+            content: 'Adicionado suporte para três formatos de exportação: Web, PDF e Excel'
+          },
+          {
+            type: 'feature',
+            content: 'Novo formato PDF otimizado com cabeçalhos de tabela em todas as páginas'
+          },
+          {
+            type: 'feature',
+            content: 'Estatísticas detalhadas com design consistente em todas as páginas do relatório'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface simplificada para seleção de formato com ícones intuitivos'
+          },
+          {
+            type: 'improvement',
+            content: 'Instruções de uso detalhadas para cada formato de exportação'
+          },
+          {
+            type: 'improvement',
+            content: 'Visualização aprimorada de estatísticas com cores uniformes em todos os elementos'
+          },
+          {
+            type: 'improvement',
+            content: 'Adicionada seção de solução de problemas para auxiliar usuários'
+          }
+        ]
+      },
+      {
+        id: 'reports-howto',
+        title: 'Como Usar os Novos Relatórios',
+        description: 'Guia rápido para aproveitar ao máximo o sistema de relatórios aprimorado',
+        items: [
+          {
+            type: 'documentation',
+            content: 'Acesse o sistema de relatórios pelo menu principal, clicando em "Relatórios", ou diretamente em /app/reports'
+          },
+          {
+            type: 'documentation',
+            content: 'Selecione o tipo de relatório (Todas as Tarefas, Tarefas Concluídas, etc.) e defina o período desejado'
+          },
+          {
+            type: 'documentation',
+            content: 'Utilize os filtros por projetos, etiquetas e prioridades para relatórios mais precisos'
+          },
+          {
+            type: 'documentation',
+            content: 'Personalize as colunas a serem exibidas no relatório para focar apenas nas informações relevantes'
+          },
+          {
+            type: 'documentation',
+            content: 'Escolha o formato de exportação: Web (HTML para visualização rápida), PDF (para compartilhamento profissional) ou Excel (para análise detalhada)'
+          },
+          {
+            type: 'documentation',
+            content: 'Use a aba "Histórico de Relatórios" para acessar facilmente relatórios gerados anteriormente'
+          }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date(),
     version: '2.6.0',
     author: {
       name: 'Igor Silva',
@@ -54,7 +132,7 @@ export const CHANGELOG_DATA: ChangelogData[] = [
         ]
       }
     ],
-    isNew: true
+    isNew: false
   },
   {
     date: new Date('2024-04-10'),
