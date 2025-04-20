@@ -10,6 +10,9 @@ export const prisma = global.prisma || new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });
 
+// Adicionar export default para compatibilidade com importações existentes
+export default prisma;
+
 // Definindo a variável global apenas em ambiente que não for produção
 if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma;
