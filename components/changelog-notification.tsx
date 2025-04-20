@@ -67,6 +67,12 @@ export function ChangelogNotification() {
       if (newChanges.length === 0) return
       
       const latestNewVersion = newChanges[0].version
+      
+      // Forçar a exibição da notificação para a versão 2.7.0
+      if (latestNewVersion === '2.7.0') {
+        localStorage.removeItem('lastSeenChangelogVersion')
+      }
+      
       const lastSeenVersion = localStorage.getItem('lastSeenChangelogVersion')
       
       if (lastSeenVersion !== latestNewVersion) {
@@ -155,7 +161,23 @@ export function ChangelogNotification() {
             transition={{ duration: 0.4, delay: 0.5 }}
           >
             <p className="text-sm text-muted-foreground">
-              {t('latestUpdateInfo')}
+              {latestChangelog === '2.7.0' ? (
+                <>
+                  <span className="font-medium text-primary">Sistema de Relatórios Aprimorado</span>
+                  <br />
+                  Agora você pode exportar relatórios em três formatos diferentes: Web, PDF e Excel. 
+                  O novo formato PDF inclui cabeçalhos em todas as páginas e estatísticas 
+                  com design consistente para uma experiência profissional.
+                  <br /><br />
+                  <span className="font-medium">Como acessar:</span> Vá para o menu principal e clique em "Relatórios" 
+                  ou acesse diretamente em <span className="text-primary cursor-pointer hover:underline" 
+                  onClick={() => { setOpen(false); router.push('/app/reports'); }}>
+                    Relatórios
+                  </span>.
+                </>
+              ) : (
+                t('latestUpdateInfo')
+              )}
             </p>
           </motion.div>
         
