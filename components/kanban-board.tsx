@@ -404,7 +404,7 @@ export function KanbanBoard() {
       console.log("Buscando tarefas para Kanban...");
       
       // Buscar todas as tarefas
-      const tasksResponse = await fetch("/api/tasks", {
+      const tasksResponse = await fetch("/api/tasks?all=true", {
         method: "GET",
         signal,
         headers: {
