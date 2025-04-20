@@ -6,7 +6,6 @@ const sql = neon(process.env.DATABASE_URL!)
 
 export async function POST(request: NextRequest) {
   try {
-    // Get user session
     const session = await getSession()
     if (!session) {
       return NextResponse.json(
@@ -15,7 +14,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Parse request body
     const body = await request.json()
     const { 
       reportType, 
@@ -34,14 +32,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Here would be the actual logic to generate the report based on parameters
-    // This would connect to your database, query tasks based on filters and generate a file
 
-    // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, 1000))
 
-    // For demonstration, we're just returning a success response
-    // In a real implementation, you would generate and return the file
     return NextResponse.json({
       success: true,
       message: `Report generated successfully in ${format} format`,
@@ -64,7 +57,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Para buscar os dados reais das tarefas com base nos filtros
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
@@ -79,9 +71,21 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get("type")
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
-    const projectIds = searchParams.get("projectIds")?.split(',').filter(Boolean) || []
-    const labelIds = searchParams.get("labelIds")?.split(',').filter(Boolean) || []
-    const priorities = searchParams.get("priorities")?.split(',').filter(Boolean) || []
+    const projectIdsParam = searchParams.get("projectIds") || "";
+    const labelIdsParam = searchParams.get("labelIds") || "";
+    const prioritiesParam = searchParams.get("priorities") || "";
+    const projectIds = projectIdsParam ? projectIdsParam.split(',').filter(Boolean) : []
+    const labelIds = labelIdsParam ? labelIdsParam.split(',').filter(Boolean) : []
+    const priorities = prioritiesParam ? prioritiesParam.split(',').filter(Boolean) : []
+    
+    console.log("Filtros recebidos:", { 
+      type, 
+      startDate, 
+      endDate, 
+      projectIds, 
+      labelIds, 
+      priorities 
+    })
 
     if (!startDate || !endDate) {
       return NextResponse.json(
@@ -90,14 +94,42 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Construir a consulta SQL base
     let query = `
       SELECT 
         t.*, 
         p.name as project_name, 
-        p.color as project_color
+        p.color as project_color,
+        tp.project_id as project_id
       FROM 
         todos t
+    `;
+    
+    const params = [session.user.id, startDate, endDate];
+    let paramIndex = 4;
+    
+    if (projectIds.length > 0) {
+      query += `
+      INNER JOIN 
+        todo_projects tp ON t.id = tp.todo_id
+      INNER JOIN 
+        projects p ON tp.project_id = p.id 
+      WHERE 
+        t.user_id = $1
+        AND (t.due_date IS NULL OR (t.due_date >= $2 AND t.due_date <= $3))
+        AND tp.project_id IN (
+      `;
+      
+      projectIds.forEach((id, index) => {
+        query += index === 0 ? `$${paramIndex}` : `, $${paramIndex}`;
+        params.push(parseInt(id, 10));
+        paramIndex++;
+      });
+      
+      query += `)`;
+      
+      console.log(`Aplicando filtro de projetos: ${projectIds.join(', ')}`);
+    } else {
+      query += `
       LEFT JOIN 
         todo_projects tp ON t.id = tp.todo_id
       LEFT JOIN 
@@ -105,13 +137,9 @@ export async function GET(request: NextRequest) {
       WHERE 
         t.user_id = $1
         AND (t.due_date IS NULL OR (t.due_date >= $2 AND t.due_date <= $3))
-    `;
+      `;
+    }
 
-    // Parâmetros para a consulta
-    const params = [session.user.id, startDate, endDate];
-    let paramIndex = 4;
-
-    // Adicionar condições com base no tipo de relatório
     if (type === 'completed') {
       query += ` AND t.completed = true`;
     } else if (type === 'pending') {
@@ -120,18 +148,6 @@ export async function GET(request: NextRequest) {
       query += ` AND t.completed = false AND t.due_date < NOW()`;
     }
 
-    // Filtrar por projetos
-    if (projectIds.length > 0) {
-      query += ` AND tp.project_id IN (`;
-      projectIds.forEach((_, index) => {
-        query += index === 0 ? `$${paramIndex}` : `, $${paramIndex}`;
-        params.push(parseInt(projectIds[index], 10));
-        paramIndex++;
-      });
-      query += `)`;
-    }
-
-    // Filtrar por prioridades
     if (priorities.length > 0) {
       query += ` AND t.priority IN (`;
       priorities.forEach((_, index) => {
@@ -142,30 +158,99 @@ export async function GET(request: NextRequest) {
       query += `)`;
     }
 
-    // Adicionar ordenação
     query += ` ORDER BY t.due_date ASC, t.priority ASC`;
 
-    // Executar a consulta
-    let tasks = await sql.query(query, params);
+    console.log("Executando consulta SQL:", query);
+    console.log("Com parâmetros:", params);
 
-    // Se há filtros de etiquetas, precisamos fazer um processamento adicional
+    let tasks = await sql.query(query, params);
+    console.log(`Consulta retornou ${tasks.length} tarefas`);
+
     if (labelIds.length > 0) {
-      // Primeiro, recuperar todos os rótulos para cada tarefa
-      for (const task of tasks) {
-        const labelResults = await sql`
-          SELECT l.id, l.name, l.color
+      const hasProjectFilters = projectIds.length > 0;
+      const taskIds = tasks.filter(t => t && t.id).map(t => t.id);
+      
+      if (taskIds.length > 0) {
+        const labelQuery = `
+          SELECT tl.todo_id, l.id, l.name, l.color
           FROM labels l
           JOIN todo_labels tl ON l.id = tl.label_id
-          WHERE tl.todo_id = ${task.id}
+          WHERE tl.todo_id = ANY($1)
         `;
-        task.labels = labelResults || [];
+        
+        const allLabels = await sql.query(labelQuery, [taskIds]);
+        console.log(`Consulta de etiquetas retornou ${allLabels.length} registros`);
+        
+        const labelsByTaskId: Record<number, any[]> = {};
+        
+        if (Array.isArray(allLabels)) {
+          allLabels.forEach((label: any) => {
+            if (label && label.todo_id) {
+              if (!labelsByTaskId[label.todo_id]) {
+                labelsByTaskId[label.todo_id] = [];
+              }
+              labelsByTaskId[label.todo_id].push({
+                id: label.id,
+                name: label.name,
+                color: label.color
+              });
+            }
+          });
+        }
+        
+        tasks.forEach((task) => {
+          if (task && task.id) {
+            task.labels = labelsByTaskId[task.id] || [];
+          } else {
+            task.labels = [];
+          }
+        });
+        
+        tasks = tasks.filter((task) => {
+          if (!task.labels || task.labels.length === 0) return false;
+          return task.labels.some((label: {id: number | string}) => labelIds.includes(label.id.toString()));
+        });
+        console.log(`Após filtro de etiquetas, restam ${tasks.length} tarefas`);
+      } else {
+        tasks = [];
       }
-
-      // Depois, filtrar tarefas que contêm pelo menos um dos rótulos especificados
-      tasks = tasks.filter((task) => {
-        if (!task.labels || task.labels.length === 0) return false;
-        return task.labels.some((label) => labelIds.includes(label.id.toString()));
-      });
+    } else {
+      const taskIds = tasks.filter(t => t && t.id).map(t => t.id);
+      
+      if (taskIds.length > 0) {
+        const labelQuery = `
+          SELECT tl.todo_id, l.id, l.name, l.color
+          FROM labels l
+          JOIN todo_labels tl ON l.id = tl.label_id
+          WHERE tl.todo_id = ANY($1)
+        `;
+        
+        const allLabels = await sql.query(labelQuery, [taskIds]);
+        const labelsByTaskId: Record<number, any[]> = {};
+        
+        if (Array.isArray(allLabels)) {
+          allLabels.forEach((label: any) => {
+            if (label && label.todo_id) {
+              if (!labelsByTaskId[label.todo_id]) {
+                labelsByTaskId[label.todo_id] = [];
+              }
+              labelsByTaskId[label.todo_id].push({
+                id: label.id,
+                name: label.name,
+                color: label.color
+              });
+            }
+          });
+        }
+        
+        tasks.forEach((task) => {
+          if (task && task.id) {
+            task.labels = labelsByTaskId[task.id] || [];
+          } else {
+            task.labels = [];
+          }
+        });
+      }
     }
 
     return NextResponse.json({

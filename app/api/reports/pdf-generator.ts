@@ -19,6 +19,19 @@ interface TodoWithExtras extends Todo {
   project_color?: string;
 }
 
+// Função para formatar data corretamente
+const formatDate = (dateString: string): string => {
+  try {
+    // Vamos usar a data exatamente como foi fornecida pelo usuário
+    // Converter para o formato brasileiro de data sem alterações de timezone
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error("Erro ao formatar data:", error);
+    return dateString;
+  }
+};
+
 export function generatePDF(data: ReportData): Buffer {
   try {
     console.log("Iniciando geração de PDF...");
@@ -108,8 +121,8 @@ export function generatePDF(data: ReportData): Buffer {
     doc.setFontSize(10);
     doc.setTextColor('#6b7280');
     
-    const startDate = new Date(data.period.start).toLocaleDateString('pt-BR');
-    const endDate = new Date(data.period.end).toLocaleDateString('pt-BR');
+    const startDate = formatDate(data.period.start);
+    const endDate = formatDate(data.period.end);
     const generatedAt = new Date(data.generatedAt).toLocaleString('pt-BR');
     
     doc.text(`Período: ${startDate} a ${endDate}`, 14, 22);

@@ -1,8 +1,12 @@
-import type { Todo } from "@/lib/todos";
+import type { Todo as BaseTodo } from "@/lib/todos";
 import type { Label } from "@/lib/labels";
 import type { Project } from "@/lib/projects";
 
-// Tipo para filtros de relatório
+interface Todo extends BaseTodo {
+  labels?: Label[];
+  project_id?: number;
+}
+
 export interface ReportFilters {
   projectIds?: string[];
   labelIds?: string[];
@@ -10,7 +14,6 @@ export interface ReportFilters {
   customColumns?: string[];
 }
 
-// Interface para dados de relatório
 export interface ReportData {
   title: string;
   period: { start: string; end: string };
@@ -19,42 +22,68 @@ export interface ReportData {
   filters?: ReportFilters;
 }
 
-// Função para buscar tarefas da API
 export async function fetchTasks(reportType: string, startDate: string, endDate: string, filters?: ReportFilters): Promise<Todo[]> {
   try {
-    // Construir URL com parâmetros
     let url = `/api/reports?type=${reportType}&startDate=${startDate}&endDate=${endDate}`;
     
-    // Adicionar filtros de projetos
-    if (filters?.projectIds && filters.projectIds.length > 0) {
-      url += `&projectIds=${filters.projectIds.join(',')}`;
+    const safeFilters = filters || {};
+    console.log("Filtros sendo aplicados:", JSON.stringify(safeFilters));
+    
+    if (safeFilters.projectIds && Array.isArray(safeFilters.projectIds) && safeFilters.projectIds.length > 0) {
+      const projectString = safeFilters.projectIds.join(',');
+      url += `&projectIds=${projectString}`;
+      console.log(`Filtrando por projetos [${projectString}]`);
     }
     
-    // Adicionar filtros de etiquetas
-    if (filters?.labelIds && filters.labelIds.length > 0) {
-      url += `&labelIds=${filters.labelIds.join(',')}`;
+    if (safeFilters.labelIds && Array.isArray(safeFilters.labelIds) && safeFilters.labelIds.length > 0) {
+      const labelString = safeFilters.labelIds.join(',');
+      url += `&labelIds=${labelString}`;
+      console.log(`Filtrando por etiquetas [${labelString}]`);
     }
     
-    // Adicionar filtros de prioridades
-    if (filters?.priorities && filters.priorities.length > 0) {
-      url += `&priorities=${filters.priorities.join(',')}`;
+    if (safeFilters.priorities && Array.isArray(safeFilters.priorities) && safeFilters.priorities.length > 0) {
+      const priorityString = safeFilters.priorities.join(',');
+      url += `&priorities=${priorityString}`;
+      console.log(`Filtrando por prioridades [${priorityString}]`);
     }
+    
+    console.log("URL de requisição do relatório:", url);
     
     const response = await fetch(url);
     
     if (!response.ok) {
+      console.error("Erro na resposta do servidor:", response.status, response.statusText);
       throw new Error(`Error fetching tasks: ${response.status}`);
     }
     
     const data = await response.json();
-    return data.tasks;
+    console.log(`Recebidas ${data.tasks?.length || 0} tarefas do servidor`);
+    
+    if (safeFilters.projectIds && safeFilters.projectIds.length > 0) {
+      // Verificação adicional para garantir que apenas tarefas dos projetos selecionados sejam retornadas
+      const projectIds = safeFilters.projectIds;
+      const filteredTasks = data.tasks?.filter((task: Todo) => 
+        task.project_name && 
+        projectIds.some(id => {
+          // Verificamos o ID de forma segura, permitindo tanto string quanto número
+          const projectId = id.toString();
+          return task.project_id ? task.project_id.toString() === projectId : false;
+        })
+      ) || [];
+      
+      if (filteredTasks.length !== data.tasks?.length) {
+        console.warn(`Filtragem adicional de projetos aplicada: ${data.tasks?.length || 0} -> ${filteredTasks.length}`);
+        return filteredTasks;
+      }
+    }
+    
+    return data.tasks || [];
   } catch (error) {
     console.error("Error fetching tasks:", error);
-    return []; // Return empty array on error
+    return [];
   }
 }
 
-// Fetch all projects
 export async function fetchProjects(): Promise<Project[]> {
   try {
     const response = await fetch('/api/projects');
@@ -70,7 +99,6 @@ export async function fetchProjects(): Promise<Project[]> {
   }
 }
 
-// Fetch all labels
 export async function fetchLabels(): Promise<Label[]> {
   try {
     const response = await fetch('/api/labels');
@@ -86,13 +114,10 @@ export async function fetchLabels(): Promise<Label[]> {
   }
 }
 
-// Função para gerar CSV a partir de dados reais
 export function generateCSV(data: ReportData): string {
-  // Determinando quais colunas incluir com base na customização
   const customColumns = data.filters?.customColumns || [];
   const includeAll = customColumns.length === 0;
 
-  // Definir cabeçalhos padrão e opcionais
   const defaultHeaders = ["ID", "Título"];
   
   const optionalHeaders: Record<string, string> = {
@@ -107,7 +132,6 @@ export function generateCSV(data: ReportData): string {
     "updated_at": "Última Atualização"
   };
   
-  // Construir os cabeçalhos finais
   let headers = [...defaultHeaders];
   
   if (includeAll) {
@@ -120,15 +144,12 @@ export function generateCSV(data: ReportData): string {
     }
   }
   
-  // Se não houver itens, criar um CSV vazio com cabeçalhos
   if (!data.items || data.items.length === 0) {
     return headers.join(',') + '\n';
   }
   
-  // Converter cabeçalhos para linha CSV
   let csv = headers.join(',') + '\n';
   
-  // Mapear níveis de prioridade
   const priorityLabels: Record<number, string> = {
     1: "Urgente",
     2: "Alta",
@@ -137,7 +158,6 @@ export function generateCSV(data: ReportData): string {
     5: "Muito Baixa"
   };
   
-  // Mapear colunas Kanban
   const kanbanLabels: Record<string, string> = {
     "backlog": "Backlog",
     "planning": "Planejamento",
@@ -146,9 +166,7 @@ export function generateCSV(data: ReportData): string {
     "completed": "Concluído"
   };
   
-  // Adicionar linhas para cada item
   data.items.forEach((task) => {
-    // Formatar campos personalizados
     const dueDate = task.due_date ? new Date(task.due_date).toLocaleDateString('pt-BR') : '';
     const priority = task.priority ? priorityLabels[task.priority] || task.priority.toString() : '';
     const completed = task.completed ? "Sim" : "Não";
@@ -156,25 +174,21 @@ export function generateCSV(data: ReportData): string {
     const createdAt = task.created_at ? new Date(task.created_at).toLocaleDateString('pt-BR') : '';
     const updatedAt = task.updated_at ? new Date(task.updated_at).toLocaleDateString('pt-BR') : '';
     
-    // Formatar etiquetas (se existirem)
     let labelsText = '';
     if (task.labels && task.labels.length > 0) {
       labelsText = task.labels.map((label: Label) => label.name).join(', ');
     }
     
-    // Escapar campos de texto para CSV
     const safeTitle = escapeCsvField(task.title);
     const safeDesc = escapeCsvField(task.description || '');
     const safeProject = escapeCsvField(task.project_name || '');
     const safeLabels = escapeCsvField(labelsText);
     
-    // Construir linha
     let row = [
       task.id.toString(),
       safeTitle
     ];
     
-    // Adicionar campos opcionais na ordem correta
     if (includeAll || customColumns.includes('description')) row.push(safeDesc);
     if (includeAll || customColumns.includes('due_date')) row.push(dueDate);
     if (includeAll || customColumns.includes('priority')) row.push(priority);
@@ -191,25 +205,20 @@ export function generateCSV(data: ReportData): string {
   return csv;
 }
 
-// Função para escapar campos em CSV
 export function escapeCsvField(field: string): string {
   if (!field) return '';
   
-  // Se o campo contém vírgula, aspas ou quebra de linha, envolva com aspas
   if (field.includes(',') || field.includes('"') || field.includes('\n')) {
-    // Substituir aspas por aspas duplas (padrão CSV)
     return `"${field.replace(/"/g, '""')}"`;
   }
+  
   return field;
 }
 
-// Função para gerar HTML para PDF com dados reais
 export function generateHTML(data: ReportData): string {
-  // Determinando quais colunas incluir com base na customização
   const customColumns = data.filters?.customColumns || [];
   const includeAll = customColumns.length === 0;
   
-  // Mapear níveis de prioridade
   const priorityLabels: Record<number, string> = {
     1: "Urgente",
     2: "Alta",
@@ -218,7 +227,6 @@ export function generateHTML(data: ReportData): string {
     5: "Muito Baixa"
   };
   
-  // Mapear colunas Kanban
   const kanbanLabels: Record<string, string> = {
     "backlog": "Backlog",
     "planning": "Planejamento",
@@ -227,16 +235,14 @@ export function generateHTML(data: ReportData): string {
     "completed": "Concluído"
   };
   
-  // Mapear cores de prioridade para visual
   const priorityColors: Record<number, string> = {
-    1: "#ef4444", // Urgente - Vermelho
-    2: "#f97316", // Alta - Laranja
-    3: "#facc15", // Média - Amarelo
-    4: "#16a34a", // Baixa - Verde
-    5: "#3b82f6"  // Muito Baixa - Azul
+    1: "#ef4444",
+    2: "#f97316",
+    3: "#facc15",
+    4: "#16a34a",
+    5: "#3b82f6"
   };
   
-  // Definir colunas e cabeçalhos da tabela
   const defaultColumns = ["ID", "Título"];
   
   interface ColumnConfig {
@@ -244,21 +250,21 @@ export function generateHTML(data: ReportData): string {
     label: string;
     includeIf: boolean;
     format: (task: Todo) => string;
-    width?: string; // Largura opcional da coluna
+    width?: string;
   }
   
   const columnConfigs: ColumnConfig[] = [
     {
       id: "id", 
       label: "ID", 
-      includeIf: true, // ID é sempre incluído
+      includeIf: true,
       format: (task) => String(task.id),
       width: "50px"
     },
     {
       id: "title", 
       label: "Título", 
-      includeIf: true, // Título é sempre incluído
+      includeIf: true,
       format: (task) => escapeHtml(task.title),
       width: "20%"
     },
@@ -343,36 +349,28 @@ export function generateHTML(data: ReportData): string {
     }
   ];
   
-  // Filtrar colunas que devem ser incluídas
   const columnsToInclude = columnConfigs.filter(col => col.includeIf);
   
-  // Criar cabeçalhos HTML
   const tableHeaders = columnsToInclude.map(col => 
     `<th style="${col.width ? `width:${col.width};` : ''}">${col.label}</th>`
   ).join('');
   
-  // Criar linhas de tabela HTML
   let tableRows = '';
   
   if (data.items && data.items.length > 0) {
     data.items.forEach((task, index) => {
-      // Determinar a classe alternada para linhas pares/ímpares
       const rowClass = index % 2 === 0 ? 'even-row' : 'odd-row';
       
-      // Construir células da linha
       const cells = columnsToInclude.map(col => 
         `<td style="${col.width ? `width:${col.width};` : ''}">${col.format(task)}</td>`
       ).join('');
       
-      // Construir linha HTML
       tableRows += `<tr class="${rowClass}">${cells}</tr>`;
     });
   } else {
-    // Se não houver dados, mostrar mensagem
     tableRows = `<tr><td colspan="${columnsToInclude.length}" style="text-align:center; padding:20px; color:#888;">Nenhuma tarefa encontrada no período especificado</td></tr>`;
   }
   
-  // Estatísticas rápidas
   let statsSection = '';
   let chartsSection = '';
   
@@ -381,19 +379,16 @@ export function generateHTML(data: ReportData): string {
     const completedTasks = data.items.filter(task => task.completed).length;
     const percentComplete = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
     
-    // Contagem por prioridade
     const priorityCounts: Record<string, number> = {};
     data.items.forEach(task => {
       if (task.priority) {
         const priorityLabel = priorityLabels[task.priority] || task.priority.toString();
         priorityCounts[priorityLabel] = (priorityCounts[priorityLabel] || 0) + 1;
       } else {
-        // Se não tiver prioridade definida
         priorityCounts["Sem prioridade"] = (priorityCounts["Sem prioridade"] || 0) + 1;
       }
     });
     
-    // Contagem por projeto
     const projectsCount: Record<string, number> = {};
     data.items.forEach(task => {
       if (task.project_name) {
@@ -403,26 +398,22 @@ export function generateHTML(data: ReportData): string {
       }
     });
     
-    // Contagem por status (concluído/não concluído)
     const statusData = [
       { label: "Concluídas", value: completedTasks, color: "#16a34a" },
       { label: "Pendentes", value: totalTasks - completedTasks, color: "#ef4444" }
     ];
     
-    // Contagem por período (agrupa por mês)
     const monthlyData: Record<string, number> = {};
     
     if (data.items[0]?.created_at) {
       data.items.forEach(task => {
         if (task.created_at) {
-          const date = new Date(task.created_at);
-          const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
-          monthlyData[monthYear] = (monthlyData[monthYear] || 0) + 1;
+          const month = new Date(task.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+          monthlyData[month] = (monthlyData[month] || 0) + 1;
         }
       });
     }
     
-    // Preparando dados para os gráficos
     const priorityChartData = {
       labels: Object.keys(priorityCounts),
       datasets: [{
@@ -435,10 +426,9 @@ export function generateHTML(data: ReportData): string {
       }]
     };
     
-    // Ordenar projetos por quantidade de tarefas (descendente)
     const sortedProjects = Object.entries(projectsCount)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 10); // Limitar a 10 projetos para melhor visualização
+      .slice(0, 10);
     
     const projectChartData = {
       labels: sortedProjects.map(([project]) => project),
@@ -451,7 +441,6 @@ export function generateHTML(data: ReportData): string {
       }]
     };
     
-    // Ordenando os dados mensais cronologicamente
     const sortedMonthlyEntries = Object.entries(monthlyData)
       .sort((a, b) => {
         const [monthA, yearA] = a[0].split('/').map(Number);
@@ -473,7 +462,6 @@ export function generateHTML(data: ReportData): string {
       }]
     };
     
-    // Gerar HTML das estatísticas
     statsSection = `
       <div class="stats-section">
         <h3>Resumo do Relatório</h3>
@@ -501,7 +489,6 @@ export function generateHTML(data: ReportData): string {
             <h4>Distribuição por Prioridade</h4>
             <ul class="stats-list">
               ${Object.entries(priorityCounts).map(([priority, count]) => {
-                // Encontrar a cor correspondente
                 const priorityNumber = Object.entries(priorityLabels).find(([_, label]) => label === priority)?.[0];
                 const color = priorityNumber ? priorityColors[parseInt(priorityNumber, 10)] : '#777';
                 
@@ -534,7 +521,6 @@ export function generateHTML(data: ReportData): string {
       </div>
     `;
     
-    // Gerar seção de gráficos
     chartsSection = `
       <div class="charts-section">
         <h3>Visualização Gráfica</h3>
@@ -575,14 +561,11 @@ export function generateHTML(data: ReportData): string {
       </div>
       
       <script>
-        // Inicializar os gráficos quando o documento estiver carregado
         document.addEventListener('DOMContentLoaded', function() {
-          // Configuração global do Chart.js
           Chart.defaults.font.family = "'Roboto', sans-serif";
           Chart.defaults.font.size = 12;
           Chart.defaults.plugins.legend.position = 'bottom';
           
-          // Gráfico de distribuição por prioridade
           new Chart(
             document.getElementById('priorityChart'),
             {
@@ -614,7 +597,6 @@ export function generateHTML(data: ReportData): string {
             }
           );
           
-          // Gráfico de status
           new Chart(
             document.getElementById('statusChart'),
             {
@@ -647,7 +629,6 @@ export function generateHTML(data: ReportData): string {
           );
           
           ${Object.keys(projectsCount).length > 3 ? `
-            // Gráfico de projetos
             new Chart(
               document.getElementById('projectChart'),
               {
@@ -683,7 +664,6 @@ export function generateHTML(data: ReportData): string {
           ` : ''}
           
           ${Object.keys(monthlyData).length > 1 ? `
-            // Gráfico de linha do tempo
             new Chart(
               document.getElementById('timelineChart'),
               {
@@ -722,15 +702,12 @@ export function generateHTML(data: ReportData): string {
     `;
   }
   
-  // Criar a seção de filtros aplicados
   let filtersSection = '';
   if (data.filters) {
     let filtersList = [];
     
-    // Adicionar projetos filtrados
     if (data.filters.projectIds && data.filters.projectIds.length > 0) {
       const projectNames = data.filters.projectIds.map(id => {
-        // Encontrar o nome do projeto baseado no ID, se disponível
         const project = data.items.find(item => item.project_name && item.id.toString() === id);
         return project ? project.project_name : id;
       }).join(', ');
@@ -738,10 +715,8 @@ export function generateHTML(data: ReportData): string {
       filtersList.push(`<strong>Projetos:</strong> ${escapeHtml(projectNames)}`);
     }
     
-    // Adicionar etiquetas filtradas
     if (data.filters.labelIds && data.filters.labelIds.length > 0) {
       const labelNames = data.filters.labelIds.map(id => {
-        // Tentativa de encontrar o nome da etiqueta nos items, assumindo que há uma propriedade labels
         const item = data.items.find(item => 
           item.labels && item.labels.some((label: any) => label.id.toString() === id)
         );
@@ -752,7 +727,6 @@ export function generateHTML(data: ReportData): string {
       filtersList.push(`<strong>Etiquetas:</strong> ${escapeHtml(labelNames)}`);
     }
     
-    // Adicionar prioridades filtradas
     if (data.filters.priorities && data.filters.priorities.length > 0) {
       const priorityNames = data.filters.priorities.map(p => priorityLabels[parseInt(p)] || p).join(', ');
       filtersList.push(`<strong>Prioridades:</strong> ${escapeHtml(priorityNames)}`);
@@ -770,7 +744,6 @@ export function generateHTML(data: ReportData): string {
     }
   }
   
-  // Gerar assinatura do relatório com data e usuário
   const signatureSection = `
     <div class="signature-section">
       <div class="signature-line">
@@ -780,18 +753,27 @@ export function generateHTML(data: ReportData): string {
     </div>
   `;
   
-  // Código HTML completo com estilos CSS inline para melhor compatibilidade
+  const formatDate = (dateString: string) => {
+    try {
+      const [year, month, day] = dateString.split('-');
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      console.error("Erro ao formatar data:", error);
+      return dateString;
+    }
+  };
+  
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="pt-BR">
     <head>
       <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${data.title}</title>
       <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
         
-        /* Estilos gerais */
         body { 
           font-family: 'Roboto', Arial, sans-serif; 
           margin: 0; 
@@ -810,7 +792,6 @@ export function generateHTML(data: ReportData): string {
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
         
-        /* Cabeçalho */
         .header {
           padding: 20px 0;
           border-bottom: 1px solid #e5e7eb;
@@ -847,7 +828,6 @@ export function generateHTML(data: ReportData): string {
           font-size: 13px;
         }
         
-        /* Estatísticas */
         .stats-section {
           margin-bottom: 25px;
           background-color: #f3f4f6;
@@ -918,7 +898,6 @@ export function generateHTML(data: ReportData): string {
           margin-right: 8px;
         }
         
-        /* Gráficos */
         .charts-section {
           margin-bottom: 30px;
         }
@@ -948,7 +927,6 @@ export function generateHTML(data: ReportData): string {
           position: relative;
         }
         
-        /* Filtros */
         .filters-section { 
           margin-bottom: 20px; 
           background-color: #f3f4f6;
@@ -966,7 +944,6 @@ export function generateHTML(data: ReportData): string {
           margin-bottom: 5px;
         }
         
-        /* Tabela */
         .table-wrapper {
           overflow-x: auto;
           margin-top: 20px;
@@ -1022,7 +999,6 @@ export function generateHTML(data: ReportData): string {
           background-color: #f1f5f9;
         }
         
-        /* Assinatura */
         .signature-section {
           margin-top: 40px;
           text-align: center;
@@ -1041,7 +1017,6 @@ export function generateHTML(data: ReportData): string {
           border-top: 1px solid #e5e7eb;
         }
         
-        /* Ajustes para impressão */
         @media print {
           body {
             background-color: white;
@@ -1075,7 +1050,7 @@ export function generateHTML(data: ReportData): string {
         <div class="header">
           <h1>${data.title}</h1>
           <div class="info">
-            <p><strong>Período:</strong> ${new Date(data.period.start).toLocaleDateString('pt-BR')} a ${new Date(data.period.end).toLocaleDateString('pt-BR')}</p>
+            <p><strong>Período:</strong> ${formatDate(data.period.start)} a ${formatDate(data.period.end)}</p>
             <p><strong>Gerado em:</strong> ${new Date(data.generatedAt).toLocaleString('pt-BR')}</p>
           </div>
         </div>
@@ -1106,7 +1081,6 @@ export function generateHTML(data: ReportData): string {
   `;
 }
 
-// Função para escapar HTML
 export function escapeHtml(text: string): string {
   if (!text) return '';
   return text
@@ -1117,40 +1091,30 @@ export function escapeHtml(text: string): string {
     .replace(/'/g, "&#039;");
 }
 
-// Função auxiliar para gerar um nome de arquivo para o relatório
 export function generateFileName(type: string, format: string): string {
   const date = new Date().toISOString().split('T')[0];
   const reportName = type.charAt(0).toUpperCase() + type.slice(1);
-  // Usar as extensões corretas para cada formato
   let extension = 'html';
   
   if (format === 'excel') {
     extension = 'csv';
-  } else if (format === 'web' || format === 'pdf') {
-    extension = 'html';
   }
   
   return `Relatorio_${reportName}_${date}.${extension}`;
 }
 
-// Função para disparar o download
 export function triggerDownload(content: string, fileName: string, mimeType: string): void {
-  // Criar um blob com o conteúdo
   const blob = new Blob([content], { type: mimeType });
   
-  // Criar URL para o blob
   const url = URL.createObjectURL(blob);
   
-  // Criar um elemento <a> para download
   const link = document.createElement('a');
   link.href = url;
   link.download = fileName;
   
-  // Adicionar o link ao documento e clicar
   document.body.appendChild(link);
   link.click();
   
-  // Limpar
   setTimeout(() => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
