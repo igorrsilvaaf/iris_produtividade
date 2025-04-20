@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { 
   CalendarIcon, Flag, Tag, X, FilePlus, Trash, MoreHorizontal, Clock, 
-  TimerOff, Timer, Check, Plus, Save, Edit, CheckSquare, Square, Link, ArrowLeft
+  TimerOff, Timer, Check, Plus, Save, Edit, CheckSquare, Square, Link, ArrowLeft, CircleDot, ChevronDown
 } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
@@ -84,6 +84,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       : true
   )
   const [priority, setPriority] = useState(task.priority.toString())
+  const [points, setPoints] = useState(task.points || 3)
   const [projectId, setProjectId] = useState<string | null>(null)
   const [projectName, setProjectName] = useState<string>("")
   const [datePickerOpen, setDatePickerOpen] = useState(false)
@@ -134,6 +135,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       
       setTitle(task.title)
       setDescription(task.description || "")
+      setPoints(task.points || 3)
       
       if (task.due_date) {
         console.log(`[TaskDetail] Data da tarefa: ${task.due_date}`)
@@ -225,11 +227,10 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   };
 
   const handleSave = async () => {
-    setIsSaving(true)
-    
     try {
-      console.log(`[TaskDetail] Salvando alterações para tarefa ${task.id}`);
-
+      setIsSaving(true);
+      console.log(`[TaskDetail] Salvando tarefa ${task.id}`);
+      
       let dueDateWithTime = null;
       
       if (dueDate) {
@@ -237,29 +238,25 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           const date = new Date(dueDate);
           date.setHours(0, 0, 0, 0);
           dueDateWithTime = date.toISOString();
-          console.log(`[TaskDetail] Data para dia todo: ${dueDateWithTime}, objeto date: ${date.toString()}`);
+          console.log('[TaskDetail] Data salva como dia todo:', dueDateWithTime);
         } else if (dueTime) {
           const date = new Date(dueDate);
           const [hours, minutes] = dueTime.split(':').map(Number);
           date.setHours(hours, minutes, 0, 0);
           dueDateWithTime = date.toISOString();
-          console.log(`[TaskDetail] Data com hora específica: ${dueDateWithTime}, objeto date: ${date.toString()}`);
+          console.log('[TaskDetail] Data salva com hora específica:', dueDateWithTime);
         }
       }
-
-      console.log(`[TaskDetail] Salvando alterações para tarefa ${task.id}`);
-      console.log(`[TaskDetail] Nova data: ${dueDateWithTime}`);
-      console.log(`[TaskDetail] Nova descrição: "${description}"`);
-      console.log(`[TaskDetail] Descrição está vazia: ${description === ""}`);
 
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          description: description,
-          due_date: dueDateWithTime,
+          description,
+          dueDate: dueDateWithTime,
           priority: Number.parseInt(priority),
+          points: points,
         }),
       });
 
@@ -267,48 +264,41 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         throw new Error("Failed to update task details");
       }
 
-      console.log(`[TaskDetail] Resposta da API para atualização de detalhes da tarefa:`, taskResponse.status);
-      console.log(`[TaskDetail] ID do projeto atual:`, projectId);
+      if (projectId) {
+        const projectResponse = await fetch(`/api/tasks/${task.id}/project`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId: Number.parseInt(projectId),
+          }),
+        });
 
-      const updatedTaskData = await taskResponse.json();
-      console.log(`[TaskDetail] Dados atualizados da tarefa:`, updatedTaskData);
-
-      const currentProjectId = projectId ? Number.parseInt(projectId) : null;
-      
-      const projectResponse = await fetch(`/api/tasks/${task.id}/project`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId: currentProjectId,
-        }),
-      });
-
-      if (!projectResponse.ok) {
-        throw new Error("Failed to update task project");
-      }
-
-      console.log(`[TaskDetail] Projeto atualizado com sucesso:`, currentProjectId);
-      
-      if (currentProjectId) {
-        const project = projects.find(p => p.id === currentProjectId);
-        if (project) {
-          setProjectName(project.name);
+        if (!projectResponse.ok) {
+          throw new Error("Failed to update task project");
         }
       } else {
-        setProjectName("");
+        const projectResponse = await fetch(`/api/tasks/${task.id}/project`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId: null,
+          }),
+        });
+
+        if (!projectResponse.ok) {
+          throw new Error("Failed to remove task project");
+        }
       }
 
-      setIsEditMode(false);
-      
-      router.refresh();
-
       toast({
-        title: t("Task updated"),
+        title: t("taskUpdated"),
         description: t("Your task has been updated successfully."),
-        variant: "success",
       });
+
+      setIsEditMode(false);
+      router.refresh();
     } catch (error) {
-      console.error(`[TaskDetail] Erro ao salvar alterações:`, error);
+      console.error('[TaskDetail] Erro ao salvar tarefa:', error);
       toast({
         variant: "destructive",
         title: t("Failed to update task"),
@@ -317,7 +307,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     } finally {
       setIsSaving(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
     if (!task.id) return;
@@ -675,6 +665,38 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }, [isEditMode, task]);
 
+  const getPointsColor = (points: number) => {
+    switch(points) {
+      case 1: return 'text-green-500';
+      case 2: return 'text-blue-500';
+      case 3: return 'text-yellow-500';
+      case 4: return 'text-orange-500';
+      case 5: return 'text-red-500';
+      default: return 'text-gray-400';
+    }
+  };
+  
+  const getPointsLabel = (points: number) => {
+    switch(points) {
+      case 1: return t("veryEasy") || "Muito fácil";
+      case 2: return t("easy") || "Fácil";
+      case 3: return t("medium") || "Médio";
+      case 4: return t("hard") || "Difícil";
+      case 5: return t("veryHard") || "Muito difícil";
+      default: return "";
+    }
+  };
+  
+  // Componente customizado para mostrar o valor dos pontos no trigger
+  const PointsDisplay = () => {
+    return (
+      <div className="flex items-center">
+        <CircleDot className={`mr-2 h-4 w-4 ${getPointsColor(points)}`} />
+        <span>{points} - {getPointsLabel(points)}</span>
+      </div>
+    );
+  };
+
   return (
     <Dialog 
       open={open} 
@@ -783,7 +805,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                             id="taskDetailAllDay"
                             checked={isAllDay}
                             onCheckedChange={(checked) => {
-                              setIsAllDay(checked);
+                              setIsAllDay(checked === true);
                               if (checked) {
                                 setDueTime("00:00");
                               } else {
@@ -867,6 +889,60 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("points") || "Pontos"}
+              </label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-between text-left font-normal"
+                  >
+                    <div className="flex items-center">
+                      <CircleDot className={`mr-2 h-4 w-4 ${getPointsColor(points)}`} />
+                      <span>{points} - {getPointsLabel(points)}</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-1">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <div
+                        key={value}
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                        onClick={() => setPoints(value)}
+                      >
+                        {points === value && (
+                          <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                            <Check className="h-4 w-4" />
+                          </span>
+                        )}
+                        <div className="flex items-center">
+                          <CircleDot className={`mr-2 h-4 w-4 ${
+                            value === 1 ? "text-green-500" :
+                            value === 2 ? "text-blue-500" :
+                            value === 3 ? "text-yellow-500" :
+                            value === 4 ? "text-orange-500" :
+                            value === 5 ? "text-red-500" :
+                            "text-muted-foreground"
+                          }`} />
+                          {value} - {
+                            value === 1 ? t("veryEasy") || "Muito fácil" :
+                            value === 2 ? t("easy") || "Fácil" :
+                            value === 3 ? t("medium") || "Médio" :
+                            value === 4 ? t("hard") || "Difícil" :
+                            value === 5 ? t("veryHard") || "Muito difícil" :
+                            ""
+                          }
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">
@@ -1031,6 +1107,14 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 <div className="p-2 border rounded-md bg-muted/30 flex items-center">
                   <Flag className={`mr-2 h-4 w-4 ${getPriorityColor(priority)}`} />
                   {getPriorityName(priority)}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t("points") || "Pontos"}
+                </label>
+                <div className="p-2 border rounded-md bg-muted/30 flex items-center">
+                  <PointsDisplay />
                 </div>
               </div>
             </div>

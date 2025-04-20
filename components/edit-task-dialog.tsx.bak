@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { CalendarIcon, Flag, Clock, X, Plus, CircleDot, ChevronDown, Check } from "lucide-react"
+import { CalendarIcon, Flag, Clock, X, Plus, CircleDot } from "lucide-react"
 import { format } from "date-fns"
 import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
@@ -445,70 +445,56 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("points") || "Pontos"}</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          className="w-full justify-between text-left font-normal"
-                          type="button"
-                        >
+                    <Select 
+                      onValueChange={(value) => field.onChange(parseInt(value, 10))} 
+                      defaultValue={field.value.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <CircleDot className={`mr-2 h-4 w-4 ${
+                            field.value === 1 ? "text-green-500" :
+                            field.value === 2 ? "text-blue-500" :
+                            field.value === 3 ? "text-yellow-500" :
+                            field.value === 4 ? "text-orange-500" :
+                            field.value === 5 ? "text-red-500" :
+                            "text-muted-foreground"
+                          }`} />
+                          <SelectValue placeholder={t("Select points") || "Selecione os pontos"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">
                           <div className="flex items-center">
-                            <CircleDot className={`mr-2 h-4 w-4 ${
-                              field.value === 1 ? "text-green-500" :
-                              field.value === 2 ? "text-blue-500" :
-                              field.value === 3 ? "text-yellow-500" :
-                              field.value === 4 ? "text-orange-500" :
-                              field.value === 5 ? "text-red-500" :
-                              "text-muted-foreground"
-                            }`} />
-                            <span>{field.value} - {
-                              field.value === 1 ? t("veryEasy") || "Muito fácil" :
-                              field.value === 2 ? t("easy") || "Fácil" :
-                              field.value === 3 ? t("medium") || "Médio" :
-                              field.value === 4 ? t("hard") || "Difícil" :
-                              field.value === 5 ? t("veryHard") || "Muito difícil" :
-                              t("Select points") || "Selecione os pontos"
-                            }</span>
+                            <CircleDot className="mr-2 h-4 w-4 text-green-500" />
+                            1 - {t("veryEasy") || "Muito fácil"}
                           </div>
-                          <ChevronDown className="h-4 w-4 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <div className="p-1">
-                          {[1, 2, 3, 4, 5].map((value) => (
-                            <div
-                              key={value}
-                              className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                              onClick={() => field.onChange(value)}
-                            >
-                              {field.value === value && (
-                                <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                                  <Check className="h-4 w-4" />
-                                </span>
-                              )}
-                              <div className="flex items-center">
-                                <CircleDot className={`mr-2 h-4 w-4 ${
-                                  value === 1 ? "text-green-500" :
-                                  value === 2 ? "text-blue-500" :
-                                  value === 3 ? "text-yellow-500" :
-                                  value === 4 ? "text-orange-500" :
-                                  value === 5 ? "text-red-500" :
-                                  "text-muted-foreground"
-                                }`} />
-                                {value} - {
-                                  value === 1 ? t("veryEasy") || "Muito fácil" :
-                                  value === 2 ? t("easy") || "Fácil" :
-                                  value === 3 ? t("medium") || "Médio" :
-                                  value === 4 ? t("hard") || "Difícil" :
-                                  value === 5 ? t("veryHard") || "Muito difícil" :
-                                  ""
-                                }
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                        </SelectItem>
+                        <SelectItem value="2">
+                          <div className="flex items-center">
+                            <CircleDot className="mr-2 h-4 w-4 text-blue-500" />
+                            2 - {t("easy") || "Fácil"}
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="3">
+                          <div className="flex items-center">
+                            <CircleDot className="mr-2 h-4 w-4 text-yellow-500" />
+                            3 - {t("medium") || "Médio"}
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="4">
+                          <div className="flex items-center">
+                            <CircleDot className="mr-2 h-4 w-4 text-orange-500" />
+                            4 - {t("hard") || "Difícil"}
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="5">
+                          <div className="flex items-center">
+                            <CircleDot className="mr-2 h-4 w-4 text-red-500" />
+                            5 - {t("veryHard") || "Muito difícil"}
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
