@@ -227,6 +227,15 @@ export function generateHTML(data: ReportData): string {
     "completed": "Concluído"
   };
   
+  // Mapear cores de prioridade para visual
+  const priorityColors: Record<number, string> = {
+    1: "#ef4444", // Urgente - Vermelho
+    2: "#f97316", // Alta - Laranja
+    3: "#facc15", // Média - Amarelo
+    4: "#16a34a", // Baixa - Verde
+    5: "#3b82f6"  // Muito Baixa - Azul
+  };
+  
   // Definir colunas e cabeçalhos da tabela
   const defaultColumns = ["ID", "Título"];
   
@@ -235,6 +244,7 @@ export function generateHTML(data: ReportData): string {
     label: string;
     includeIf: boolean;
     format: (task: Todo) => string;
+    width?: string; // Largura opcional da coluna
   }
   
   const columnConfigs: ColumnConfig[] = [
@@ -242,43 +252,61 @@ export function generateHTML(data: ReportData): string {
       id: "id", 
       label: "ID", 
       includeIf: true, // ID é sempre incluído
-      format: (task) => String(task.id)
+      format: (task) => String(task.id),
+      width: "50px"
     },
     {
       id: "title", 
       label: "Título", 
       includeIf: true, // Título é sempre incluído
-      format: (task) => escapeHtml(task.title)
+      format: (task) => escapeHtml(task.title),
+      width: "20%"
     },
     {
       id: "description", 
       label: "Descrição", 
       includeIf: includeAll || customColumns.includes('description'),
-      format: (task) => escapeHtml(task.description || '')
+      format: (task) => escapeHtml(task.description || ''),
+      width: "25%"
     },
     {
       id: "due_date", 
       label: "Vencimento", 
       includeIf: includeAll || customColumns.includes('due_date'),
-      format: (task) => task.due_date ? new Date(task.due_date).toLocaleDateString('pt-BR') : '-'
+      format: (task) => task.due_date ? new Date(task.due_date).toLocaleDateString('pt-BR') : '-',
+      width: "100px"
     },
     {
       id: "priority", 
       label: "Prioridade", 
       includeIf: includeAll || customColumns.includes('priority'),
-      format: (task) => task.priority ? priorityLabels[task.priority] || task.priority.toString() : '-'
+      format: (task) => {
+        if (!task.priority) return '-';
+        const label = priorityLabels[task.priority] || task.priority.toString();
+        const color = priorityColors[task.priority] || '#777';
+        return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:white; font-size:11px; font-weight:bold;">${label}</span>`;
+      },
+      width: "100px"
     },
     {
       id: "completed", 
       label: "Concluída", 
       includeIf: includeAll || customColumns.includes('completed'),
-      format: (task) => task.completed ? "Sim" : "Não"
+      format: (task) => task.completed 
+        ? '<span style="color:#16a34a; font-weight:bold;">Sim</span>' 
+        : '<span style="color:#ef4444; font-weight:bold;">Não</span>',
+      width: "80px"
     },
     {
       id: "project", 
       label: "Projeto", 
       includeIf: includeAll || customColumns.includes('project'),
-      format: (task) => escapeHtml(task.project_name || '-')
+      format: (task) => {
+        if (!task.project_name) return '-';
+        const color = task.project_color || '#3b82f6';
+        return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:white; font-size:11px;">${escapeHtml(task.project_name)}</span>`;
+      },
+      width: "120px"
     },
     {
       id: "labels", 
@@ -286,26 +314,32 @@ export function generateHTML(data: ReportData): string {
       includeIf: includeAll || customColumns.includes('labels'),
       format: (task) => {
         if (!task.labels || task.labels.length === 0) return '-';
-        return escapeHtml(task.labels.map((label: Label) => label.name).join(', '));
-      }
+        return task.labels.map((label: Label) => {
+          return `<span style="display:inline-block; margin:1px 2px; padding:1px 6px; border-radius:8px; background-color:${label.color || '#777'}; color:white; font-size:10px;">${escapeHtml(label.name)}</span>`;
+        }).join(' ');
+      },
+      width: "150px"
     },
     {
       id: "kanban_column", 
       label: "Coluna", 
       includeIf: includeAll || customColumns.includes('kanban_column'),
-      format: (task) => task.kanban_column ? kanbanLabels[task.kanban_column as string] || task.kanban_column : '-'
+      format: (task) => task.kanban_column ? kanbanLabels[task.kanban_column as string] || task.kanban_column : '-',
+      width: "120px"
     },
     {
       id: "created_at", 
       label: "Criada em", 
       includeIf: includeAll || customColumns.includes('created_at'),
-      format: (task) => task.created_at ? new Date(task.created_at).toLocaleDateString('pt-BR') : '-'
+      format: (task) => task.created_at ? new Date(task.created_at).toLocaleDateString('pt-BR') : '-',
+      width: "100px"
     },
     {
       id: "updated_at", 
       label: "Atualizada em", 
       includeIf: includeAll || customColumns.includes('updated_at'),
-      format: (task) => task.updated_at ? new Date(task.updated_at).toLocaleDateString('pt-BR') : '-'
+      format: (task) => task.updated_at ? new Date(task.updated_at).toLocaleDateString('pt-BR') : '-',
+      width: "100px"
     }
   ];
   
@@ -314,25 +348,114 @@ export function generateHTML(data: ReportData): string {
   
   // Criar cabeçalhos HTML
   const tableHeaders = columnsToInclude.map(col => 
-    `<th>${col.label}</th>`
+    `<th style="${col.width ? `width:${col.width};` : ''}">${col.label}</th>`
   ).join('');
   
   // Criar linhas de tabela HTML
   let tableRows = '';
   
   if (data.items && data.items.length > 0) {
-    data.items.forEach((task) => {
+    data.items.forEach((task, index) => {
+      // Determinar a classe alternada para linhas pares/ímpares
+      const rowClass = index % 2 === 0 ? 'even-row' : 'odd-row';
+      
       // Construir células da linha
       const cells = columnsToInclude.map(col => 
-        `<td>${col.format(task)}</td>`
+        `<td style="${col.width ? `width:${col.width};` : ''}">${col.format(task)}</td>`
       ).join('');
       
       // Construir linha HTML
-      tableRows += `<tr>${cells}</tr>`;
+      tableRows += `<tr class="${rowClass}">${cells}</tr>`;
     });
   } else {
     // Se não houver dados, mostrar mensagem
-    tableRows = `<tr><td colspan="${columnsToInclude.length}" style="text-align:center">Nenhuma tarefa encontrada no período especificado</td></tr>`;
+    tableRows = `<tr><td colspan="${columnsToInclude.length}" style="text-align:center; padding:20px; color:#888;">Nenhuma tarefa encontrada no período especificado</td></tr>`;
+  }
+  
+  // Estatísticas rápidas
+  let statsSection = '';
+  if (data.items && data.items.length > 0) {
+    const totalTasks = data.items.length;
+    const completedTasks = data.items.filter(task => task.completed).length;
+    const percentComplete = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
+    // Contagem por prioridade
+    const priorityCounts: Record<string, number> = {};
+    data.items.forEach(task => {
+      if (task.priority) {
+        const priorityLabel = priorityLabels[task.priority] || task.priority.toString();
+        priorityCounts[priorityLabel] = (priorityCounts[priorityLabel] || 0) + 1;
+      }
+    });
+    
+    // Contagem por projeto
+    const projectsCount: Record<string, number> = {};
+    data.items.forEach(task => {
+      if (task.project_name) {
+        projectsCount[task.project_name] = (projectsCount[task.project_name] || 0) + 1;
+      }
+    });
+    
+    // Gerar HTML das estatísticas
+    statsSection = `
+      <div class="stats-section">
+        <h3>Resumo do Relatório</h3>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-value">${totalTasks}</span>
+            <span class="stat-label">Total de Tarefas</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">${completedTasks}</span>
+            <span class="stat-label">Tarefas Concluídas</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">${percentComplete}%</span>
+            <span class="stat-label">Taxa de Conclusão</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">${Object.keys(projectsCount).length}</span>
+            <span class="stat-label">Projetos</span>
+          </div>
+        </div>
+        
+        <div class="stats-detail">
+          <div class="stats-priorities">
+            <h4>Distribuição por Prioridade</h4>
+            <ul class="stats-list">
+              ${Object.entries(priorityCounts).map(([priority, count]) => {
+                // Encontrar a cor correspondente
+                const priorityNumber = Object.entries(priorityLabels).find(([_, label]) => label === priority)?.[0];
+                const color = priorityNumber ? priorityColors[parseInt(priorityNumber, 10)] : '#777';
+                
+                return `
+                  <li>
+                    <span class="color-dot" style="background-color: ${color}"></span>
+                    <span>${priority}: ${count}</span>
+                  </li>
+                `;
+              }).join('')}
+            </ul>
+          </div>
+          
+          ${Object.keys(projectsCount).length > 0 ? `
+            <div class="stats-projects">
+              <h4>Principais Projetos</h4>
+              <ul class="stats-list">
+                ${Object.entries(projectsCount)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 5)
+                  .map(([project, count]) => `
+                    <li>
+                      <span>${escapeHtml(project)}: ${count} tarefa${count > 1 ? 's' : ''}</span>
+                    </li>
+                  `).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
   }
   
   // Criar a seção de filtros aplicados
@@ -342,12 +465,27 @@ export function generateHTML(data: ReportData): string {
     
     // Adicionar projetos filtrados
     if (data.filters.projectIds && data.filters.projectIds.length > 0) {
-      filtersList.push(`<strong>Projetos:</strong> ${escapeHtml(data.filters.projectIds.join(', '))}`);
+      const projectNames = data.filters.projectIds.map(id => {
+        // Encontrar o nome do projeto baseado no ID, se disponível
+        const project = data.items.find(item => item.project_name && item.id.toString() === id);
+        return project ? project.project_name : id;
+      }).join(', ');
+      
+      filtersList.push(`<strong>Projetos:</strong> ${escapeHtml(projectNames)}`);
     }
     
     // Adicionar etiquetas filtradas
     if (data.filters.labelIds && data.filters.labelIds.length > 0) {
-      filtersList.push(`<strong>Etiquetas:</strong> ${escapeHtml(data.filters.labelIds.join(', '))}`);
+      const labelNames = data.filters.labelIds.map(id => {
+        // Tentativa de encontrar o nome da etiqueta nos items, assumindo que há uma propriedade labels
+        const item = data.items.find(item => 
+          item.labels && item.labels.some((label: any) => label.id.toString() === id)
+        );
+        const label = item?.labels?.find((l: any) => l.id.toString() === id);
+        return label ? label.name : id;
+      }).join(', ');
+      
+      filtersList.push(`<strong>Etiquetas:</strong> ${escapeHtml(labelNames)}`);
     }
     
     // Adicionar prioridades filtradas
@@ -368,6 +506,16 @@ export function generateHTML(data: ReportData): string {
     }
   }
   
+  // Gerar assinatura do relatório com data e usuário
+  const signatureSection = `
+    <div class="signature-section">
+      <div class="signature-line">
+        <hr>
+        <span>Relatório gerado automaticamente pelo sistema</span>
+      </div>
+    </div>
+  `;
+  
   // Código HTML completo com estilos CSS inline para melhor compatibilidade
   return `
     <!DOCTYPE html>
@@ -376,37 +524,282 @@ export function generateHTML(data: ReportData): string {
       <meta charset="UTF-8">
       <title>${data.title}</title>
       <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        h1 { color: #333; font-size: 24px; margin-bottom: 10px; }
-        h3 { color: #555; font-size: 18px; margin-top: 20px; margin-bottom: 10px; }
-        .info { color: #666; margin-bottom: 20px; font-size: 14px; }
-        .filters-section { margin-bottom: 20px; background-color: #f8f8f8; padding: 10px; border-radius: 5px; }
-        .filters-section ul { margin: 10px 0; padding-left: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background-color: #f2f2f2; text-align: left; padding: 8px; }
-        td { padding: 8px; border-bottom: 1px solid #ddd; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        
+        /* Estilos gerais */
+        body { 
+          font-family: 'Roboto', Arial, sans-serif; 
+          margin: 0; 
+          padding: 0;
+          background-color: #f9fafb;
+          color: #374151;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+        
+        .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: white;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Cabeçalho */
+        .header {
+          padding: 20px 0;
+          border-bottom: 1px solid #e5e7eb;
+          margin-bottom: 20px;
+        }
+        
+        h1 { 
+          color: #111827; 
+          font-size: 26px;
+          font-weight: 700;
+          margin: 0 0 5px 0;
+        }
+        
+        h3 { 
+          color: #4b5563; 
+          font-size: 18px;
+          margin-top: 25px;
+          margin-bottom: 10px;
+          font-weight: 600;
+          border-bottom: 1px solid #e5e7eb;
+          padding-bottom: 5px;
+        }
+        
+        h4 {
+          color: #4b5563;
+          font-size: 15px;
+          margin: 15px 0 8px 0;
+          font-weight: 600;
+        }
+        
+        .info { 
+          color: #6b7280; 
+          margin-bottom: 10px;
+          font-size: 13px;
+        }
+        
+        /* Estatísticas */
+        .stats-section {
+          margin-bottom: 25px;
+          background-color: #f3f4f6;
+          padding: 15px;
+          border-radius: 8px;
+        }
+        
+        .stats-grid {
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          margin-bottom: 15px;
+        }
+        
+        .stat-box {
+          flex: 0 0 22%;
+          padding: 10px;
+          background-color: white;
+          border-radius: 6px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          text-align: center;
+          min-width: 120px;
+          margin: 5px;
+        }
+        
+        .stat-value {
+          display: block;
+          font-size: 24px;
+          font-weight: 700;
+          color: #1e40af;
+        }
+        
+        .stat-label {
+          font-size: 12px;
+          color: #6b7280;
+        }
+        
+        .stats-detail {
+          display: flex;
+          flex-wrap: wrap;
+          margin-top: 15px;
+        }
+        
+        .stats-priorities, .stats-projects {
+          flex: 1;
+          min-width: 200px;
+          padding: 0 10px;
+        }
+        
+        .stats-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        
+        .stats-list li {
+          margin-bottom: 5px;
+          padding: 5px;
+          display: flex;
+          align-items: center;
+        }
+        
+        .color-dot {
+          display: inline-block;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          margin-right: 8px;
+        }
+        
+        /* Filtros */
+        .filters-section { 
+          margin-bottom: 20px; 
+          background-color: #f3f4f6;
+          padding: 15px;
+          border-radius: 8px;
+        }
+        
+        .filters-section ul { 
+          margin: 10px 0; 
+          padding-left: 20px;
+          color: #4b5563;
+        }
+        
+        .filters-section li {
+          margin-bottom: 5px;
+        }
+        
+        /* Tabela */
+        .table-wrapper {
+          overflow-x: auto;
+          margin-top: 20px;
+          margin-bottom: 25px;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          table-layout: fixed;
+        }
+        
+        th { 
+          background-color: #1e40af; 
+          color: white;
+          text-align: left; 
+          padding: 12px 15px;
+          font-weight: 500;
+          font-size: 13px;
+          position: sticky;
+          top: 0;
+        }
+        
+        th:first-child {
+          border-top-left-radius: 8px;
+        }
+        
+        th:last-child {
+          border-top-right-radius: 8px;
+        }
+        
+        td { 
+          padding: 10px 15px; 
+          border-bottom: 1px solid #e5e7eb;
+          vertical-align: middle;
+          font-size: 12px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        
+        .even-row {
+          background-color: white;
+        }
+        
+        .odd-row {
+          background-color: #f9fafb;
+        }
+        
+        tr:hover {
+          background-color: #f1f5f9;
+        }
+        
+        /* Assinatura */
+        .signature-section {
+          margin-top: 40px;
+          text-align: center;
+          font-size: 12px;
+          color: #9ca3af;
+        }
+        
+        .signature-line {
+          max-width: 300px;
+          margin: 0 auto;
+        }
+        
+        .signature-line hr {
+          margin-bottom: 5px;
+          border: none;
+          border-top: 1px solid #e5e7eb;
+        }
+        
+        /* Ajustes para impressão */
+        @media print {
+          body {
+            background-color: white;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .container {
+            box-shadow: none;
+            max-width: 100%;
+          }
+          
+          .table-wrapper {
+            overflow-x: visible;
+            box-shadow: none;
+          }
+          
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; page-break-after: auto; }
+          td { page-break-inside: avoid; }
+          thead { display: table-header-group; }
+        }
       </style>
     </head>
     <body>
-      <h1>${data.title}</h1>
-      <div class="info">
-        <p>Período: ${new Date(data.period.start).toLocaleDateString('pt-BR')} a ${new Date(data.period.end).toLocaleDateString('pt-BR')}</p>
-        <p>Gerado em: ${new Date(data.generatedAt).toLocaleString('pt-BR')}</p>
+      <div class="container">
+        <div class="header">
+          <h1>${data.title}</h1>
+          <div class="info">
+            <p><strong>Período:</strong> ${new Date(data.period.start).toLocaleDateString('pt-BR')} a ${new Date(data.period.end).toLocaleDateString('pt-BR')}</p>
+            <p><strong>Gerado em:</strong> ${new Date(data.generatedAt).toLocaleString('pt-BR')}</p>
+          </div>
+        </div>
+        
+        ${statsSection}
+        
+        ${filtersSection}
+        
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                ${tableHeaders}
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>
+        
+        ${signatureSection}
       </div>
-      
-      ${filtersSection}
-      
-      <table>
-        <thead>
-          <tr>
-            ${tableHeaders}
-          </tr>
-        </thead>
-        <tbody>
-          ${tableRows}
-        </tbody>
-      </table>
     </body>
     </html>
   `;
