@@ -23,6 +23,45 @@ export const CHANGELOG_DATA: ChangelogData[] = [
     },
     entries: [
       {
+        id: 'task-enhancements',
+        title: 'Melhorias nas Tarefas',
+        description: 'Novas funcionalidades para melhor gerenciamento e organização das tarefas',
+        items: [
+          {
+            type: 'feature',
+            content: 'Novo campo para definir o tempo estimado de conclusão de cada tarefa'
+          },
+          {
+            type: 'feature',
+            content: 'Suporte para diferentes unidades de tempo: minutos, horas e dias'
+          },
+          {
+            type: 'feature',
+            content: 'Sistema de anexos com suporte para links, imagens e arquivos'
+          },
+          {
+            type: 'feature',
+            content: 'Upload de arquivos e imagens diretamente nas tarefas'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface intuitiva para inserção do tempo estimado'
+          },
+          {
+            type: 'improvement',
+            content: 'Conversão automática entre unidades de tempo para facilitar o planejamento'
+          },
+          {
+            type: 'improvement',
+            content: 'Visualização organizada dos anexos com ícones por tipo'
+          },
+          {
+            type: 'improvement',
+            content: 'Gerenciamento simplificado de anexos com opções de adicionar e remover'
+          }
+        ]
+      },
+      {
         id: 'enhanced-reports',
         title: 'Sistema de Relatórios Aprimorado',
         description: 'Melhorias significativas no sistema de relatórios com múltiplos formatos de exportação',
@@ -63,27 +102,27 @@ export const CHANGELOG_DATA: ChangelogData[] = [
         description: 'Guia rápido para aproveitar ao máximo o sistema de relatórios aprimorado',
         items: [
           {
-            type: 'documentation',
+            type: 'improvement',
             content: 'Acesse o sistema de relatórios pelo menu principal, clicando em "Relatórios", ou diretamente em /app/reports'
           },
           {
-            type: 'documentation',
+            type: 'improvement',
             content: 'Selecione o tipo de relatório (Todas as Tarefas, Tarefas Concluídas, etc.) e defina o período desejado'
           },
           {
-            type: 'documentation',
+            type: 'improvement',
             content: 'Utilize os filtros por projetos, etiquetas e prioridades para relatórios mais precisos'
           },
           {
-            type: 'documentation',
+            type: 'improvement',
             content: 'Personalize as colunas a serem exibidas no relatório para focar apenas nas informações relevantes'
           },
           {
-            type: 'documentation',
+            type: 'improvement',
             content: 'Escolha o formato de exportação: Web (HTML para visualização rápida), PDF (para compartilhamento profissional) ou Excel (para análise detalhada)'
           },
           {
-            type: 'documentation',
+            type: 'improvement',
             content: 'Use a aba "Histórico de Relatórios" para acessar facilmente relatórios gerados anteriormente'
           }
         ]
