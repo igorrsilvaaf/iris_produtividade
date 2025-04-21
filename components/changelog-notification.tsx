@@ -67,34 +67,59 @@ export function ChangelogNotification() {
       
       const latestNewVersion = newChanges[0].version
       
-      // Forçar a exibição da notificação para a versão 2.7.0
-      if (latestNewVersion === '2.7.0') {
-        localStorage.removeItem('lastSeenChangelogVersion')
-      }
-      
+      // Verificar a última versão vista no localStorage
       const lastSeenVersion = localStorage.getItem('lastSeenChangelogVersion')
-      
+
+      // Se nunca viu essa versão antes, mostrar a notificação
       if (lastSeenVersion !== latestNewVersion) {
-        setLatestChangelog(latestNewVersion)
-        setOpen(true)
+        // Verificar se o usuário já marcou que não quer ver mais notificações para esta versão
+        const dismissedVersions = localStorage.getItem('dismissedChangelogVersions')
+        const dismissedArray = dismissedVersions ? JSON.parse(dismissedVersions) : []
+        
+        // Se a versão não estiver na lista de versões dispensadas, mostrar a notificação
+        if (!dismissedArray.includes(latestNewVersion)) {
+          console.log(`[Changelog] Mostrando notificação para nova versão: ${latestNewVersion}`)
+          setLatestChangelog(latestNewVersion)
+          setOpen(true)
+        }
       }
     }
     
-    const timer = setTimeout(checkForNewChangelog, 1500)
+    const timer = setTimeout(checkForNewChangelog, 2000)
     
     return () => clearTimeout(timer)
   }, [isClient])
 
   const handleDismiss = () => {
     if (latestChangelog) {
+      // Marcar esta versão como última vista
       localStorage.setItem('lastSeenChangelogVersion', latestChangelog)
+      
+      // Salvar na lista de versões dispensadas
+      const dismissedVersions = localStorage.getItem('dismissedChangelogVersions')
+      const dismissedArray = dismissedVersions ? JSON.parse(dismissedVersions) : []
+      
+      if (!dismissedArray.includes(latestChangelog)) {
+        dismissedArray.push(latestChangelog)
+        localStorage.setItem('dismissedChangelogVersions', JSON.stringify(dismissedArray))
+      }
     }
     setOpen(false)
   }
 
   const handleViewChangelog = () => {
     if (latestChangelog) {
+      // Marcar esta versão como última vista
       localStorage.setItem('lastSeenChangelogVersion', latestChangelog)
+      
+      // Salvar na lista de versões dispensadas
+      const dismissedVersions = localStorage.getItem('dismissedChangelogVersions')
+      const dismissedArray = dismissedVersions ? JSON.parse(dismissedVersions) : []
+      
+      if (!dismissedArray.includes(latestChangelog)) {
+        dismissedArray.push(latestChangelog)
+        localStorage.setItem('dismissedChangelogVersions', JSON.stringify(dismissedArray))
+      }
     }
     setOpen(false)
     router.push('/app/changelog')

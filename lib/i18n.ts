@@ -2110,6 +2110,10 @@ export const translations: Translations = {
     en: "Select points",
     pt: "Selecione os pontos",
   },
+  "No labels selected": {
+    en: "No labels selected",
+    pt: "Nenhuma etiqueta selecionada"
+  },
 }
 
 type LanguageState = {

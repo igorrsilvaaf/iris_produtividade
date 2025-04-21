@@ -472,5 +472,26 @@ export const CHANGELOG_DATA: ChangelogData[] = [
 ]
 
 export function getChangelogData(): ChangelogData[] {
-  return CHANGELOG_DATA
+  // Calcular a data de 30 dias atrás
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  // Filtrar os changelogs, marcando como "isNew" apenas se forem mais recentes que 30 dias
+  return CHANGELOG_DATA.map(entry => {
+    // Verificar se a data do changelog é mais recente que 30 dias atrás
+    const isRecent = new Date(entry.date) > thirtyDaysAgo;
+    
+    // Se o changelog está marcado como isNew=true no código, mas não é recente, 
+    // eliminaremos a flag isNew
+    if (entry.isNew && !isRecent) {
+      console.log(`[Changelog] Removendo flag 'isNew' de changelog antigo: ${entry.version}`);
+      return {
+        ...entry,
+        isNew: false
+      };
+    }
+    
+    // Caso contrário, mantemos o valor original de isNew
+    return entry;
+  });
 } 
