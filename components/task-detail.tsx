@@ -676,17 +676,37 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   }, [isEditMode, task]);
 
   const getPointsColor = (points: number) => {
-    if (points <= 2) return "text-green-500"
-    if (points <= 5) return "text-blue-500"
-    if (points <= 8) return "text-orange-500"
-    return "text-red-500"
+    switch (points) {
+      case 1:
+        return "text-green-500"
+      case 2:
+        return "text-blue-500"
+      case 3:
+        return "text-yellow-500"
+      case 4:
+        return "text-orange-500"
+      case 5:
+        return "text-red-500"
+      default:
+        return "text-gray-400"
+    }
   }
   
   const getPointsLabel = (points: number) => {
-    if (points <= 2) return "Muito Fácil"
-    if (points <= 5) return "Fácil"
-    if (points <= 8) return "Médio"
-    return "Difícil"
+    switch (points) {
+      case 1:
+        return t("Muito Fácil")
+      case 2:
+        return t("Fácil")
+      case 3:
+        return t("Médio")
+      case 4:
+        return t("Difícil")
+      case 5:
+        return t("Muito Difícil")
+      default:
+        return t("Médio")
+    }
   }
   
   // Componente customizado para mostrar o valor dos pontos no trigger
@@ -992,7 +1012,13 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <div className="grid grid-cols-1 gap-2 p-2">
-                    {[1, 2, 3, 5, 8, 13].map((value) => (
+                    {[
+                      { value: 1, label: t("Muito Fácil") },
+                      { value: 2, label: t("Fácil") },
+                      { value: 3, label: t("Médio") },
+                      { value: 4, label: t("Difícil") },
+                      { value: 5, label: t("Muito Difícil") }
+                    ].map(({ value, label }) => (
                       <Button
                         key={value}
                         variant={points === value ? "default" : "ghost"}
@@ -1002,7 +1028,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                         }}
                       >
                         <CircleDot className={`mr-2 h-4 w-4 ${getPointsColor(value)}`} />
-                        <span>{value} - {getPointsLabel(value)}</span>
+                        <span>{value} - {label}</span>
                       </Button>
                     ))}
                   </div>
