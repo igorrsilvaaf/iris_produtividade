@@ -1503,8 +1503,8 @@ export const translations: Translations = {
     pt: "Melhoramos o aplicativo com novos recursos e correções de bugs. Confira as novidades!",
   },
   latestUpdateInfo: {
-    en: "Our latest update includes the new Kanban Board and several improvements.",
-    pt: "Nossa mais recente atualização inclui o novo Quadro Kanban e diversas melhorias."
+    en: "Our latest update includes estimated time tracking and file attachments for tasks.",
+    pt: "Nossa mais recente atualização inclui tempo estimado e anexos para tarefas."
   },
   viewChangelog: {
     en: "View Updates",
