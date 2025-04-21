@@ -3,9 +3,12 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 import { 
   CalendarIcon, Flag, Tag, X, FilePlus, Trash, MoreHorizontal, Clock, 
-  TimerOff, Timer, Check, Plus, Save, Edit, CheckSquare, Square, Link, ArrowLeft, CircleDot, ChevronDown
+  TimerOff, Timer, Check, Plus, Save, Edit, CheckSquare, Square, Link, ArrowLeft, CircleDot, ChevronDown,
+  Star, EllipsisVertical, Edit2, Trash2, CalendarRange, Folders, CheckCheck, Copy, ArrowUp, ArrowDown,
+  Paperclip, ExternalLink, Image, FileText
 } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
@@ -96,6 +99,15 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const [showAddProject, setShowAddProject] = useState(false)
   const [showCreateProject, setShowCreateProject] = useState(false)
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
+  const [attachments, setAttachments] = useState<Array<{ type: string; url: string; name: string }>>(task.attachments || [])
+  const [attachmentUrl, setAttachmentUrl] = useState("")
+  const [attachmentName, setAttachmentName] = useState("")
+  const [attachmentType, setAttachmentType] = useState("link")
+  const [showAddAttachment, setShowAddAttachment] = useState(false)
+  const [fileUploadRef, setFileUploadRef] = useState<HTMLInputElement | null>(null)
+  const [imageUploadRef, setImageUploadRef] = useState<HTMLInputElement | null>(null)
+  const [estimatedTime, setEstimatedTime] = useState<number | null>(task.estimated_time || null)
+  const [estimatedTimeUnit, setEstimatedTimeUnit] = useState<string>("min")
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
@@ -131,8 +143,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
   useEffect(() => {
     if (open) {
-      setIsEditMode(task.isEditMode === true)
-      
+      setIsEditMode(false)
       setTitle(task.title)
       setDescription(task.description || "")
       setPoints(task.points || 3)
@@ -248,15 +259,19 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         }
       }
 
+      const estimatedTimeInMinutes = convertTimeToMinutes(estimatedTime, estimatedTimeUnit)
+
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          description,
+          description: description || null,
           dueDate: dueDateWithTime,
           priority: Number.parseInt(priority),
-          points: points,
+          points,
+          attachments,
+          estimated_time: estimatedTimeInMinutes,
         }),
       });
 
@@ -295,7 +310,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Your task has been updated successfully."),
       });
 
-      setIsEditMode(false);
+      onOpenChange(false);
       router.refresh();
     } catch (error) {
       console.error('[TaskDetail] Erro ao salvar tarefa:', error);
@@ -666,26 +681,38 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   }, [isEditMode, task]);
 
   const getPointsColor = (points: number) => {
-    switch(points) {
-      case 1: return 'text-green-500';
-      case 2: return 'text-blue-500';
-      case 3: return 'text-yellow-500';
-      case 4: return 'text-orange-500';
-      case 5: return 'text-red-500';
-      default: return 'text-gray-400';
+    switch (points) {
+      case 1:
+        return "text-green-500"
+      case 2:
+        return "text-blue-500"
+      case 3:
+        return "text-yellow-500"
+      case 4:
+        return "text-orange-500"
+      case 5:
+        return "text-red-500"
+      default:
+        return "text-gray-400"
     }
-  };
+  }
   
   const getPointsLabel = (points: number) => {
-    switch(points) {
-      case 1: return t("veryEasy") || "Muito fácil";
-      case 2: return t("easy") || "Fácil";
-      case 3: return t("medium") || "Médio";
-      case 4: return t("hard") || "Difícil";
-      case 5: return t("veryHard") || "Muito difícil";
-      default: return "";
+    switch (points) {
+      case 1:
+        return t("Muito Fácil")
+      case 2:
+        return t("Fácil")
+      case 3:
+        return t("Médio")
+      case 4:
+        return t("Difícil")
+      case 5:
+        return t("Muito Difícil")
+      default:
+        return t("Médio")
     }
-  };
+  }
   
   // Componente customizado para mostrar o valor dos pontos no trigger
   const PointsDisplay = () => {
@@ -697,92 +724,318 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     );
   };
 
+  // Função para formatar o tempo estimado
+  const formatEstimatedTime = (minutes: number | null | undefined) => {
+    if (!minutes) return null
+    
+    const days = Math.floor(minutes / (60 * 8))
+    const remainingHours = Math.floor((minutes % (60 * 8)) / 60)
+    const remainingMinutes = minutes % 60
+    
+    if (days > 0) {
+      if (remainingHours > 0 || remainingMinutes > 0) {
+        return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ''} ${remainingMinutes > 0 ? `${remainingMinutes}min` : ''}`.trim()
+      }
+      return `${days}d`
+    } else if (remainingHours > 0) {
+      if (remainingMinutes > 0) {
+        return `${remainingHours}h ${remainingMinutes}min`
+      }
+      return `${remainingHours}h`
+    } else {
+      return `${remainingMinutes}min`
+    }
+  }
+
+  // Atualizar attachments quando a task mudar
+  useEffect(() => {
+    if (task.attachments) {
+      setAttachments(task.attachments)
+    }
+  }, [task.attachments])
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('taskId', task.id)
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload file')
+      }
+      
+      const data = await response.json()
+      const newAttachment = {
+        id: data.id,
+        type: data.type,
+        url: data.url,
+        name: data.name
+      }
+
+      // Atualizar a task com o novo anexo
+      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          attachments: [...(task.attachments || []), newAttachment]
+        }),
+      })
+
+      if (!taskResponse.ok) {
+        throw new Error("Failed to update task attachments")
+      }
+
+      // Atualizar o estado da task com os novos anexos
+      const updatedTask = await taskResponse.json()
+      task.attachments = updatedTask.attachments
+      
+      setShowAddAttachment(false)
+      
+      // Limpar o input de arquivo
+      if (event.target) {
+        event.target.value = ""
+      }
+      
+      toast({
+        title: t("Attachment added"),
+        description: t("Your attachment has been added successfully."),
+      })
+
+      // Atualizar a interface
+      router.refresh()
+    } catch (error) {
+      console.error('Error uploading file:', error)
+      toast({
+        variant: "destructive",
+        title: t("Failed to upload file"),
+        description: t("Please try again."),
+      })
+    }
+  }
+
+  const addAttachment = async () => {
+    if (!attachmentUrl.trim()) return
+
+    try {
+      const newAttachment = {
+        type: attachmentType,
+        url: attachmentUrl.trim(),
+        name: attachmentName.trim() || attachmentUrl.trim()
+      }
+
+      // Atualizar a task com o novo anexo
+      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          attachments: [...(task.attachments || []), newAttachment]
+        }),
+      })
+
+      if (!taskResponse.ok) {
+        throw new Error("Failed to update task attachments")
+      }
+
+      // Atualizar o estado da task com os novos anexos
+      const updatedTask = await taskResponse.json()
+      task.attachments = updatedTask.attachments
+      
+      setAttachmentUrl("")
+      setAttachmentName("")
+      setShowAddAttachment(false)
+      
+      toast({
+        title: t("Attachment added"),
+        description: t("Your attachment has been added successfully."),
+      })
+
+      // Atualizar a interface
+      router.refresh()
+    } catch (error) {
+      console.error('Error adding attachment:', error)
+      toast({
+        variant: "destructive",
+        title: t("Failed to add attachment"),
+        description: t("Please try again."),
+      })
+    }
+  }
+
+  const removeAttachment = async (index: number) => {
+    try {
+      const updatedAttachments = [...(task.attachments || [])]
+      updatedAttachments.splice(index, 1)
+      
+      // Atualizar a task com os anexos atualizados
+      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          attachments: updatedAttachments
+        }),
+      })
+
+      if (!taskResponse.ok) {
+        throw new Error("Failed to update task attachments")
+      }
+
+      // Atualizar o estado da task com os novos anexos
+      const updatedTask = await taskResponse.json()
+      task.attachments = updatedTask.attachments
+      
+      toast({
+        title: t("Attachment removed"),
+        description: t("Your attachment has been removed successfully."),
+      })
+
+      // Atualizar a interface
+      router.refresh()
+    } catch (error) {
+      console.error('Error removing attachment:', error)
+      toast({
+        variant: "destructive",
+        title: t("Failed to remove attachment"),
+        description: t("Please try again."),
+      })
+    }
+  }
+
+  const triggerFileUpload = () => {
+    if (attachmentType === "image") {
+      imageUploadRef?.click()
+    } else if (attachmentType === "file") {
+      fileUploadRef?.click()
+    }
+  }
+
+  // Função para converter minutos para a unidade selecionada
+  const getTimeUnitAndValue = (minutes: number | null): { value: number | null, unit: string } => {
+    if (minutes === null) return { value: null, unit: "min" }
+    
+    if (minutes % (60 * 8) === 0 && minutes >= 60 * 8) {
+      return { value: minutes / (60 * 8), unit: "d" }
+    } else if (minutes % 60 === 0 && minutes >= 60) {
+      return { value: minutes / 60, unit: "h" }
+    } else {
+      return { value: minutes, unit: "min" }
+    }
+  }
+
+  // Função para converter para minutos
+  const convertTimeToMinutes = (timeValue: number | null, unit: string): number | null => {
+    if (timeValue === null) return null
+    
+    switch (unit) {
+      case "h":
+        return timeValue * 60
+      case "d":
+        return timeValue * 60 * 8
+      default:
+        return timeValue
+    }
+  }
+
+  // Inicializar os valores do tempo estimado
+  useEffect(() => {
+    if (task.estimated_time !== undefined && task.estimated_time !== null) {
+      const { value, unit } = getTimeUnitAndValue(task.estimated_time)
+      setEstimatedTime(value)
+      setEstimatedTimeUnit(unit)
+    }
+  }, [task.estimated_time])
+
   return (
     <Dialog 
       open={open} 
       onOpenChange={(newOpen) => {
         if (!newOpen && isEditMode) {
-          setIsEditMode(false);
+          setIsEditMode(false)
         }
-        onOpenChange(newOpen);
+        onOpenChange(newOpen)
       }}
     >
       <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-auto">
-        <DialogHeader className="flex flex-col space-y-1">
-          <div className="flex flex-row items-center w-full">
-            <BackButton 
-              onClick={() => onOpenChange(false)} 
-              className="md:hidden mr-2"
-            />
-            <DialogTitle>{t("Detalhes da Tarefa")}</DialogTitle>
-          </div>
-          <DialogDescription className="text-xl font-bold">{title}</DialogDescription>
+        <DialogHeader>
+          <DialogTitle>{isEditMode ? t("Editar Tarefa") : t("Detalhes da Tarefa")}</DialogTitle>
+          <DialogDescription>
+            {isEditMode 
+              ? t("Edite os detalhes da sua tarefa.") 
+              : t("Visualize os detalhes da sua tarefa.")}
+          </DialogDescription>
         </DialogHeader>
 
-        {isEditMode ? (
-          <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {t("title")}
+            </label>
+            <Textarea 
+              id="title" 
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              placeholder={t("Task title")}
+              className="min-h-[80px] text-base"
+              rows={3}
+              readOnly={!isEditMode}
+              disabled={!isEditMode}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {t("description")}
+            </label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t("Add details about your task")}
+              className="min-h-[120px]"
+              rows={5}
+              readOnly={!isEditMode}
+              disabled={!isEditMode}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                {t("title")}
+                {t("dueDate")}
               </label>
-              <Textarea 
-                id="title" 
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
-                placeholder={t("Task title")}
-                className="min-h-[80px] text-base"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("description")}
-              </label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={t("Task description")}
-                rows={8}
-                className="min-h-[200px] text-base"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {t("dueDate")}
-                </label>
-                <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+              <div className="flex flex-col space-y-2">
+                <Popover open={isEditMode ? datePickerOpen : false} onOpenChange={isEditMode ? setDatePickerOpen : undefined}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                      id="dueDate"
-                      type="button"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dueDate && "text-muted-foreground"
+                      )}
+                      disabled={!isEditMode}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                      {dueDate 
-                        ? isAllDay 
-                          ? format(dueDate, "PPP") 
-                          : `${format(dueDate, "PPP")} - ${dueTime || "12:00"}`
-                        : <span className="text-muted-foreground">{t("pickDate")}</span>}
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dueDate ? format(dueDate, "PPP") : <span>{t("Pick a date")}</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent 
-                    className="w-auto p-0" 
-                    align="start" 
-                    side="bottom"
-                    sideOffset={8}
-                    alignOffset={0}
-                  >
+                  <PopoverContent className="w-auto p-0" align="start">
                     <div className="p-3">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium">{t("pickDate")}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 rounded-full" 
-                          onClick={() => setDatePickerOpen(false)}
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm font-medium">{t("Date")}</p>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setDueDate(undefined);
+                            setDatePickerOpen(false);
+                          }}
                         >
                           <X className="h-4 w-4" />
                           <span className="sr-only">{t("close")}</span>
@@ -853,43 +1106,47 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   </PopoverContent>
                 </Popover>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {t("priority")}
-                </label>
-                <Select value={priority} onValueChange={setPriority}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("Select priority")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">
-                      <div className="flex items-center">
-                        <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("1")}`} />
-                        {t("Grave")}
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="2">
-                      <div className="flex items-center">
-                        <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("2")}`} />
-                        {t("Alta")}
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="3">
-                      <div className="flex items-center">
-                        <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("3")}`} />
-                        {t("Média")}
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="4">
-                      <div className="flex items-center">
-                        <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("4")}`} />
-                        {t("Baixa")}
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t("priority")}
+              </label>
+              <Select value={priority} onValueChange={setPriority} disabled={!isEditMode}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("Select priority")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">
+                    <div className="flex items-center">
+                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("1")}`} />
+                      {t("Grave")}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="2">
+                    <div className="flex items-center">
+                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("2")}`} />
+                      {t("Alta")}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="3">
+                    <div className="flex items-center">
+                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("3")}`} />
+                      {t("Média")}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="4">
+                    <div className="flex items-center">
+                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("4")}`} />
+                      {t("Baixa")}
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">
                 {t("points") || "Pontos"}
@@ -899,6 +1156,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   <Button 
                     variant="outline" 
                     className="w-full justify-between text-left font-normal"
+                    disabled={!isEditMode}
                   >
                     <div className="flex items-center">
                       <CircleDot className={`mr-2 h-4 w-4 ${getPointsColor(points)}`} />
@@ -908,267 +1166,363 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <div className="p-1">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <div
+                  <div className="grid grid-cols-1 gap-2 p-2">
+                    {[
+                      { value: 1, label: t("Muito Fácil") },
+                      { value: 2, label: t("Fácil") },
+                      { value: 3, label: t("Médio") },
+                      { value: 4, label: t("Difícil") },
+                      { value: 5, label: t("Muito Difícil") }
+                    ].map(({ value, label }) => (
+                      <Button
                         key={value}
-                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                        onClick={() => setPoints(value)}
+                        variant={points === value ? "default" : "ghost"}
+                        className="justify-start font-normal"
+                        onClick={() => {
+                          setPoints(value);
+                        }}
                       >
-                        {points === value && (
-                          <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                            <Check className="h-4 w-4" />
-                          </span>
-                        )}
-                        <div className="flex items-center">
-                          <CircleDot className={`mr-2 h-4 w-4 ${
-                            value === 1 ? "text-green-500" :
-                            value === 2 ? "text-blue-500" :
-                            value === 3 ? "text-yellow-500" :
-                            value === 4 ? "text-orange-500" :
-                            value === 5 ? "text-red-500" :
-                            "text-muted-foreground"
-                          }`} />
-                          {value} - {
-                            value === 1 ? t("veryEasy") || "Muito fácil" :
-                            value === 2 ? t("easy") || "Fácil" :
-                            value === 3 ? t("medium") || "Médio" :
-                            value === 4 ? t("hard") || "Difícil" :
-                            value === 5 ? t("veryHard") || "Muito difícil" :
-                            ""
-                          }
-                        </div>
-                      </div>
+                        <CircleDot className={`mr-2 h-4 w-4 ${getPointsColor(value)}`} />
+                        <span>{value} - {label}</span>
+                      </Button>
                     ))}
                   </div>
                 </PopoverContent>
               </Popover>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("project")}
-              </label>
-              <div className="space-y-2">
-                {projectId ? (
-                  <div className="flex items-center justify-between p-2 border rounded">
-                    <div className="flex items-center">
-                      <div
-                        className="w-4 h-4 rounded-full mr-2"
-                        style={{ 
-                          backgroundColor: projects.find(p => p.id.toString() === projectId)?.color || "#ccc" 
-                        }}
-                      />
-                      <span>{projects.find(p => p.id.toString() === projectId)?.name || t("Unknown project")}</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setProjectId(null)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <X className="h-4 w-4" />
-                      <span className="sr-only">{t("Remove project")}</span>
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground p-2">{t("noProject")}</p>
-                )}
-                <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
-                  <DialogTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                    >
-                      <FilePlus className="mr-1 h-3 w-3" />
-                      {t("Add Project")}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="z-[60]" onClick={(e) => e.stopPropagation()}>
-                    <DialogHeader>
-                      <DialogTitle>{t("Add Project")}</DialogTitle>
-                      <DialogDescription>{t("Select a project or create a new one.")}</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-2 py-4">
-                      {isLoadingProjects ? (
-                        <div className="flex items-center justify-center p-4">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                        </div>
-                      ) : projects.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">{t("No projects found.")}</p>
-                      ) : (
-                        projects.map((project) => (
-                          <button
-                            key={project.id}
-                            type="button"
-                            className="flex items-center justify-between p-2 border rounded hover:bg-accent"
-                            onClick={() => {
-                              setProjectId(project.id.toString());
-                              setProjectName(project.name);
-                              setShowAddProject(false);
-                            }}
-                          >
-                      <div className="flex items-center">
-                              <div
-                                className="w-4 h-4 rounded-full mr-2"
-                                style={{ backgroundColor: project.color }}
-                              />
-                              <span>{project.name}</span>
-                      </div>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                    <div className="mt-4 border-t pt-4 flex justify-between">
-                      <Button variant="outline" onClick={() => setShowAddProject(false)}>
-                        {t("Cancel")}
-                      </Button>
-                      <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
-                        <DialogTrigger asChild>
-                          <Button onClick={(e) => {
-                            e.stopPropagation();
-                            setShowCreateProject(true);
-                          }}>
-                            {t("Create New Project")}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="z-[70]" onClick={(e) => e.stopPropagation()}>
-                          <DialogHeader>
-                            <DialogTitle>{t("Create New Project")}</DialogTitle>
-                            <DialogDescription>
-                              {t("Fill in the details to create a new project.")}
-                            </DialogDescription>
-                          </DialogHeader>
-                          <ProjectForm onSuccess={handleCreateProjectSuccess} />
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                {t("Etiquetas")}
+                {t("Tempo estimado")}
               </label>
-              <TaskLabels key={taskLabelsKey} taskId={task.id} readOnly={!isEditMode} />
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder={t("Tempo")}
+                  className="w-full"
+                  min="0"
+                  disabled={!isEditMode}
+                  value={estimatedTime === null ? "" : estimatedTime}
+                  onChange={(e) => setEstimatedTime(e.target.value === "" ? null : Number(e.target.value))}
+                />
+                <Select 
+                  value={estimatedTimeUnit} 
+                  onValueChange={setEstimatedTimeUnit} 
+                  disabled={!isEditMode}
+                >
+                  <SelectTrigger className="w-[110px]">
+                    <SelectValue placeholder={t("Unidade")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="min">{t("Minutos")}</SelectItem>
+                    <SelectItem value="h">{t("Horas")}</SelectItem>
+                    <SelectItem value="d">{t("Dias")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-        ) : (
-          <div className="space-y-4 py-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <h2 className="sr-only">
-                  {task.title}
-                </h2>
-              </div>
-              <div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs flex items-center gap-1 hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors"
-                  onClick={startPomodoro}
-                >
-                  <Timer className="h-3.5 w-3.5" />
-                  {t("startPomodoro")}
-                </Button>
-              </div>
-            </div>
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {t("project")}
+            </label>
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("description")}
-              </label>
-              <div className="p-3 border rounded-md bg-muted/30 min-h-[200px] overflow-y-auto">
-                {renderDescription()}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {t("dueDate")}
-                </label>
-                <div className="p-2 border rounded-md bg-muted/30">
-                  {dueDate 
-                    ? isAllDay 
-                      ? format(dueDate, "PPP") 
-                      : `${format(dueDate, "PPP")} - ${dueTime || "12:00"}`
-                    : <span className="text-muted-foreground">{t("No due date")}</span>}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {t("priority")}
-                </label>
-                <div className="p-2 border rounded-md bg-muted/30 flex items-center">
-                  <Flag className={`mr-2 h-4 w-4 ${getPriorityColor(priority)}`} />
-                  {getPriorityName(priority)}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {t("points") || "Pontos"}
-                </label>
-                <div className="p-2 border rounded-md bg-muted/30 flex items-center">
-                  <PointsDisplay />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("project")}
-              </label>
-              <div className="p-2 border rounded-md bg-muted/30">
-                {projectId ? (
+              {projectId ? (
+                <div className="flex items-center justify-between p-2 border rounded">
                   <div className="flex items-center">
-                    <div 
-                      className="mr-2 h-3 w-3 rounded-full" 
-                      style={{ 
-                        backgroundColor: projects.find(p => p.id.toString() === projectId)?.color || "#ccc" 
-                      }} 
+                    <div
+                      style={{ backgroundColor: projects.find(p => p.id.toString() === projectId)?.color || "#ccc" }}
+                      className="w-4 h-4 rounded-full mr-2"
                     />
-                    {projectName || t("Unknown project")}
+                    <span>{projects.find(p => p.id.toString() === projectId)?.name || t("Unknown project")}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setProjectId(null)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">{t("Remove project")}</span>
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground p-2">{t("noProject")}</p>
+              )}
+              <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
+                <DialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t("Add Project")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="z-[60]" onClick={(e) => e.stopPropagation()}>
+                  <DialogHeader>
+                    <DialogTitle>{t("Add Project")}</DialogTitle>
+                    <DialogDescription>{t("Select a project or create a new one.")}</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-2 py-4">
+                    {isLoadingProjects ? (
+                      <div className="flex items-center justify-center p-4">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      </div>
+                    ) : projects.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">{t("No projects found.")}</p>
+                    ) : (
+                      projects.map((project) => (
+                        <button
+                          key={project.id}
+                          type="button"
+                          className="flex items-center justify-between p-2 border rounded hover:bg-accent"
+                          onClick={() => {
+                            setProjectId(project.id.toString());
+                            setShowAddProject(false);
+                          }}
+                        >
+                          <div className="flex items-center">
+                            <div
+                              style={{ backgroundColor: project.color }}
+                              className="w-4 h-4 rounded-full mr-2"
+                            />
+                            <span>{project.name}</span>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                  <div className="mt-4 border-t pt-4 flex justify-between">
+                    <Button variant="outline" onClick={() => setShowAddProject(false)}>
+                      {t("Cancel")}
+                    </Button>
+                    <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
+                      <DialogTrigger asChild>
+                        <Button onClick={(e) => {
+                          e.stopPropagation();
+                          setShowCreateProject(true);
+                        }}>
+                          {t("Create New Project")}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="z-[70]" onClick={(e) => e.stopPropagation()}>
+                        <DialogHeader>
+                          <DialogTitle>{t("Create New Project")}</DialogTitle>
+                          <DialogDescription>
+                            {t("Fill in the details to create a new project.")}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <ProjectForm onSuccess={handleCreateProjectSuccess} />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {t("labels")}
+            </label>
+            <TaskLabels key={taskLabelsKey} taskId={task.id} />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {t("attachments")}
+            </label>
+            <div className="space-y-2">
+              {task.attachments && task.attachments.length > 0 && (
+                <div className="space-y-2">
+                  {task.attachments.map((attachment, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-secondary/50 rounded-md">
+                      <div className="flex items-center space-x-2 truncate">
+                        {attachment.type === "link" && <Link className="h-4 w-4" />}
+                        {attachment.type === "image" && <Image className="h-4 w-4" />}
+                        {attachment.type === "file" && <FileText className="h-4 w-4" />}
+                        <span className="truncate">{attachment.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <a 
+                          href={attachment.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80 flex-shrink-0"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                        {isEditMode && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeAttachment(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {isEditMode && (
+                showAddAttachment ? (
+                  <div className="space-y-2 border rounded-md p-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        type="button"
+                        variant={attachmentType === "link" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setAttachmentType("link")}
+                        className="w-full"
+                      >
+                        Link
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={attachmentType === "image" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setAttachmentType("image")}
+                        className="w-full"
+                      >
+                        {t("Image")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={attachmentType === "file" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setAttachmentType("file")}
+                        className="w-full"
+                      >
+                        {t("File")}
+                      </Button>
+                    </div>
+                    
+                    {attachmentType === "link" ? (
+                      <>
+                        <Input
+                          placeholder="URL"
+                          value={attachmentUrl}
+                          onChange={(e) => setAttachmentUrl(e.target.value)}
+                        />
+                        
+                        <Input
+                          placeholder={t("Name (optional)")}
+                          value={attachmentName}
+                          onChange={(e) => setAttachmentName(e.target.value)}
+                        />
+                        
+                        <div className="flex space-x-2">
+                          <Button
+                            type="button"
+                            onClick={addAttachment}
+                            disabled={!attachmentUrl.trim()}
+                            size="sm"
+                          >
+                            {t("Add")}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setShowAddAttachment(false)
+                              setAttachmentUrl("")
+                              setAttachmentName("")
+                            }}
+                          >
+                            {t("Cancel")}
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <input 
+                          type="file" 
+                          accept={attachmentType === "image" ? "image/*" : "*/*"} 
+                          className="hidden"
+                          onChange={handleFileUpload}
+                          ref={node => attachmentType === "image" ? setImageUploadRef(node) : setFileUploadRef(node)}
+                        />
+                        <Button
+                          type="button"
+                          onClick={triggerFileUpload}
+                          className="w-full"
+                          size="sm"
+                        >
+                          {attachmentType === "image" ? t("Select Image") : t("Select File")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAddAttachment(false)}
+                          className="w-full"
+                        >
+                          {t("Cancel")}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 ) : (
-                  <span className="text-muted-foreground">{t("noProject")}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("Etiquetas")}
-              </label>
-              <TaskLabels key={taskLabelsKey} taskId={task.id} readOnly={!isEditMode} />
-            </div>
-
-            <div className="text-xs text-muted-foreground">
-              <p>
-                {t("created")}: {format(new Date(task.created_at), "PPP p")}
-              </p>
-              {task.updated_at && (
-                <p>
-                  {t("updated")}: {format(new Date(task.updated_at), "PPP p")}
-                </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAddAttachment(true)}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t("attachment.add")}
+                  </Button>
+                )
               )}
             </div>
           </div>
-        )}
+
+        </div>
 
         <DialogFooter className="flex flex-col sm:flex-row justify-between items-center w-full gap-4 sm:gap-2">
           <Button 
             variant="secondary" 
             size="sm" 
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              if (isEditMode) {
+                setIsEditMode(false)
+                // Reset form values
+                setTitle(task.title)
+                setDescription(task.description || "")
+                setPriority(task.priority.toString())
+                setPoints(task.points || 3)
+                if (task.due_date) {
+                  setDueDate(new Date(task.due_date))
+                  setDueTime(
+                    new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
+                      ? "12:00"
+                      : new Date(task.due_date).toTimeString().slice(0, 5)
+                  )
+                  setIsAllDay(new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0)
+                } else {
+                  setDueDate(undefined)
+                  setDueTime("12:00")
+                  setIsAllDay(true)
+                }
+              } else {
+                onOpenChange(false)
+              }
+            }}
             className="w-full sm:w-28"
           >
             <X className="mr-1 h-4 w-4" />
-            {t("cancel")}
+            {isEditMode ? t("cancel") : t("close")}
           </Button>
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-2 w-full sm:w-auto">
             {isEditMode ? (
@@ -1194,14 +1548,26 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 </Button>
               </>
             ) : (
-              <Button 
-                size="sm" 
-                onClick={() => setIsEditMode(true)}
-                className="w-full sm:w-28"
-              >
-                <Check className="mr-1 h-4 w-4" />
-                {t("edit")}
-              </Button>
+              <>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="w-full sm:w-28"
+                >
+                  <Trash className="mr-1 h-4 w-4" />
+                  {isDeleting ? t("Deleting...") : t("delete")}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setIsEditMode(true)}
+                  className="w-full sm:w-28"
+                >
+                  <Edit className="mr-1 h-4 w-4" />
+                  {t("edit")}
+                </Button>
+              </>
             )}
           </div>
         </DialogFooter>

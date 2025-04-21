@@ -72,7 +72,9 @@ export async function PUT(
       priority: body.priority,
       completed: body.completed,
       kanban_column: body.kanban_column,
-      points: body.points
+      points: body.points,
+      attachments: body.attachments,
+      estimated_time: body.estimated_time
     });
 
     return NextResponse.json(updatedTask);
@@ -104,6 +106,9 @@ export async function PATCH(
     }
 
     const body = await request.json();
+    
+    console.log(`[PATCH /api/tasks/${taskId}] Dados recebidos:`, JSON.stringify(body));
+    console.log(`[PATCH /api/tasks/${taskId}] Tempo estimado recebido:`, body.estimated_time);
 
     // Verificar se a tarefa existe
     const existingTask = await getTaskById(taskId, userId);
