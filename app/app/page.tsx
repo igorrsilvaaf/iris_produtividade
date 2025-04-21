@@ -3,15 +3,15 @@ import { getTodayTasks } from "@/lib/todos"
 import { getUserSettings } from "@/lib/settings"
 import { requireAuth } from "@/lib/auth"
 import { TaskList } from "@/components/task-list"
-import { PomodoroTimer } from "@/components/pomodoro-timer"
 import { Button } from "@/components/ui/button"
-import { Plus, Calendar } from "lucide-react"
+import { Plus } from "lucide-react"
 import { AddTaskDialog } from "@/components/add-task-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card } from "@/components/ui/card"
 import { cookies } from "next/headers"
 import { getServerTranslation } from "@/lib/server-i18n"
 import { Metadata } from "next"
+import { RightColumn } from "@/components/right-column"
 
 // Define a metadata para forçar o idioma para esta página
 export async function generateMetadata(): Promise<Metadata> {
@@ -87,7 +87,7 @@ export default async function AppPage() {
           </Suspense>
         </div>
         <div>
-          <PomodoroTimer
+          <RightColumn
             initialSettings={{
               pomodoro_work_minutes: settings.pomodoro_work_minutes,
               pomodoro_break_minutes: settings.pomodoro_break_minutes,

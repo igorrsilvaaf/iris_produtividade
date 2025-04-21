@@ -8,6 +8,7 @@ import { PomodoroProvider } from "@/lib/pomodoro-context"
 import { getUserSettings } from "@/lib/settings"
 import { getSession } from "@/lib/auth"
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
+import PersistentSpotifyPlayer from "@/components/persistent-spotify-player"
 
 // Importação correta do CSS global
 import "@/app/globals.css"
@@ -101,11 +102,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 }}
               >
                 <ServiceWorkerRegistration />
+                <PersistentSpotifyPlayer />
                 {children}
               </PomodoroProvider>
             ) : (
               <>
                 <ServiceWorkerRegistration />
+                <PersistentSpotifyPlayer />
                 {children}
               </>
             )}
