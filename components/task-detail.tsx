@@ -742,50 +742,166 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }
 
-  const addAttachment = () => {
-    if (!attachmentUrl.trim()) return
-
-    const newAttachment = {
-      type: attachmentType,
-      url: attachmentUrl.trim(),
-      name: attachmentName.trim() || attachmentUrl.trim(),
+  // Atualizar attachments quando a task mudar
+  useEffect(() => {
+    if (task.attachments) {
+      setAttachments(task.attachments)
     }
+  }, [task.attachments])
 
-    const updatedAttachments = [...attachments, newAttachment]
-    setAttachments(updatedAttachments)
-    setAttachmentUrl("")
-    setAttachmentName("")
-    setShowAddAttachment(false)
-  }
-
-  const removeAttachment = (index: number) => {
-    const updatedAttachments = [...attachments]
-    updatedAttachments.splice(index, 1)
-    setAttachments(updatedAttachments)
-  }
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Para uma aplicação real, aqui você faria o upload do arquivo para um servidor
-    // e obteria uma URL permanente. Por enquanto, vamos criar uma URL temporária local.
-    const fileUrl = URL.createObjectURL(file)
-    const fileName = file.name
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload file')
+      }
+      
+      const data = await response.json()
+      const newAttachment = {
+        type: attachmentType,
+        url: data.url,
+        name: file.name
+      }
 
-    const newAttachment = {
-      type: attachmentType,
-      url: fileUrl,
-      name: fileName,
+      const updatedAttachments = [...(task.attachments || []), newAttachment]
+      
+      // Salvar imediatamente a tarefa com o novo anexo
+      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          attachments: updatedAttachments
+        }),
+      })
+
+      if (!taskResponse.ok) {
+        throw new Error("Failed to update task attachments")
+      }
+
+      // Atualizar o estado da task com os novos anexos
+      const updatedTask = await taskResponse.json()
+      task.attachments = updatedTask.attachments
+      
+      setShowAddAttachment(false)
+      
+      // Limpar o input de arquivo
+      if (event.target) {
+        event.target.value = ""
+      }
+      
+      toast({
+        title: t("Attachment added"),
+        description: t("Your attachment has been added successfully."),
+      })
+
+      // Atualizar a interface
+      router.refresh()
+    } catch (error) {
+      console.error('Error uploading file:', error)
+      toast({
+        variant: "destructive",
+        title: t("Failed to upload file"),
+        description: t("Please try again."),
+      })
     }
+  }
 
-    const updatedAttachments = [...attachments, newAttachment]
-    setAttachments(updatedAttachments)
-    setShowAddAttachment(false)
-    
-    // Limpar o input de arquivo
-    if (event.target) {
-      event.target.value = ""
+  const addAttachment = async () => {
+    if (!attachmentUrl.trim()) return
+
+    try {
+      const newAttachment = {
+        type: attachmentType,
+        url: attachmentUrl.trim(),
+        name: attachmentName.trim() || attachmentUrl.trim()
+      }
+
+      const updatedAttachments = [...(task.attachments || []), newAttachment]
+      
+      // Salvar imediatamente a tarefa com o novo anexo
+      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          attachments: updatedAttachments
+        }),
+      })
+
+      if (!taskResponse.ok) {
+        throw new Error("Failed to update task attachments")
+      }
+
+      // Atualizar o estado da task com os novos anexos
+      const updatedTask = await taskResponse.json()
+      task.attachments = updatedTask.attachments
+      
+      setAttachmentUrl("")
+      setAttachmentName("")
+      setShowAddAttachment(false)
+      
+      toast({
+        title: t("Attachment added"),
+        description: t("Your attachment has been added successfully."),
+      })
+
+      // Atualizar a interface
+      router.refresh()
+    } catch (error) {
+      console.error('Error adding attachment:', error)
+      toast({
+        variant: "destructive",
+        title: t("Failed to add attachment"),
+        description: t("Please try again."),
+      })
+    }
+  }
+
+  const removeAttachment = async (index: number) => {
+    try {
+      const updatedAttachments = [...(task.attachments || [])]
+      updatedAttachments.splice(index, 1)
+      
+      // Salvar imediatamente a tarefa com os anexos atualizados
+      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          attachments: updatedAttachments
+        }),
+      })
+
+      if (!taskResponse.ok) {
+        throw new Error("Failed to update task attachments")
+      }
+
+      // Atualizar o estado da task com os novos anexos
+      const updatedTask = await taskResponse.json()
+      task.attachments = updatedTask.attachments
+      
+      toast({
+        title: t("Attachment removed"),
+        description: t("Your attachment has been removed successfully."),
+      })
+
+      // Atualizar a interface
+      router.refresh()
+    } catch (error) {
+      console.error('Error removing attachment:', error)
+      toast({
+        variant: "destructive",
+        title: t("Failed to remove attachment"),
+        description: t("Please try again."),
+      })
     }
   }
 
@@ -1180,136 +1296,149 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
               {task.attachments && task.attachments.length > 0 && (
                 <div className="space-y-2">
                   {task.attachments.map((attachment, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 border rounded">
-                      <div className="flex items-center space-x-2 overflow-hidden">
-                        {attachment.type === "link" && <Link className="h-4 w-4 flex-shrink-0" />}
-                        {attachment.type === "image" && <Image className="h-4 w-4 flex-shrink-0" />}
-                        {attachment.type === "file" && <FileText className="h-4 w-4 flex-shrink-0" />}
-                        <span className="truncate flex-1">{attachment.name}</span>
+                    <div key={index} className="flex items-center justify-between p-2 bg-secondary/50 rounded-md">
+                      <div className="flex items-center space-x-2 truncate">
+                        {attachment.type === "link" && <Link className="h-4 w-4" />}
+                        {attachment.type === "image" && <Image className="h-4 w-4" />}
+                        {attachment.type === "file" && <FileText className="h-4 w-4" />}
+                        <span className="truncate">{attachment.name}</span>
                       </div>
-                      <a 
-                        href={attachment.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:text-primary/80 ml-2 flex-shrink-0"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <a 
+                          href={attachment.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80 flex-shrink-0"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                        {isEditMode && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeAttachment(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
               
-              {showAddAttachment ? (
-                <div className="space-y-2 border rounded-md p-2">
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button
-                      type="button"
-                      variant={attachmentType === "link" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setAttachmentType("link")}
-                      className="w-full"
-                    >
-                      Link
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={attachmentType === "image" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setAttachmentType("image")}
-                      className="w-full"
-                    >
-                      {t("Image")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={attachmentType === "file" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setAttachmentType("file")}
-                      className="w-full"
-                    >
-                      {t("File")}
-                    </Button>
-                  </div>
-                  
-                  {attachmentType === "link" ? (
-                    <>
-                      <Input
-                        placeholder="URL"
-                        value={attachmentUrl}
-                        onChange={(e) => setAttachmentUrl(e.target.value)}
-                      />
-                      
-                      <Input
-                        placeholder={t("Name (optional)")}
-                        value={attachmentName}
-                        onChange={(e) => setAttachmentName(e.target.value)}
-                      />
-                      
-                      <div className="flex space-x-2">
+              {isEditMode && (
+                showAddAttachment ? (
+                  <div className="space-y-2 border rounded-md p-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        type="button"
+                        variant={attachmentType === "link" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setAttachmentType("link")}
+                        className="w-full"
+                      >
+                        Link
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={attachmentType === "image" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setAttachmentType("image")}
+                        className="w-full"
+                      >
+                        {t("Image")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={attachmentType === "file" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setAttachmentType("file")}
+                        className="w-full"
+                      >
+                        {t("File")}
+                      </Button>
+                    </div>
+                    
+                    {attachmentType === "link" ? (
+                      <>
+                        <Input
+                          placeholder="URL"
+                          value={attachmentUrl}
+                          onChange={(e) => setAttachmentUrl(e.target.value)}
+                        />
+                        
+                        <Input
+                          placeholder={t("Name (optional)")}
+                          value={attachmentName}
+                          onChange={(e) => setAttachmentName(e.target.value)}
+                        />
+                        
+                        <div className="flex space-x-2">
+                          <Button
+                            type="button"
+                            onClick={addAttachment}
+                            disabled={!attachmentUrl.trim()}
+                            size="sm"
+                          >
+                            {t("Add")}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setShowAddAttachment(false)
+                              setAttachmentUrl("")
+                              setAttachmentName("")
+                            }}
+                          >
+                            {t("Cancel")}
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <input 
+                          type="file" 
+                          accept={attachmentType === "image" ? "image/*" : "*/*"} 
+                          className="hidden"
+                          onChange={handleFileUpload}
+                          ref={node => attachmentType === "image" ? setImageUploadRef(node) : setFileUploadRef(node)}
+                        />
                         <Button
                           type="button"
-                          onClick={addAttachment}
-                          disabled={!attachmentUrl.trim()}
+                          onClick={triggerFileUpload}
+                          className="w-full"
                           size="sm"
                         >
-                          {t("Add")}
+                          {attachmentType === "image" ? t("Select Image") : t("Select File")}
                         </Button>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setShowAddAttachment(false)
-                            setAttachmentUrl("")
-                            setAttachmentName("")
-                          }}
+                          onClick={() => setShowAddAttachment(false)}
+                          className="w-full"
                         >
                           {t("Cancel")}
                         </Button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <input 
-                        type="file" 
-                        accept={attachmentType === "image" ? "image/*" : "*/*"} 
-                        className="hidden"
-                        onChange={handleFileUpload}
-                        ref={node => attachmentType === "image" ? setImageUploadRef(node) : setFileUploadRef(node)}
-                      />
-                      <Button
-                        type="button"
-                        onClick={triggerFileUpload}
-                        className="w-full"
-                        size="sm"
-                      >
-                        {attachmentType === "image" ? t("Select Image") : t("Select File")}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowAddAttachment(false)}
-                        className="w-full"
-                      >
-                        {t("Cancel")}
-                      </Button>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowAddAttachment(true)}
-                  className="w-full"
-                  disabled={!isEditMode}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t("attachment.add")}
-                </Button>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAddAttachment(true)}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t("attachment.add")}
+                  </Button>
+                )
               )}
             </div>
           </div>

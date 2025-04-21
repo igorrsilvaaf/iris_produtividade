@@ -244,29 +244,51 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
     }
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Para uma aplicação real, aqui você faria o upload do arquivo para um servidor
-    // e obteria uma URL permanente. Por enquanto, vamos criar uma URL temporária local.
-    const fileUrl = URL.createObjectURL(file)
-    const fileName = file.name
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload file')
+      }
+      
+      const data = await response.json()
+      const newAttachment = {
+        type: attachmentType,
+        url: data.url,
+        name: file.name
+      }
 
-    const newAttachment = {
-      type: attachmentType,
-      url: fileUrl,
-      name: fileName,
-    }
-
-    const currentAttachments = form.getValues("attachments") || []
-    form.setValue("attachments", [...currentAttachments, newAttachment])
-    setAttachments([...attachments, newAttachment])
-    setShowAddAttachment(false)
-    
-    // Limpar o input de arquivo
-    if (event.target) {
-      event.target.value = ""
+      const currentAttachments = form.getValues("attachments") || []
+      form.setValue("attachments", [...currentAttachments, newAttachment])
+      setAttachments([...attachments, newAttachment])
+      setShowAddAttachment(false)
+      
+      // Limpar o input de arquivo
+      if (event.target) {
+        event.target.value = ""
+      }
+      
+      toast({
+        title: t("Attachment added"),
+        description: t("Your attachment has been added successfully."),
+      })
+    } catch (error) {
+      console.error('Error uploading file:', error)
+      toast({
+        variant: "destructive",
+        title: t("Failed to upload file"),
+        description: t("Please try again."),
+      })
     }
   }
 
