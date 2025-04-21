@@ -23,6 +23,29 @@ export const CHANGELOG_DATA: ChangelogData[] = [
     },
     entries: [
       {
+        id: 'spotify-player',
+        title: 'Player do Spotify',
+        description: 'Novo player do Spotify para ouvir música enquanto trabalha',
+        items: [
+          {
+            type: 'feature',
+            content: 'Adicionado player do Spotify para reproduzir playlists durante o trabalho'
+          },
+          {
+            type: 'feature',
+            content: 'Configuração da playlist através das configurações do sistema'
+          },
+          {
+            type: 'feature',
+            content: 'Player persistente que continua tocando durante a navegação'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface minimalista com opções de expandir/minimizar'
+          }
+        ]
+      },
+      {
         id: 'task-enhancements',
         title: 'Melhorias nas Tarefas',
         description: 'Novas funcionalidades para melhor gerenciamento e organização das tarefas',

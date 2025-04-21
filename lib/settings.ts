@@ -15,6 +15,7 @@ export type UserSettings = {
   enable_desktop_notifications: boolean
   enable_task_notifications: boolean
   task_notification_days: number
+  spotify_playlist_url: string | null
 }
 
 // Função para verificar e criar a tabela user_settings se não existir
@@ -48,6 +49,7 @@ async function ensureUserSettingsTable() {
           enable_desktop_notifications BOOLEAN NOT NULL DEFAULT true,
           enable_task_notifications BOOLEAN NOT NULL DEFAULT true,
           task_notification_days INTEGER NOT NULL DEFAULT 3,
+          spotify_playlist_url TEXT,
           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -61,7 +63,8 @@ async function ensureUserSettingsTable() {
         SELECT 
           EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='enable_task_notifications') as enable_task_notifications_exists,
           EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='task_notification_days') as task_notification_days_exists,
-          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='pomodoro_sound') as pomodoro_sound_exists
+          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='pomodoro_sound') as pomodoro_sound_exists,
+          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='spotify_playlist_url') as spotify_playlist_url_exists
       `;
       
       if (!columnsExist[0].enable_task_notifications_exists) {
@@ -77,6 +80,11 @@ async function ensureUserSettingsTable() {
       if (!columnsExist[0].pomodoro_sound_exists) {
         console.log("Adding pomodoro_sound column to user_settings table...");
         await sql`ALTER TABLE user_settings ADD COLUMN pomodoro_sound VARCHAR(50) NOT NULL DEFAULT 'pomodoro'`;
+      }
+      
+      if (!columnsExist[0].spotify_playlist_url_exists) {
+        console.log("Adding spotify_playlist_url column to user_settings table...");
+        await sql`ALTER TABLE user_settings ADD COLUMN spotify_playlist_url TEXT`;
       }
     }
   } catch (error) {
@@ -109,7 +117,8 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
       pomodoro_sound: "pomodoro",
       enable_desktop_notifications: true,
       enable_task_notifications: true,
-      task_notification_days: 3
+      task_notification_days: 3,
+      spotify_playlist_url: null
     }
 
     await sql`
@@ -126,7 +135,8 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
         pomodoro_sound,
         enable_desktop_notifications,
         enable_task_notifications,
-        task_notification_days
+        task_notification_days,
+        spotify_playlist_url
       )
       VALUES (
         ${userId}, 
@@ -141,7 +151,8 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
         ${defaultSettings.pomodoro_sound},
         ${defaultSettings.enable_desktop_notifications},
         ${defaultSettings.enable_task_notifications},
-        ${defaultSettings.task_notification_days}
+        ${defaultSettings.task_notification_days},
+        ${defaultSettings.spotify_playlist_url}
       )
     `
 
@@ -161,7 +172,8 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
       pomodoro_sound: "pomodoro",
       enable_desktop_notifications: true,
       enable_task_notifications: true,
-      task_notification_days: 3
+      task_notification_days: 3,
+      spotify_playlist_url: null
     }
   }
 }
@@ -191,6 +203,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
         enable_desktop_notifications = COALESCE(${settings.enable_desktop_notifications}, enable_desktop_notifications),
         enable_task_notifications = COALESCE(${settings.enable_task_notifications}, enable_task_notifications),
         task_notification_days = COALESCE(${settings.task_notification_days}, task_notification_days),
+        spotify_playlist_url = COALESCE(${settings.spotify_playlist_url}, spotify_playlist_url),
         updated_at = ${now}
       WHERE user_id = ${userId}
       RETURNING *
@@ -213,6 +226,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
       enable_desktop_notifications: true,
       enable_task_notifications: true,
       task_notification_days: 3,
+      spotify_playlist_url: null,
       ...settings 
     }
 
@@ -231,6 +245,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
         enable_desktop_notifications,
         enable_task_notifications,
         task_notification_days,
+        spotify_playlist_url,
         updated_at
       )
       VALUES (
@@ -247,6 +262,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
         ${defaultSettings.enable_desktop_notifications},
         ${defaultSettings.enable_task_notifications},
         ${defaultSettings.task_notification_days},
+        ${defaultSettings.spotify_playlist_url},
         ${now}
       )
       RETURNING *

@@ -9,6 +9,7 @@ import { useTheme } from "next-themes"
 import type { UserSettings } from "@/lib/settings"
 import { useTranslation } from "@/lib/i18n"
 import { useAudioPlayer } from "@/lib/audio-utils"
+import { useSpotifyStore } from "@/lib/stores/spotify-store"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,6 +42,7 @@ const formSchema = z.object({
       const parsed = parseInt(String(val), 10);
       return isNaN(parsed) ? 3 : parsed;
     }),
+  spotify_playlist_url: z.string().optional(),
 })
 
 export function SettingsForm({ settings }: { settings: UserSettings }) {
@@ -50,6 +52,8 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
   const { t, language, setLanguage } = useTranslation()
   const { playSound } = useAudioPlayer()
   const [isLoading, setIsLoading] = useState(false)
+  const { playlistId, setPlaylistId } = useSpotifyStore()
+  const [playlistUrl, setPlaylistUrl] = useState('')
 
   useEffect(() => {
     if (settings.language && (settings.language === "en" || settings.language === "pt")) {
@@ -80,6 +84,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
       enable_desktop_notifications: settings.enable_desktop_notifications,
       enable_task_notifications: settings.enable_task_notifications,
       task_notification_days: settings.task_notification_days,
+      spotify_playlist_url: settings.spotify_playlist_url,
     },
   })
 
@@ -180,6 +185,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
         <TabsTrigger value="general">{t("general")}</TabsTrigger>
         <TabsTrigger value="pomodoro">{t("pomodoroTimer")}</TabsTrigger>
         <TabsTrigger value="notifications">{t("notifications")}</TabsTrigger>
+        <TabsTrigger value="spotify">Spotify</TabsTrigger>
       </TabsList>
 
       <Form {...form}>
@@ -516,6 +522,61 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
               <CardFooter>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? t("Salvando...") : t("save")}
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="spotify">
+            <Card>
+              <CardHeader>
+                <CardTitle>Spotify</CardTitle>
+                <CardDescription>Configure sua playlist do Spotify para tocar durante suas tarefas.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="spotify_playlist_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Link da Playlist</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://open.spotify.com/playlist/..."
+                          value={playlistUrl}
+                          onChange={(e) => {
+                            setPlaylistUrl(e.target.value)
+                            field.onChange(e)
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Cole o link da sua playlist do Spotify para tocar durante suas tarefas.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+              <CardFooter>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (playlistUrl) {
+                      const newPlaylistId = playlistUrl.split('/playlist/')[1]?.split('?')[0];
+                      if (newPlaylistId) {
+                        setPlaylistId(newPlaylistId);
+                        setPlaylistUrl('');
+                        toast({
+                          title: "Playlist salva",
+                          description: "Sua playlist foi salva com sucesso.",
+                          variant: "success",
+                        });
+                      }
+                    }
+                  }}
+                >
+                  Salvar Playlist
                 </Button>
               </CardFooter>
             </Card>
