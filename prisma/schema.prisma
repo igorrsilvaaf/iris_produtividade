@@ -53,4 +53,38 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Attachment {
+  id          String   @id @default(cuid())
+  taskId      String
+  type        String   // "link", "image", "file"
+  url         String
+  name        String
+  content     String?  @db.Text  // Para armazenar o conteúdo do arquivo em base64
+  mimeType    String?  // Para identificar o tipo do arquivo
+  size        Int?     // Tamanho do arquivo em bytes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  priority    Int         @default(3)
+  completed   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userId      String
+  points      Int?        @default(3)
+  estimatedTime Int?
+  attachments Attachment[]
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 } 

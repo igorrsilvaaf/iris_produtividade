@@ -756,6 +756,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     try {
       const formData = new FormData()
       formData.append('file', file)
+      formData.append('taskId', task.id)
       
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -768,19 +769,18 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       
       const data = await response.json()
       const newAttachment = {
-        type: attachmentType,
+        id: data.id,
+        type: data.type,
         url: data.url,
-        name: file.name
+        name: data.name
       }
 
-      const updatedAttachments = [...(task.attachments || []), newAttachment]
-      
-      // Salvar imediatamente a tarefa com o novo anexo
+      // Atualizar a task com o novo anexo
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          attachments: updatedAttachments
+          attachments: [...(task.attachments || []), newAttachment]
         }),
       })
 
@@ -826,14 +826,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         name: attachmentName.trim() || attachmentUrl.trim()
       }
 
-      const updatedAttachments = [...(task.attachments || []), newAttachment]
-      
-      // Salvar imediatamente a tarefa com o novo anexo
+      // Atualizar a task com o novo anexo
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          attachments: updatedAttachments
+          attachments: [...(task.attachments || []), newAttachment]
         }),
       })
 
@@ -871,7 +869,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       const updatedAttachments = [...(task.attachments || [])]
       updatedAttachments.splice(index, 1)
       
-      // Salvar imediatamente a tarefa com os anexos atualizados
+      // Atualizar a task com os anexos atualizados
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

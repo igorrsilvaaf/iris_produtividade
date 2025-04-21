@@ -268,9 +268,11 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
         name: file.name
       }
 
-      const currentAttachments = form.getValues("attachments") || []
-      form.setValue("attachments", [...currentAttachments, newAttachment])
-      setAttachments([...attachments, newAttachment])
+      const currentAttachments = [...attachments]
+      const updatedAttachments = [...currentAttachments, newAttachment]
+      
+      setAttachments(updatedAttachments)
+      form.setValue("attachments", updatedAttachments)
       setShowAddAttachment(false)
       
       // Limpar o input de arquivo
@@ -351,6 +353,15 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
       // Converter tempo estimado para minutos
       const estimatedTimeInMinutes = convertTimeToMinutes(values.estimatedTime, values.estimatedTimeUnit)
       
+      // Garantir que os anexos sejam enviados corretamente
+      const formattedAttachments = attachments.map(attachment => ({
+        type: attachment.type,
+        url: attachment.url,
+        name: attachment.name
+      }));
+      
+      console.log(`[AddTaskDialog] Anexos formatados:`, formattedAttachments);
+      
       const taskData = {
         title: values.title,
         description: values.description || null,
@@ -360,7 +371,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
         kanban_column: initialColumn || null,
         completed: initialColumn === "completed",
         points: values.points,
-        attachments: values.attachments,
+        attachments: formattedAttachments,
         estimated_time: estimatedTimeInMinutes,
       };
       
@@ -407,15 +418,18 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
         }
       }
 
-      toast({
-        title: t("taskCreated"),
-        description: t("Your task has been created successfully."),
-      })
+      // Atualizar a interface com os dados da tarefa criada, incluindo os anexos
+      if (responseData.task) {
+        router.refresh();
+        setOpen(false);
+        toast({
+          title: t("Task created"),
+          description: t("Your task has been created successfully."),
+        });
+      }
 
       form.reset()
       setSelectedLabels([])
-      setOpen(false)
-      router.refresh()
     } catch (error) {
       console.error('[AddTaskDialog] Erro detalhado:', error);
       toast({
@@ -1099,6 +1113,8 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                         className="hidden"
                         onChange={handleFileUpload}
                         ref={node => attachmentType === "image" ? setImageUploadRef(node) : setFileUploadRef(node)}
+                        aria-label={attachmentType === "image" ? "Upload de imagem" : "Upload de arquivo"}
+                        title={attachmentType === "image" ? "Upload de imagem" : "Upload de arquivo"}
                       />
                       <Button
                         type="button"

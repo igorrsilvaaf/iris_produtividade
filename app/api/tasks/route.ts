@@ -81,20 +81,42 @@ export async function POST(request: NextRequest) {
     // Verificar e usar o campo project_id conforme foi recebido
     const projectIdValue = body.project_id || null;
     console.log(`[POST /api/tasks] Project ID para uso: ${projectIdValue}`);
+    
+    // Verificar e usar o campo attachments conforme foi recebido
+    const attachmentsValue = body.attachments || [];
+    console.log(`[POST /api/tasks] Anexos para uso:`, JSON.stringify(attachmentsValue));
 
-    const task = await createTask(
-      userId,
-      body.title,
-      body.description || null,
-      dueDateValue,
-      body.priority || 4,
-      projectIdValue,
-      body.kanban_column || null,
-      body.points || 3
-    );
+    try {
+      const task = await createTask({
+        userId: session.user.id,
+        title: body.title,
+        description: body.description,
+        dueDate: dueDateValue,
+        priority: body.priority || 4,
+        projectId: projectIdValue,
+        kanbanColumn: body.kanban_column || null,
+        points: body.points || 3,
+        attachments: attachmentsValue,
+        estimatedTime: body.estimated_time || null,
+      });
 
-    console.log(`[POST /api/tasks] Tarefa criada com sucesso. ID: ${task.id}, Data: ${task.due_date}`);
-    return NextResponse.json({ task }, { status: 201 });
+      console.log(`[POST /api/tasks] Tarefa criada com sucesso. ID: ${task.id}, Data: ${task.due_date}`);
+      console.log(`[POST /api/tasks] Anexos da tarefa:`, task.attachments);
+      
+      return NextResponse.json({ 
+        success: true, 
+        task: {
+          ...task,
+          attachments: task.attachments || []
+        }
+      });
+    } catch (createError) {
+      console.error(`[POST /api/tasks] Erro ao criar tarefa:`, createError);
+      return NextResponse.json(
+        { error: `Erro ao criar tarefa: ${createError.message}` },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Error creating task:", error);
     return NextResponse.json(
