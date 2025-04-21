@@ -15,6 +15,8 @@ export type Todo = {
   project_color?: string
   kanban_column?: "backlog" | "planning" | "inProgress" | "validation" | "completed" | null
   points?: number
+  attachments?: any[]
+  estimated_time?: number | null
 }
 
 export async function getTodayTasks(userId: number): Promise<Todo[]> {
@@ -74,21 +76,36 @@ export async function getCompletedTasks(userId: number): Promise<Todo[]> {
   return tasks as Todo[]
 }
 
-export async function createTask(
-  userId: number,
-  title: string,
-  description: string | null = null,
-  dueDate: string | null = null,
+export async function createTask({
+  userId,
+  title,
+  description,
+  dueDate,
   priority = 4,
-  projectId: number | null = null,
-  kanbanColumn: "backlog" | "planning" | "inProgress" | "validation" | "completed" | null = null,
-  points: number = 3,
-): Promise<Todo> {
-  const now = new Date().toISOString()
+  projectId = null,
+  kanbanColumn = null,
+  points = 3,
+  attachments = [],
+  estimatedTime = null,
+}: {
+  userId: number;
+  title: string;
+  description?: string | null;
+  dueDate?: string | null;
+  priority?: number;
+  projectId?: number | null;
+  kanbanColumn?: string | null;
+  points?: number;
+  attachments?: any[];
+  estimatedTime?: number | null;
+}): Promise<Todo> {
+  const now = new Date().toISOString();
   
   console.log(`[createTask] Iniciando criação da tarefa: "${title}"`);
   console.log(`[createTask] Data fornecida: ${dueDate}`);
   console.log(`[createTask] Project ID: ${projectId}`);
+  console.log(`[createTask] Anexos fornecidos:`, JSON.stringify(attachments));
+  console.log(`[createTask] Tempo estimado fornecido:`, estimatedTime);
   
   let normalizedDueDate = dueDate;
   if (dueDate) {
@@ -108,11 +125,35 @@ export async function createTask(
     console.log(`[createTask] Nenhuma data fornecida.`);
   }
 
+  // Garantir que os anexos sejam um array válido
+  let normalizedAttachments = [];
+  try {
+    if (Array.isArray(attachments)) {
+      normalizedAttachments = attachments;
+    } else if (typeof attachments === 'string') {
+      try {
+        normalizedAttachments = JSON.parse(attachments);
+      } catch (e) {
+        console.error(`[createTask] Erro ao parsear anexos como string: ${e}`);
+        normalizedAttachments = [];
+      }
+    } else if (attachments) {
+      console.error(`[createTask] Anexos não é um array: ${typeof attachments}`);
+      normalizedAttachments = [];
+    }
+  } catch (error) {
+    console.error(`[createTask] Erro ao normalizar anexos: ${error}`);
+    normalizedAttachments = [];
+  }
+  
+  console.log(`[createTask] Anexos normalizados:`, JSON.stringify(normalizedAttachments));
+
   console.log(`[createTask] Inserindo tarefa com data: ${normalizedDueDate}`);
+  console.log(`[createTask] Inserindo tarefa com tempo estimado: ${estimatedTime}`);
 
   const [task] = await sql`
-    INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column, points)
-    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now}, ${kanbanColumn}, ${points})
+    INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column, points, attachments, estimated_time)
+    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now}, ${kanbanColumn}, ${points}, ${JSON.stringify(normalizedAttachments)}, ${estimatedTime})
     RETURNING *
   `
 
@@ -124,8 +165,15 @@ export async function createTask(
   }
   
   console.log(`[createTask] Tarefa criada: ID=${task.id}, data=${task.due_date}, coluna=${task.kanban_column}, pontos=${task.points}`)
+  console.log(`[createTask] Anexos da tarefa:`, task.attachments)
   
-  return task as Todo
+  // Parse os anexos antes de retornar
+  const taskWithParsedAttachments = {
+    ...task,
+    attachments: typeof task.attachments === 'string' ? JSON.parse(task.attachments) : task.attachments || []
+  }
+  
+  return taskWithParsedAttachments as Todo
 }
 
 export async function updateTask(taskId: number, userId: number, updates: Partial<Todo>): Promise<Todo> {
@@ -159,6 +207,16 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
     console.log(`[updateTask] Atualizando pontos: ${updates.points}`);
   }
 
+  if (updates.attachments !== undefined) {
+    console.log(`[updateTask] Atualizando anexos: ${JSON.stringify(updates.attachments)}`);
+  }
+
+  if (updates.estimated_time !== undefined) {
+    console.log(`[updateTask] Atualizando tempo estimado: ${updates.estimated_time}`);
+  }
+
+  console.log(`[updateTask] Dados completos para atualização:`, JSON.stringify(updates));
+
   const [task] = await sql`
     UPDATE todos
     SET
@@ -169,6 +227,8 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
       completed = COALESCE(${updates.completed}, completed),
       kanban_column = COALESCE(${updates.kanban_column}, kanban_column),
       points = COALESCE(${updates.points}, points),
+      attachments = COALESCE(${updates.attachments !== undefined ? JSON.stringify(updates.attachments) : null}, attachments),
+      estimated_time = COALESCE(${updates.estimated_time}, estimated_time),
       updated_at = ${now}
     WHERE id = ${taskId} AND user_id = ${userId}
     RETURNING *

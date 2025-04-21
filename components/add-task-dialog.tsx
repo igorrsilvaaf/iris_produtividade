@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { CalendarIcon, Flag, Tag, X, Clock, Plus, PlusCircle, CircleAlert, CircleDot, ChevronDown, Check } from "lucide-react"
+import { CalendarIcon, Flag, Tag, X, Clock, Plus, PlusCircle, CircleAlert, CircleDot, ChevronDown, Check, Paperclip, Timer, Link, Image, FileText } from "lucide-react"
 import { format } from "date-fns"
 import type { Project } from "@/lib/projects"
 import type { Label } from "@/lib/labels"
@@ -47,6 +47,13 @@ const formSchema = z.object({
   projectId: z.string().optional(),
   labelIds: z.array(z.number()).default([]),
   points: z.number().min(1).max(5).default(3),
+  attachments: z.array(z.object({
+    type: z.string(),
+    url: z.string(),
+    name: z.string()
+  })).default([]),
+  estimatedTime: z.number().nullable().default(null),
+  estimatedTimeUnit: z.string().default("min"),
 })
 
 interface AddTaskDialogProps {
@@ -72,6 +79,13 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
   const { toast } = useToast()
   const { t, setLanguage } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
+  const [attachments, setAttachments] = useState<Array<{ type: string; url: string; name: string }>>([])
+  const [attachmentUrl, setAttachmentUrl] = useState("")
+  const [attachmentName, setAttachmentName] = useState("")
+  const [attachmentType, setAttachmentType] = useState("link")
+  const [showAddAttachment, setShowAddAttachment] = useState(false)
+  const [fileUploadRef, setFileUploadRef] = useState<HTMLInputElement | null>(null)
+  const [imageUploadRef, setImageUploadRef] = useState<HTMLInputElement | null>(null)
 
   useEffect(() => {
     if (initialLanguage) {
@@ -91,6 +105,9 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
       projectId: initialProjectId ? initialProjectId.toString() : undefined,
       labelIds: [],
       points: 3,
+      attachments: [],
+      estimatedTime: null,
+      estimatedTimeUnit: "min",
     },
   })
 
@@ -190,6 +207,101 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
       })
   }
 
+  const addAttachment = () => {
+    if (!attachmentUrl.trim()) return
+
+    const newAttachment = {
+      type: attachmentType,
+      url: attachmentUrl.trim(),
+      name: attachmentName.trim() || attachmentUrl.trim(),
+    }
+
+    const currentAttachments = form.getValues("attachments") || []
+    form.setValue("attachments", [...currentAttachments, newAttachment])
+    setAttachments([...attachments, newAttachment])
+    setAttachmentUrl("")
+    setAttachmentName("")
+    setShowAddAttachment(false)
+  }
+
+  const removeAttachment = (index: number) => {
+    const currentAttachments = [...attachments]
+    currentAttachments.splice(index, 1)
+    setAttachments(currentAttachments)
+    form.setValue("attachments", currentAttachments)
+  }
+
+  const convertTimeToMinutes = (timeValue: number | null, unit: string): number | null => {
+    if (timeValue === null) return null
+    
+    switch (unit) {
+      case "h":
+        return timeValue * 60
+      case "d":
+        return timeValue * 60 * 8 // considerando 8 horas por dia
+      default:
+        return timeValue
+    }
+  }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload file')
+      }
+      
+      const data = await response.json()
+      const newAttachment = {
+        type: attachmentType,
+        url: data.url,
+        name: file.name
+      }
+
+      const currentAttachments = [...attachments]
+      const updatedAttachments = [...currentAttachments, newAttachment]
+      
+      setAttachments(updatedAttachments)
+      form.setValue("attachments", updatedAttachments)
+      setShowAddAttachment(false)
+      
+      // Limpar o input de arquivo
+      if (event.target) {
+        event.target.value = ""
+      }
+      
+      toast({
+        title: t("Attachment added"),
+        description: t("Your attachment has been added successfully."),
+      })
+    } catch (error) {
+      console.error('Error uploading file:', error)
+      toast({
+        variant: "destructive",
+        title: t("Failed to upload file"),
+        description: t("Please try again."),
+      })
+    }
+  }
+
+  const triggerFileUpload = () => {
+    if (attachmentType === "image") {
+      imageUploadRef?.click()
+    } else if (attachmentType === "file") {
+      fileUploadRef?.click()
+    }
+  }
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
     try {
@@ -238,6 +350,18 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
         }
       }
 
+      // Converter tempo estimado para minutos
+      const estimatedTimeInMinutes = convertTimeToMinutes(values.estimatedTime, values.estimatedTimeUnit)
+      
+      // Garantir que os anexos sejam enviados corretamente
+      const formattedAttachments = attachments.map(attachment => ({
+        type: attachment.type,
+        url: attachment.url,
+        name: attachment.name
+      }));
+      
+      console.log(`[AddTaskDialog] Anexos formatados:`, formattedAttachments);
+      
       const taskData = {
         title: values.title,
         description: values.description || null,
@@ -247,6 +371,8 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
         kanban_column: initialColumn || null,
         completed: initialColumn === "completed",
         points: values.points,
+        attachments: formattedAttachments,
+        estimated_time: estimatedTimeInMinutes,
       };
       
       console.log('[AddTaskDialog] Enviando dados da tarefa:', JSON.stringify(taskData));
@@ -292,15 +418,18 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
         }
       }
 
-      toast({
-        title: t("taskCreated"),
-        description: t("Your task has been created successfully."),
-      })
+      // Atualizar a interface com os dados da tarefa criada, incluindo os anexos
+      if (responseData.task) {
+        router.refresh();
+        setOpen(false);
+        toast({
+          title: t("Task created"),
+          description: t("Your task has been created successfully."),
+        });
+      }
 
       form.reset()
       setSelectedLabels([])
-      setOpen(false)
-      router.refresh()
     } catch (error) {
       console.error('[AddTaskDialog] Erro detalhado:', error);
       toast({
@@ -602,6 +731,59 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                   </FormItem>
                 )}
               />
+              
+              {/* Estimated Time Field */}
+              <div className="flex items-end space-x-2">
+                <div className="flex-1">
+                  <FormField
+                    control={form.control}
+                    name="estimatedTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          <div className="flex items-center space-x-2">
+                            <Timer className="h-4 w-4" />
+                            <span>{t("task.estimatedTime")}</span>
+                          </div>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder={t("task.timeValue")}
+                            {...field}
+                            value={field.value === null ? "" : field.value}
+                            onChange={(e) => field.onChange(e.target.value === "" ? null : Number(e.target.value))}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="w-24">
+                  <FormField
+                    control={form.control}
+                    name="estimatedTimeUnit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("task.timeUnit")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="min">{t("timeUnit.minutes")}</SelectItem>
+                            <SelectItem value="h">{t("timeUnit.hours")}</SelectItem>
+                            <SelectItem value="d">{t("timeUnit.days")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </div>
             <FormField
               control={form.control}
@@ -819,6 +1001,155 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                 </FormItem>
               )}
             />
+
+            {/* Attachments Field */}
+            <div className="space-y-2 mt-4">
+              <FormLabel>
+                <div className="flex items-center space-x-2">
+                  <Paperclip className="h-4 w-4" />
+                  <span>{t("attachment.list")}</span>
+                </div>
+              </FormLabel>
+              
+              {/* List of attachments */}
+              {attachments.length > 0 && (
+                <div className="space-y-2 mb-2">
+                  {attachments.map((attachment, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-secondary/50 rounded-md">
+                      <div className="flex items-center space-x-2 truncate">
+                        {attachment.type === "link" && <Link className="h-4 w-4" />}
+                        {attachment.type === "image" && <Image className="h-4 w-4" />}
+                        {attachment.type === "file" && <FileText className="h-4 w-4" />}
+                        <span className="truncate">{attachment.name}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeAttachment(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Add attachment interface */}
+              {showAddAttachment ? (
+                <div className="space-y-2 border rounded-md p-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      type="button"
+                      variant={attachmentType === "link" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setAttachmentType("link")}
+                      className="w-full"
+                    >
+                      Link
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={attachmentType === "image" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setAttachmentType("image")}
+                      className="w-full"
+                    >
+                      Imagem
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={attachmentType === "file" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setAttachmentType("file")}
+                      className="w-full"
+                    >
+                      Arquivo
+                    </Button>
+                  </div>
+                  
+                  {attachmentType === "link" ? (
+                    <>
+                      <Input
+                        placeholder="URL"
+                        value={attachmentUrl}
+                        onChange={(e) => setAttachmentUrl(e.target.value)}
+                      />
+                      
+                      <Input
+                        placeholder="Nome (opcional)"
+                        value={attachmentName}
+                        onChange={(e) => setAttachmentName(e.target.value)}
+                      />
+                      
+                      <div className="flex space-x-2">
+                        <Button
+                          type="button"
+                          onClick={addAttachment}
+                          disabled={!attachmentUrl.trim()}
+                          size="sm"
+                        >
+                          Adicionar
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setShowAddAttachment(false)
+                            setAttachmentUrl("")
+                            setAttachmentName("")
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <input 
+                        type="file" 
+                        accept={attachmentType === "image" ? "image/*" : "*/*"} 
+                        className="hidden"
+                        onChange={handleFileUpload}
+                        ref={node => attachmentType === "image" ? setImageUploadRef(node) : setFileUploadRef(node)}
+                        aria-label={attachmentType === "image" ? "Upload de imagem" : "Upload de arquivo"}
+                        title={attachmentType === "image" ? "Upload de imagem" : "Upload de arquivo"}
+                      />
+                      <Button
+                        type="button"
+                        onClick={triggerFileUpload}
+                        className="w-full"
+                        size="sm"
+                      >
+                        {attachmentType === "image" ? "Selecionar Imagem" : "Selecionar Arquivo"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowAddAttachment(false)}
+                        className="w-full"
+                      >
+                        Cancelar
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAddAttachment(true)}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t("attachment.add")}
+                </Button>
+              )}
+            </div>
+
             <DialogFooter className="pt-2 sm:pt-0">
               <Button type="submit" className="ml-auto" disabled={isLoading}>
                 {isLoading ? t("creating") : t("createTask")}
