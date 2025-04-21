@@ -1,21 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useSpotifyStore } from "@/lib/stores/spotify-store";
 import { FaSpotify } from 'react-icons/fa';
 import { Button } from "@/components/ui/button";
-import { Settings, Maximize2, Minimize2 } from "lucide-react";
-import { useSpotifyStore } from "@/lib/stores/spotify-store";
-import { Input } from "@/components/ui/input";
+import { Maximize2, Minimize2 } from "lucide-react";
 
-export default function PersistentSpotifyPlayer() {
+export function SpotifyPortal() {
+  const [mounted, setMounted] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
   const { playlistId } = useSpotifyStore();
 
-  if (!playlistId) {
-    return null;
-  }
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
-  return (
+  if (!mounted || !playlistId) return null;
+
+  const player = (
     <div className="fixed bottom-4 right-4 z-50 bg-background border rounded-lg shadow-lg transition-all duration-300 w-[300px]">
       <div className="flex items-center justify-between p-2 border-b">
         <div className="flex items-center gap-2">
@@ -51,4 +55,6 @@ export default function PersistentSpotifyPlayer() {
       </div>
     </div>
   );
+
+  return createPortal(player, document.body);
 } 

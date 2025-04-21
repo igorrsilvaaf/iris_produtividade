@@ -1,7 +1,7 @@
 'use client';
 
-import SpotifyPlayer from "@/components/SpotifyPlayer";
+import PersistentSpotifyPlayer from "@/components/persistent-spotify-player";
 
 export default function SpotifyPlayerWrapper() {
-  return <SpotifyPlayer />;
+  return <PersistentSpotifyPlayer />;
 } 
