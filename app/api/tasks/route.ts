@@ -8,7 +8,6 @@ const sql = neon(process.env.DATABASE_URL!)
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
     const session = await getSession();
     if (!session) {
       console.log("Acesso não autorizado ao endpoint /api/tasks");
@@ -16,8 +15,6 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    
-    // Extract query parameters
     const searchParams = request.nextUrl.searchParams;
     const completed = searchParams.get("completed");
     const overdue = searchParams.get("overdue");
@@ -26,11 +23,7 @@ export async function GET(request: NextRequest) {
     
     let tasks = [];
     
-    // Opção para retornar todas as tarefas (necessário para o Kanban)
     if (all === "true") {
-      console.log("Buscando TODAS as tarefas para o usuário");
-      
-      // Usar consulta SQL direta para obter todas as tarefas com informação de projeto
       tasks = await sql`
         SELECT t.*, p.name as project_name, p.color as project_color
         FROM todos t
@@ -39,22 +32,15 @@ export async function GET(request: NextRequest) {
         WHERE t.user_id = ${userId}
         ORDER BY t.created_at DESC
       `;
-      
-      console.log(`Encontradas ${tasks.length} tarefas no total`);
     }
-    // Use funções específicas baseadas nos parâmetros
     else if (searchText) {
-      // Usar a função de busca se houver texto de pesquisa
       tasks = await searchTasks(userId, searchText);
     } else if (completed === "true") {
-      // Obter tarefas completas
       tasks = await getCompletedTasks(userId);
     } else if (overdue === "true") {
-      // Obter tarefas atrasadas usando getTasksForNotifications que já tem essa lógica
       const taskGroups = await getTasksForNotifications(userId);
       tasks = taskGroups.overdueTasks;
     } else {
-      // Padrão: obter tarefas da caixa de entrada
       tasks = await getInboxTasks(userId);
     }
 
@@ -70,7 +56,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
     const session = await getSession();
     if (!session) {
       console.log("Acesso não autorizado ao endpoint POST /api/tasks");
@@ -80,26 +65,35 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id;
     const body = await request.json();
     
-    // Validate required fields
+    console.log(`[POST /api/tasks] Dados recebidos:`, JSON.stringify(body));
+    
     if (!body.title) {
       return NextResponse.json(
         { error: "Title is required" },
         { status: 400 }
       );
     }
+    
+    // Verificar e usar o campo due_date conforme foi recebido
+    const dueDateValue = body.due_date || null;
+    console.log(`[POST /api/tasks] Data para uso: ${dueDateValue}`);
+    
+    // Verificar e usar o campo project_id conforme foi recebido
+    const projectIdValue = body.project_id || null;
+    console.log(`[POST /api/tasks] Project ID para uso: ${projectIdValue}`);
 
-    // Criar tarefa usando a função do lib/todos
     const task = await createTask(
       userId,
       body.title,
       body.description || null,
-      body.due_date || null,
+      dueDateValue,
       body.priority || 4,
-      body.project_id || null,
+      projectIdValue,
       body.kanban_column || null,
       body.points || 3
     );
 
+    console.log(`[POST /api/tasks] Tarefa criada com sucesso. ID: ${task.id}, Data: ${task.due_date}`);
     return NextResponse.json({ task }, { status: 201 });
   } catch (error) {
     console.error("Error creating task:", error);
