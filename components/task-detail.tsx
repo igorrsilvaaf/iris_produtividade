@@ -106,6 +106,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const [showAddAttachment, setShowAddAttachment] = useState(false)
   const [fileUploadRef, setFileUploadRef] = useState<HTMLInputElement | null>(null)
   const [imageUploadRef, setImageUploadRef] = useState<HTMLInputElement | null>(null)
+  const [estimatedTime, setEstimatedTime] = useState<number | null>(task.estimated_time || null)
+  const [estimatedTimeUnit, setEstimatedTimeUnit] = useState<string>("min")
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
@@ -257,6 +259,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         }
       }
 
+      const estimatedTimeInMinutes = convertTimeToMinutes(estimatedTime, estimatedTimeUnit)
+
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -267,6 +271,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           priority: Number.parseInt(priority),
           points,
           attachments,
+          estimated_time: estimatedTimeInMinutes,
         }),
       });
 
@@ -911,6 +916,42 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }
 
+  // Função para converter minutos para a unidade selecionada
+  const getTimeUnitAndValue = (minutes: number | null): { value: number | null, unit: string } => {
+    if (minutes === null) return { value: null, unit: "min" }
+    
+    if (minutes % (60 * 8) === 0 && minutes >= 60 * 8) {
+      return { value: minutes / (60 * 8), unit: "d" }
+    } else if (minutes % 60 === 0 && minutes >= 60) {
+      return { value: minutes / 60, unit: "h" }
+    } else {
+      return { value: minutes, unit: "min" }
+    }
+  }
+
+  // Função para converter para minutos
+  const convertTimeToMinutes = (timeValue: number | null, unit: string): number | null => {
+    if (timeValue === null) return null
+    
+    switch (unit) {
+      case "h":
+        return timeValue * 60
+      case "d":
+        return timeValue * 60 * 8
+      default:
+        return timeValue
+    }
+  }
+
+  // Inicializar os valores do tempo estimado
+  useEffect(() => {
+    if (task.estimated_time !== undefined && task.estimated_time !== null) {
+      const { value, unit } = getTimeUnitAndValue(task.estimated_time)
+      setEstimatedTime(value)
+      setEstimatedTimeUnit(unit)
+    }
+  }, [task.estimated_time])
+
   return (
     <Dialog 
       open={open} 
@@ -1161,15 +1202,21 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   className="w-full"
                   min="0"
                   disabled={!isEditMode}
+                  value={estimatedTime === null ? "" : estimatedTime}
+                  onChange={(e) => setEstimatedTime(e.target.value === "" ? null : Number(e.target.value))}
                 />
-                <Select defaultValue="minutes" disabled={!isEditMode}>
+                <Select 
+                  value={estimatedTimeUnit} 
+                  onValueChange={setEstimatedTimeUnit} 
+                  disabled={!isEditMode}
+                >
                   <SelectTrigger className="w-[110px]">
                     <SelectValue placeholder={t("Unidade")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="minutes">{t("Minutos")}</SelectItem>
-                    <SelectItem value="hours">{t("Horas")}</SelectItem>
-                    <SelectItem value="days">{t("Dias")}</SelectItem>
+                    <SelectItem value="min">{t("Minutos")}</SelectItem>
+                    <SelectItem value="h">{t("Horas")}</SelectItem>
+                    <SelectItem value="d">{t("Dias")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

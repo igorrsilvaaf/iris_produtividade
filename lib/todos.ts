@@ -105,6 +105,7 @@ export async function createTask({
   console.log(`[createTask] Data fornecida: ${dueDate}`);
   console.log(`[createTask] Project ID: ${projectId}`);
   console.log(`[createTask] Anexos fornecidos:`, JSON.stringify(attachments));
+  console.log(`[createTask] Tempo estimado fornecido:`, estimatedTime);
   
   let normalizedDueDate = dueDate;
   if (dueDate) {
@@ -148,6 +149,7 @@ export async function createTask({
   console.log(`[createTask] Anexos normalizados:`, JSON.stringify(normalizedAttachments));
 
   console.log(`[createTask] Inserindo tarefa com data: ${normalizedDueDate}`);
+  console.log(`[createTask] Inserindo tarefa com tempo estimado: ${estimatedTime}`);
 
   const [task] = await sql`
     INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column, points, attachments, estimated_time)
@@ -212,6 +214,8 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
   if (updates.estimated_time !== undefined) {
     console.log(`[updateTask] Atualizando tempo estimado: ${updates.estimated_time}`);
   }
+
+  console.log(`[updateTask] Dados completos para atualização:`, JSON.stringify(updates));
 
   const [task] = await sql`
     UPDATE todos

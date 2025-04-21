@@ -85,6 +85,10 @@ export async function POST(request: NextRequest) {
     // Verificar e usar o campo attachments conforme foi recebido
     const attachmentsValue = body.attachments || [];
     console.log(`[POST /api/tasks] Anexos para uso:`, JSON.stringify(attachmentsValue));
+    
+    // Verificar e usar o campo estimated_time conforme foi recebido
+    const estimatedTimeValue = body.estimated_time || null;
+    console.log(`[POST /api/tasks] Tempo estimado para uso:`, estimatedTimeValue);
 
     try {
       const task = await createTask({
@@ -97,7 +101,7 @@ export async function POST(request: NextRequest) {
         kanbanColumn: body.kanban_column || null,
         points: body.points || 3,
         attachments: attachmentsValue,
-        estimatedTime: body.estimated_time || null,
+        estimatedTime: estimatedTimeValue,
       });
 
       console.log(`[POST /api/tasks] Tarefa criada com sucesso. ID: ${task.id}, Data: ${task.due_date}`);
