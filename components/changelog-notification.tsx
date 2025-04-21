@@ -160,6 +160,18 @@ export function ChangelogNotification() {
             <p className="text-sm text-muted-foreground">
               {latestChangelog === '2.7.0' ? (
                 <>
+                  <span className="font-medium text-primary">Melhorias nas Tarefas</span>
+                  <br />
+                  Adicionamos novas funcionalidades para melhorar o gerenciamento das suas tarefas: 
+                  tempo estimado para conclusão com suporte a diferentes unidades (minutos, horas, dias) 
+                  e um sistema completo de anexos que permite adicionar links, imagens e arquivos às suas tarefas.
+                  <br /><br />
+                  <span className="font-medium">Como usar:</span> Ao criar ou editar uma tarefa, você encontrará 
+                  os novos campos para definir o tempo estimado e gerenciar anexos. Experimente adicionar alguns 
+                  arquivos ou imagens às suas tarefas!
+                </>
+              ) : latestChangelog === '2.6.0' ? (
+                <>
                   <span className="font-medium text-primary">Sistema de Relatórios Aprimorado</span>
                   <br />
                   Agora você pode exportar relatórios em três formatos diferentes: Web, PDF e Excel. 
