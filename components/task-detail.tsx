@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { 
   CalendarIcon, Flag, Tag, X, FilePlus, Trash, MoreHorizontal, Clock, 
-  TimerOff, Timer, Check, Plus, Save, Edit, CheckSquare, Square, Link, ArrowLeft, CircleDot, ChevronDown
+  TimerOff, Timer, Check, Plus, Save, Edit, CheckSquare, Square, Link, ArrowLeft, CircleDot, ChevronDown,
+  Star, EllipsisVertical, Edit2, Trash2, CalendarRange, Folders, CheckCheck, Copy, ArrowUp, ArrowDown,
+  Paperclip, ExternalLink, Image, FileText
 } from "lucide-react"
 import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
@@ -697,6 +699,29 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     );
   };
 
+  // Função para formatar o tempo estimado
+  const formatEstimatedTime = (minutes: number | null | undefined) => {
+    if (!minutes) return null
+    
+    const days = Math.floor(minutes / (60 * 8))
+    const remainingHours = Math.floor((minutes % (60 * 8)) / 60)
+    const remainingMinutes = minutes % 60
+    
+    if (days > 0) {
+      if (remainingHours > 0 || remainingMinutes > 0) {
+        return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ''} ${remainingMinutes > 0 ? `${remainingMinutes}min` : ''}`.trim()
+      }
+      return `${days}d`
+    } else if (remainingHours > 0) {
+      if (remainingMinutes > 0) {
+        return `${remainingHours}h ${remainingMinutes}min`
+      }
+      return `${remainingHours}h`
+    } else {
+      return `${remainingMinutes}min`
+    }
+  }
+
   return (
     <Dialog 
       open={open} 
@@ -1157,6 +1182,49 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 </p>
               )}
             </div>
+
+            {/* Seção de tempo estimado */}
+            {task.estimated_time && (
+              <div className="mb-4">
+                <div className="flex items-center space-x-2 text-muted-foreground mb-2">
+                  <Timer className="h-4 w-4" />
+                  <span className="text-sm font-medium">{t("task.estimatedTime")}</span>
+                </div>
+                <div className="pl-6">
+                  <p className="text-sm">{formatEstimatedTime(task.estimated_time)}</p>
+                </div>
+              </div>
+            )}
+            
+            {/* Seção de anexos */}
+            {task.attachments && task.attachments.length > 0 && (
+              <div className="mb-4">
+                <div className="flex items-center space-x-2 text-muted-foreground mb-2">
+                  <Paperclip className="h-4 w-4" />
+                  <span className="text-sm font-medium">{t("attachment.list")}</span>
+                </div>
+                <div className="pl-6 space-y-2">
+                  {task.attachments.map((attachment, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-secondary/50 rounded-md">
+                      <div className="flex items-center space-x-2 truncate flex-1">
+                        {attachment.type === "link" && <Link className="h-4 w-4 flex-shrink-0" />}
+                        {attachment.type === "image" && <Image className="h-4 w-4 flex-shrink-0" />}
+                        {attachment.type === "file" && <FileText className="h-4 w-4 flex-shrink-0" />}
+                        <span className="truncate flex-1">{attachment.name}</span>
+                      </div>
+                      <a 
+                        href={attachment.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/80 ml-2 flex-shrink-0"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

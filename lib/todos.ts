@@ -15,6 +15,8 @@ export type Todo = {
   project_color?: string
   kanban_column?: "backlog" | "planning" | "inProgress" | "validation" | "completed" | null
   points?: number
+  attachments?: any[]
+  estimated_time?: number | null
 }
 
 export async function getTodayTasks(userId: number): Promise<Todo[]> {
@@ -83,6 +85,8 @@ export async function createTask(
   projectId: number | null = null,
   kanbanColumn: "backlog" | "planning" | "inProgress" | "validation" | "completed" | null = null,
   points: number = 3,
+  attachments: any[] = [],
+  estimatedTime: number | null = null,
 ): Promise<Todo> {
   const now = new Date().toISOString()
   
@@ -111,8 +115,8 @@ export async function createTask(
   console.log(`[createTask] Inserindo tarefa com data: ${normalizedDueDate}`);
 
   const [task] = await sql`
-    INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column, points)
-    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now}, ${kanbanColumn}, ${points})
+    INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column, points, attachments, estimated_time)
+    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now}, ${kanbanColumn}, ${points}, ${JSON.stringify(attachments)}, ${estimatedTime})
     RETURNING *
   `
 
@@ -159,6 +163,14 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
     console.log(`[updateTask] Atualizando pontos: ${updates.points}`);
   }
 
+  if (updates.attachments !== undefined) {
+    console.log(`[updateTask] Atualizando anexos: ${JSON.stringify(updates.attachments)}`);
+  }
+
+  if (updates.estimated_time !== undefined) {
+    console.log(`[updateTask] Atualizando tempo estimado: ${updates.estimated_time}`);
+  }
+
   const [task] = await sql`
     UPDATE todos
     SET
@@ -169,6 +181,8 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
       completed = COALESCE(${updates.completed}, completed),
       kanban_column = COALESCE(${updates.kanban_column}, kanban_column),
       points = COALESCE(${updates.points}, points),
+      attachments = COALESCE(${updates.attachments !== undefined ? JSON.stringify(updates.attachments) : null}, attachments),
+      estimated_time = COALESCE(${updates.estimated_time}, estimated_time),
       updated_at = ${now}
     WHERE id = ${taskId} AND user_id = ${userId}
     RETURNING *

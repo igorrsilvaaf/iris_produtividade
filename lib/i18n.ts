@@ -2114,6 +2114,48 @@ export const translations: Translations = {
     en: "No labels selected",
     pt: "Nenhuma etiqueta selecionada"
   },
+  
+  // Traduções para anexos e tempo estimado
+  "attachment.list": {
+    en: "Attachments",
+    pt: "Anexos"
+  },
+  "attachment.add": {
+    en: "Add attachment",
+    pt: "Adicionar anexo"
+  },
+  "task.estimatedTime": {
+    en: "Estimated time",
+    pt: "Tempo estimado"
+  },
+  "task.timeValue": {
+    en: "Time",
+    pt: "Tempo"
+  },
+  "task.timeUnit": {
+    en: "Unit",
+    pt: "Unidade"
+  },
+  "timeUnit.minutes": {
+    en: "Minutes",
+    pt: "Minutos"
+  },
+  "timeUnit.hours": {
+    en: "Hours",
+    pt: "Horas"
+  },
+  "timeUnit.days": {
+    en: "Days",
+    pt: "Dias"
+  },
+  "task.updating": {
+    en: "Updating...",
+    pt: "Atualizando..."
+  },
+  "task.update": {
+    en: "Update",
+    pt: "Atualizar"
+  },
 }
 
 type LanguageState = {
