@@ -86,6 +86,10 @@ export async function createTask(
 ): Promise<Todo> {
   const now = new Date().toISOString()
   
+  console.log(`[createTask] Iniciando criação da tarefa: "${title}"`);
+  console.log(`[createTask] Data fornecida: ${dueDate}`);
+  console.log(`[createTask] Project ID: ${projectId}`);
+  
   let normalizedDueDate = dueDate;
   if (dueDate) {
     try {
@@ -100,7 +104,11 @@ export async function createTask(
     } catch (error) {
       console.error(`[createTask] Erro ao processar data: ${error}`);
     }
+  } else {
+    console.log(`[createTask] Nenhuma data fornecida.`);
   }
+
+  console.log(`[createTask] Inserindo tarefa com data: ${normalizedDueDate}`);
 
   const [task] = await sql`
     INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column, points)

@@ -241,10 +241,9 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
       const taskData = {
         title: values.title,
         description: values.description || null,
-        dueDate: dueDateTime,
+        due_date: dueDateTime,
         priority: Number.parseInt(values.priority),
-        projectId: values.projectId && values.projectId !== "noProject" ? Number.parseInt(values.projectId) : null,
-        labelIds: values.labelIds,
+        project_id: values.projectId && values.projectId !== "noProject" ? Number.parseInt(values.projectId) : null,
         kanban_column: initialColumn || null,
         completed: initialColumn === "completed",
         points: values.points,
@@ -268,6 +267,30 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
 
       const responseData = await response.json();
       console.log(`[AddTaskDialog] Tarefa criada com sucesso:`, responseData);
+      
+      // Adicionar etiquetas à tarefa se houver etiquetas selecionadas
+      const taskId = responseData.task.id;
+      const labelIds = values.labelIds || [];
+      
+      if (labelIds.length > 0) {
+        console.log(`[AddTaskDialog] Adicionando ${labelIds.length} etiquetas à tarefa ${taskId}`);
+        
+        for (const labelId of labelIds) {
+          try {
+            const labelResponse = await fetch(`/api/tasks/${taskId}/labels`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ labelId }),
+            });
+            
+            if (!labelResponse.ok) {
+              console.error(`[AddTaskDialog] Erro ao adicionar etiqueta ${labelId} à tarefa ${taskId}`);
+            }
+          } catch (error) {
+            console.error(`[AddTaskDialog] Erro ao adicionar etiqueta ${labelId}:`, error);
+          }
+        }
+      }
 
       toast({
         title: t("taskCreated"),
