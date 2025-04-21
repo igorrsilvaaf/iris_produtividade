@@ -235,11 +235,13 @@ export default function PomodoroPage() {
                 )}
               </div>
               <div className="flex-1 flex items-center justify-center p-4">
-                <PomodoroTimer
-                  initialSettings={pomodoroSettings}
-                  selectedTaskId={selectedTaskId}
-                  fullScreen={true}
-                />
+                <div className="w-full max-w-2xl">
+                  <PomodoroTimer
+                    initialSettings={pomodoroSettings}
+                    selectedTaskId={selectedTaskId}
+                    fullScreen={true}
+                  />
+                </div>
               </div>
             </div>
           ) : (

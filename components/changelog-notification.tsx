@@ -160,15 +160,18 @@ export function ChangelogNotification() {
             <p className="text-sm text-muted-foreground">
               {latestChangelog === '2.7.0' ? (
                 <>
-                  <span className="font-medium text-primary">Melhorias nas Tarefas</span>
+                  <span className="font-medium text-primary">Melhorias nas Tarefas e Player do Spotify</span>
                   <br />
                   Adicionamos novas funcionalidades para melhorar o gerenciamento das suas tarefas: 
                   tempo estimado para conclusão com suporte a diferentes unidades (minutos, horas, dias) 
                   e um sistema completo de anexos que permite adicionar links, imagens e arquivos às suas tarefas.
                   <br /><br />
+                  Além disso, agora você pode ouvir suas playlists favoritas do Spotify enquanto trabalha! 
+                  Configure sua playlist nas configurações do sistema e o player ficará disponível em todas as páginas.
+                  <br /><br />
                   <span className="font-medium">Como usar:</span> Ao criar ou editar uma tarefa, você encontrará 
-                  os novos campos para definir o tempo estimado e gerenciar anexos. Experimente adicionar alguns 
-                  arquivos ou imagens às suas tarefas!
+                  os novos campos para definir o tempo estimado e gerenciar anexos. Para configurar o Spotify, 
+                  acesse as configurações e vá até a aba "Spotify". Cole o link da sua playlist favorita e aproveite!
                 </>
               ) : latestChangelog === '2.6.0' ? (
                 <>

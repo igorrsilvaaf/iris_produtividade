@@ -43,6 +43,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  spotify_playlist_id String?
   accounts      Account[]
   sessions      Session[]
   tasks         Task[]
