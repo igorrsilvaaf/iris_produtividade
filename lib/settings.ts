@@ -15,7 +15,11 @@ export type UserSettings = {
   enable_desktop_notifications: boolean
   enable_task_notifications: boolean
   task_notification_days: number
+  enable_spotify: boolean
   spotify_playlist_url: string | null
+  enable_flip_clock: boolean
+  flip_clock_size: string
+  flip_clock_color: string
 }
 
 // Função para verificar e criar a tabela user_settings se não existir
@@ -49,7 +53,11 @@ async function ensureUserSettingsTable() {
           enable_desktop_notifications BOOLEAN NOT NULL DEFAULT true,
           enable_task_notifications BOOLEAN NOT NULL DEFAULT true,
           task_notification_days INTEGER NOT NULL DEFAULT 3,
+          enable_spotify BOOLEAN NOT NULL DEFAULT true,
           spotify_playlist_url TEXT,
+          enable_flip_clock BOOLEAN NOT NULL DEFAULT true,
+          flip_clock_size VARCHAR(20) NOT NULL DEFAULT 'medium',
+          flip_clock_color VARCHAR(20) NOT NULL DEFAULT '#ff5722',
           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -58,13 +66,17 @@ async function ensureUserSettingsTable() {
       
       console.log("user_settings table created successfully");
     } else {
-      // Verificar se as novas colunas existem
+      // Verificar se as colunas existem
       const columnsExist = await sql`
         SELECT 
           EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='enable_task_notifications') as enable_task_notifications_exists,
           EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='task_notification_days') as task_notification_days_exists,
           EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='pomodoro_sound') as pomodoro_sound_exists,
-          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='spotify_playlist_url') as spotify_playlist_url_exists
+          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='spotify_playlist_url') as spotify_playlist_url_exists,
+          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='enable_spotify') as enable_spotify_exists,
+          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='enable_flip_clock') as enable_flip_clock_exists,
+          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='flip_clock_size') as flip_clock_size_exists,
+          EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='user_settings' AND column_name='flip_clock_color') as flip_clock_color_exists
       `;
       
       if (!columnsExist[0].enable_task_notifications_exists) {
@@ -85,6 +97,26 @@ async function ensureUserSettingsTable() {
       if (!columnsExist[0].spotify_playlist_url_exists) {
         console.log("Adding spotify_playlist_url column to user_settings table...");
         await sql`ALTER TABLE user_settings ADD COLUMN spotify_playlist_url TEXT`;
+      }
+      
+      if (!columnsExist[0].enable_spotify_exists) {
+        console.log("Adding enable_spotify column to user_settings table...");
+        await sql`ALTER TABLE user_settings ADD COLUMN enable_spotify BOOLEAN NOT NULL DEFAULT true`;
+      }
+      
+      if (!columnsExist[0].enable_flip_clock_exists) {
+        console.log("Adding enable_flip_clock column to user_settings table...");
+        await sql`ALTER TABLE user_settings ADD COLUMN enable_flip_clock BOOLEAN NOT NULL DEFAULT true`;
+      }
+      
+      if (!columnsExist[0].flip_clock_size_exists) {
+        console.log("Adding flip_clock_size column to user_settings table...");
+        await sql`ALTER TABLE user_settings ADD COLUMN flip_clock_size VARCHAR(20) NOT NULL DEFAULT 'medium'`;
+      }
+      
+      if (!columnsExist[0].flip_clock_color_exists) {
+        console.log("Adding flip_clock_color column to user_settings table...");
+        await sql`ALTER TABLE user_settings ADD COLUMN flip_clock_color VARCHAR(20) NOT NULL DEFAULT '#ff5722'`;
       }
     }
   } catch (error) {
@@ -118,7 +150,11 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
       enable_desktop_notifications: true,
       enable_task_notifications: true,
       task_notification_days: 3,
-      spotify_playlist_url: null
+      enable_spotify: true,
+      spotify_playlist_url: null,
+      enable_flip_clock: true,
+      flip_clock_size: "medium",
+      flip_clock_color: "#ff5722"
     }
 
     await sql`
@@ -136,7 +172,11 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
         enable_desktop_notifications,
         enable_task_notifications,
         task_notification_days,
-        spotify_playlist_url
+        enable_spotify,
+        spotify_playlist_url,
+        enable_flip_clock,
+        flip_clock_size,
+        flip_clock_color
       )
       VALUES (
         ${userId}, 
@@ -152,7 +192,11 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
         ${defaultSettings.enable_desktop_notifications},
         ${defaultSettings.enable_task_notifications},
         ${defaultSettings.task_notification_days},
-        ${defaultSettings.spotify_playlist_url}
+        ${defaultSettings.enable_spotify},
+        ${defaultSettings.spotify_playlist_url},
+        ${defaultSettings.enable_flip_clock},
+        ${defaultSettings.flip_clock_size},
+        ${defaultSettings.flip_clock_color}
       )
     `
 
@@ -173,7 +217,11 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
       enable_desktop_notifications: true,
       enable_task_notifications: true,
       task_notification_days: 3,
-      spotify_playlist_url: null
+      enable_spotify: true,
+      spotify_playlist_url: null,
+      enable_flip_clock: true,
+      flip_clock_size: "medium",
+      flip_clock_color: "#ff5722"
     }
   }
 }
@@ -203,7 +251,11 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
         enable_desktop_notifications = COALESCE(${settings.enable_desktop_notifications}, enable_desktop_notifications),
         enable_task_notifications = COALESCE(${settings.enable_task_notifications}, enable_task_notifications),
         task_notification_days = COALESCE(${settings.task_notification_days}, task_notification_days),
+        enable_spotify = COALESCE(${settings.enable_spotify}, enable_spotify),
         spotify_playlist_url = COALESCE(${settings.spotify_playlist_url}, spotify_playlist_url),
+        enable_flip_clock = COALESCE(${settings.enable_flip_clock}, enable_flip_clock),
+        flip_clock_size = COALESCE(${settings.flip_clock_size}, flip_clock_size),
+        flip_clock_color = COALESCE(${settings.flip_clock_color}, flip_clock_color),
         updated_at = ${now}
       WHERE user_id = ${userId}
       RETURNING *
@@ -226,7 +278,11 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
       enable_desktop_notifications: true,
       enable_task_notifications: true,
       task_notification_days: 3,
+      enable_spotify: true,
       spotify_playlist_url: null,
+      enable_flip_clock: true,
+      flip_clock_size: "medium",
+      flip_clock_color: "#ff5722",
       ...settings 
     }
 
@@ -245,7 +301,11 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
         enable_desktop_notifications,
         enable_task_notifications,
         task_notification_days,
+        enable_spotify,
         spotify_playlist_url,
+        enable_flip_clock,
+        flip_clock_size,
+        flip_clock_color,
         updated_at
       )
       VALUES (
@@ -262,7 +322,11 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
         ${defaultSettings.enable_desktop_notifications},
         ${defaultSettings.enable_task_notifications},
         ${defaultSettings.task_notification_days},
+        ${defaultSettings.enable_spotify},
         ${defaultSettings.spotify_playlist_url},
+        ${defaultSettings.enable_flip_clock},
+        ${defaultSettings.flip_clock_size},
+        ${defaultSettings.flip_clock_color},
         ${now}
       )
       RETURNING *

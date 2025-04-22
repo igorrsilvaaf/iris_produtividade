@@ -97,6 +97,10 @@ export default async function AppPage() {
               notification_sound: settings.notification_sound,
               pomodoro_sound: settings.pomodoro_sound,
               enable_desktop_notifications: settings.enable_desktop_notifications,
+              enable_flip_clock: settings.enable_flip_clock ?? true,
+              flip_clock_size: settings.flip_clock_size || "medium",
+              flip_clock_color: settings.flip_clock_color || "#ff5722",
+              language: settings.language || initialLanguage,
             }}
           />
         </div>
