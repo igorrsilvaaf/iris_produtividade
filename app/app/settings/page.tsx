@@ -12,7 +12,9 @@ export default async function SettingsPage() {
         <h1 className="text-2xl font-bold">Settings</h1>
       </div>
 
-      <SettingsForm settings={settings} />
+      <div className="p-0 sm:p-4 md:p-6 -mx-4 sm:mx-0 bg-background rounded-lg shadow-sm">
+        <SettingsForm settings={settings} />
+      </div>
     </div>
   )
 }
