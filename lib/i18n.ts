@@ -2170,50 +2170,24 @@ const DEFAULT_LANGUAGE: Language = "pt"
 export const useLanguageStore = create<LanguageState>()(
   persist(
     (set) => ({
-      language: DEFAULT_LANGUAGE,
+      language: "en",
       isHydrated: false,
-      setHydrated: (hydrated: boolean) => set({ isHydrated: hydrated }),
-      setLanguage: (language: Language) => {
-        if (typeof document !== 'undefined') {
-          document.cookie = `language-storage=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-          
-          setCookie('user-language', language);
-          
-          console.log('[i18n] Language changed to:', language);
-          
-          document.documentElement.lang = language === "en" ? "en" : "pt-BR";
-          console.log('[i18n] HTML language attribute set to:', document.documentElement.lang);
-          
-          document.documentElement.setAttribute('data-language', language);
-          
-          setTimeout(() => {
-            const cookies = document.cookie.split(';').map(c => c.trim());
-            const langCookie = cookies.find(c => c.startsWith('user-language='));
-            console.log('[i18n] Cookie check after setting:', langCookie);
-          }, 100);
-          
-          try {
-            const event = new Event('languageChanged');
-            window.dispatchEvent(event);
-          } catch (error) {
-            console.error('[i18n] Error dispatching language change event:', error);
-          }
-        }
-        
-        set({ language });
+      setLanguage: (language) => {
+        console.log("[i18n] Setting language in store:", language)
+        set({ language })
+        setCookie('user-language', language)
+      },
+      setHydrated: (hydrated) => {
+        console.log("[i18n] Setting hydration state:", hydrated)
+        set({ isHydrated: hydrated })
       },
     }),
     {
-      name: "language-storage",
+      name: 'language-storage',
       onRehydrateStorage: () => (state) => {
+        console.log("[i18n] Rehydrating language store, current state:", state)
         if (state) {
-          state.setHydrated(true);
-          
-          if (typeof document !== 'undefined') {
-            setCookie('user-language', state.language);
-            
-            document.documentElement.lang = state.language === "en" ? "en" : "pt-BR";
-          }
+          state.setHydrated(true)
         }
       },
     }
