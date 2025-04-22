@@ -269,6 +269,16 @@ audio {
   .animate-pulse-once {
     animation: pulse-once 0.3s ease-in-out;
   }
+  
+  /* Hide scrollbar but allow scrolling */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
 }
 
 /* Estilos para telas muito grandes */

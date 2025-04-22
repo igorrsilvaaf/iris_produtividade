@@ -42,7 +42,11 @@ const formSchema = z.object({
       const parsed = parseInt(String(val), 10);
       return isNaN(parsed) ? 3 : parsed;
     }),
+  enable_spotify: z.boolean().default(true),
   spotify_playlist_url: z.string().optional(),
+  enable_flip_clock: z.boolean().default(true),
+  flip_clock_size: z.string().default("medium"),
+  flip_clock_color: z.string().default("#ff5722"),
 })
 
 export function SettingsForm({ settings }: { settings: UserSettings }) {
@@ -52,8 +56,54 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
   const { t, language, setLanguage } = useTranslation()
   const { playSound } = useAudioPlayer()
   const [isLoading, setIsLoading] = useState(false)
-  const { playlistId, setPlaylistId } = useSpotifyStore()
-  const [playlistUrl, setPlaylistUrl] = useState('')
+  const [isSaved, setIsSaved] = useState(false)
+  const { playlistId, setPlaylistId, setContentType } = useSpotifyStore()
+  const [playlistUrl, setPlaylistUrl] = useState(settings.spotify_playlist_url || '')
+  const [activeTab, setActiveTab] = useState<string>("general")
+
+  // Inicializar o playlistId na primeira carga se o Spotify estiver habilitado
+  useEffect(() => {
+    if (settings.enable_spotify && settings.spotify_playlist_url && !playlistId) {
+      try {
+        const urlString = settings.spotify_playlist_url;
+        
+        // Determinar o tipo de conteúdo baseado na URL
+        let type = '';
+        let id = '';
+        
+        if (urlString.includes('/playlist/')) {
+          type = 'playlist';
+          id = urlString.split('/playlist/')[1]?.split('?')[0] || '';
+        } else if (urlString.includes('/episode/')) {
+          type = 'episode';
+          id = urlString.split('/episode/')[1]?.split('?')[0] || '';
+        } else if (urlString.includes('/track/')) {
+          type = 'track';
+          id = urlString.split('/track/')[1]?.split('?')[0] || '';
+        } else if (urlString.includes('/album/')) {
+          type = 'album';
+          id = urlString.split('/album/')[1]?.split('?')[0] || '';
+        } else if (urlString.includes('/show/')) {
+          type = 'show';
+          id = urlString.split('/show/')[1]?.split('?')[0] || '';
+        }
+        
+        if (id && type) {
+          console.log(`Inicializando ${type} ID na primeira carga:`, id);
+          setPlaylistId(id);
+          setContentType(type);
+          
+          // Disparar evento de atualização para notificar outros componentes
+          setTimeout(() => {
+            const settingsUpdatedEvent = new Event('settings-updated');
+            window.dispatchEvent(settingsUpdatedEvent);
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Erro ao extrair dados da URL do Spotify:', error);
+      }
+    }
+  }, [settings.enable_spotify, settings.spotify_playlist_url, playlistId, setPlaylistId, setContentType]);
 
   useEffect(() => {
     if (settings.language && (settings.language === "en" || settings.language === "pt")) {
@@ -84,9 +134,65 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
       enable_desktop_notifications: settings.enable_desktop_notifications,
       enable_task_notifications: settings.enable_task_notifications,
       task_notification_days: settings.task_notification_days,
+      enable_spotify: settings.enable_spotify !== undefined ? settings.enable_spotify : true,
       spotify_playlist_url: settings.spotify_playlist_url,
+      enable_flip_clock: settings.enable_flip_clock,
+      flip_clock_size: settings.flip_clock_size || "medium",
+      flip_clock_color: settings.flip_clock_color || "#ff5722",
     },
   })
+
+  // Monitorar mudanças na configuração do Spotify
+  useEffect(() => {
+    // Verificar quando o formulário é alterado e a opção enable_spotify muda para false
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'enable_spotify') {
+        if (value.enable_spotify === false) {
+          console.log('Detectada desativação do Spotify no formulário');
+          // Limpar o playlistId no zustand store
+          setPlaylistId(null);
+        } else if (value.enable_spotify === true && value.spotify_playlist_url) {
+          // Quando o Spotify é ativado, tentar restaurar o contentId
+          console.log('Detectada ativação do Spotify no formulário');
+          try {
+            const urlString = value.spotify_playlist_url;
+            if (urlString) {
+              // Determinar o tipo de conteúdo baseado na URL
+              let type = '';
+              let id = '';
+              
+              if (urlString.includes('/playlist/')) {
+                type = 'playlist';
+                id = urlString.split('/playlist/')[1]?.split('?')[0] || '';
+              } else if (urlString.includes('/episode/')) {
+                type = 'episode';
+                id = urlString.split('/episode/')[1]?.split('?')[0] || '';
+              } else if (urlString.includes('/track/')) {
+                type = 'track';
+                id = urlString.split('/track/')[1]?.split('?')[0] || '';
+              } else if (urlString.includes('/album/')) {
+                type = 'album';
+                id = urlString.split('/album/')[1]?.split('?')[0] || '';
+              } else if (urlString.includes('/show/')) {
+                type = 'show';
+                id = urlString.split('/show/')[1]?.split('?')[0] || '';
+              }
+              
+              if (id && type) {
+                console.log(`Restaurando ${type} ID:`, id);
+                setPlaylistId(id);
+                setContentType(type);
+              }
+            }
+          } catch (error) {
+            console.error("Erro ao extrair dados da URL do Spotify:", error);
+          }
+        }
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form, setPlaylistId, setContentType]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
@@ -98,6 +204,29 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
           ? parseInt(values.task_notification_days, 10) 
           : values.task_notification_days
       };
+      
+      // Debug log para verificar os valores
+      console.log("Enviando configurações:", JSON.stringify(processedValues, null, 2));
+      
+      // Se o Spotify estiver sendo desativado, limpar o playlistId imediatamente
+      if (settings.enable_spotify === true && processedValues.enable_spotify === false) {
+        console.log("Spotify está sendo desativado, limpando estado e storage");
+        setPlaylistId(null);
+        
+        // Limpar também o localStorage
+        try {
+          const spotifyStorage = localStorage.getItem('spotify-storage');
+          if (spotifyStorage) {
+            const spotifyData = JSON.parse(spotifyStorage);
+            if (spotifyData.state) {
+              spotifyData.state.playlistId = null;
+              localStorage.setItem('spotify-storage', JSON.stringify(spotifyData));
+            }
+          }
+        } catch (err) {
+          console.error("Erro ao limpar localStorage do Spotify:", err);
+        }
+      }
       
       const response = await fetch("/api/settings", {
         method: "PATCH",
@@ -143,6 +272,9 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
         }
       }
 
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+
       toast({
         title: t("Settings updated"),
         description: t("Your settings have been updated successfully."),
@@ -155,6 +287,11 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
       }, 500);
     } catch (error) {
       console.error("Erro ao salvar configurações:", error);
+      if (error instanceof Error) {
+        console.error("Detalhes do erro:", error.message);
+        console.error("Stack trace:", error.stack);
+      }
+      
       toast({
         variant: "destructive",
         title: t("Failed to update settings"),
@@ -180,410 +317,1023 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
   }
 
   return (
-    <Tabs defaultValue="general">
-      <TabsList className="mb-4">
-        <TabsTrigger value="general">{t("general")}</TabsTrigger>
-        <TabsTrigger value="pomodoro">{t("pomodoroTimer")}</TabsTrigger>
-        <TabsTrigger value="notifications">{t("notifications")}</TabsTrigger>
-        <TabsTrigger value="spotify">Spotify</TabsTrigger>
-      </TabsList>
+    <>
+      {isSaved && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="bg-green-500 text-white rounded-full p-6 animate-pulse shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        </div>
+      )}
+      <Tabs 
+        defaultValue="general" 
+        onValueChange={(value) => {
+          setActiveTab(value);
+          console.log("Aba ativa alterada para:", value);
+        }}
+        className="w-full"
+      >
+        <TabsList className="mb-6 flex w-full justify-start rounded-lg bg-slate-800 dark:bg-slate-900 shadow-sm border-b border-border/40 overflow-x-auto p-0 no-scrollbar">
+          <TabsTrigger 
+            value="general" 
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+          >
+            {t("general")}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="pomodoro" 
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+          >
+            {t("pomodoroTimer")}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="notifications" 
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+          >
+            {t("notifications")}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="spotify" 
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+          >
+            Spotify
+          </TabsTrigger>
+          <TabsTrigger 
+            value="flipclock" 
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+          >
+            Flip Clock
+          </TabsTrigger>
+        </TabsList>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <TabsContent value="general">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("general")}</CardTitle>
-                <CardDescription>{t("Manage your application preferences.")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="theme"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("theme")}</FormLabel>
-                      <Select
-                        onValueChange={(value) => {
-                          field.onChange(value)
-                          setTheme(value)
-                        }}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t("Select a theme")} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="light">{t("light")}</SelectItem>
-                          <SelectItem value="dark">{t("dark")}</SelectItem>
-                          <SelectItem value="system">{t("system")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>{t("Choose your preferred theme for the application.")}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <TabsContent value="general">
+              <Card className="overflow-hidden">
+                <CardHeader className="px-4 sm:px-6">
+                  <CardTitle>{t("general")}</CardTitle>
+                  <CardDescription>{t("Manage your application preferences.")}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 px-4 sm:px-6">
+                  <FormField
+                    control={form.control}
+                    name="theme"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("theme")}</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value)
+                            setTheme(value)
+                          }}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t("Select a theme")} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="light">{t("light")}</SelectItem>
+                            <SelectItem value="dark">{t("dark")}</SelectItem>
+                            <SelectItem value="system">{t("system")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>{t("Choose your preferred theme for the application.")}</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="language"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("language")}</FormLabel>
+                        <Select
+                          onValueChange={(value: "en" | "pt") => {
+                            field.onChange(value)
+                            setLanguage(value)
+                          }}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t("Select a language")} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="en">{t("english")}</SelectItem>
+                            <SelectItem value="pt">{t("portuguese")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>{t("Choose your preferred language for the application.")}</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+                <CardFooter className="px-4 sm:px-6 flex-wrap gap-2">
+                  <Button 
+                    type="button" 
+                    disabled={isLoading} 
+                    className="relative w-full sm:w-auto"
+                    onClick={async () => {
+                      try {
+                        console.log("Botão Salvar de Configurações Gerais clicado");
+                        setIsLoading(true);
+                        
+                        // Pegar os valores relevantes do formulário
+                        const allValues = form.getValues();
+                        const generalValues = {
+                          theme: allValues.theme,
+                          language: allValues.language
+                        };
+                        
+                        console.log("Enviando configurações gerais:", generalValues);
+                        
+                        // Salvar as configurações
+                        const response = await fetch("/api/settings", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(generalValues),
+                        });
+                        
+                        if (!response.ok) {
+                          throw new Error("Falha ao salvar configurações");
+                        }
+                        
+                        console.log("Configurações gerais salvas com sucesso!");
+                        
+                        if (generalValues.theme !== settings.theme) {
+                          setTheme(generalValues.theme);
+                        }
+
+                        if (generalValues.language !== language) {
+                          console.log(`Alterando idioma de ${language} para ${generalValues.language}`);
+                          
+                          setLanguage(generalValues.language as "en" | "pt");
+                          
+                          clearCookie("language-storage");
+                          
+                          document.cookie = `user-language=${generalValues.language}; path=/; max-age=31536000; SameSite=Strict`;
+                          
+                          document.documentElement.lang = generalValues.language === 'en' ? 'en' : 'pt-BR';
+                        }
+                        
+                        // Mostrar animação de sucesso
+                        setIsSaved(true);
+                        setTimeout(() => setIsSaved(false), 2000);
+                        
+                        // Exibir notificação de sucesso
+                        toast({
+                          title: t("Settings updated"),
+                          description: t("Your settings have been updated successfully."),
+                          variant: "success",
+                          duration: 5000
+                        });
+                        
+                        // Atualizar a página após um curto atraso
+                        setTimeout(() => {
+                          router.refresh();
+                        }, 500);
+                      } catch (error) {
+                        console.error("Erro ao salvar configurações gerais:", error);
+                        toast({
+                          variant: "destructive",
+                          title: t("Failed to update settings"),
+                          description: t("Please try again."),
+                        });
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    {isLoading ? "Salvando..." : "Salvar"}
+                    {isLoading && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </span>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="pomodoro">
+              <Card className="overflow-hidden">
+                <CardHeader className="px-4 sm:px-6">
+                  <CardTitle>{t("pomodoroTimer")}</CardTitle>
+                  <CardDescription>{t("Customize your Pomodoro timer preferences.")}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 px-4 sm:px-6">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="pomodoro_work_minutes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("Work Duration (minutes)")}</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="pomodoro_break_minutes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("Short Break Duration (minutes)")}</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="pomodoro_long_break_minutes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("Long Break Duration (minutes)")}</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="pomodoro_cycles"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("Long Break Interval (cycles)")}</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {form.watch("enable_sound") && (
+                    <FormField
+                      control={form.control}
+                      name="pomodoro_sound"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("pomodoroSound")}</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={t("Select a sound")} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">{t("noSound")}</SelectItem>
+                                <SelectItem value="pomodoro">{t("pomodoro")} ({t("defaultSound")})</SelectItem>
+                                <SelectItem value="bell">{t("bell")}</SelectItem>
+                                <SelectItem value="chime">{t("chime")}</SelectItem>
+                                <SelectItem value="digital">{t("digital")}</SelectItem>
+                                <SelectItem value="ding">{t("ding")}</SelectItem>
+                                <SelectItem value="notification">{t("notification")}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="icon" 
+                              onClick={() => {
+                                console.log("Testando som do pomodoro:", field.value);
+                                playSound(field.value);
+                              }}
+                            >
+                              <span className="sr-only">{t("Play sound")}</span>
+                              ▶️
+                            </Button>
+                          </div>
+                          <FormDescription>{t("chooseSound")} ({t("forPomodoroTimer")})</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="language"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("language")}</FormLabel>
-                      <Select
-                        onValueChange={(value: "en" | "pt") => {
-                          field.onChange(value)
-                          setLanguage(value)
-                        }}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t("Select a language")} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="en">{t("english")}</SelectItem>
-                          <SelectItem value="pt">{t("portuguese")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>{t("Choose your preferred language for the application.")}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? t("Salvando...") : t("save")}
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="pomodoro">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("pomodoroTimer")}</CardTitle>
-                <CardDescription>{t("Customize your Pomodoro timer preferences.")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="pomodoro_work_minutes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("Work Duration (minutes)")}</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                </CardContent>
+                <CardFooter className="px-4 sm:px-6 flex-wrap gap-2">
+                  <Button 
+                    type="button" 
+                    disabled={isLoading} 
+                    className="relative w-full sm:w-auto"
+                    onClick={async () => {
+                      try {
+                        console.log("Botão Salvar de Configurações do Pomodoro clicado");
+                        setIsLoading(true);
+                        
+                        // Pegar os valores relevantes do formulário
+                        const allValues = form.getValues();
+                        const pomodoroValues = {
+                          pomodoro_work_minutes: allValues.pomodoro_work_minutes,
+                          pomodoro_break_minutes: allValues.pomodoro_break_minutes,
+                          pomodoro_long_break_minutes: allValues.pomodoro_long_break_minutes,
+                          pomodoro_cycles: allValues.pomodoro_cycles,
+                          pomodoro_sound: allValues.pomodoro_sound
+                        };
+                        
+                        console.log("Enviando configurações do pomodoro:", pomodoroValues);
+                        
+                        // Salvar as configurações
+                        const response = await fetch("/api/settings", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(pomodoroValues),
+                        });
+                        
+                        if (!response.ok) {
+                          throw new Error("Falha ao salvar configurações");
+                        }
+                        
+                        console.log("Configurações do pomodoro salvas com sucesso!");
+                        
+                        // Verificar se deve tocar o som
+                        if (form.getValues().enable_sound && form.getValues().pomodoro_sound !== 'none') {
+                          playSound(form.getValues().pomodoro_sound);
+                        }
+                        
+                        // Mostrar animação de sucesso
+                        setIsSaved(true);
+                        setTimeout(() => setIsSaved(false), 2000);
+                        
+                        // Exibir notificação de sucesso
+                        toast({
+                          title: t("Settings updated"),
+                          description: t("Your settings have been updated successfully."),
+                          variant: "success",
+                          duration: 5000
+                        });
+                        
+                        // Atualizar a página após um curto atraso
+                        setTimeout(() => {
+                          router.refresh();
+                        }, 500);
+                      } catch (error) {
+                        console.error("Erro ao salvar configurações do pomodoro:", error);
+                        toast({
+                          variant: "destructive",
+                          title: t("Failed to update settings"),
+                          description: t("Please try again."),
+                        });
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    {isLoading ? "Salvando..." : "Salvar"}
+                    {isLoading && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </span>
                     )}
-                  />
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
 
+            <TabsContent value="notifications">
+              <Card className="overflow-hidden">
+                <CardHeader className="px-4 sm:px-6">
+                  <CardTitle>{t("notifications")}</CardTitle>
+                  <CardDescription>{t("Manage how you receive notifications.")}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 px-4 sm:px-6">
                   <FormField
                     control={form.control}
-                    name="pomodoro_break_minutes"
+                    name="enable_sound"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("Short Break Duration (minutes)")}</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="pomodoro_long_break_minutes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("Long Break Duration (minutes)")}</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="pomodoro_cycles"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("Long Break Interval (cycles)")}</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {form.watch("enable_sound") && (
-                  <FormField
-                    control={form.control}
-                    name="pomodoro_sound"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("pomodoroSound")}</FormLabel>
-                        <div className="flex items-center gap-2">
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t("Select a sound")} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">{t("noSound")}</SelectItem>
-                              <SelectItem value="pomodoro">{t("pomodoro")} ({t("defaultSound")})</SelectItem>
-                              <SelectItem value="bell">{t("bell")}</SelectItem>
-                              <SelectItem value="chime">{t("chime")}</SelectItem>
-                              <SelectItem value="digital">{t("digital")}</SelectItem>
-                              <SelectItem value="ding">{t("ding")}</SelectItem>
-                              <SelectItem value="notification">{t("notification")}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={() => {
-                              console.log("Testando som do pomodoro:", field.value);
-                              playSound(field.value);
-                            }}
-                          >
-                            <span className="sr-only">{t("Play sound")}</span>
-                            ▶️
-                          </Button>
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">{t("soundNotifications")}</FormLabel>
+                          <FormDescription>{t("soundDescription")}</FormDescription>
                         </div>
-                        <FormDescription>{t("chooseSound")} ({t("forPomodoroTimer")})</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? t("Salvando...") : t("save")}
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("notifications")}</CardTitle>
-                <CardDescription>{t("Manage how you receive notifications.")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="enable_sound"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">{t("soundNotifications")}</FormLabel>
-                        <FormDescription>{t("soundDescription")}</FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                {form.watch("enable_sound") && (
-                  <FormField
-                    control={form.control}
-                    name="notification_sound"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("notificationSound")}</FormLabel>
-                        <div className="flex items-center gap-2">
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t("Select a sound")} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">{t("noSound")}</SelectItem>
-                              <SelectItem value="pomodoro">{t("pomodoro")} ({t("defaultSound")})</SelectItem>
-                              <SelectItem value="bell">{t("bell")}</SelectItem>
-                              <SelectItem value="chime">{t("chime")}</SelectItem>
-                              <SelectItem value="digital">{t("digital")}</SelectItem>
-                              <SelectItem value="ding">{t("ding")}</SelectItem>
-                              <SelectItem value="notification">{t("notification")}</SelectItem>
-                              <SelectItem value="default">{t("defaultSound")}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={() => {
-                              console.log("Testando som de notificação:", field.value);
-                              playSound(field.value);
-                            }}
-                          >
-                            <span className="sr-only">{t("Play sound")}</span>
-                            ▶️
-                          </Button>
-                        </div>
-                        <FormDescription>{t("chooseSound")} ({t("forGeneralNotifications")})</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-                <FormField
-                  control={form.control}
-                  name="enable_task_notifications"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">{t("taskNotifications")}</FormLabel>
-                        <FormDescription>{t("showNotificationsForUpcomingTasks")}</FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                {form.watch("enable_task_notifications") && (
-                  <FormField
-                    control={form.control}
-                    name="task_notification_days"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("notificationDays")}</FormLabel>
-                        <FormDescription>{t("numberOfDaysBeforeToShowNotifications")}</FormDescription>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            min="1" 
-                            max="14" 
-                            {...field} 
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value, 10);
-                              console.log("Campo dias de notificação alterado para:", value, "tipo:", typeof value);
-                              field.onChange(value);
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {form.watch("enable_sound") && (
+                    <FormField
+                      control={form.control}
+                      name="notification_sound"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("notificationSound")}</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={t("Select a sound")} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">{t("noSound")}</SelectItem>
+                                <SelectItem value="pomodoro">{t("pomodoro")} ({t("defaultSound")})</SelectItem>
+                                <SelectItem value="bell">{t("bell")}</SelectItem>
+                                <SelectItem value="chime">{t("chime")}</SelectItem>
+                                <SelectItem value="digital">{t("digital")}</SelectItem>
+                                <SelectItem value="ding">{t("ding")}</SelectItem>
+                                <SelectItem value="notification">{t("notification")}</SelectItem>
+                                <SelectItem value="default">{t("defaultSound")}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="icon" 
+                              onClick={() => {
+                                console.log("Testando som de notificação:", field.value);
+                                playSound(field.value);
+                              }}
+                            >
+                              <span className="sr-only">{t("Play sound")}</span>
+                              ▶️
+                            </Button>
+                          </div>
+                          <FormDescription>{t("chooseSound")} ({t("forGeneralNotifications")})</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  <FormField
+                    control={form.control}
+                    name="enable_task_notifications"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">{t("taskNotifications")}</FormLabel>
+                          <FormDescription>{t("showNotificationsForUpcomingTasks")}</FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {form.watch("enable_task_notifications") && (
+                    <FormField
+                      control={form.control}
+                      name="task_notification_days"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("notificationDays")}</FormLabel>
+                          <FormDescription>{t("numberOfDaysBeforeToShowNotifications")}</FormDescription>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              min="1" 
+                              max="14" 
+                              {...field} 
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value, 10);
+                                console.log("Campo dias de notificação alterado para:", value, "tipo:", typeof value);
+                                field.onChange(value);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  <FormField
+                    control={form.control}
+                    name="enable_desktop_notifications"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">{t("desktopNotifications")}</FormLabel>
+                          <FormDescription>{t("desktopNotificationsDescription")}</FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked)
+                              if (checked) {
+                                requestNotificationPermission()
+                              }
                             }}
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
-                )}
-
-                <FormField
-                  control={form.control}
-                  name="enable_desktop_notifications"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">{t("desktopNotifications")}</FormLabel>
-                        <FormDescription>{t("desktopNotificationsDescription")}</FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={(checked) => {
-                            field.onChange(checked)
-                            if (checked) {
-                              requestNotificationPermission()
-                            }
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? t("Salvando...") : t("save")}
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="spotify">
-            <Card>
-              <CardHeader>
-                <CardTitle>Spotify</CardTitle>
-                <CardDescription>Configure sua playlist do Spotify para tocar durante suas tarefas.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="spotify_playlist_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Link da Playlist</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="https://open.spotify.com/playlist/..."
-                          value={playlistUrl}
-                          onChange={(e) => {
-                            setPlaylistUrl(e.target.value)
-                            field.onChange(e)
-                          }}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Cole o link da sua playlist do Spotify para tocar durante suas tarefas.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-              <CardFooter>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (playlistUrl) {
-                      const newPlaylistId = playlistUrl.split('/playlist/')[1]?.split('?')[0];
-                      if (newPlaylistId) {
-                        setPlaylistId(newPlaylistId);
-                        setPlaylistUrl('');
-                        toast({
-                          title: "Playlist salva",
-                          description: "Sua playlist foi salva com sucesso.",
-                          variant: "success",
+                </CardContent>
+                <CardFooter className="px-4 sm:px-6 flex-wrap gap-2">
+                  <Button 
+                    type="button" 
+                    disabled={isLoading} 
+                    className="relative w-full sm:w-auto"
+                    onClick={async () => {
+                      try {
+                        console.log("Botão Salvar de Configurações de Notificações clicado");
+                        setIsLoading(true);
+                        
+                        // Pegar os valores relevantes do formulário
+                        const allValues = form.getValues();
+                        const notificationValues = {
+                          enable_sound: allValues.enable_sound,
+                          notification_sound: allValues.notification_sound,
+                          enable_desktop_notifications: allValues.enable_desktop_notifications,
+                          enable_task_notifications: allValues.enable_task_notifications,
+                          task_notification_days: allValues.task_notification_days
+                        };
+                        
+                        console.log("Enviando configurações de notificações:", notificationValues);
+                        
+                        // Salvar as configurações
+                        const response = await fetch("/api/settings", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(notificationValues),
                         });
+                        
+                        if (!response.ok) {
+                          throw new Error("Falha ao salvar configurações");
+                        }
+                        
+                        console.log("Configurações de notificações salvas com sucesso!");
+                        
+                        // Verificar se deve tocar o som
+                        if (notificationValues.enable_sound && notificationValues.notification_sound !== 'none') {
+                          playSound(notificationValues.notification_sound);
+                        }
+                        
+                        // Mostrar animação de sucesso
+                        setIsSaved(true);
+                        setTimeout(() => setIsSaved(false), 2000);
+                        
+                        // Exibir notificação de sucesso
+                        toast({
+                          title: t("Settings updated"),
+                          description: t("Your settings have been updated successfully."),
+                          variant: "success",
+                          duration: 5000
+                        });
+                        
+                        // Atualizar a página após um curto atraso
+                        setTimeout(() => {
+                          router.refresh();
+                        }, 500);
+                      } catch (error) {
+                        console.error("Erro ao salvar configurações de notificações:", error);
+                        toast({
+                          variant: "destructive",
+                          title: t("Failed to update settings"),
+                          description: t("Please try again."),
+                        });
+                      } finally {
+                        setIsLoading(false);
                       }
-                    }
-                  }}
-                >
-                  Salvar Playlist
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </form>
-      </Form>
-    </Tabs>
+                    }}
+                  >
+                    {isLoading ? "Salvando..." : "Salvar"}
+                    {isLoading && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </span>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="spotify">
+              <Card className="overflow-hidden">
+                <CardHeader className="px-4 sm:px-6">
+                  <CardTitle>Spotify</CardTitle>
+                  <CardDescription>Configure sua playlist do Spotify para tocar durante suas tarefas.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 px-4 sm:px-6">
+                  <FormField
+                    control={form.control}
+                    name="enable_spotify"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Ativar Spotify</FormLabel>
+                          <FormDescription>
+                            Exibir o player do Spotify na interface para tocar música durante suas tarefas.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {form.watch("enable_spotify") && (
+                    <FormField
+                      control={form.control}
+                      name="spotify_playlist_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Link da Playlist</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="https://open.spotify.com/playlist/... ou episódio, faixa, etc."
+                              value={playlistUrl}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                setPlaylistUrl(newValue);
+                                field.onChange(newValue);
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Cole o link da sua playlist do Spotify para tocar durante suas tarefas.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </CardContent>
+                <CardFooter className="px-4 sm:px-6 flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    disabled={isLoading}
+                    className="relative w-full sm:w-auto"
+                    onClick={async () => {
+                      try {
+                        console.log("Botão Salvar de Configurações do Spotify clicado");
+                        setIsLoading(true);
+                        
+                        // Obter os valores atuais do formulário
+                        const allValues = form.getValues();
+                        
+                        // Incluir o enable_spotify nas configurações
+                        const spotifyValues = {
+                          enable_spotify: allValues.enable_spotify,
+                          spotify_playlist_url: allValues.spotify_playlist_url || ""
+                        };
+                        
+                        let newPlaylistId = "";
+                        
+                        if (allValues.enable_spotify && playlistUrl) {
+                          newPlaylistId = playlistUrl.split('/playlist/')[1]?.split('?')[0] || "";
+                        }
+                        
+                        console.log("Enviando configurações do Spotify:", spotifyValues);
+                        
+                        // Salvar as configurações
+                        const response = await fetch("/api/settings", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(spotifyValues),
+                        });
+                        
+                        if (!response.ok) {
+                          throw new Error("Falha ao salvar configurações");
+                        }
+                        
+                        console.log("Configurações do Spotify salvas com sucesso!");
+                        
+                        // Se o Spotify estiver desativado, limpe o playlistId
+                        if (!allValues.enable_spotify) {
+                          console.log("Spotify desativado, limpando o playlistId");
+                          setPlaylistId(null);
+                          
+                          // Limpar o localStorage também para garantir
+                          try {
+                            if (typeof window !== 'undefined') {
+                              const spotifyStorage = localStorage.getItem('spotify-storage');
+                              if (spotifyStorage) {
+                                const spotifyData = JSON.parse(spotifyStorage);
+                                spotifyData.state.playlistId = null;
+                                localStorage.setItem('spotify-storage', JSON.stringify(spotifyData));
+                              }
+                            }
+                          } catch (err) {
+                            console.error("Erro ao limpar o localStorage do Spotify:", err);
+                          }
+                        } else if (allValues.enable_spotify && playlistUrl) {
+                          // Extrair ID e tipo de conteúdo
+                          try {
+                            const urlString = playlistUrl;
+                            
+                            // Determinar o tipo de conteúdo baseado na URL
+                            let type = '';
+                            let id = '';
+                            
+                            if (urlString.includes('/playlist/')) {
+                              type = 'playlist';
+                              id = urlString.split('/playlist/')[1]?.split('?')[0] || '';
+                            } else if (urlString.includes('/episode/')) {
+                              type = 'episode';
+                              id = urlString.split('/episode/')[1]?.split('?')[0] || '';
+                            } else if (urlString.includes('/track/')) {
+                              type = 'track';
+                              id = urlString.split('/track/')[1]?.split('?')[0] || '';
+                            } else if (urlString.includes('/album/')) {
+                              type = 'album';
+                              id = urlString.split('/album/')[1]?.split('?')[0] || '';
+                            } else if (urlString.includes('/show/')) {
+                              type = 'show';
+                              id = urlString.split('/show/')[1]?.split('?')[0] || '';
+                            }
+                            
+                            if (id && type) {
+                              console.log(`Spotify ativado, atualizando ${type} ID para:`, id);
+                              setPlaylistId(id);
+                              setContentType(type);
+                            }
+                          } catch (error) {
+                            console.error("Erro ao extrair conteúdo da URL do Spotify:", error);
+                          }
+                        } else if (allValues.enable_spotify && allValues.spotify_playlist_url) {
+                          // Tentar restaurar o ID da URL existente
+                          try {
+                            const urlString = allValues.spotify_playlist_url;
+                            
+                            // Determinar o tipo de conteúdo baseado na URL
+                            let type = '';
+                            let id = '';
+                            
+                            if (urlString.includes('/playlist/')) {
+                              type = 'playlist';
+                              id = urlString.split('/playlist/')[1]?.split('?')[0] || '';
+                            } else if (urlString.includes('/episode/')) {
+                              type = 'episode';
+                              id = urlString.split('/episode/')[1]?.split('?')[0] || '';
+                            } else if (urlString.includes('/track/')) {
+                              type = 'track';
+                              id = urlString.split('/track/')[1]?.split('?')[0] || '';
+                            } else if (urlString.includes('/album/')) {
+                              type = 'album';
+                              id = urlString.split('/album/')[1]?.split('?')[0] || '';
+                            } else if (urlString.includes('/show/')) {
+                              type = 'show';
+                              id = urlString.split('/show/')[1]?.split('?')[0] || '';
+                            }
+                            
+                            if (id && type) {
+                              console.log(`Spotify ativado, restaurando ${type} ID existente:`, id);
+                              setPlaylistId(id);
+                              setContentType(type);
+                            }
+                          } catch (err) {
+                            console.error("Erro ao extrair dados da URL do Spotify:", err);
+                          }
+                        }
+                        
+                        // Disparar evento personalizado para notificar outros componentes
+                        const settingsUpdatedEvent = new Event('settings-updated');
+                        window.dispatchEvent(settingsUpdatedEvent);
+                        
+                        // Mostrar animação de sucesso
+                        setIsSaved(true);
+                        setTimeout(() => setIsSaved(false), 2000);
+                        
+                        // Exibir notificação de sucesso
+                        toast({
+                          title: "Configurações atualizadas",
+                          description: "Suas configurações do Spotify foram atualizadas com sucesso.",
+                          variant: "success",
+                          duration: 5000
+                        });
+                        
+                        // Forçar recarregamento completo se enable_spotify mudou
+                        // Isso garante que todos os componentes sejam reinicializados corretamente
+                        if (spotifyValues.enable_spotify !== settings.enable_spotify) {
+                          console.log("Alteração no estado enable_spotify detectada, forçando recarregamento completo");
+                          setTimeout(() => {
+                            window.location.reload();
+                          }, 1000);
+                        } else {
+                          // Atualizar a página sem recarregar totalmente
+                          setTimeout(() => {
+                            router.refresh();
+                          }, 500);
+                        }
+                      } catch (error) {
+                        console.error("Erro ao salvar configurações do Spotify:", error);
+                        toast({
+                          variant: "destructive",
+                          title: "Falha ao atualizar configurações",
+                          description: "Por favor, verifique se a URL é válida e tente novamente.",
+                        });
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    {isLoading ? "Salvando..." : "Salvar Configurações"}
+                    {isLoading && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </span>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="flipclock">
+              <Card className="overflow-hidden">
+                <CardHeader className="px-4 sm:px-6">
+                  <CardTitle>Flip Clock</CardTitle>
+                  <CardDescription>Configure as preferências do seu relógio tipo Flip Clock.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 px-4 sm:px-6">
+                  <FormField
+                    control={form.control}
+                    name="enable_flip_clock"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Ativar Flip Clock</FormLabel>
+                          <FormDescription>
+                            Exibir um relógio estilo flip na página principal.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {form.watch("enable_flip_clock") && (
+                    <>
+                      <FormField
+                        control={form.control}
+                        name="flip_clock_size"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tamanho do Relógio</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione um tamanho" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="small">Pequeno</SelectItem>
+                                <SelectItem value="medium">Médio</SelectItem>
+                                <SelectItem value="large">Grande</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Escolha o tamanho que melhor se adapta à sua tela.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="flip_clock_color"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Cor do Relógio</FormLabel>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <FormControl>
+                                <Input type="color" {...field} className="w-12 h-8 p-1" />
+                              </FormControl>
+                              <div className="text-sm overflow-hidden text-ellipsis">{field.value}</div>
+                            </div>
+                            <FormDescription>
+                              Escolha uma cor personalizada para o seu relógio.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
+                </CardContent>
+                <CardFooter className="px-4 sm:px-6 flex-wrap gap-2">
+                  <Button 
+                    type="button" 
+                    disabled={isLoading} 
+                    className="relative w-full sm:w-auto"
+                    onClick={async () => {
+                      try {
+                        console.log("Botão Salvar do Flip Clock clicado diretamente");
+                        setIsLoading(true);
+                        
+                        // Pegar os valores atuais do formulário
+                        const allValues = form.getValues();
+                        console.log("Valores do formulário:", allValues);
+                        
+                        // Obter apenas os valores relevantes para o Flip Clock
+                        const flipClockValues = {
+                          enable_flip_clock: allValues.enable_flip_clock,
+                          flip_clock_size: allValues.flip_clock_size,
+                          flip_clock_color: allValues.flip_clock_color
+                        };
+                        
+                        console.log("Enviando configurações do Flip Clock:", flipClockValues);
+                        
+                        // Salvar as configurações
+                        const response = await fetch("/api/settings", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(flipClockValues),
+                        });
+                        
+                        if (!response.ok) {
+                          throw new Error("Falha ao salvar configurações");
+                        }
+                        
+                        console.log("Configurações do Flip Clock salvas com sucesso!");
+                        
+                        // Mostrar animação de sucesso
+                        setIsSaved(true);
+                        setTimeout(() => setIsSaved(false), 2000);
+                        
+                        // Exibir notificação de sucesso
+                        toast({
+                          title: "Configurações atualizadas",
+                          description: "Suas configurações do Flip Clock foram atualizadas com sucesso.",
+                          variant: "success",
+                          duration: 5000
+                        });
+                        
+                        // Atualizar a página após um curto atraso
+                        setTimeout(() => {
+                          router.refresh();
+                        }, 500);
+                      } catch (error) {
+                        console.error("Erro ao salvar configurações do Flip Clock:", error);
+                        toast({
+                          variant: "destructive",
+                          title: "Falha ao atualizar configurações",
+                          description: "Por favor, tente novamente.",
+                        });
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    {isLoading ? "Salvando..." : "Salvar Configurações"}
+                    {isLoading && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </span>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </form>
+        </Form>
+      </Tabs>
+    </>
   )
 }
 
