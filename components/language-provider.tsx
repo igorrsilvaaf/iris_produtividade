@@ -18,17 +18,27 @@ export function LanguageProvider({ initialLanguage, children }: LanguageProvider
   const router = useRouter()
 
   useEffect(() => {
-    console.log("LanguageProvider initialLanguage:", initialLanguage)
+    console.log("[LanguageProvider] Setting initial language:", initialLanguage)
     
-    setLanguage(initialLanguage)
+    // Clear old cookie before setting new one
+    document.cookie = `language-storage=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
     
+    // Set new cookie
     setCookie('user-language', initialLanguage)
     
-    document.documentElement.lang = initialLanguage === 'en' ? 'en' : 'pt-BR'
+    // Update language in Zustand state
+    setLanguage(initialLanguage)
     
+    // Update HTML attributes
+    document.documentElement.lang = initialLanguage === 'en' ? 'en' : 'pt-BR'
     document.documentElement.setAttribute('data-language', initialLanguage)
     
-    const cookies = document.cookie.split(';').map(c => c.trim())
+    // Verify if cookie was set correctly
+    setTimeout(() => {
+      const cookies = document.cookie.split(';').map(c => c.trim())
+      const langCookie = cookies.find(c => c.startsWith('user-language='))
+      console.log("[LanguageProvider] Language cookie after setting:", langCookie)
+    }, 100)
   }, [initialLanguage, setLanguage])
 
   return <>{children}</>
