@@ -57,7 +57,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
   const { playSound } = useAudioPlayer()
   const [isLoading, setIsLoading] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
-  const { playlistId, setPlaylistId, setContentType } = useSpotifyStore()
+  const { playlistId, setPlaylistId, setContentType, isEnabled, setIsEnabled } = useSpotifyStore()
   const [playlistUrl, setPlaylistUrl] = useState(settings.spotify_playlist_url || '')
   const [activeTab, setActiveTab] = useState<string>("general")
 
@@ -958,7 +958,10 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                         <FormControl>
                           <Switch
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked)
+                              setIsEnabled(checked)
+                            }}
                           />
                         </FormControl>
                       </FormItem>
@@ -999,25 +1002,65 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                     className="relative w-full sm:w-auto"
                     onClick={async () => {
                       try {
-                        console.log("Botão Salvar de Configurações do Spotify clicado");
+                        console.log("Botão Salvar do Spotify clicado");
                         setIsLoading(true);
                         
-                        // Obter os valores atuais do formulário
+                        // Pegar os valores atuais do formulário
                         const allValues = form.getValues();
                         
-                        // Incluir o enable_spotify nas configurações
+                        // Obter apenas os valores relevantes para o Spotify
                         const spotifyValues = {
                           enable_spotify: allValues.enable_spotify,
-                          spotify_playlist_url: allValues.spotify_playlist_url || ""
+                          spotify_playlist_url: allValues.spotify_playlist_url
                         };
                         
-                        let newPlaylistId = "";
-                        
-                        if (allValues.enable_spotify && playlistUrl) {
-                          newPlaylistId = playlistUrl.split('/playlist/')[1]?.split('?')[0] || "";
+                        // Processar a URL do Spotify
+                        if (spotifyValues.spotify_playlist_url && spotifyValues.enable_spotify) {
+                          try {
+                            const url = spotifyValues.spotify_playlist_url;
+                            
+                            // Determinar o tipo de conteúdo
+                            let type = 'playlist';
+                            let id = null;
+                            
+                            if (url.includes('/playlist/')) {
+                              type = 'playlist';
+                              id = url.split('/playlist/')[1]?.split('?')[0];
+                            } else if (url.includes('/track/')) {
+                              type = 'track';
+                              id = url.split('/track/')[1]?.split('?')[0];
+                            } else if (url.includes('/album/')) {
+                              type = 'album';
+                              id = url.split('/album/')[1]?.split('?')[0];
+                            } else if (url.includes('/show/')) {
+                              type = 'show';
+                              id = url.split('/show/')[1]?.split('?')[0];
+                            } else if (url.includes('/episode/')) {
+                              type = 'episode';
+                              id = url.split('/episode/')[1]?.split('?')[0];
+                            }
+                            
+                            // Se conseguimos extrair o ID, atualizar o player
+                            if (id) {
+                              console.log(`Spotify: Extraído ${type} com ID ${id}`);
+                              // Atualizar o store do Spotify
+                              setPlaylistId(id);
+                              if (useSpotifyStore.getState().setContentType) {
+                                useSpotifyStore.getState().setContentType(type);
+                              }
+                              // Garantir que o player esteja ativado
+                              setIsEnabled(true);
+                            }
+                          } catch (err) {
+                            console.error("Erro ao processar URL do Spotify:", err);
+                          }
+                        } else if (!spotifyValues.enable_spotify) {
+                          // Se o Spotify estiver desativado, limpar o playlistId
+                          setPlaylistId(null);
+                          setIsEnabled(false);
                         }
                         
-                        console.log("Enviando configurações do Spotify:", spotifyValues);
+                        console.log("Salvando configurações do Spotify:", spotifyValues);
                         
                         // Salvar as configurações
                         const response = await fetch("/api/settings", {
@@ -1030,99 +1073,10 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                           throw new Error("Falha ao salvar configurações");
                         }
                         
+                        // Disparar evento de atualização de configurações
+                        window.dispatchEvent(new CustomEvent('settings-updated'));
+                        
                         console.log("Configurações do Spotify salvas com sucesso!");
-                        
-                        // Se o Spotify estiver desativado, limpe o playlistId
-                        if (!allValues.enable_spotify) {
-                          console.log("Spotify desativado, limpando o playlistId");
-                          setPlaylistId(null);
-                          
-                          // Limpar o localStorage também para garantir
-                          try {
-                            if (typeof window !== 'undefined') {
-                              const spotifyStorage = localStorage.getItem('spotify-storage');
-                              if (spotifyStorage) {
-                                const spotifyData = JSON.parse(spotifyStorage);
-                                spotifyData.state.playlistId = null;
-                                localStorage.setItem('spotify-storage', JSON.stringify(spotifyData));
-                              }
-                            }
-                          } catch (err) {
-                            console.error("Erro ao limpar o localStorage do Spotify:", err);
-                          }
-                        } else if (allValues.enable_spotify && playlistUrl) {
-                          // Extrair ID e tipo de conteúdo
-                          try {
-                            const urlString = playlistUrl;
-                            
-                            // Determinar o tipo de conteúdo baseado na URL
-                            let type = '';
-                            let id = '';
-                            
-                            if (urlString.includes('/playlist/')) {
-                              type = 'playlist';
-                              id = urlString.split('/playlist/')[1]?.split('?')[0] || '';
-                            } else if (urlString.includes('/episode/')) {
-                              type = 'episode';
-                              id = urlString.split('/episode/')[1]?.split('?')[0] || '';
-                            } else if (urlString.includes('/track/')) {
-                              type = 'track';
-                              id = urlString.split('/track/')[1]?.split('?')[0] || '';
-                            } else if (urlString.includes('/album/')) {
-                              type = 'album';
-                              id = urlString.split('/album/')[1]?.split('?')[0] || '';
-                            } else if (urlString.includes('/show/')) {
-                              type = 'show';
-                              id = urlString.split('/show/')[1]?.split('?')[0] || '';
-                            }
-                            
-                            if (id && type) {
-                              console.log(`Spotify ativado, atualizando ${type} ID para:`, id);
-                              setPlaylistId(id);
-                              setContentType(type);
-                            }
-                          } catch (error) {
-                            console.error("Erro ao extrair conteúdo da URL do Spotify:", error);
-                          }
-                        } else if (allValues.enable_spotify && allValues.spotify_playlist_url) {
-                          // Tentar restaurar o ID da URL existente
-                          try {
-                            const urlString = allValues.spotify_playlist_url;
-                            
-                            // Determinar o tipo de conteúdo baseado na URL
-                            let type = '';
-                            let id = '';
-                            
-                            if (urlString.includes('/playlist/')) {
-                              type = 'playlist';
-                              id = urlString.split('/playlist/')[1]?.split('?')[0] || '';
-                            } else if (urlString.includes('/episode/')) {
-                              type = 'episode';
-                              id = urlString.split('/episode/')[1]?.split('?')[0] || '';
-                            } else if (urlString.includes('/track/')) {
-                              type = 'track';
-                              id = urlString.split('/track/')[1]?.split('?')[0] || '';
-                            } else if (urlString.includes('/album/')) {
-                              type = 'album';
-                              id = urlString.split('/album/')[1]?.split('?')[0] || '';
-                            } else if (urlString.includes('/show/')) {
-                              type = 'show';
-                              id = urlString.split('/show/')[1]?.split('?')[0] || '';
-                            }
-                            
-                            if (id && type) {
-                              console.log(`Spotify ativado, restaurando ${type} ID existente:`, id);
-                              setPlaylistId(id);
-                              setContentType(type);
-                            }
-                          } catch (err) {
-                            console.error("Erro ao extrair dados da URL do Spotify:", err);
-                          }
-                        }
-                        
-                        // Disparar evento personalizado para notificar outros componentes
-                        const settingsUpdatedEvent = new Event('settings-updated');
-                        window.dispatchEvent(settingsUpdatedEvent);
                         
                         // Mostrar animação de sucesso
                         setIsSaved(true);
@@ -1136,25 +1090,18 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
                           duration: 5000
                         });
                         
-                        // Forçar recarregamento completo se enable_spotify mudou
-                        // Isso garante que todos os componentes sejam reinicializados corretamente
-                        if (spotifyValues.enable_spotify !== settings.enable_spotify) {
-                          console.log("Alteração no estado enable_spotify detectada, forçando recarregamento completo");
-                          setTimeout(() => {
-                            window.location.reload();
-                          }, 1000);
-                        } else {
-                          // Atualizar a página sem recarregar totalmente
-                          setTimeout(() => {
-                            router.refresh();
-                          }, 500);
-                        }
+                        // Atualizar a página após um curto atraso
+                        setTimeout(() => {
+                          router.refresh();
+                        }, 500);
+                        
+                        setPlaylistUrl('');
                       } catch (error) {
                         console.error("Erro ao salvar configurações do Spotify:", error);
                         toast({
                           variant: "destructive",
                           title: "Falha ao atualizar configurações",
-                          description: "Por favor, verifique se a URL é válida e tente novamente.",
+                          description: "Por favor, tente novamente.",
                         });
                       } finally {
                         setIsLoading(false);

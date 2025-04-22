@@ -1,26 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { FaSpotify } from 'react-icons/fa';
 import { Button } from "@/components/ui/button";
-import { Settings, Maximize2, Minimize2 } from "lucide-react";
+import { Maximize2, Minimize2 } from "lucide-react";
 import { useSpotifyStore } from "@/lib/stores/spotify-store";
 import type { UserSettings } from "@/lib/settings";
 
 export default function PersistentSpotifyPlayer() {
   const [isCompact, setIsCompact] = useState(false);
-  const { playlistId, setPlaylistId, contentType, setContentType } = useSpotifyStore();
+  const { playlistId, contentType, isEnabled, position, setPlaylistId, setPosition } = useSpotifyStore();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const playerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // Verificar se os dados da store já estão disponíveis
-  const storeReady = playlistId && contentType;
+  const storeReady = playlistId && contentType && isEnabled;
 
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
+
+  // Inicializar a posição padrão se não estiver definida
+  useEffect(() => {
+    if (!position && playlistId && isEnabled) {
+      setPosition({ x: 'right-4', y: 'bottom-4' });
+    }
+  }, [position, setPosition, playlistId, isEnabled]);
 
   const fetchSettings = async () => {
     try {
@@ -31,53 +41,6 @@ export default function PersistentSpotifyPlayer() {
         setSettings(data.settings);
         console.log("PersistentPlayer: Settings carregadas:", data.settings);
         console.log("PersistentPlayer: enable_spotify:", data.settings.enable_spotify);
-        console.log("PersistentPlayer: spotify_playlist_url:", data.settings.spotify_playlist_url);
-        
-        // Se o Spotify estiver desabilitado, limpar o playlistId
-        if (!data.settings.enable_spotify) {
-          console.log("PersistentPlayer: Spotify desativado, limpando playlistId");
-          setPlaylistId(null);
-          return;
-        }
-        
-        // Se o Spotify estiver habilitado nas configurações mas não tiver playlistId
-        if (data.settings.enable_spotify && data.settings.spotify_playlist_url) {
-          try {
-            // Tentar extrair o ID e o tipo do conteúdo da URL
-            const urlString = data.settings.spotify_playlist_url;
-            
-            // Determinar o tipo de conteúdo baseado na URL
-            let type = '';
-            let id = '';
-            
-            if (urlString.includes('/playlist/')) {
-              type = 'playlist';
-              id = urlString.split('/playlist/')[1]?.split('?')[0] || '';
-            } else if (urlString.includes('/episode/')) {
-              type = 'episode';
-              id = urlString.split('/episode/')[1]?.split('?')[0] || '';
-            } else if (urlString.includes('/track/')) {
-              type = 'track';
-              id = urlString.split('/track/')[1]?.split('?')[0] || '';
-            } else if (urlString.includes('/album/')) {
-              type = 'album';
-              id = urlString.split('/album/')[1]?.split('?')[0] || '';
-            } else if (urlString.includes('/show/')) {
-              type = 'show';
-              id = urlString.split('/show/')[1]?.split('?')[0] || '';
-            }
-            
-            if (id && type) {
-              console.log(`PersistentPlayer: Recuperando ${type} ID:`, id);
-              setPlaylistId(id);
-              setContentType(type);
-            }
-          } catch (error) {
-            console.error("PersistentPlayer: Erro ao extrair ID da URL do Spotify:", error);
-          }
-        } else {
-          console.log("PersistentPlayer: Spotify ativado mas URL não definida");
-        }
       }
     } catch (error) {
       console.error('PersistentPlayer: Erro ao carregar configurações do Spotify:', error);
@@ -103,76 +66,97 @@ export default function PersistentSpotifyPlayer() {
       
       window.addEventListener('settings-updated', handleSettingsUpdate);
       
-      // Também mostrar o estado do store quando montado
-      console.log("PersistentPlayer: Estado inicial da store:", { 
-        playlistId: useSpotifyStore.getState().playlistId,
-        contentType: useSpotifyStore.getState().contentType
-      });
-      
-      // Limpar localStorage do Spotify quando o componente for montado pela primeira vez
-      try {
-        const spotifyStorage = localStorage.getItem('spotify-storage');
-        if (spotifyStorage) {
-          const spotifyData = JSON.parse(spotifyStorage);
-          console.log("PersistentPlayer: Verificando localStorage do Spotify:", spotifyData);
-          
-          // Se o enable_spotify for false nos settings, mas temos um playlistId no storage, limpar
-          if (settings && settings.enable_spotify === false && spotifyData.state && spotifyData.state.playlistId) {
-            console.log("PersistentPlayer: Corrigindo inconsistência no localStorage");
-            spotifyData.state.playlistId = null;
-            localStorage.setItem('spotify-storage', JSON.stringify(spotifyData));
-            // Forçar atualização do estado
-            setPlaylistId(null);
-          }
-        }
-      } catch (error) {
-        console.error("PersistentPlayer: Erro ao verificar localStorage:", error);
-      }
-      
       return () => {
         clearInterval(intervalId);
         window.removeEventListener('settings-updated', handleSettingsUpdate);
       };
     }
-  }, [mounted, settings, setPlaylistId]);
+  }, [mounted]);
 
-  // Efeito adicional para limpar o playlistId quando enable_spotify for falso
-  useEffect(() => {
-    if (settings && settings.enable_spotify === false && playlistId) {
-      console.log("PersistentPlayer: Detectada configuração com Spotify desativado, limpando player");
-      setPlaylistId(null);
+  // Função para iniciar o arrastar
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!playerRef.current) return;
+    
+    if (e.target === e.currentTarget || 
+        (e.target as HTMLElement).tagName === 'SPAN' ||
+        (e.target as HTMLElement).className?.includes('handle')) {
       
-      // Tentar limpar também no localStorage
-      try {
-        const spotifyStorage = localStorage.getItem('spotify-storage');
-        if (spotifyStorage) {
-          const spotifyData = JSON.parse(spotifyStorage);
-          if (spotifyData.state) {
-            spotifyData.state.playlistId = null;
-            localStorage.setItem('spotify-storage', JSON.stringify(spotifyData));
-            console.log("PersistentPlayer: Spotify limpo no localStorage");
-          }
-        }
-      } catch (err) {
-        console.error("PersistentPlayer: Erro ao limpar localStorage:", err);
-      }
+      setIsDragging(true);
+      
+      // Calcular o offset entre o ponto clicado e o canto superior esquerdo do elemento
+      const rect = playerRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+      
+      // Impedir seleção de texto durante o arrasto
+      document.body.style.userSelect = 'none';
     }
-  }, [settings, playlistId, setPlaylistId]);
+  }, []);
 
+  // Adicionar e remover event listeners para arrastar
   useEffect(() => {
-    console.log("PersistentPlayer: Estado atual:", { 
-      mounted,
-      isLoading,
-      settings: !!settings,
-      enable_spotify: settings?.enable_spotify,
-      contentId: playlistId, 
-      contentType,
-      storeData: useSpotifyStore.getState()
-    });
-  }, [isLoading, settings, playlistId, contentType, mounted]);
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !playerRef.current) return;
+      
+      const rect = playerRef.current.getBoundingClientRect();
+      
+      // Calcular nova posição baseada no movimento do mouse e no offset inicial
+      const newLeft = e.clientX - dragOffset.x;
+      const newTop = e.clientY - dragOffset.y;
+      
+      // Limitar posição aos limites da janela
+      const maxX = window.innerWidth - rect.width;
+      const maxY = window.innerHeight - rect.height;
+      
+      const boundedLeft = Math.max(0, Math.min(newLeft, maxX));
+      const boundedTop = Math.max(0, Math.min(newTop, maxY));
+      
+      // Atualizar posição do elemento
+      playerRef.current.style.left = `${boundedLeft}px`;
+      playerRef.current.style.top = `${boundedTop}px`;
+      playerRef.current.style.right = 'auto';
+      playerRef.current.style.bottom = 'auto';
+    };
+    
+    const handleMouseUp = () => {
+      if (isDragging && playerRef.current) {
+        setIsDragging(false);
+        
+        // Restaurar seleção de texto
+        document.body.style.userSelect = '';
+        
+        // Salvar a posição final
+        const rect = playerRef.current.getBoundingClientRect();
+        setPosition({
+          x: `left-[${Math.round(rect.left)}px]`,
+          y: `top-[${Math.round(rect.top)}px]`
+        });
+      }
+    };
+    
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+    
+    return undefined;
+  }, [isDragging, dragOffset, setPosition]);
 
   // Não exibir nada se não estiver montado ainda
   if (!mounted) return null;
+  
+  // Não mostrar se isEnabled for falso (toggled off)
+  if (!isEnabled) {
+    console.log("PersistentPlayer: Player desativado pelo isEnabled");
+    return null;
+  }
   
   // Não mostrar se as configurações indicarem que o Spotify está desativado
   if (settings && !settings.enable_spotify) {
@@ -180,13 +164,52 @@ export default function PersistentSpotifyPlayer() {
     return null;
   }
 
-  // Mostrar o player se: já temos o ID do contenúdo OU está carregando (placeholder)
+  // Se não tiver playlistId, não mostrar nada
+  if (!playlistId) {
+    return null;
+  }
+
+  // Preparar classes CSS para posicionamento
+  let style = {};
+  let positionClasses = 'fixed';
+  
+  if (position) {
+    // Se temos uma posição personalizada, aplicar diretamente via style para maior precisão
+    if (position.x.startsWith('left-[') && position.y.startsWith('top-[')) {
+      // Extrair valores numéricos das classes
+      const leftMatch = position.x.match(/left-\[(\d+)px\]/);
+      const topMatch = position.y.match(/top-\[(\d+)px\]/);
+      
+      if (leftMatch && topMatch) {
+        style = {
+          left: `${leftMatch[1]}px`,
+          top: `${topMatch[1]}px`,
+          right: 'auto',
+          bottom: 'auto'
+        };
+      }
+    } else {
+      // Usar classes Tailwind para posicionamento
+      positionClasses = `fixed ${position.x} ${position.y}`;
+    }
+  } else {
+    // Posição padrão
+    positionClasses = 'fixed bottom-4 right-4';
+  }
+
   return (
-    <div className="fixed bottom-4 right-4 z-50 bg-background border rounded-lg shadow-lg transition-all duration-300 w-[300px]">
-      <div className="flex items-center justify-between p-2 border-b">
-        <div className="flex items-center gap-2">
-          <FaSpotify className="text-[#1DB954] text-xl" />
-          <span className="font-medium">Spotify</span>
+    <div 
+      ref={playerRef}
+      className={`${positionClasses} z-50 bg-background border rounded-lg shadow-lg transition-all duration-300 w-[300px] ${isDragging ? 'cursor-grabbing' : ''}`}
+      style={{...style, ...(isDragging ? { position: 'fixed', margin: 0 } : {})}}
+    >
+      <div 
+        className={`flex items-center justify-between p-2 border-b handle ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        onMouseDown={handleMouseDown}
+      >
+        <div className="flex items-center gap-2 handle">
+          <FaSpotify className="text-[#1DB954] text-xl handle" />
+          <span className="font-medium cursor-grab handle">Spotify</span>
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -205,26 +228,15 @@ export default function PersistentSpotifyPlayer() {
       </div>
 
       <div className="p-2">
-        {playlistId ? (
-          <iframe
-            src={`https://open.spotify.com/embed/${contentType || 'playlist'}/${playlistId}?utm_source=generator`}
-            width="100%"
-            height={isCompact ? "80" : "352"}
-            frameBorder="0"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            className="rounded-md"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-[352] bg-slate-100 dark:bg-slate-800 rounded-md p-4">
-            <div className="text-center">
-              <FaSpotify className="text-[#1DB954] text-5xl mx-auto mb-4 animate-pulse" />
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                {isLoading ? "Carregando Spotify..." : "Adicione uma playlist do Spotify nas configurações"}
-              </p>
-            </div>
-          </div>
-        )}
+        <iframe
+          src={`https://open.spotify.com/embed/${contentType || 'playlist'}/${playlistId}?utm_source=generator`}
+          width="100%"
+          height={isCompact ? "80" : "352"}
+          frameBorder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"
+          className="rounded-md"
+        />
       </div>
     </div>
   );
