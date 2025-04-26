@@ -1,6 +1,36 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { updateUserSettings } from "@/lib/settings"
+import { updateUserSettings, getUserSettings } from "@/lib/settings"
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getSession()
+
+    if (!session) {
+      console.log("[API Settings] Tentativa de obter configurações sem sessão ativa");
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
+    try {
+      const settings = await getUserSettings(session.user.id)
+      console.log(`[API Settings] Configurações obtidas com sucesso para o usuário ${session.user.id}`);
+      
+      return NextResponse.json({ settings, success: true })
+    } catch (dbError: any) {
+      console.error("[API Settings] Erro ao obter configurações do banco:", dbError);
+      return NextResponse.json(
+        { message: "Database error: " + dbError.message, success: false }, 
+        { status: 500 }
+      )
+    }
+  } catch (error: any) {
+    console.error("[API Settings] Erro não tratado:", error);
+    return NextResponse.json(
+      { message: error.message || "Failed to get settings", success: false }, 
+      { status: 500 }
+    )
+  }
+}
 
 export async function PATCH(request: NextRequest) {
   try {

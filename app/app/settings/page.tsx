@@ -1,10 +1,18 @@
 import { requireAuth } from "@/lib/auth"
 import { SettingsForm } from "@/components/settings-form"
 import { getUserSettings } from "@/lib/settings"
+import { Suspense } from "react"
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
   const session = await requireAuth()
   const settings = await getUserSettings(session.user.id)
+  
+  // Obtém o valor do parâmetro 'tab' da URL ou usa 'general' como padrão
+  const defaultTab = typeof searchParams.tab === 'string' ? searchParams.tab : 'general'
 
   return (
     <div className="space-y-8">
@@ -13,7 +21,9 @@ export default async function SettingsPage() {
       </div>
 
       <div className="p-0 sm:p-4 md:p-6 -mx-4 sm:mx-0 bg-background rounded-lg shadow-sm">
-        <SettingsForm settings={settings} />
+        <Suspense fallback={<div>Loading...</div>}>
+          <SettingsForm settings={settings} defaultTab={defaultTab} />
+        </Suspense>
       </div>
     </div>
   )
