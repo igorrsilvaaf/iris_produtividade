@@ -17,6 +17,8 @@ const createTransporter = async () => {
     // Para ambiente de desenvolvimento, usamos o Ethereal (serviço de testes)
     const testAccount = await nodemailer.createTestAccount();
     
+    console.log(`[Email] Criando conta de teste Ethereal: ${testAccount.user}`);
+    
     return nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
@@ -27,16 +29,25 @@ const createTransporter = async () => {
       },
     });
   } else {
-    // Para produção, usamos as configurações do .env
-    // Você pode usar qualquer serviço de e-mail como SendGrid, Mailgun, Gmail, etc.
+    // Para produção, verificamos se as configurações de e-mail estão presentes
+    const host = process.env.EMAIL_SERVER_HOST;
+    const port = process.env.EMAIL_SERVER_PORT;
+    const user = process.env.EMAIL_SERVER_USER;
+    const pass = process.env.EMAIL_SERVER_PASSWORD;
+    
+    if (!host || !port || !user || !pass) {
+      console.error('[Email] Configurações de e-mail em produção incompletas:',
+        { host: !!host, port: !!port, user: !!user, pass: !!pass });
+      throw new Error('Email server configuration is incomplete');
+    }
+    
+    console.log(`[Email] Usando servidor SMTP: ${host}:${port} com usuário: ${user}`);
+    
     return nodemailer.createTransport({
-      host: process.env.EMAIL_SERVER_HOST,
-      port: Number(process.env.EMAIL_SERVER_PORT),
+      host,
+      port: Number(port),
       secure: process.env.EMAIL_SERVER_SECURE === 'true',
-      auth: {
-        user: process.env.EMAIL_SERVER_USER,
-        pass: process.env.EMAIL_SERVER_PASSWORD,
-      },
+      auth: { user, pass },
     });
   }
 };
@@ -46,6 +57,7 @@ export const sendEmail = async (options: EmailOptions) => {
   const { to, subject, html, from = process.env.EMAIL_FROM || 'noreply@todolist.com' } = options;
 
   try {
+    console.log(`[Email] Tentando enviar e-mail para: ${to} com assunto: ${subject}`);
     const transporter = await createTransporter();
     
     const info = await transporter.sendMail({
@@ -55,14 +67,16 @@ export const sendEmail = async (options: EmailOptions) => {
       html,
     });
 
+    console.log(`[Email] E-mail enviado com ID de mensagem: ${info.messageId}`);
+    
     if (isDevelopment) {
       // No ambiente de desenvolvimento, exibimos o URL de preview
-      console.log(`[Email] Mensagem enviada: ${info.messageId}`);
-      console.log(`[Email] URL de visualização: ${nodemailer.getTestMessageUrl(info)}`);
+      const previewUrl = nodemailer.getTestMessageUrl(info);
+      console.log(`[Email] URL de visualização: ${previewUrl}`);
       return {
         success: true,
         messageId: info.messageId,
-        previewUrl: nodemailer.getTestMessageUrl(info),
+        previewUrl,
       };
     }
 
@@ -72,7 +86,7 @@ export const sendEmail = async (options: EmailOptions) => {
     };
   } catch (error) {
     console.error('[Email] Erro ao enviar email:', error);
-    throw new Error('Failed to send email');
+    throw new Error(`Failed to send email: ${error.message}`);
   }
 };
 
