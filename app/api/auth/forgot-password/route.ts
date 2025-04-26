@@ -20,6 +20,18 @@ export async function POST(request: NextRequest) {
 
     console.log(`[ForgotPassword] Solicitação de recuperação de senha para: ${email}`);
 
+    // Verificar variáveis de ambiente necessárias
+    if (process.env.NODE_ENV === 'production') {
+      if (!process.env.EMAIL_SERVER_HOST || !process.env.EMAIL_SERVER_PORT || 
+          !process.env.EMAIL_SERVER_USER || !process.env.EMAIL_SERVER_PASSWORD) {
+        console.error('[ForgotPassword] Configuração de e-mail incompleta em produção');
+        return NextResponse.json(
+          { message: "Server configuration error" },
+          { status: 500 }
+        )
+      }
+    }
+    
     // Buscar o nome do usuário
     const users = await sql`SELECT name FROM users WHERE email = ${email}`;
     const userName = users.length > 0 ? users[0].name : 'Usuário';
@@ -52,7 +64,11 @@ export async function POST(request: NextRequest) {
           }
         } catch (emailError) {
           console.error(`[Recuperação de senha] Erro ao enviar email:`, emailError);
-          // Não propagamos o erro para evitar vazamento de informações
+          // Em produção, propagamos o erro para que o usuário saiba que houve um problema
+          if (process.env.NODE_ENV === 'production') {
+            throw emailError;
+          }
+          // Em desenvolvimento, continuamos sem propagar o erro
         }
       } else {
         console.log(`[Recuperação de senha] Nenhum token criado para ${email} (usuário provavelmente não existe)`);
@@ -67,8 +83,11 @@ export async function POST(request: NextRequest) {
         { status: 200 }
       )
     } catch (tokenError) {
-      console.error("[ForgotPassword] Erro ao criar token:", tokenError);
-      throw new Error("Error creating password reset token");
+      console.error("[ForgotPassword] Erro ao criar token ou enviar email:", tokenError);
+      return NextResponse.json(
+        { message: "Failed to process password reset request" },
+        { status: 500 }
+      )
     }
   } catch (error) {
     console.error("[ForgotPassword] Erro na solicitação:", error);

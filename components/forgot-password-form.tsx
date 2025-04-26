@@ -6,7 +6,7 @@ import Link from "next/link"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { Loader2, ArrowLeft } from "lucide-react"
+import { Loader2, ArrowLeft, Mail, AlertTriangle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -18,6 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 export function ForgotPasswordForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [submittedEmail, setSubmittedEmail] = useState("")
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
@@ -55,6 +56,7 @@ export function ForgotPasswordForm() {
         throw new Error(t(data.message) || t("Failed to process request"));
       }
 
+      setSubmittedEmail(values.email)
       setIsSubmitted(true)
       
       toast({
@@ -82,21 +84,25 @@ export function ForgotPasswordForm() {
     return (
       <div className="space-y-6">
         <Alert>
+          <Mail className="h-5 w-5 mr-2" />
           <AlertTitle>{t("Check your email")}</AlertTitle>
           <AlertDescription>
             {process.env.NODE_ENV !== 'production' 
-              ? t("In development mode, please check the server console for the email preview link. A test email has been generated and you can view it by clicking on the preview URL in the console.")
-              : t("We've sent you an email with instructions to reset your password. If you don't see it, check your spam folder.")}
+              ? "No modo de desenvolvimento, verifique o console do servidor para obter o link de visualização do email. Procure uma linha que diz 'LINK PARA VISUALIZAR O EMAIL:' e clique nessa URL para ver o email."
+              : t(`We've sent a password reset link to ${submittedEmail}. The email should arrive within a few minutes. If you don't see it, please check your spam or junk folder.`)}
           </AlertDescription>
         </Alert>
-        {process.env.NODE_ENV !== 'production' && (
-          <Alert className="bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300">
-            <AlertTitle>{t("Development Mode")}</AlertTitle>
+        
+        {process.env.NODE_ENV === 'production' && (
+          <Alert variant="warning" className="bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300">
+            <AlertTriangle className="h-5 w-5 mr-2" />
+            <AlertTitle>{t("Important")}</AlertTitle>
             <AlertDescription>
-              {t("In development, we use Ethereal Email for testing. Look for a line in the server console that says 'LINK PARA VISUALIZAR O EMAIL:' and click that URL to see the email.")}
+              {t("The password reset link will expire after 1 hour. If you don't receive the email, please verify that you entered the correct email address and check your spam folder before trying again.")}
             </AlertDescription>
           </Alert>
         )}
+        
         <div className="flex justify-center items-center gap-4">
           <Button variant="outline" asChild>
             <Link href="/login">
@@ -113,52 +119,44 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">{t("Forgot your password?")}</h2>
-        <p className="text-sm text-muted-foreground mt-2">
-          {t("Enter your email address and we'll send you a link to reset your password.")}
-        </p>
-      </div>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("Email")}</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder={t("Your email")} 
-                    {...field} 
-                    autoComplete="email"
-                    aria-required="true"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="flex justify-center items-center gap-4">
-            <Button variant="outline" asChild>
-              <Link href="/login">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t("Back to Login")}
-              </Link>
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Sending...")}
-                </>
-              ) : (
-                t("Send Reset Link")
-              )}
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("Email")}</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder={t("Your email")} 
+                  {...field} 
+                  autoComplete="email"
+                  aria-required="true"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Sending...")}
+            </>
+          ) : (
+            t("Send Reset Link")
+          )}
+        </Button>
+        <div className="text-center mt-4">
+          <Button variant="link" className="px-0 font-normal" asChild>
+            <Link href="/login">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("Back to Login")}
+            </Link>
+          </Button>
+        </div>
+      </form>
+    </Form>
   )
 } 

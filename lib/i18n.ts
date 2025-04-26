@@ -2156,6 +2156,35 @@ export const translations: Translations = {
     en: "Update",
     pt: "Atualizar"
   },
+  // Novas traduções para a funcionalidade de recuperação de senha
+  "Important": {
+    en: "Important",
+    pt: "Importante",
+  },
+  "The password reset link will expire after 1 hour. If you don't receive the email, please verify that you entered the correct email address and check your spam folder before trying again.": {
+    en: "The password reset link will expire after 1 hour. If you don't receive the email, please verify that you entered the correct email address and check your spam folder before trying again.",
+    pt: "O link de redefinição de senha expirará após 1 hora. Se você não receber o e-mail, verifique se inseriu o endereço de e-mail correto e verifique sua pasta de spam antes de tentar novamente.",
+  },
+  "We've sent a password reset link to ${submittedEmail}. The email should arrive within a few minutes. If you don't see it, please check your spam or junk folder.": {
+    en: "We've sent a password reset link to ${submittedEmail}. The email should arrive within a few minutes. If you don't see it, please check your spam or junk folder.",
+    pt: "Enviamos um link de redefinição de senha para ${submittedEmail}. O e-mail deve chegar em alguns minutos. Se você não o vir, verifique sua pasta de spam ou lixo eletrônico.",
+  },
+  "Email server configuration is incomplete": {
+    en: "Email server configuration is incomplete",
+    pt: "A configuração do servidor de e-mail está incompleta",
+  },
+  "Server configuration error": {
+    en: "Server configuration error",
+    pt: "Erro de configuração do servidor",
+  },
+  "Remember your password?": {
+    en: "Remember your password?",
+    pt: "Lembra da sua senha?",
+  },
+  "Enter your email to receive a password reset link": {
+    en: "Enter your email to receive a password reset link",
+    pt: "Digite seu e-mail para receber um link de redefinição de senha",
+  },
 }
 
 type LanguageState = {
