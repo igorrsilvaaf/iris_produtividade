@@ -21,6 +21,7 @@ import { useState } from "react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetFooter } from "@/components/ui/sheet"
 import { AppSidebar } from "@/components/app-sidebar"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
+import { useSpotifyStore } from "@/lib/stores/spotify-store"
 
 type AppHeaderUser = {
   id: number
@@ -38,6 +39,17 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
 
   const handleLogout = async () => {
     try {
+      // Resetar o store do Spotify para evitar que a playlist continue aparecendo após o logout
+      const spotifyStore = useSpotifyStore.getState();
+      spotifyStore.reset();
+      
+      // Limpar também direto no localStorage
+      try {
+        localStorage.removeItem('spotify-storage');
+      } catch (e) {
+        console.error("Erro ao limpar spotify-storage:", e);
+      }
+      
       await fetch("/api/auth/logout", { method: "POST" })
       toast({
         title: t("Logged out successfully"),

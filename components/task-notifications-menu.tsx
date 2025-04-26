@@ -133,19 +133,32 @@ export function TaskNotificationsMenu() {
   }, [open])
   
   useEffect(() => {
-    fetchTaskNotifications()
+    // Verificar inicialmente apenas se estivermos na página principal do app
+    // ou nas páginas onde as notificações são relevantes
+    const isRelevantPage = pathname?.includes('/app') || 
+                          pathname?.includes('/inbox') || 
+                          pathname?.includes('/today') ||
+                          pathname?.includes('/upcoming');
     
-    const interval = setInterval(() => {
-      fetchTaskNotifications()
-      if (!open) {
-        setViewed(false)
-      }
-    }, 5 * 60 * 1000)
-    
-    return () => {
-      clearInterval(interval)
+    if (isRelevantPage) {
+      fetchTaskNotifications();
+      
+      // Configurar intervalo apenas para páginas relevantes
+      const interval = setInterval(() => {
+        fetchTaskNotifications();
+        if (!open) {
+          setViewed(false);
+        }
+      }, 10 * 60 * 1000);
+      
+      return () => {
+        clearInterval(interval);
+      };
     }
-  }, [open])
+    
+    // Nas outras páginas, não configure nenhum intervalo
+    return undefined;
+  }, [pathname, open]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {

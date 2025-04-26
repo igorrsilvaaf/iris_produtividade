@@ -49,7 +49,12 @@ const formSchema = z.object({
   flip_clock_color: z.string().default("#ff5722"),
 })
 
-export function SettingsForm({ settings }: { settings: UserSettings }) {
+interface SettingsFormProps {
+  settings: UserSettings;
+  defaultTab?: string;
+}
+
+export function SettingsForm({ settings, defaultTab = "general" }: SettingsFormProps) {
   const router = useRouter()
   const { setTheme } = useTheme()
   const { toast } = useToast()
@@ -59,7 +64,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
   const [isSaved, setIsSaved] = useState(false)
   const { playlistId, setPlaylistId, setContentType, isEnabled, setIsEnabled } = useSpotifyStore()
   const [playlistUrl, setPlaylistUrl] = useState(settings.spotify_playlist_url || '')
-  const [activeTab, setActiveTab] = useState<string>("general")
+  const [activeTab, setActiveTab] = useState<string>(defaultTab)
 
   // Inicializar o playlistId na primeira carga se o Spotify estiver habilitado
   useEffect(() => {
@@ -328,7 +333,7 @@ export function SettingsForm({ settings }: { settings: UserSettings }) {
         </div>
       )}
       <Tabs 
-        defaultValue="general" 
+        defaultValue={defaultTab} 
         onValueChange={(value) => {
           setActiveTab(value);
           console.log("Aba ativa alterada para:", value);

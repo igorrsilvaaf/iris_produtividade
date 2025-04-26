@@ -25,3 +25,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# images
+/public/images
+/public/favicon.ico
+/public/apple-touch-icon.png
+/public/favicon-32x32.png
+/public/favicon-16x16.png
+/public/site.webmanifest
+/public/safari-pinned-tab.svg
+

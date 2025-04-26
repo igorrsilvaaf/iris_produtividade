@@ -43,7 +43,7 @@ export function NotificationsDropdown() {
 
     fetchNotifications()
 
-    const interval = setInterval(fetchNotifications, 30000)
+    const interval = setInterval(fetchNotifications, 2 * 60 * 1000)
     return () => clearInterval(interval)
   }, [])
 

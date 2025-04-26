@@ -33,6 +33,11 @@ export async function GET(request: NextRequest) {
           dueTodayTasks: [],
           upcomingTasks: []
         }
+      }, {
+        headers: {
+          // Permitir cache por 5 minutos
+          'Cache-Control': 'public, max-age=300, s-maxage=300'
+        }
       })
     }
 
@@ -52,6 +57,11 @@ export async function GET(request: NextRequest) {
         overdueTasks: taskNotifications.overdueTasks,
         dueTodayTasks: taskNotifications.dueTodayTasks,
         upcomingTasks: taskNotifications.upcomingTasks
+      }
+    }, {
+      headers: {
+        // Permitir cache por 5 minutos
+        'Cache-Control': 'public, max-age=300, s-maxage=300'
       }
     })
   } catch (error: any) {
