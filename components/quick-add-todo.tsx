@@ -73,7 +73,7 @@ export function QuickAddTodo() {
   }
   
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2" role="form">
       <Input
         type="text"
         placeholder={t("Add a new task...") || "Adicionar nova tarefa..."}

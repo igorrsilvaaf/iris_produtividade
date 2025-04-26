@@ -212,7 +212,7 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <CheckCircle2 className="text-green-500 h-5 w-5" />
+                <CheckCircle2 data-testid="check-icon" className="text-green-500 h-5 w-5" />
               </TooltipTrigger>
               <TooltipContent>
                 <p>{t ? t("Completed") : "Concluído"}</p>
