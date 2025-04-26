@@ -54,10 +54,8 @@ export default function SpotifyPlayerWrapper() {
       }
     }
     
+    // Verificação inicial ao montar o componente
     checkSpotifySettings();
-    
-    // Verificar periodicamente
-    const intervalId = setInterval(checkSpotifySettings, 3000);
     
     // Adicionar listener para evento de atualização de configurações
     const handleSettingsUpdate = () => {
@@ -68,7 +66,6 @@ export default function SpotifyPlayerWrapper() {
     window.addEventListener('settings-updated', handleSettingsUpdate);
     
     return () => {
-      clearInterval(intervalId);
       window.removeEventListener('settings-updated', handleSettingsUpdate);
     };
   }, [playlistId, setPlaylistId]);

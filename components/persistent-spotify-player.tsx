@@ -53,11 +53,6 @@ export default function PersistentSpotifyPlayer() {
     if (mounted) {
       fetchSettings();
       
-      // Verificar as configurações a cada 3 segundos para garantir que mudanças recentes sejam aplicadas
-      const intervalId = setInterval(() => {
-        fetchSettings();
-      }, 3000);
-      
       // Adicionar um listener para o evento customizado de atualização de configurações
       const handleSettingsUpdate = () => {
         console.log("PersistentPlayer: Detectada atualização de configurações");
@@ -67,7 +62,6 @@ export default function PersistentSpotifyPlayer() {
       window.addEventListener('settings-updated', handleSettingsUpdate);
       
       return () => {
-        clearInterval(intervalId);
         window.removeEventListener('settings-updated', handleSettingsUpdate);
       };
     }

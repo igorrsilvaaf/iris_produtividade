@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { LanguageProvider } from "@/components/language-provider";
 import { LoginContent } from "@/components/login-content";
+import { SpotifyCleanup } from "@/components/spotify-cleanup";
 
+// Este é um componente de servidor (Server Component)
 export default async function LoginPage() {
   const session = await getSession();
 
@@ -11,7 +13,7 @@ export default async function LoginPage() {
     redirect("/app");
   }
 
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
   const languageCookie = cookieStore.get("language-storage");
   let initialLanguage = "pt";
 
@@ -26,9 +28,12 @@ export default async function LoginPage() {
     }
   }
 
+  // Envolvemos o conteúdo no componente SpotifyCleanup que vai limpar os dados do Spotify no cliente
   return (
-    <LanguageProvider initialLanguage={initialLanguage as "pt" | "en"}>
-      <LoginContent />
-    </LanguageProvider>
+    <SpotifyCleanup>
+      <LanguageProvider initialLanguage={initialLanguage as "pt" | "en"}>
+        <LoginContent />
+      </LanguageProvider>
+    </SpotifyCleanup>
   );
 } 
