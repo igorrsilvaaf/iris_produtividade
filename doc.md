@@ -1,4 +1,4 @@
-# To-Do-Ist: Sistema de Gerenciamento de Tarefas
+# Íris produtividade: Sistema de Gerenciamento de Tarefas
 
 ## Índice
 
@@ -19,7 +19,7 @@
 
 ## Visão Geral
 
-To-Do-Ist é um sistema avançado de gerenciamento de tarefas desenvolvido com tecnologias modernas. O sistema permite aos usuários criar, organizar, priorizar e acompanhar tarefas em diferentes contextos, como hoje, caixa de entrada e projetos específicos.
+Íris produtividade é um sistema avançado de gerenciamento de tarefas desenvolvido com tecnologias modernas. O sistema permite aos usuários criar, organizar, priorizar e acompanhar tarefas em diferentes contextos, como hoje, caixa de entrada e projetos específicos.
 
 ### Principais Características
 
@@ -30,15 +30,18 @@ To-Do-Ist é um sistema avançado de gerenciamento de tarefas desenvolvido com t
 - Temporizador Pomodoro integrado
 - Suporte para múltiplos idiomas (Português e Inglês)
 - Temas claro e escuro
+- Visualização Kanban para gerenciamento de fluxo de trabalho
+- Integração com Spotify para reprodução de música durante sessões de trabalho
+- Sistema de notificações para tarefas próximas do vencimento
 
 ## Arquitetura do Sistema
 
-O To-Do-Ist segue uma arquitetura moderna baseada em componentes, utilizando o React com Next.js para renderização no servidor e cliente. O sistema é construído seguindo os princípios de design atômico e componentização.
+O Íris produtividade segue uma arquitetura moderna baseada em componentes, utilizando o React com Next.js para renderização no servidor e cliente. O sistema é construído seguindo os princípios de design atômico e componentização.
 
 ### Estrutura de Diretórios
 
 ```
-To-Do-Ist/
+Íris produtividade/
 ├── app/                # Rotas e páginas do Next.js App Router
 │   ├── api/            # API endpoints
 │   ├── app/            # Páginas do aplicativo autenticado
@@ -88,88 +91,309 @@ O sistema segue um padrão de fluxo de dados unidirecional:
 
 ## Componentes Principais
 
-### Componentes de UI
+### Componentes de Tarefas
 
-#### TaskList
-O `TaskList` é um componente fundamental que exibe uma lista de tarefas com funcionalidades de:
+#### Todo (`components/Todo.tsx`)
+Componente que representa uma tarefa individual na interface.
+
+**Características:**
+- Exibe título, descrição, prazo, prioridade e pontos da tarefa
+- Funcionalidades para marcar como concluída e excluir
+- Suporte a diferentes estados visuais (concluída/pendente)
+- Persistência de estado no localStorage
+- Integração com sistema de internacionalização
+- Tooltips informativos para melhorar a experiência do usuário
+
+**Propriedades:**
+```typescript
+interface TodoProps {
+  todo?: TodoType
+  onComplete?: (id: number) => void
+  onDelete?: (id: number) => void
+  onClick?: (todo: TodoType) => void
+}
+```
+
+#### TaskList (`components/task-list.tsx`)
+Componente que exibe uma lista de tarefas com funcionalidades avançadas.
+
+**Características:**
 - Ordenação por prioridade, título ou data de vencimento
-- Visualização de detalhes de tarefas
-- Marcação de tarefas como concluídas
-- Exclusão de tarefas
+- Filtros personalizáveis
+- Agrupamento por projeto ou etiqueta
+- Integração com a API para gerenciamento de tarefas
+- Suporte a animações e transições durante operações
+- Exibição de estatísticas sobre as tarefas listadas
 
-```typescript
-interface TaskListProps {
-  tasks: Todo[]
-}
-```
+#### TaskDetail (`components/task-detail.tsx`)
+Componente para visualização e edição detalhada de uma tarefa.
 
-#### TaskDetail
-O `TaskDetail` permite visualizar e editar detalhes de uma tarefa específica:
-- Modo de visualização (padrão)
-- Modo de edição (ativado pelo botão editar)
-- Edição de título, descrição, data de vencimento, prioridade, projeto
-- Gerenciamento de etiquetas
+**Características:**
+- Modo de visualização e edição
+- Formulário completo para edição de todos os atributos
+- Gerenciamento de etiquetas e projetos associados
+- Histórico de alterações
+- Upload e gerenciamento de anexos
+- Estimativa de tempo e pontuação de dificuldade
+- Comentários e anotações
 
-```typescript
-interface TaskDetailProps {
-  task: Todo
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}
-```
+#### AddTaskDialog (`components/add-task-dialog.tsx`)
+Diálogo para criação de novas tarefas com interface completa.
 
-#### PomodoroTimer
-Timer Pomodoro integrado com funcionalidades de:
-- Temporizadores configuráveis para trabalho e pausas
+**Características:**
+- Formulário intuitivo com validação
+- Seleção de projeto e etiquetas
+- Definição de prioridade e data de vencimento
+- Suporte a teclas de atalho
+- Anexos e recursos avançados
+
+#### EditTaskDialog (`components/edit-task-dialog.tsx`)
+Diálogo especializado para edição de tarefas existentes.
+
+**Características:**
+- Carregamento automático dos dados da tarefa
+- Validação em tempo real
+- Histórico de alterações
+- Gerenciamento avançado de atributos
+
+### Componentes de Visualização e Organização
+
+#### KanbanBoard (`components/kanban-board.tsx`)
+Implementação de quadro Kanban para gerenciamento visual de fluxo de trabalho.
+
+**Características:**
+- Colunas configuráveis (Backlog, Planejamento, Em Progresso, Validação, Concluído)
+- Drag-and-drop para mover tarefas entre colunas
+- Estatísticas por coluna
+- Filtros e ordenação avançados
+- Personalização visual por coluna
+- Animações suaves durante interações
+
+#### CalendarView (`components/calendar-view.tsx`)
+Visualização de tarefas em formato de calendário.
+
+**Características:**
+- Visualização mensal com navegação intuitiva
+- Indicadores visuais para tarefas por dia
+- Cores baseadas em prioridade
+- Criação rápida de tarefas para datas específicas
+- Resumo de tarefas por semana
+- Vista resumida e detalhada
+
+#### SearchTasks (`components/search-tasks.tsx`)
+Componente de busca avançada para encontrar tarefas específicas.
+
+**Características:**
+- Busca por texto, projeto, etiqueta, prioridade
+- Filtragem por período de tempo
+- Resultados em tempo real
+- Histórico de buscas recentes
+- Sugestões inteligentes durante a digitação
+
+### Componentes de Produtividade
+
+#### PomodoroTimer (`components/pomodoro-timer.tsx`)
+Timer Pomodoro para aplicação da técnica de gerenciamento de tempo.
+
+**Características:**
+- Temporizadores configuráveis para trabalho e pausa
 - Notificações sonoras e visuais
-- Persistência do estado entre navegações
+- Estatísticas de sessões
+- Personalização de tempos e sons
+- Persistência de configurações
+- Integração com reprodutor Spotify
+
+#### PersistentSpotifyPlayer (`components/persistent-spotify-player.tsx`)
+Reprodutor de música integrado para aumentar a produtividade.
+
+**Características:**
+- Autenticação com Spotify
+- Reprodução de playlists e músicas
+- Controles de reprodução (play, pause, skip)
+- Volume e configurações
+- Persistência durante navegação
+- Sugestões de playlists para produtividade
+
+### Componentes de Navegação e Layout
+
+#### AppHeader (`components/app-header.tsx`)
+Cabeçalho principal da aplicação.
+
+**Características:**
+- Menu de navegação principal
+- Busca rápida de tarefas
+- Notificações e alertas
+- Acesso a configurações
+- Perfil do usuário
+- Adaptação responsiva para diferentes telas
+
+#### AppSidebar (`components/app-sidebar.tsx`)
+Barra lateral de navegação.
+
+**Características:**
+- Navegação por seções (Hoje, Caixa de Entrada, Projetos)
+- Lista de projetos com favoritos
+- Etiquetas disponíveis
+- Acesso rápido a funcionalidades
+- Expansão/retração para diferentes tamanhos de tela
+- Indicadores visuais para notificações
+
+#### RightColumn (`components/right-column.tsx`)
+Coluna lateral direita com informações contextuais.
+
+**Características:**
+- Detalhes de tarefas selecionadas
+- Sugestões e dicas
+- Estatísticas rápidas
+- Widgets personalizáveis
+- Adaptação a diferentes tamanhos de tela
+
+### Componentes de Autenticação
+
+#### LoginForm (`components/login-form.tsx`)
+Formulário de login para autenticação de usuários.
+
+**Características:**
+- Validação de campos
+- Integração com Auth.js
+- Suporte a login social
+- Recuperação de senha
+- Persistência de sessão
+- Proteção contra tentativas excessivas
+
+#### RegisterForm (`components/register-form.tsx`)
+Formulário para registro de novos usuários.
+
+**Características:**
+- Validação avançada de dados
+- Verificação de disponibilidade de email
+- Termos e condições
+- Personalização inicial de configurações
+- Criação de projetos e tarefas iniciais
+
+### Componentes de Configuração
+
+#### SettingsForm (`components/settings-form.tsx`)
+Formulário completo para configurações do sistema.
+
+**Características:**
+- Personalização da interface
+- Preferências de notificações
+- Configurações de idioma
+- Ajustes do temporizador Pomodoro
+- Integrações com serviços externos
+- Backup e restauração de dados
+- Preferências de visualização de tarefas
+
+#### BackupRestore (`components/backup-restore.tsx`)
+Componente para gerenciamento de backup e restauração de dados.
+
+**Características:**
+- Exportação de dados em formato JSON
+- Importação de backups
+- Verificação de integridade
+- Agendamento de backups automáticos
+- Restauração seletiva de dados
+
+### Componentes de Integração
+
+#### LanguageProvider (`components/language-provider.tsx`)
+Provedor de contexto para gerenciamento de idiomas.
+
+**Características:**
+- Troca dinâmica de idiomas
+- Detecção automática de preferências
+- Persistência de configurações
+- Suporte a múltiplos idiomas (PT, EN)
+
+#### ThemeProvider (`components/theme-provider.tsx`)
+Provedor para gerenciamento de temas visuais.
+
+**Características:**
+- Temas claro e escuro
+- Detecção de preferências do sistema
+- Troca dinâmica sem recarregamento
+- Personalização de cores e estilos
+
+#### ModeToggle (`components/mode-toggle.tsx`)
+Alternador de modo claro/escuro.
+
+**Características:**
+- Interface intuitiva para troca de temas
+- Animações durante a transição
+- Persistência de preferências
+- Adaptação a diferentes posições na UI
+
+### Serviços e Utilitários
+
+#### Lib/todos.ts
+Biblioteca central para gerenciamento de tarefas.
+
+**Funções Principais:**
+- `getTodayTasks`: Obtém tarefas com vencimento para hoje
+- `getInboxTasks`: Obtém todas as tarefas na caixa de entrada
+- `getCompletedTasks`: Obtém tarefas concluídas
+- `createTask`: Cria nova tarefa com todos os atributos
+- `updateTask`: Atualiza tarefa existente
+- `toggleTaskCompletion`: Alterna estado de conclusão
+- `deleteTask`: Remove tarefa
+- `getTaskById`: Obtém tarefa por ID
+- `getTaskProject`: Obtém projeto associado a uma tarefa
+- `setTaskProject`: Define projeto para uma tarefa
+- `getUpcomingTasks`: Obtém tarefas futuras
+- `searchTasks`: Busca tarefas por texto
+- `getTasksForNotifications`: Obtém tarefas para notificações
+
+#### Lib/projects.ts
+Gerenciamento de projetos no sistema.
+
+**Funções Principais:**
+- `getProjects`: Lista todos os projetos
+- `createProject`: Cria novo projeto
+- `updateProject`: Atualiza projeto existente
+- `deleteProject`: Remove projeto
+- `getProjectTasks`: Obtém tarefas de um projeto específico
+- `toggleProjectFavorite`: Alterna status de favorito
+
+#### Lib/labels.ts
+Gerenciamento de etiquetas para categorização.
+
+**Funções Principais:**
+- `getLabels`: Lista todas as etiquetas
+- `createLabel`: Cria nova etiqueta
+- `updateLabel`: Atualiza etiqueta existente
+- `deleteLabel`: Remove etiqueta
+- `getTaskLabels`: Obtém etiquetas de uma tarefa
+- `setTaskLabels`: Define etiquetas para uma tarefa
+
+#### Lib/i18n.ts
+Sistema de internacionalização.
+
+**Características:**
+- Traduções para Português e Inglês
+- Suporte a pluralização
+- Formatação de datas e números
+- Detecção automática de idioma
+- Hook personalizado para uso em componentes
+
+#### Lib/pomodoro-context.tsx
+Contexto para gerenciamento do timer Pomodoro.
+
+**Características:**
+- Estado global para temporizador
 - Configurações personalizáveis
+- Persistência de estado
+- Notificações integradas
+- Estatísticas de sessões
 
-#### CalendarView
-Visualização de tarefas em formato de calendário mensal:
-- Navegação entre meses
-- Exibição de tarefas por dia
-- Identificação visual de prioridades
-- Adição rápida de tarefas para datas específicas
+#### Lib/audio-utils.ts e Lib/audio.ts
+Utilitários para gerenciamento de áudio no sistema.
 
-### Componentes Funcionais
-
-#### LanguageProvider
-Gerencia o estado e troca de idiomas no aplicativo.
-
-#### ThemeProvider
-Controla o tema (claro/escuro) da aplicação.
-
-#### I18nProvider
-Provedor de contexto para internacionalização.
-
-### Lógica de Negócios
-
-#### lib/todos.ts
-Funções para interação com o banco de dados relacionadas a tarefas:
-- `getTodayTasks`
-- `getInboxTasks`
-- `createTask`
-- `updateTask`
-- `deleteTask`
-- `toggleTaskCompletion`
-- etc.
-
-#### lib/projects.ts
-Gerenciamento de projetos:
-- `getProjects`
-- `createProject`
-- `updateProject`
-- `deleteProject`
-- `getProjectTasks`
-
-#### lib/labels.ts
-Gerenciamento de etiquetas:
-- `getLabels`
-- `createLabel`
-- `updateLabel`
-- `deleteLabel`
-- `getTaskLabels`
+**Características:**
+- Reprodução de notificações sonoras
+- Controle de volume
+- Carregamento e gerenciamento de recursos de áudio
+- Integração com temporizador Pomodoro
 
 ## Modelos de Dados
 
@@ -186,6 +410,10 @@ type Todo = {
   updated_at: string | null
   project_name?: string
   project_color?: string
+  kanban_column?: "backlog" | "planning" | "inProgress" | "validation" | "completed" | null
+  points?: number  // 1: Muito Fácil, 2: Fácil, 3: Médio, 4: Difícil, 5: Muito Difícil
+  attachments?: any[]
+  estimated_time?: number | null
 }
 ```
 
@@ -219,6 +447,36 @@ type User = {
   email: string
   name: string | null
   created_at: string
+  settings?: UserSettings
+}
+```
+
+### UserSettings (Configurações do Usuário)
+```typescript
+type UserSettings = {
+  theme: "light" | "dark" | "system"
+  language: "pt" | "en"
+  pomodoro: {
+    workTime: number
+    shortBreakTime: number
+    longBreakTime: number
+    longBreakInterval: number
+    autoStartBreaks: boolean
+    autoStartPomodoros: boolean
+    alarmSound: string
+    alarmVolume: number
+  }
+  notifications: {
+    browser: boolean
+    email: boolean
+    dueDateReminder: boolean
+    reminderTime: number  // horas antes do vencimento
+  }
+  spotify: {
+    enabled: boolean
+    showPlayer: boolean
+    defaultPlaylist: string | null
+  }
 }
 ```
 
@@ -234,6 +492,10 @@ Os usuários podem criar tarefas com:
 - Nível de prioridade (Grave, Alta, Média, Baixa)
 - Projeto associado (opcional)
 - Etiquetas (opcional)
+- Pontuação de dificuldade (1-5)
+- Tempo estimado de conclusão
+- Anexos (arquivos, links)
+- Posição no quadro Kanban
 
 #### Visualização de Tarefas
 Diferentes visualizações são fornecidas:
@@ -244,900 +506,294 @@ Diferentes visualizações são fornecidas:
 - **Projeto**: Tarefas agrupadas por projeto
 - **Etiqueta**: Tarefas com uma etiqueta específica
 - **Calendário**: Visualização temporal
+- **Kanban**: Visualização de fluxo de trabalho
 
 #### Edição de Tarefas
 A edição de tarefas é realizada através do modal de detalhes, com dois modos:
 - **Modo de Visualização**: Permite ver os detalhes da tarefa
-- **Modo de Edição**: Permite modificar todos os campos
+- **Modo de Edição**: Permite modificar todos os atributos da tarefa
 
-#### Ordenação de Tarefas
-As tarefas podem ser ordenadas por:
-- **Prioridade**: Grave → Alta → Média → Baixa
-- **Título**: Ordem alfabética
-- **Data de vencimento**: Do mais próximo ao mais distante
+#### Gerenciamento de Projetos
+Suporte completo para organização por projetos:
+- Criação de projetos com cores personalizadas
+- Marcação de projetos como favoritos
+- Visualização de tarefas por projeto
+- Estatísticas de progresso por projeto
+- Filtros e ordenação dentro de projetos
 
-### Projetos e Etiquetas
+#### Sistema de Etiquetas
+Categorização flexível através de etiquetas:
+- Criação de etiquetas com cores personalizadas
+- Atribuição de múltiplas etiquetas a tarefas
+- Filtragem de tarefas por etiqueta
+- Visualização de tarefas por etiqueta
 
-Os usuários podem organizar tarefas usando:
-- **Projetos**: Agrupamentos principais com cores personalizadas
-- **Etiquetas**: Categorias transversais que podem ser aplicadas a qualquer tarefa
+### Produtividade
 
-### Temporizador Pomodoro
-
-Um temporizador integrado que segue a técnica Pomodoro:
-- Períodos de trabalho configuráveis (padrão: 25 minutos)
-- Pausas curtas (padrão: 5 minutos)
-- Pausas longas após um número definido de ciclos (padrão: 15 minutos após 4 ciclos)
+#### Temporizador Pomodoro
+Ferramenta completa para aplicação da técnica Pomodoro:
+- Temporizadores configuráveis para trabalho e pausas
 - Notificações sonoras e visuais
-- Persistência do estado entre navegações
+- Estatísticas de sessões
+- Integração com tarefas
+- Personalização completa de tempos e comportamentos
 
-### Calendário
+#### Integração com Spotify
+Reprodução de música para aumentar a produtividade:
+- Login com conta Spotify
+- Reprodução de playlists de foco
+- Controles de reprodução integrados
+- Player persistente durante navegação
+- Sugestões personalizadas
 
-Visualização de tarefas em formato de calendário:
-- Navegação mensal
-- Indicadores visuais de prioridade
-- Adição rápida de tarefas
-- Detalhes de tarefas acessíveis por clique
+### Interface e Usabilidade
+
+#### Temas
+Suporte a diferentes temas visuais:
+- Tema claro para uso diurno
+- Tema escuro para redução de fadiga visual
+- Detecção automática de preferências do sistema
+- Personalização de cores e contrastes
+
+#### Responsividade
+Adaptação a diferentes dispositivos e tamanhos de tela:
+- Layout responsivo para desktop, tablet e mobile
+- Reorganização inteligente de componentes
+- Comportamentos otimizados para touch e mouse
+- Mudanças dinâmicas durante redimensionamento
+
+#### Atalhos de Teclado
+Suporte a atalhos para usuários avançados:
+- Navegação entre seções
+- Criação rápida de tarefas
+- Edição e gerenciamento
+- Customização de atalhos
+
+### Integrações
+
+#### Notificações
+Sistema completo de alertas e lembretes:
+- Notificações no navegador
+- Lembretes próximos ao vencimento
+- Resumo diário de tarefas
+- Configurações personalizáveis
+
+#### Backup e Restauração
+Proteção contra perda de dados:
+- Exportação completa de dados
+- Importação de backups
+- Verificação de integridade
+- Programação de backups automáticos
 
 ## Internacionalização (i18n)
 
-O sistema suporta múltiplos idiomas, atualmente:
-- Português (pt)
-- Inglês (en)
+O Íris produtividade oferece suporte completo a múltiplos idiomas, atualmente:
+- Português (Brasil)
+- Inglês
 
-### Implementação
+O sistema de internacionalização gerencia:
+- Traduções de textos da interface
+- Formatação de datas adaptada ao idioma
+- Formatação de números e valores
+- Pluralização correta por idioma
 
-A internacionalização é gerenciada através de:
-1. `lib/i18n.ts`: Definição das traduções
-2. `components/language-provider.tsx`: Provedor de contexto para idioma
-3. O hook `useTranslation()` para acesso às funções de tradução
-
-### Exemplo de Uso
-
-```tsx
-const { t, language, setLanguage } = useTranslation();
-
-// Usando tradução
-<Button>{t("save")}</Button>
-
-// Mudando o idioma
-<Button onClick={() => setLanguage("en")}>English</Button>
-```
+A estrutura utiliza:
+- Arquivo centralizado de traduções (`lib/i18n.ts`)
+- Hook personalizado para acesso fácil em componentes
+- Detecção automática de preferência do usuário
+- Persistência de escolha de idioma
 
 ## Fluxos de Trabalho
 
-### Fluxo de Adição de Tarefa
-1. Usuário clica em "Adicionar Tarefa"
-2. Preenche dados no modal de adição
-3. Submete o formulário
-4. API cria a tarefa no banco de dados
-5. UI atualiza mostrando a nova tarefa
+### Fluxo de Criação de Tarefa
+1. Usuário clica no botão de criação ou usa atalho
+2. O componente `AddTaskDialog` é exibido
+3. Usuário preenche detalhes da tarefa
+4. Validação em tempo real é realizada
+5. Ao confirmar, a função `createTask` é chamada
+6. A API processa a solicitação e adiciona ao banco
+7. Feedback visual é fornecido ao usuário
+8. A lista de tarefas é atualizada para mostrar o novo item
 
 ### Fluxo de Edição de Tarefa
-1. Usuário clica em uma tarefa para abrir detalhes
-2. Visualiza detalhes no modo de visualização
-3. Clica em "Editar" para entrar no modo de edição
-4. Modifica os campos desejados
-5. Clica em "Salvar" para persistir as alterações
+1. Usuário seleciona uma tarefa existente
+2. O componente `TaskDetail` exibe os detalhes
+3. Usuário clica em "Editar" para entrar no modo de edição
+4. Modificações são realizadas nos campos
+5. Ao salvar, a função `updateTask` é chamada
+6. A API atualiza os dados no banco
+7. Feedback visual confirma a operação
+8. As visualizações são atualizadas com os novos dados
 
-### Fluxo de Temporizador Pomodoro
-1. Usuário configura duração dos períodos (opcional)
-2. Inicia o temporizador de trabalho
-3. Após o término, recebe notificação
-4. Inicia período de pausa
-5. O ciclo continua, com pausas longas após o número definido de ciclos
+### Fluxo de Trabalho Kanban
+1. Usuário acessa a visualização Kanban
+2. O componente `KanbanBoard` carrega as tarefas por coluna
+3. Tarefas podem ser arrastadas entre colunas
+4. Ao soltar, a função `updateTask` atualiza o `kanban_column`
+5. Transições visuais indicam o progresso das tarefas
+6. Estatísticas são atualizadas por coluna
+
+### Fluxo do Temporizador Pomodoro
+1. Usuário inicia sessão Pomodoro
+2. Temporizador começa contagem regressiva
+3. Notificações são exibidas ao concluir períodos
+4. Sessões são registradas para estatísticas
+5. Integração opcional com tarefas ativas
 
 ## API Endpoints
 
+O sistema utiliza API Routes do Next.js para gerenciar operações no backend:
+
 ### Tarefas
-- `GET /api/tasks/today`: Obtém tarefas do dia
-- `GET /api/tasks/upcoming`: Obtém tarefas futuras
-- `GET /api/tasks/[id]`: Obtém detalhes de uma tarefa
-- `POST /api/tasks`: Cria uma nova tarefa
-- `PATCH /api/tasks/[id]`: Atualiza uma tarefa
-- `DELETE /api/tasks/[id]`: Remove uma tarefa
-- `PATCH /api/tasks/[id]/toggle`: Alterna o status de conclusão
+- `GET /api/tasks` - Lista todas as tarefas
+- `POST /api/tasks` - Cria nova tarefa
+- `GET /api/tasks/today` - Obtém tarefas de hoje
+- `GET /api/tasks/inbox` - Obtém tarefas da caixa de entrada
+- `GET /api/tasks/completed` - Obtém tarefas concluídas
+- `GET /api/tasks/:id` - Obtém tarefa específica
+- `PUT /api/tasks/:id` - Atualiza tarefa
+- `DELETE /api/tasks/:id` - Remove tarefa
+- `PATCH /api/tasks/:id/toggle` - Alterna conclusão
 
 ### Projetos
-- `GET /api/projects`: Lista todos os projetos
-- `GET /api/projects/[id]`: Obtém detalhes de um projeto
-- `POST /api/projects`: Cria um novo projeto
-- `PATCH /api/projects/[id]`: Atualiza um projeto
-- `DELETE /api/projects/[id]`: Remove um projeto
+- `GET /api/projects` - Lista todos os projetos
+- `POST /api/projects` - Cria novo projeto
+- `GET /api/projects/:id` - Obtém projeto específico
+- `PUT /api/projects/:id` - Atualiza projeto
+- `DELETE /api/projects/:id` - Remove projeto
+- `GET /api/projects/:id/tasks` - Obtém tarefas de um projeto
 
 ### Etiquetas
-- `GET /api/labels`: Lista todas as etiquetas
-- `GET /api/labels/[id]`: Obtém detalhes de uma etiqueta
-- `POST /api/labels`: Cria uma nova etiqueta
-- `PATCH /api/labels/[id]`: Atualiza uma etiqueta
-- `DELETE /api/labels/[id]`: Remove uma etiqueta
+- `GET /api/labels` - Lista todas as etiquetas
+- `POST /api/labels` - Cria nova etiqueta
+- `GET /api/labels/:id` - Obtém etiqueta específica
+- `PUT /api/labels/:id` - Atualiza etiqueta
+- `DELETE /api/labels/:id` - Remove etiqueta
+- `GET /api/labels/:id/tasks` - Obtém tarefas com etiqueta
 
-### Usuários
-- `POST /api/auth/register`: Registra um novo usuário
-- `POST /api/auth/login`: Autentica um usuário
+### Autenticação
+- `POST /api/auth/register` - Registra novo usuário
+- `POST /api/auth/login` - Autentica usuário
+- `POST /api/auth/logout` - Encerra sessão
+- `POST /api/auth/reset-password` - Solicita redefinição de senha
+
+### Usuário
+- `GET /api/user/profile` - Obtém perfil do usuário
+- `PUT /api/user/profile` - Atualiza perfil
+- `GET /api/user/settings` - Obtém configurações
+- `PUT /api/user/settings` - Atualiza configurações
+
+### Integrações
+- `GET /api/spotify/auth` - Autentica com Spotify
+- `GET /api/spotify/callback` - Callback de autenticação
+- `GET /api/spotify/playlists` - Lista playlists disponíveis
+- `POST /api/spotify/play` - Inicia reprodução
+
+### Backup
+- `GET /api/backup/export` - Exporta dados do usuário
+- `POST /api/backup/import` - Importa dados de backup
 
 ## APIs e Integrações Detalhadas
 
-Esta seção fornece informações detalhadas sobre todas as APIs disponíveis no sistema, incluindo parâmetros, respostas, códigos de erro e exemplos de uso. A documentação cobre tanto as APIs internas quanto as integrações com serviços externos.
+### Banco de Dados PostgreSQL (via Neon)
+- Armazenamento principal de dados
+- Modelo relacional para tarefas, projetos, etiquetas
+- Conexão serverless para escalabilidade
 
-### Estrutura das Respostas da API
+### Spotify API
+- Autenticação OAuth
+- Busca e reprodução de playlists
+- Controles de reprodução
+- Recomendações personalizadas
 
-Todas as APIs do sistema seguem uma estrutura de resposta padronizada:
-
-#### Resposta de Sucesso
-```json
-{
-  "status": "success",
-  "data": { /* Dados retornados */ }
-}
-```
-
-#### Resposta de Erro
-```json
-{
-  "status": "error",
-  "message": "Descrição do erro",
-  "code": "ERRO_CODE"
-}
-```
-
-### Códigos de Status HTTP
-
-- `200 OK`: Requisição bem-sucedida
-- `201 Created`: Recurso criado com sucesso
-- `400 Bad Request`: Parâmetros inválidos ou ausentes
-- `401 Unauthorized`: Autenticação necessária
-- `403 Forbidden`: Sem permissão para acessar o recurso
-- `404 Not Found`: Recurso não encontrado
-- `500 Internal Server Error`: Erro interno do servidor
-
-### APIs de Autenticação
-
-#### Registro de Usuário
-- **Endpoint**: `POST /api/auth/register`
-- **Descrição**: Registra um novo usuário no sistema
-- **Parâmetros de Requisição**:
-  ```json
-  {
-    "email": "usuario@exemplo.com",
-    "password": "senha123",
-    "name": "Nome do Usuário"
-  }
-  ```
-- **Resposta de Sucesso** (201 Created):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "id": 123,
-      "email": "usuario@exemplo.com",
-      "name": "Nome do Usuário",
-      "created_at": "2023-01-01T00:00:00Z"
-    }
-  }
-  ```
-- **Erros Possíveis**:
-  - `400 Bad Request`: Email inválido ou senha muito curta
-  - `409 Conflict`: Email já registrado
-
-#### Login de Usuário
-- **Endpoint**: `POST /api/auth/login`
-- **Descrição**: Autentica um usuário existente
-- **Parâmetros de Requisição**:
-  ```json
-  {
-    "email": "usuario@exemplo.com",
-    "password": "senha123"
-  }
-  ```
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "id": 123,
-      "email": "usuario@exemplo.com",
-      "name": "Nome do Usuário",
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    }
-  }
-  ```
-- **Erros Possíveis**:
-  - `400 Bad Request`: Parâmetros inválidos
-  - `401 Unauthorized`: Credenciais inválidas
-
-#### Logout
-- **Endpoint**: `POST /api/auth/logout`
-- **Descrição**: Finaliza a sessão do usuário
-- **Parâmetros de Requisição**: Nenhum
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "message": "Logout realizado com sucesso"
-    }
-  }
-  ```
-
-### APIs de Tarefas
-
-#### Listar Tarefas de Hoje
-- **Endpoint**: `GET /api/tasks/today`
-- **Descrição**: Retorna todas as tarefas com vencimento no dia atual
-- **Parâmetros de Query**:
-  - `sort`: Campo para ordenação (opcional, default: `priority`)
-  - `order`: Direção da ordenação (`asc` ou `desc`, opcional, default: `asc`)
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "tasks": [
-        {
-          "id": 1,
-          "title": "Concluir relatório",
-          "description": "Finalizar relatório de vendas do mês",
-          "due_date": "2023-05-20T23:59:59Z",
-          "priority": 2,
-          "completed": false,
-          "created_at": "2023-05-19T14:30:00Z",
-          "updated_at": null,
-          "project_name": "Marketing",
-          "project_color": "#ff5722"
-        },
-        // ... outras tarefas
-      ]
-    }
-  }
-  ```
-
-#### Listar Tarefas da Caixa de Entrada
-- **Endpoint**: `GET /api/tasks/inbox`
-- **Descrição**: Retorna todas as tarefas não concluídas
-- **Parâmetros de Query**:
-  - `sort`: Campo para ordenação (opcional, default: `created_at`)
-  - `order`: Direção da ordenação (`asc` ou `desc`, opcional, default: `desc`)
-  - `page`: Número da página (opcional, default: 1)
-  - `limit`: Itens por página (opcional, default: 50)
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "tasks": [
-        // Array de tarefas (mesmo formato do endpoint anterior)
-      ],
-      "pagination": {
-        "total": 120,
-        "page": 1,
-        "limit": 50,
-        "pages": 3
-      }
-    }
-  }
-  ```
-
-#### Listar Tarefas Próximas
-- **Endpoint**: `GET /api/tasks/upcoming`
-- **Descrição**: Retorna tarefas com vencimento futuro
-- **Parâmetros de Query**: Mesmos do endpoint de inbox
-- **Resposta de Sucesso**: Mesmo formato do endpoint de inbox
-
-#### Listar Tarefas Concluídas
-- **Endpoint**: `GET /api/tasks/completed`
-- **Descrição**: Retorna tarefas já concluídas
-- **Parâmetros de Query**: 
-  - Mesmos do endpoint de inbox
-  - `since`: Data de início para filtro (opcional, formato ISO 8601)
-- **Resposta de Sucesso**: Mesmo formato do endpoint de inbox
-
-#### Obter Detalhes de uma Tarefa
-- **Endpoint**: `GET /api/tasks/[id]`
-- **Descrição**: Retorna detalhes de uma tarefa específica
-- **Parâmetros de URL**: 
-  - `id`: ID da tarefa
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "task": {
-        "id": 1,
-        "title": "Concluir relatório",
-        "description": "Finalizar relatório de vendas do mês",
-        "due_date": "2023-05-20T23:59:59Z",
-        "priority": 2,
-        "completed": false,
-        "created_at": "2023-05-19T14:30:00Z",
-        "updated_at": null,
-        "project_name": "Marketing",
-        "project_color": "#ff5722",
-        "labels": [
-          {
-            "id": 3,
-            "name": "Importante",
-            "color": "#e91e63"
-          }
-        ]
-      }
-    }
-  }
-  ```
-- **Erros Possíveis**:
-  - `404 Not Found`: Tarefa não encontrada
-
-#### Criar Tarefa
-- **Endpoint**: `POST /api/tasks`
-- **Descrição**: Cria uma nova tarefa
-- **Parâmetros de Requisição**:
-  ```json
-  {
-    "title": "Nova tarefa",
-    "description": "Descrição da tarefa",
-    "dueDate": "2023-05-25T23:59:59Z",
-    "priority": 3,
-    "projectId": 2,
-    "labelIds": [1, 3]
-  }
-  ```
-- **Resposta de Sucesso** (201 Created):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "task": {
-        "id": 42,
-        "title": "Nova tarefa",
-        "description": "Descrição da tarefa",
-        "due_date": "2023-05-25T23:59:59Z",
-        "priority": 3,
-        "completed": false,
-        "created_at": "2023-05-20T15:45:30Z",
-        "updated_at": null
-      }
-    }
-  }
-  ```
-- **Observações de Implementação**:
-  - A data de vencimento (`dueDate`) é normalizada para 23:59:59 do dia especificado
-  - Prioridades válidas: 1 (Grave), 2 (Alta), 3 (Média), 4 (Baixa)
-
-#### Atualizar Tarefa
-- **Endpoint**: `PATCH /api/tasks/[id]`
-- **Descrição**: Atualiza uma tarefa existente
-- **Parâmetros de URL**: 
-  - `id`: ID da tarefa
-- **Parâmetros de Requisição** (todos opcionais):
-  ```json
-  {
-    "title": "Título atualizado",
-    "description": "Nova descrição",
-    "dueDate": "2023-05-26T23:59:59Z",
-    "priority": 2,
-    "completed": true
-  }
-  ```
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "task": {
-        // Dados da tarefa atualizada
-      }
-    }
-  }
-  ```
-- **Erros Possíveis**:
-  - `404 Not Found`: Tarefa não encontrada
-  - `400 Bad Request`: Dados inválidos
-
-#### Alternar Status de Conclusão
-- **Endpoint**: `PATCH /api/tasks/[id]/toggle`
-- **Descrição**: Alterna o status de conclusão de uma tarefa (concluída ↔ não concluída)
-- **Parâmetros de URL**: 
-  - `id`: ID da tarefa
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "task": {
-        // Dados da tarefa com status atualizado
-        "completed": true,
-        "updated_at": "2023-05-20T16:30:45Z"
-      }
-    }
-  }
-  ```
-
-#### Excluir Tarefa
-- **Endpoint**: `DELETE /api/tasks/[id]`
-- **Descrição**: Remove permanentemente uma tarefa
-- **Parâmetros de URL**: 
-  - `id`: ID da tarefa
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "message": "Tarefa excluída com sucesso"
-    }
-  }
-  ```
-
-### APIs de Projetos
-
-#### Listar Projetos
-- **Endpoint**: `GET /api/projects`
-- **Descrição**: Retorna todos os projetos do usuário
-- **Parâmetros de Query**:
-  - `includeTaskCount`: Inclui contagem de tarefas (opcional, default: `false`)
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "projects": [
-        {
-          "id": 1,
-          "name": "Marketing",
-          "color": "#ff5722",
-          "is_favorite": true,
-          "created_at": "2023-04-10T09:15:00Z",
-          "task_count": 12
-        },
-        // ... outros projetos
-      ]
-    }
-  }
-  ```
-
-#### Obter Detalhes de um Projeto
-- **Endpoint**: `GET /api/projects/[id]`
-- **Descrição**: Retorna detalhes de um projeto específico
-- **Parâmetros de URL**: 
-  - `id`: ID do projeto
-- **Parâmetros de Query**:
-  - `includeTasks`: Inclui tarefas do projeto (opcional, default: `false`)
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "project": {
-        "id": 1,
-        "name": "Marketing",
-        "color": "#ff5722",
-        "is_favorite": true,
-        "created_at": "2023-04-10T09:15:00Z",
-        "tasks": [
-          // Array de tarefas se includeTasks=true
-        ]
-      }
-    }
-  }
-  ```
-
-#### Criar Projeto
-- **Endpoint**: `POST /api/projects`
-- **Descrição**: Cria um novo projeto
-- **Parâmetros de Requisição**:
-  ```json
-  {
-    "name": "Novo Projeto",
-    "color": "#4caf50",
-    "is_favorite": false
-  }
-  ```
-- **Resposta de Sucesso** (201 Created):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "project": {
-        "id": 5,
-        "name": "Novo Projeto",
-        "color": "#4caf50",
-        "is_favorite": false,
-        "created_at": "2023-05-20T17:00:00Z"
-      }
-    }
-  }
-  ```
-
-#### Atualizar Projeto
-- **Endpoint**: `PATCH /api/projects/[id]`
-- **Descrição**: Atualiza um projeto existente
-- **Parâmetros de URL**: 
-  - `id`: ID do projeto
-- **Parâmetros de Requisição** (todos opcionais):
-  ```json
-  {
-    "name": "Nome Atualizado",
-    "color": "#2196f3",
-    "is_favorite": true
-  }
-  ```
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "project": {
-        // Dados do projeto atualizado
-      }
-    }
-  }
-  ```
-
-#### Excluir Projeto
-- **Endpoint**: `DELETE /api/projects/[id]`
-- **Descrição**: Remove um projeto e opcionalmente suas tarefas
-- **Parâmetros de URL**: 
-  - `id`: ID do projeto
-- **Parâmetros de Query**:
-  - `deleteTasks`: Se deve excluir as tarefas (opcional, default: `false`)
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "message": "Projeto excluído com sucesso"
-    }
-  }
-  ```
-
-### APIs de Etiquetas
-
-#### Listar Etiquetas
-- **Endpoint**: `GET /api/labels`
-- **Descrição**: Retorna todas as etiquetas do usuário
-- **Parâmetros de Query**:
-  - `includeTaskCount`: Inclui contagem de tarefas (opcional, default: `false`)
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "labels": [
-        {
-          "id": 1,
-          "name": "Importante",
-          "color": "#e91e63",
-          "created_at": "2023-04-15T10:20:00Z",
-          "task_count": 8
-        },
-        // ... outras etiquetas
-      ]
-    }
-  }
-  ```
-
-#### Obter Detalhes de uma Etiqueta
-- **Endpoint**: `GET /api/labels/[id]`
-- **Descrição**: Retorna detalhes de uma etiqueta específica
-- **Parâmetros de URL**: 
-  - `id`: ID da etiqueta
-- **Parâmetros de Query**:
-  - `includeTasks`: Inclui tarefas com esta etiqueta (opcional, default: `false`)
-- **Resposta de Sucesso**: Similar à resposta de detalhes de projeto
-
-#### Criar Etiqueta
-- **Endpoint**: `POST /api/labels`
-- **Descrição**: Cria uma nova etiqueta
-- **Parâmetros de Requisição**:
-  ```json
-  {
-    "name": "Nova Etiqueta",
-    "color": "#9c27b0"
-  }
-  ```
-- **Resposta de Sucesso** (201 Created):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "label": {
-        "id": 4,
-        "name": "Nova Etiqueta",
-        "color": "#9c27b0",
-        "created_at": "2023-05-20T17:30:00Z"
-      }
-    }
-  }
-  ```
-
-#### Atualizar Etiqueta
-- **Endpoint**: `PATCH /api/labels/[id]`
-- **Descrição**: Atualiza uma etiqueta existente
-- **Parâmetros de URL**: 
-  - `id`: ID da etiqueta
-- **Parâmetros de Requisição** (todos opcionais):
-  ```json
-  {
-    "name": "Nome Atualizado",
-    "color": "#673ab7"
-  }
-  ```
-- **Resposta de Sucesso** (200 OK): Similar à resposta de atualização de projeto
-
-#### Excluir Etiqueta
-- **Endpoint**: `DELETE /api/labels/[id]`
-- **Descrição**: Remove uma etiqueta (não afeta as tarefas)
-- **Parâmetros de URL**: 
-  - `id`: ID da etiqueta
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "message": "Etiqueta excluída com sucesso"
-    }
-  }
-  ```
-
-### APIs de Configurações
-
-#### Obter Configurações do Usuário
-- **Endpoint**: `GET /api/settings`
-- **Descrição**: Retorna as configurações do usuário atual
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "settings": {
-        "language": "pt",
-        "theme": "dark",
-        "start_day_of_week": 1,
-        "default_view": "today",
-        "pomodoro_work_minutes": 25,
-        "pomodoro_break_minutes": 5,
-        "pomodoro_long_break_minutes": 15,
-        "pomodoro_cycles": 4,
-        "enable_sound": true,
-        "notification_sound": "bell",
-        "enable_desktop_notifications": true,
-        "enable_task_notifications": true,
-        "task_notification_days": 3
-      }
-    }
-  }
-  ```
-
-#### Atualizar Configurações
-- **Endpoint**: `PATCH /api/settings`
-- **Descrição**: Atualiza as configurações do usuário
-- **Parâmetros de Requisição** (todos opcionais):
-  ```json
-  {
-    "language": "en",
-    "theme": "light",
-    "start_day_of_week": 0,
-    "pomodoro_work_minutes": 30
-    // ... outras configurações
-  }
-  ```
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "settings": {
-        // Configurações atualizadas
-      }
-    }
-  }
-  ```
-
-### APIs de Notificações
-
-#### Obter Notificações de Tarefas
-- **Endpoint**: `GET /api/notifications/tasks`
-- **Descrição**: Retorna tarefas vencidas, de hoje e próximas para notificações
-- **Parâmetros de Query**:
-  - `ignoreRead`: Ignorar status de leitura (opcional, default: `false`)
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "enabled": true,
-      "overdueCount": 2,
-      "dueTodayCount": 3,
-      "upcomingCount": 5,
-      "totalCount": 10,
-      "tasks": {
-        "overdueTasks": [
-          // Array de tarefas vencidas
-        ],
-        "dueTodayTasks": [
-          // Array de tarefas para hoje
-        ],
-        "upcomingTasks": [
-          // Array de tarefas próximas
-        ]
-      }
-    }
-  }
-  ```
-
-### APIs de Pesquisa
-
-#### Pesquisar Tarefas
-- **Endpoint**: `GET /api/search`
-- **Descrição**: Pesquisa tarefas por texto
-- **Parâmetros de Query**:
-  - `q`: Texto de pesquisa (obrigatório)
-  - `includeCompleted`: Inclui tarefas concluídas (opcional, default: `false`)
-- **Resposta de Sucesso** (200 OK):
-  ```json
-  {
-    "status": "success",
-    "data": {
-      "results": [
-        // Array de tarefas correspondentes
-      ],
-      "count": 15
-    }
-  }
-  ```
-
-### Exemplo de Integração Completa
-
-Para demonstrar a integração completa, veja um exemplo de fluxo para criação e atualização de tarefas:
-
-#### Criação de Tarefa com Projeto e Etiquetas
-
-```javascript
-// 1. Buscar projetos disponíveis
-const projectsResponse = await fetch('/api/projects');
-const projects = await projectsResponse.json();
-
-// 2. Buscar etiquetas disponíveis
-const labelsResponse = await fetch('/api/labels');
-const labels = await labelsResponse.json();
-
-// 3. Criar nova tarefa
-const createTaskResponse = await fetch('/api/tasks', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    title: 'Implementar nova funcionalidade',
-    description: 'Adicionar sistema de notificações',
-    dueDate: '2023-06-01T12:00:00Z',
-    priority: 2,
-    projectId: projects.data.projects[0].id,
-    labelIds: [labels.data.labels[0].id, labels.data.labels[2].id]
-  }),
-});
-
-const newTask = await createTaskResponse.json();
-const taskId = newTask.data.task.id;
-
-// 4. Obter detalhes da tarefa criada
-const taskDetailsResponse = await fetch(`/api/tasks/${taskId}`);
-const taskDetails = await taskDetailsResponse.json();
-
-// 5. Atualizar a tarefa (por exemplo, marcar como concluída)
-const updateTaskResponse = await fetch(`/api/tasks/${taskId}`, {
-  method: 'PATCH',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    completed: true
-  }),
-});
-
-const updatedTask = await updateTaskResponse.json();
-```
-
-### Considerações Técnicas e Boas Práticas
-
-1. **Autenticação**: Todas as APIs (exceto registro e login) requerem autenticação.
-2. **Rate Limiting**: As requisições são limitadas a 100 por minuto por usuário.
-3. **Validação**: Todos os dados de entrada são validados antes do processamento.
-4. **Tratamento de Datas**: 
-   - Todas as datas são armazenadas e retornadas em formato ISO 8601 (UTC)
-   - Datas de vencimento são normalizadas para 23:59:59 do dia especificado
-5. **Formatos Suportados**:
-   - Todas as APIs aceitam e retornam dados em formato JSON
-   - POST/PATCH/PUT APIs requerem Content-Type: application/json
+### Auth.js (NextAuth)
+- Autenticação segura
+- Múltiplos provedores (email/senha, Google, GitHub)
+- Gerenciamento de sessões
+- Proteção de rotas
 
 ## Guia de Uso
 
-### Navegação Básica
+### Primeiros Passos
+1. Registro ou login na plataforma
+2. Configuração inicial de preferências
+3. Criação de projetos para organização
+4. Adição de primeiras tarefas
 
-A navegação principal é realizada através da barra lateral:
-- **Hoje**: Tarefas com vencimento hoje
-- **Caixa de Entrada**: Todas as tarefas não concluídas
-- **Próximos**: Tarefas futuras
-- **Concluídos**: Tarefas finalizadas
-- **Projetos**: Lista de projetos com suas tarefas
-- **Etiquetas**: Lista de etiquetas com suas tarefas
-- **Calendário**: Visualização em formato de calendário
+### Organização Eficiente
+1. Uso de projetos para agrupar tarefas relacionadas
+2. Etiquetas para categorização transversal
+3. Priorização adequada de tarefas
+4. Datas de vencimento para tarefas temporais
 
-### Gerenciando Tarefas
+### Técnica Pomodoro
+1. Seleção da tarefa atual
+2. Início da sessão Pomodoro
+3. Trabalho focado durante período definido
+4. Pausas regulares conforme metodologia
 
-1. **Adicionar Tarefa**:
-   - Clique no botão "Adicionar Tarefa"
-   - Preencha pelo menos o título
-   - Adicione opcionalmente data, prioridade, projeto e descrição
-
-2. **Editar Tarefa**:
-   - Clique na tarefa para abrir detalhes
-   - Clique no botão "Editar"
-   - Modifique os campos desejados
-   - Clique em "Salvar"
-
-3. **Concluir Tarefa**:
-   - Clique no checkbox ao lado da tarefa
-
-4. **Priorizar Tarefa**:
-   - Ao criar ou editar, selecione o nível de prioridade:
-     - **Grave**: Tarefas críticas, urgentes
-     - **Alta**: Tarefas importantes e urgentes
-     - **Média**: Tarefas importantes, mas não urgentes
-     - **Baixa**: Tarefas de menor importância
-
-### Organizando seu Trabalho
-
-1. **Criar Projetos**:
-   - Clique em "+" ao lado de "Projetos" 
-   - Dê um nome e escolha uma cor
-
-2. **Usar Etiquetas**:
-   - Crie etiquetas para categorias transversais
-   - Adicione a tarefas durante criação ou edição
-
-3. **Técnica Pomodoro**:
-   - Use o temporizador Pomodoro para ciclos de foco
-   - Trabalhe durante o período configurado
-   - Faça pequenas pausas entre ciclos
-   - Faça uma pausa maior após completar múltiplos ciclos
+### Visualizações Especializadas
+1. Hoje: foco nas tarefas imediatas
+2. Calendário: visão temporal ampla
+3. Kanban: acompanhamento de progresso
+4. Projetos: organização por contexto
 
 ## Performance e Otimização
 
-### Estratégias de Carregamento
-- Componentes são carregados com lazy loading quando apropriado
-- Dados são pré-carregados no servidor quando possível
-- Cache de componentes é utilizado para minimizar recálculos
+### Estratégias de Renderização
+- Renderização híbrida (SSR/CSR) com Next.js
+- Carregamento otimizado de componentes
+- Lazy loading para módulos pesados
+- Memoização de componentes frequentes
 
-### Otimizações de Renderização
-- `useMemo` e `useCallback` para prevenir recálculos desnecessários
-- Virtualização para listas longas
-- Estratégias de revalidação de dados otimizadas
+### Banco de Dados
+- Queries otimizadas para performance
+- Índices estratégicos
+- Pooling de conexões
+- Cache de dados frequentes
+
+### Frontend
+- Code splitting para redução de bundle
+- Otimização de imagens e assets
+- Prefetching de rotas comuns
+- Cache de API com SWR
 
 ## Segurança
 
-### Autenticação e Autorização
-- Sistema de login baseado em sessão
-- Proteção de rotas para usuários autenticados
-- Validação de propriedade de recursos (tarefas, projetos, etiquetas)
+### Autenticação
+- Senhas com hash seguro
+- Proteção contra força bruta
+- Tokens JWT com expiração
+- Renovação segura de sessões
+
+### Autorização
+- Verificação de propriedade de recursos
+- Escopo de acesso por usuário
+- Validação de permissões em cada operação
+- Sanitização de inputs
 
 ### Proteção de Dados
-- Comunicação via HTTPS
-- Validação de entrada em todos os endpoints
-- Sanitização de dados antes de inserção no banco
+- Criptografia em trânsito (HTTPS)
+- Validação de entradas em todos os endpoints
+- Proteção contra injeção SQL
+- Política de CORS restritiva
 
 ## Manutenção e Suporte
 
-### Versionamento
-O sistema segue o versionamento semântico (SemVer):
-- **Patch (0.0.X)**: Correções de bugs
-- **Minor (0.X.0)**: Novas funcionalidades sem quebra de compatibilidade
-- **Major (X.0.0)**: Mudanças incompatíveis com versões anteriores
+### Atualizações
+- Changelog detalhado de versões
+- Migrações transparentes de banco
+- Notificações de novos recursos
+- Compatibilidade retroativa
 
-### Contribuições
-1. Fork o repositório
-2. Crie uma branch para sua feature ou correção
-3. Implemente as mudanças
-4. Envie um Pull Request
+### Monitoramento
+- Logs de erro estruturados
+- Monitoramento de performance
+- Alertas para comportamentos anômalos
+- Feedback de usuários
 
-### Suporte
-Para dúvidas ou problemas, abra uma issue no repositório do GitHub ou entre em contato com a equipe de suporte.
+### Recuperação
+- Sistema de backup automatizado
+- Restauração pontual de dados
+- Procedimentos de disaster recovery
+- Auditoria de operações críticas
