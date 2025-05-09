@@ -20,7 +20,7 @@ unit_tests:
     - echo "Limpando cache do npm (precaução)..."
     - npm cache clean --force
     - echo "Instalando dependências usando npm ci..."
-    - npm ci
+    - npm install --legacy-peer-deps
     - echo "Rodando testes unitários com o script test:ci..."
     - npm run test:ci
   artifacts:
