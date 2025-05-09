@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PomodoroTimer } from "@/components/pomodoro-timer"
-import { usePomodoroStore } from "@/lib/stores/pomodoro-store"
+import { usePomodoroStore, type TimerMode } from "@/lib/stores/pomodoro-store"
 import { useTranslation } from "@/lib/i18n"
 import type { Todo } from "@/lib/todos"
 import { 
@@ -22,6 +22,7 @@ import React from "react"
 export default function PomodoroPage() {
   const { t } = useTranslation()
   const pomodoroStore = usePomodoroStore()
+  const currentMode = pomodoroStore.mode
   const searchParams = useSearchParams()
   const taskIdParam = searchParams?.get('taskId')
   const router = useRouter()
@@ -216,6 +217,37 @@ export default function PomodoroPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isClient]) // Executar apenas na montagem do componente
 
+  // Função para obter as classes de estilo baseadas no modo do Pomodoro
+  const getPomodoroModeStyles = (mode: TimerMode) => {
+    switch (mode) {
+      case "work":
+        return {
+          timerTextColorClass: "text-rose-500",
+          // Estas classes serão aplicadas ao TabsList
+          // Elas estilizam o TabsTrigger filho que tem data-state="active"
+          activeTabStyleClass: "[&>[data-state=active]]:text-rose-500 [&>[data-state=active]]:border-b-2 [&>[data-state=active]]:border-rose-500",
+        };
+      case "shortBreak":
+        return {
+          timerTextColorClass: "text-emerald-500",
+          activeTabStyleClass: "[&>[data-state=active]]:text-emerald-500 [&>[data-state=active]]:border-b-2 [&>[data-state=active]]:border-emerald-500",
+        };
+      case "longBreak":
+        return {
+          timerTextColorClass: "text-sky-500",
+          activeTabStyleClass: "[&>[data-state=active]]:text-sky-500 [&>[data-state=active]]:border-b-2 [&>[data-state=active]]:border-sky-500",
+        };
+      default:
+        return {
+          timerTextColorClass: "", // Cor padrão do texto
+          activeTabStyleClass: "", // Estilo padrão da aba ativa (geralmente primary)
+        };
+    }
+  };
+
+  const { timerTextColorClass, activeTabStyleClass } = getPomodoroModeStyles(currentMode);
+  const transitionClasses = "transition-colors duration-300 ease-in-out"; // Transição mais rápida para texto/borda
+
   if (isSettingsLoading) {
     return (
       <div className="flex justify-center items-center h-full">
@@ -231,141 +263,50 @@ export default function PomodoroPage() {
         <p className="text-muted-foreground">{t("focusOnYourTasks")}</p>
       </div>
 
-      <div className={isMobile ? "fixed inset-0 z-50 bg-background flex flex-col" : ""}>
-        {isMobile && (
+      {isMobile && (
+        <div className={`fixed inset-0 z-50 flex flex-col bg-background`}> {/* Fundo padrão para mobile */}
           <div className="flex items-center p-4 border-b">
             <BackButton onClick={() => {
               try {
-                // Tenta voltar para a página anterior
                 router.back();
-                // Como backup, se não houver histórico, navega para a página inicial após 100ms
                 setTimeout(() => {
                   if (window.location.pathname.includes('/pomodoro')) {
                     router.push('/app');
                   }
                 }, 100);
               } catch (e) {
-                // Fallback para navegação direta
                 router.push('/app');
               }
             }} />
-            <h2 className="text-lg font-semibold mx-auto">{t("pomodoroTimer")}</h2>
+            <h2 className="text-lg font-medium ml-4">{t("pomodoroTimer")}</h2>
           </div>
-        )}
-
-        <div className={isMobile ? "flex-1 flex flex-col overflow-hidden" : ""}>
-          {isMobile ? (
-            <div className="flex flex-col h-full">
-              <div className="px-4 py-3 border-b">
-                <h3 className="text-lg font-semibold">{t("selectTask")}</h3>
-              </div>
-              <div className="p-4">
-                {isLoading ? (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
-                  </div>
-                ) : tasks.length === 0 ? (
-                  <div className="text-center py-4 text-muted-foreground">
-                    {t("No tasks available")}
-                  </div>
-                ) : (
-                  <Select
-                    value={selectedTaskId ? selectedTaskId.toString() : "none"}
-                    onValueChange={(value) => {
-                      const taskId = value !== "none" ? parseInt(value) : null
-                      setSelectedTaskId(taskId)
-                      
-                      // Update the URL with the selected task ID
-                      const url = new URL(window.location.href)
-                      if (taskId) {
-                        url.searchParams.set("taskId", taskId.toString())
-                      } else {
-                        url.searchParams.delete("taskId")
-                      }
-                      window.history.pushState({}, "", url.toString())
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("selectATask")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t("noTask")}</SelectItem>
-                      {tasks.map((task) => (
-                        <SelectItem key={task.id} value={task.id.toString()}>
-                          {task.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-              <div className="flex-1 flex items-center justify-center p-4">
-                <div className="w-full max-w-2xl">
-                  <PomodoroTimer
-                    initialSettings={pomodoroSettings}
-                    selectedTaskId={selectedTaskId !== "none" ? parseInt(selectedTaskId) : null}
-                    fullScreen={true}
-                  />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">{t("selectTask")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
-                  </div>
-                ) : tasks.length === 0 ? (
-                  <div className="text-center py-4 text-muted-foreground">
-                    {t("No tasks available")}
-                  </div>
-                ) : (
-                  <Select
-                    value={selectedTaskId ? selectedTaskId.toString() : "none"}
-                    onValueChange={(value) => {
-                      const taskId = value !== "none" ? parseInt(value) : null
-                      setSelectedTaskId(taskId)
-                      
-                      // Update the URL with the selected task ID
-                      const url = new URL(window.location.href)
-                      if (taskId) {
-                        url.searchParams.set("taskId", taskId.toString())
-                      } else {
-                        url.searchParams.delete("taskId")
-                      }
-                      window.history.pushState({}, "", url.toString())
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("selectATask")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t("noTask")}</SelectItem>
-                      {tasks.map((task) => (
-                        <SelectItem key={task.id} value={task.id.toString()}>
-                          {task.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          <div className="mt-8">
+          <div className="flex-1 flex flex-col items-center justify-center p-4">
             <PomodoroTimer 
-              initialSettings={pomodoroSettings}
-              selectedTaskId={selectedTaskId !== "none" ? parseInt(selectedTaskId) : null}
-              fullScreen={false}
+              initialSettings={pomodoroSettings} 
+              selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
+              fullScreen={true} 
+              timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
+              activeTabStyleClass={activeTabStyleClass}
             />
           </div>
         </div>
-      </div>
+      )}
+
+      {!isMobile && (
+        <Card> {/* Card com fundo padrão */}
+          <CardHeader>
+          </CardHeader>
+          <CardContent className="p-6">
+            <PomodoroTimer 
+              initialSettings={pomodoroSettings} 
+              selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
+              fullScreen={false}
+              timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
+              activeTabStyleClass={activeTabStyleClass}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 } 

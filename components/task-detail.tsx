@@ -1342,7 +1342,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              {t("attachments")}
+              {t("attachment.list")}
             </label>
             <div className="space-y-2">
               {task.attachments && task.attachments.length > 0 && (
