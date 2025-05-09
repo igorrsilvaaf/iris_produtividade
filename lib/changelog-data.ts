@@ -15,6 +15,53 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.7.1',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'pomodoro-enhancements-ux',
+        title: 'Melhorias no Temporizador Pomodoro',
+        description: 'Aprimoramentos significativos na funcionalidade e experiência de usuário do Pomodoro.',
+        items: [
+          {
+            type: 'improvement',
+            content: 'Transição entre os modos (Trabalho, Pausa Curta, Pausa Longa) agora aguarda o início manual pelo usuário após a mudança de aba.'
+          },
+          {
+            type: 'improvement',
+            content: 'Adicionado feedback visual dinâmico: a cor do texto do timer e da aba ativa agora mudam para refletir o modo atual (Trabalho, Pausa Curta, Pausa Longa).'
+          },
+          {
+            type: 'improvement',
+            content: 'Sincronizadas as configurações do Pomodoro (tempos, ciclos) entre a instância na página inicial e a página dedicada do Pomodoro.'
+          },
+          {
+            type: 'improvement',
+            content: 'Refatorada a lógica de estilização do Pomodoro para melhor manutenibilidade, centralizando a função de obtenção de estilos.'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigido erro "Maximum update depth exceeded" no Pomodoro causado por um loop de atualizações de estado.'
+          },
+          {
+            type: 'bugfix',
+            content: 'Resolvido problema de "Cannot access before initialization" no Pomodoro relacionado à ordem de declaração de funções.'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigida dessincronização de configurações do Pomodoro entre a página inicial e a página dedicada.'
+          }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date(),
     version: '2.7.0',
     author: {
       name: 'Igor Silva',

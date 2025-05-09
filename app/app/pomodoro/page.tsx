@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// import { ArrowLeft } from "lucide-react" // Comentado se não estiver usando diretamente
+import { Card, CardContent, CardHeader /*, CardTitle */ } from "@/components/ui/card" // CardTitle pode ser removida se não usada no JSX diretamente
 import { PomodoroTimer } from "@/components/pomodoro-timer"
 import { usePomodoroStore, type TimerMode } from "@/lib/stores/pomodoro-store"
+import { getPomodoroModeStyles } from "@/lib/pomodoro-utils"; // Importar a função utilitária
 import { useTranslation } from "@/lib/i18n"
 import type { Todo } from "@/lib/todos"
 import { 
@@ -22,18 +23,18 @@ import React from "react"
 export default function PomodoroPage() {
   const { t } = useTranslation()
   const pomodoroStore = usePomodoroStore()
-  const currentMode = pomodoroStore.mode
+  const currentMode = pomodoroStore.mode;
   const searchParams = useSearchParams()
   const taskIdParam = searchParams?.get('taskId')
   const router = useRouter()
   
   const [tasks, setTasks] = useState<Todo[]>([])
-  const [selectedTaskId, setSelectedTaskId] = useState<string>("none")
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSettingsLoading, setIsSettingsLoading] = useState(true)
   const { toast } = useToast()
   const [isMobile, setIsMobile] = useState(false)
-  const [pomodoroSettings, setPomodoroSettings] = useState({
+  const [pomodoroSettingsState, setPomodoroSettingsState] = useState({
     pomodoro_work_minutes: pomodoroStore.settings.workMinutes,
     pomodoro_break_minutes: pomodoroStore.settings.shortBreakMinutes,
     pomodoro_long_break_minutes: pomodoroStore.settings.longBreakMinutes,
@@ -45,20 +46,15 @@ export default function PomodoroPage() {
   })
   const [isClient, setIsClient] = useState(false)
   
-  // Mover a ref para o escopo do componente
   const alreadyFetchedSettings = useRef(false)
 
-  // Detectar quando está no cliente
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  // Buscar as configurações do usuário do servidor
   useEffect(() => {
     if (!isClient) return
-    
-    // Evitar chamadas repetidas
-    if (alreadyFetchedSettings.current) return
+    if (alreadyFetchedSettings.current && !pomodoroStore.isRunning) return 
     
     const fetchUserSettings = async () => {
       try {
@@ -69,10 +65,8 @@ export default function PomodoroPage() {
         
         if (response.ok) {
           const data = await response.json()
-          console.log("Configurações do usuário recebidas:", data.settings)
           alreadyFetchedSettings.current = true
           
-          // Atualizar o store global do Pomodoro
           pomodoroStore.updateSettings({
             workMinutes: data.settings.pomodoro_work_minutes,
             shortBreakMinutes: data.settings.pomodoro_break_minutes,
@@ -84,8 +78,7 @@ export default function PomodoroPage() {
             enableDesktopNotifications: data.settings.enable_desktop_notifications
           })
           
-          // Atualizar o estado local
-          setPomodoroSettings({
+          setPomodoroSettingsState({
             pomodoro_work_minutes: data.settings.pomodoro_work_minutes,
             pomodoro_break_minutes: data.settings.pomodoro_break_minutes,
             pomodoro_long_break_minutes: data.settings.pomodoro_long_break_minutes,
@@ -106,11 +99,11 @@ export default function PomodoroPage() {
     }
     
     fetchUserSettings()
-  }, [isClient]) // Remover pomodoroStore das dependências para evitar o loop
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClient, pomodoroStore.isRunning])
 
-  // Update local settings when the store changes
   useEffect(() => {
-    setPomodoroSettings({
+    setPomodoroSettingsState({
       pomodoro_work_minutes: pomodoroStore.settings.workMinutes,
       pomodoro_break_minutes: pomodoroStore.settings.shortBreakMinutes,
       pomodoro_long_break_minutes: pomodoroStore.settings.longBreakMinutes,
@@ -120,133 +113,56 @@ export default function PomodoroPage() {
       pomodoro_sound: pomodoroStore.settings.pomodoroSound,
       enable_desktop_notifications: pomodoroStore.settings.enableDesktopNotifications,
     })
-    console.log("Updated pomodoro settings from store:", pomodoroStore.settings)
   }, [pomodoroStore.settings])
 
-  // Check if it's a mobile device
   useEffect(() => {
     if (!isClient) return
-    
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
+    const checkIfMobile = () => setIsMobile(window.innerWidth < 768)
     checkIfMobile()
     window.addEventListener("resize", checkIfMobile)
-
-    return () => {
-      window.removeEventListener("resize", checkIfMobile)
-    }
+    return () => window.removeEventListener("resize", checkIfMobile)
   }, [isClient])
 
-  // Set selectedTaskId from URL parameter if available
   useEffect(() => {
     if (taskIdParam) {
       setSelectedTaskId(taskIdParam)
+    } else {
+      setSelectedTaskId(null)
     }
   }, [taskIdParam])
 
-  // Fetch tasks - execute apenas uma vez na montagem do componente
   useEffect(() => {
     if (!isClient) return
-    
-    // Flag para controlar se o componente está montado
     let isMounted = true
-    
-    // Função para buscar tarefas que será chamada apenas na montagem
     const fetchTasks = async () => {
       try {
         setIsLoading(true)
-        console.log("Buscando tarefas...")
-        
         const response = await fetch("/api/tasks/inbox")
-        
-        console.log("Status da resposta:", response.status)
-        
         if (response.ok) {
           const data = await response.json()
-          console.log("Dados recebidos:", data)
-          
-          // Verificar se o componente ainda está montado
           if (!isMounted) return
-          
-          // Verificar se data.tasks existe
           if (data && data.tasks && Array.isArray(data.tasks)) {
-            // Only get incomplete tasks
             const incompleteTasks = data.tasks.filter((task: Todo) => !task.completed)
-            console.log("Tarefas incompletas:", incompleteTasks.length)
             setTasks(incompleteTasks)
           } else {
-            console.error("Formato de resposta inválido:", data)
-            toast({
-              variant: "destructive",
-              title: t("Failed to load tasks"),
-              description: t("Invalid response format"),
-            })
+            toast({ variant: "destructive", title: t("Failed to load tasks"), description: t("Invalid response format") })
           }
         } else {
-          console.error("Erro na resposta:", await response.text())
-          toast({
-            variant: "destructive",
-            title: t("Failed to load tasks"),
-            description: t("Please refresh the page to try again"),
-          })
+          toast({ variant: "destructive", title: t("Failed to load tasks"), description: t("Please refresh the page to try again") })
         }
       } catch (error) {
-        console.error("Erro ao buscar tarefas:", error)
-        toast({
-          variant: "destructive",
-          title: t("Failed to load tasks"),
-          description: t("Please refresh the page to try again"),
-        })
+        toast({ variant: "destructive", title: t("Failed to load tasks"), description: t("Please refresh the page to try again") })
       } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+        if (isMounted) setIsLoading(false)
       }
     }
-
-    // Executar a busca de tarefas
     fetchTasks()
-    
-    // Função de limpeza para evitar memory leaks
-    return () => {
-      isMounted = false
-    }
-  // Incluir apenas o mínimo necessário de dependências para não causar re-renders excessivos
+    return () => { isMounted = false }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient]) // Executar apenas na montagem do componente
-
-  // Função para obter as classes de estilo baseadas no modo do Pomodoro
-  const getPomodoroModeStyles = (mode: TimerMode) => {
-    switch (mode) {
-      case "work":
-        return {
-          timerTextColorClass: "text-rose-500",
-          // Estas classes serão aplicadas ao TabsList
-          // Elas estilizam o TabsTrigger filho que tem data-state="active"
-          activeTabStyleClass: "[&>[data-state=active]]:text-rose-500 [&>[data-state=active]]:border-b-2 [&>[data-state=active]]:border-rose-500",
-        };
-      case "shortBreak":
-        return {
-          timerTextColorClass: "text-emerald-500",
-          activeTabStyleClass: "[&>[data-state=active]]:text-emerald-500 [&>[data-state=active]]:border-b-2 [&>[data-state=active]]:border-emerald-500",
-        };
-      case "longBreak":
-        return {
-          timerTextColorClass: "text-sky-500",
-          activeTabStyleClass: "[&>[data-state=active]]:text-sky-500 [&>[data-state=active]]:border-b-2 [&>[data-state=active]]:border-sky-500",
-        };
-      default:
-        return {
-          timerTextColorClass: "", // Cor padrão do texto
-          activeTabStyleClass: "", // Estilo padrão da aba ativa (geralmente primary)
-        };
-    }
-  };
+  }, [isClient])
 
   const { timerTextColorClass, activeTabStyleClass } = getPomodoroModeStyles(currentMode);
-  const transitionClasses = "transition-colors duration-300 ease-in-out"; // Transição mais rápida para texto/borda
+  const transitionClasses = "transition-colors duration-300 ease-in-out";
 
   if (isSettingsLoading) {
     return (
@@ -264,7 +180,7 @@ export default function PomodoroPage() {
       </div>
 
       {isMobile && (
-        <div className={`fixed inset-0 z-50 flex flex-col bg-background`}> {/* Fundo padrão para mobile */}
+        <div className={`fixed inset-0 z-50 flex flex-col bg-background`}>
           <div className="flex items-center p-4 border-b">
             <BackButton onClick={() => {
               try {
@@ -282,7 +198,6 @@ export default function PomodoroPage() {
           </div>
           <div className="flex-1 flex flex-col items-center justify-center p-4">
             <PomodoroTimer 
-              initialSettings={pomodoroSettings} 
               selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
               fullScreen={true} 
               timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
@@ -293,12 +208,12 @@ export default function PomodoroPage() {
       )}
 
       {!isMobile && (
-        <Card> {/* Card com fundo padrão */}
+        <Card>
           <CardHeader>
+            {/* Conteúdo do CardHeader se necessário */}
           </CardHeader>
           <CardContent className="p-6">
             <PomodoroTimer 
-              initialSettings={pomodoroSettings} 
               selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
               fullScreen={false}
               timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
@@ -308,5 +223,5 @@ export default function PomodoroPage() {
         </Card>
       )}
     </div>
-  )
+  );
 } 
