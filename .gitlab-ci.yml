@@ -1,0 +1,37 @@
+image: node:18
+
+stages:
+  - test
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - node_modules/
+  policy: pull-push
+
+unit_tests:
+  stage: test
+  script:
+    - echo "Verificando versão do Node.js e npm..."
+    - node -v
+    - npm -v
+    - echo "Limpando cache do npm (precaução)..."
+    - npm cache clean --force
+    - echo "Instalando dependências usando npm ci..."
+    - npm install --legacy-peer-deps
+    - echo "Rodando testes unitários com o script test:ci..."
+    - npm run test:ci
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
