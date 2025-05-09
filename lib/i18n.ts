@@ -2185,6 +2185,28 @@ export const translations: Translations = {
     en: "Enter your email to receive a password reset link",
     pt: "Digite seu e-mail para receber um link de redefinição de senha",
   },
+  // Novas traduções para o seletor de tarefas do Pomodoro
+  selectTaskLabel: {
+    en: "Select a task to focus on",
+    pt: "Selecione uma tarefa para focar",
+  },
+  selectTaskPlaceholder: {
+    en: "Choose a task...",
+    pt: "Escolha uma tarefa...",
+  },
+  noTaskSelected: {
+    en: "No task selected",
+    pt: "Nenhuma tarefa selecionada",
+  },
+  loadingTasks: {
+    en: "Loading tasks...",
+    pt: "Carregando tarefas...",
+  },
+  noPendingTasksPomodoro: {
+    en: "You have no pending tasks to focus on.",
+    pt: "Você não possui tarefas pendentes para focar.",
+  },
+  // Fim das novas traduções
 }
 
 type LanguageState = {
