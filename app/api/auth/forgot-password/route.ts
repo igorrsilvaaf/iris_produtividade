@@ -5,6 +5,9 @@ import { neon } from "@neondatabase/serverless"
 
 const sql = neon(process.env.DATABASE_URL!)
 
+// Verificar o ambiente (desenvolvimento ou produção)
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json()
@@ -13,7 +16,7 @@ export async function POST(request: NextRequest) {
     if (!email) {
       console.log("[ForgotPassword] Email não fornecido");
       return NextResponse.json(
-        { message: "Email is required" },
+        { message: "Email é obrigatório" },
         { status: 400 }
       )
     }
@@ -24,10 +27,16 @@ export async function POST(request: NextRequest) {
     if (!process.env.EMAIL_SERVER_HOST || !process.env.EMAIL_SERVER_PORT || 
         !process.env.EMAIL_SERVER_USER || !process.env.EMAIL_SERVER_PASSWORD) {
       console.error('[ForgotPassword] Configuração de e-mail incompleta');
-      return NextResponse.json(
-        { message: "Server configuration error" },
-        { status: 500 }
-      )
+      
+      // Em desenvolvimento, podemos continuar sem email completo
+      if (!isDevelopment) {
+        return NextResponse.json(
+          { message: "Erro de configuração do servidor" },
+          { status: 500 }
+        )
+      } else {
+        console.log('[ForgotPassword] Ambiente de desenvolvimento - continuando mesmo sem configuração completa');
+      }
     }
     
     // Buscar o nome do usuário
@@ -43,6 +52,14 @@ export async function POST(request: NextRequest) {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
         const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
         
+        // Em ambiente de desenvolvimento, mostrar o token e a URL para facilitar testes
+        if (isDevelopment) {
+          console.log('=========== INFORMAÇÕES DE RECUPERAÇÃO DE SENHA (APENAS DEV) ===========');
+          console.log('Token:', resetToken);
+          console.log('URL de recuperação:', resetUrl);
+          console.log('======================================================================');
+        }
+        
         try {
           // Enviar email
           const emailHtml = createPasswordResetEmailHtml(resetUrl, userName);
@@ -53,10 +70,20 @@ export async function POST(request: NextRequest) {
             html: emailHtml,
           });
           
-          console.log(`[Recuperação de senha] Email enviado com sucesso para: ${email}`);
+          if (emailResult.success) {
+            console.log(`[Recuperação de senha] Email enviado com sucesso para: ${email}`);
+          } else if (isDevelopment && emailResult.isDevelopment) {
+            console.log(`[Recuperação de senha] Email simulado em ambiente de desenvolvimento`);
+          }
         } catch (emailError) {
           console.error(`[Recuperação de senha] Erro ao enviar email:`, emailError);
-          throw emailError;
+          
+          // Em produção, propagar o erro; em desenvolvimento, continuar
+          if (!isDevelopment) {
+            throw emailError;
+          } else {
+            console.log('[ForgotPassword] Ambiente de desenvolvimento - continuando mesmo com erro de email');
+          }
         }
       } else {
         console.log(`[Recuperação de senha] Email não encontrado no banco de dados: ${email}`);

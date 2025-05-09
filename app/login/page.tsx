@@ -13,7 +13,8 @@ export default async function LoginPage() {
     redirect("/app");
   }
 
-  const cookieStore = cookies();
+  // Usando await com cookies() para resolver corretamente a API assíncrona
+  const cookieStore = await cookies();
   const languageCookie = cookieStore.get("language-storage");
   let initialLanguage = "pt";
 

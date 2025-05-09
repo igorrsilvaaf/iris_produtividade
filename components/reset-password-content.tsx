@@ -41,15 +41,15 @@ export function ResetPasswordContent({ token }: ResetPasswordContentProps) {
             <ModeToggle />
             <div className="hidden sm:flex gap-4">
               <Link href="/login">
-                <Button variant="outline">{t("Sign In")}</Button>
+                <Button variant="outline">{t("Entrar")}</Button>
               </Link>
               <Link href="/register">
-                <Button>{t("Sign Up")}</Button>
+                <Button>{t("Cadastrar")}</Button>
               </Link>
             </div>
             <div className="sm:hidden">
               <Link href="/login">
-                <Button size="sm" variant="outline">{t("Sign In")}</Button>
+                <Button size="sm" variant="outline">{t("Entrar")}</Button>
               </Link>
             </div>
           </div>
@@ -58,9 +58,9 @@ export function ResetPasswordContent({ token }: ResetPasswordContentProps) {
       <main className="flex-1 flex items-center justify-center px-4 py-4 sm:px-6 sm:py-6 md:py-8 lg:py-10">
         <div className="mx-auto w-full max-w-md space-y-6 sm:space-y-8">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("Reset Password")}</h1>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("Redefinir Senha")}</h1>
             <p className="text-sm text-muted-foreground sm:text-base">
-              {t("Create a new password for your account")}
+              {t("Crie uma nova senha para sua conta")}
             </p>
           </div>
           <div className="bg-card p-6 rounded-lg border shadow-sm">
@@ -68,12 +68,12 @@ export function ResetPasswordContent({ token }: ResetPasswordContentProps) {
           </div>
           <div className="text-center text-sm">
             <p>
-              {t("Remember your password?")}{" "}
+              {t("Lembra da sua senha?")}{" "}
               <a
                 href="/login"
                 className="font-medium text-primary hover:underline"
               >
-                {t("Sign In")}
+                {t("Entrar")}
               </a>
             </p>
           </div>

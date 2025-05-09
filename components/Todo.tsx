@@ -71,12 +71,22 @@ function formatDueDate(dueDate: string | null, t: any) {
           date1.getFullYear() === date2.getFullYear();
   };
   
+  // Verifica se o horário não é 00:00
+  const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0;
+  const timeString = hasTime ? ` ${format(date, "HH:mm")}` : "";
+  
   if (isSameDate(date, today)) {
-    return t ? t("today") : "Hoje"
+    return hasTime 
+      ? `${t ? t("today") : "Hoje"}${timeString}`
+      : t ? t("today") : "Hoje"
   } else if (isSameDate(date, tomorrow)) {
-    return t ? t("tomorrow") : "Amanhã"
+    return hasTime 
+      ? `${t ? t("tomorrow") : "Amanhã"}${timeString}`
+      : t ? t("tomorrow") : "Amanhã"
   } else {
-    return format(date, "dd/MM/yyyy")
+    return hasTime 
+      ? `${format(date, "dd/MM/yyyy")}${timeString}`
+      : format(date, "dd/MM/yyyy")
   }
 }
 

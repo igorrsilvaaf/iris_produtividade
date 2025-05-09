@@ -112,9 +112,9 @@ export async function createTask({
     try {
       const date = new Date(dueDate);
       if (!isNaN(date.getTime())) {
-        date.setHours(23, 59, 59, 999);
+        // Não modificar a hora definida pelo usuário
         normalizedDueDate = date.toISOString();
-        console.log(`[createTask] Data normalizada: ${normalizedDueDate}`);
+        console.log(`[createTask] Data com hora preservada: ${normalizedDueDate}`);
       } else {
         console.error(`[createTask] ERRO: Data inválida fornecida: ${dueDate}`);
       }
@@ -180,14 +180,29 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
   const now = new Date().toISOString()
   
   if (updates.due_date !== undefined) {
-    console.log(`[updateTask] Data original: ${updates.due_date}`);
+    console.log(`[updateTask] Data original (1): ${updates.due_date}`);
+    if (typeof updates.due_date === 'string') {
+      console.log(`[updateTask] Tipo da data: string`);
+    } else if (updates.due_date === null) {
+      console.log(`[updateTask] Tipo da data: null`);
+    } else {
+      console.log(`[updateTask] Tipo da data: ${typeof updates.due_date}`);
+    }
+    
     try {
       if (updates.due_date !== null) {
         const date = new Date(updates.due_date);
+        console.log(`[updateTask] Data criada a partir do input: ${date}`);
+        console.log(`[updateTask] Hora extraída: ${date.getHours()}:${date.getMinutes()}`);
+        
         if (!isNaN(date.getTime())) {
-          date.setHours(23, 59, 59, 999);
+          // Não modificar a hora definida pelo usuário
           updates.due_date = date.toISOString();
-          console.log(`[updateTask] Data normalizada: ${updates.due_date}`);
+          console.log(`[updateTask] Data com hora preservada (final): ${updates.due_date}`);
+          
+          // Verificamos a data final
+          const finalDate = new Date(updates.due_date);
+          console.log(`[updateTask] Hora na data final: ${finalDate.getHours()}:${finalDate.getMinutes()}`);
         } else {
           console.error(`[updateTask] ERRO: Data inválida fornecida: ${updates.due_date}`);
         }
