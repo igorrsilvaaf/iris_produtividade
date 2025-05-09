@@ -12,23 +12,18 @@ import { useRouter } from "next/navigation"
 import { usePomodoroStore, type TimerMode } from "@/lib/stores/pomodoro-store"
 
 interface PomodoroTimerProps {
-  initialSettings: {
-    pomodoro_work_minutes: number
-    pomodoro_break_minutes: number
-    pomodoro_long_break_minutes: number
-    pomodoro_cycles: number
-    enable_sound: boolean
-    notification_sound: string
-    pomodoro_sound: string
-    enable_desktop_notifications: boolean
-  }
   selectedTaskId?: number | null
   fullScreen?: boolean
   timerTextColorClass?: string
   activeTabStyleClass?: string
 }
 
-export function PomodoroTimer({ /* initialSettings, */ selectedTaskId, fullScreen = false, timerTextColorClass = "", activeTabStyleClass = "" }: PomodoroTimerProps) {
+export function PomodoroTimer({
+  selectedTaskId,
+  fullScreen = false,
+  timerTextColorClass = "",
+  activeTabStyleClass = "",
+}: PomodoroTimerProps) {
   const {
     isRunning,
     setIsRunning,

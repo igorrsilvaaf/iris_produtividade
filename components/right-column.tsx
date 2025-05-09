@@ -3,6 +3,9 @@
 import { PomodoroTimer } from "@/components/pomodoro-timer";
 import { FlipClock } from "@/components/flip-clock";
 import { useTranslation } from "@/lib/i18n";
+import { usePomodoroStore, type TimerMode } from "@/lib/stores/pomodoro-store";
+import { getPomodoroModeStyles } from "@/lib/pomodoro-utils";
+import React, { useEffect } from "react";
 
 interface RightColumnProps {
   initialSettings: {
@@ -22,30 +25,41 @@ interface RightColumnProps {
 }
 
 export function RightColumn({ initialSettings }: RightColumnProps) {
-  const { language } = useTranslation();
-  const showFlipClock = initialSettings.enable_flip_clock !== false;
-  const clockSize = initialSettings.flip_clock_size || 'medium';
-  const clockColor = initialSettings.flip_clock_color || '#ff5722';
-  const userLanguage = initialSettings.language || language || 'pt';
+  const { t } = useTranslation();
+  const pomodoroStore = usePomodoroStore();
+  const currentMode = pomodoroStore.mode;
+
+  useEffect(() => {
+    if (initialSettings) {
+      pomodoroStore.updateSettings({
+        workMinutes: initialSettings.pomodoro_work_minutes,
+        shortBreakMinutes: initialSettings.pomodoro_break_minutes,
+        longBreakMinutes: initialSettings.pomodoro_long_break_minutes,
+        longBreakInterval: initialSettings.pomodoro_cycles,
+        enableSound: initialSettings.enable_sound,
+        notificationSound: initialSettings.notification_sound,
+        pomodoroSound: initialSettings.pomodoro_sound,
+        enableDesktopNotifications: initialSettings.enable_desktop_notifications,
+      });
+    }
+  }, [initialSettings, pomodoroStore.updateSettings]);
+
+  const { timerTextColorClass, activeTabStyleClass } = getPomodoroModeStyles(currentMode);
+  const transitionClasses = "transition-colors duration-300 ease-in-out";
 
   return (
-    <div className="flex flex-col space-y-6">
-      <PomodoroTimer initialSettings={initialSettings} />
-      
-      {showFlipClock && (
-        <div className="bg-card rounded-lg shadow-sm p-4 sm:p-6 overflow-hidden">
-          <h3 className="text-lg font-medium mb-4 text-center">
-            {userLanguage === 'en' ? 'Current Time' : 'Hora Atual'}
-          </h3>
-          <div className="flex justify-center w-full overflow-x-auto py-2">
-            <FlipClock 
-              showSeconds={true}
-              size={clockSize as 'small' | 'medium' | 'large'}
-              color={clockColor}
-              language={userLanguage}
-            />
-          </div>
-        </div>
+    <div className="space-y-6">
+      <PomodoroTimer 
+        selectedTaskId={null}
+        fullScreen={false}
+        timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
+        activeTabStyleClass={activeTabStyleClass}
+      />
+      {initialSettings.enable_flip_clock && (
+        <FlipClock 
+          size={initialSettings.flip_clock_size} 
+          color={initialSettings.flip_clock_color} 
+        />
       )}
     </div>
   );

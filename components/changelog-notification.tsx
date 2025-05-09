@@ -158,7 +158,15 @@ export function ChangelogNotification() {
         <div className="p-5">
           <div className="border-l-4 border-primary/30 pl-3 py-2 mb-4 rounded-sm bg-primary/5">
             <p className="text-sm text-muted-foreground">
-              {latestChangelog === '2.7.0' ? (
+              {latestChangelog === '2.7.1' ? (
+                <>
+                  <span className="font-medium text-primary">Melhorias no Temporizador Pomodoro</span>
+                  <br />
+                  Aprimoramos significativamente o temporizador Pomodoro! Agora, a transição entre os modos de trabalho e pausa aguarda seu comando. Adicionamos também um feedback visual dinâmico com cores que mudam conforme o modo ativo, e garantimos que suas configurações sejam consistentes em toda a aplicação.
+                  <br /><br />
+                  <span className="font-medium">Detalhes:</span> Corrigimos bugs importantes, incluindo o erro de "profundidade máxima de atualização" e problemas na sincronização das configurações entre diferentes partes do app.
+                </>
+              ) : latestChangelog === '2.7.0' ? (
                 <>
                   <span className="font-medium text-primary">Melhorias nas Tarefas e Player do Spotify</span>
                   <br />
