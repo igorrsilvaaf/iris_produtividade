@@ -5,22 +5,22 @@ export const getPomodoroModeStyles = (mode: TimerMode) => {
     case "work":
       return {
         timerTextColorClass: "text-rose-500",
-        activeTabStyleClass: "[&>[data-state=active]]:text-rose-500 [&>[data-state=active]]:border-b-2 [&>[data-state=active]]:border-rose-500",
+        activeTabClasses: "text-rose-500 border-rose-500",
       };
     case "shortBreak":
       return {
         timerTextColorClass: "text-emerald-500",
-        activeTabStyleClass: "[&>[data-state=active]]:text-emerald-500 [&>[data-state=active]]:border-b-2 [&>[data-state=active]]:border-emerald-500",
+        activeTabClasses: "text-emerald-500 border-emerald-500",
       };
     case "longBreak":
       return {
         timerTextColorClass: "text-sky-500",
-        activeTabStyleClass: "[&>[data-state=active]]:text-sky-500 [&>[data-state=active]]:border-b-2 [&>[data-state=active]]:border-sky-500",
+        activeTabClasses: "text-sky-500 border-sky-500",
       };
     default:
       return {
         timerTextColorClass: "", 
-        activeTabStyleClass: "", 
+        activeTabClasses: "text-foreground border-transparent",
       };
   }
 }; 

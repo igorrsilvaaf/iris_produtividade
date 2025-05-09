@@ -278,8 +278,8 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
           <div
             key={task.id}
             className={cn(
-              "flex flex-col rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent hover:shadow-md cursor-pointer",
-              task.completed && "opacity-60"
+              "flex flex-col rounded-lg border p-3 text-left text-sm transition-all duration-300 ease-in-out hover:bg-accent hover:shadow-md cursor-pointer",
+              task.completed && "opacity-50 bg-muted/30"
             )}
             onClick={() => openTaskDetail(task)}
           >
@@ -288,21 +288,24 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
                 <Checkbox
                   checked={task.completed}
                   onCheckedChange={() => toggleTaskCompletion(task.id)}
-                  className="h-5 w-5"
+                  className={cn(
+                    "h-5 w-5 transition-all duration-300 ease-in-out",
+                    task.completed ? "data-[state=checked]:scale-125" : "scale-100"
+                  )}
                   onClick={(e) => e.stopPropagation()}
                 />
                 <div>
                   <div
                     className={cn(
-                      "font-medium cursor-pointer",
-                      task.completed && "line-through"
+                      "font-medium cursor-pointer transition-colors duration-300 ease-in-out",
+                      task.completed && "line-through text-muted-foreground"
                     )}
                   >
                     {task.title}
                   </div>
                   {!expandedTask && task.description && (
                     <div
-                      className="text-xs text-muted-foreground line-clamp-1 cursor-pointer"
+                      className="text-xs text-muted-foreground line-clamp-1 cursor-pointer transition-opacity duration-300 ease-in-out"
                     >
                       {processDescription(task.description)}
                     </div>
@@ -399,7 +402,6 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
               </div>
             </div>
             
-            {/* Exibir a descrição expandida se esta tarefa estiver expandida */}
             {expandedTask === task.id && task.description && (
               <div 
                 className="mt-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-md"

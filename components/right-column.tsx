@@ -44,7 +44,7 @@ export function RightColumn({ initialSettings }: RightColumnProps) {
     }
   }, [initialSettings, pomodoroStore.updateSettings]);
 
-  const { timerTextColorClass, activeTabStyleClass } = getPomodoroModeStyles(currentMode);
+  const { timerTextColorClass, activeTabClasses } = getPomodoroModeStyles(currentMode);
   const transitionClasses = "transition-colors duration-300 ease-in-out";
 
   return (
@@ -53,7 +53,7 @@ export function RightColumn({ initialSettings }: RightColumnProps) {
         selectedTaskId={null}
         fullScreen={false}
         timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
-        activeTabStyleClass={activeTabStyleClass}
+        activeTabStyleClass={activeTabClasses}
       />
       {initialSettings.enable_flip_clock && (
         <FlipClock 

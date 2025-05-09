@@ -161,7 +161,7 @@ export default function PomodoroPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isClient])
 
-  const { timerTextColorClass, activeTabStyleClass } = getPomodoroModeStyles(currentMode);
+  const { timerTextColorClass, activeTabClasses } = getPomodoroModeStyles(currentMode);
   const transitionClasses = "transition-colors duration-300 ease-in-out";
 
   if (isSettingsLoading) {
@@ -201,7 +201,7 @@ export default function PomodoroPage() {
               selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
               fullScreen={true} 
               timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
-              activeTabStyleClass={activeTabStyleClass}
+              activeTabStyleClass={activeTabClasses}
             />
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function PomodoroPage() {
               selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
               fullScreen={false}
               timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
-              activeTabStyleClass={activeTabStyleClass}
+              activeTabStyleClass={activeTabClasses}
             />
           </CardContent>
         </Card>

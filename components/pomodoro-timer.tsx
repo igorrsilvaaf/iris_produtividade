@@ -10,6 +10,7 @@ import { useTranslation } from "@/lib/i18n"
 import { useAudioPlayer } from "@/lib/audio-utils"
 import { useRouter } from "next/navigation"
 import { usePomodoroStore, type TimerMode } from "@/lib/stores/pomodoro-store"
+import { cn } from "@/lib/utils"
 
 interface PomodoroTimerProps {
   selectedTaskId?: number | null
@@ -186,6 +187,9 @@ export function PomodoroTimer({
     router.push("/app/settings?tab=pomodoro")
   }
 
+  const tabsTriggerBaseClass = "px-2 py-1.5 text-xs sm:text-sm"
+  const activeBorderClass = "border-b-2"
+
   return (
     <Card className={fullScreen ? "h-full border-0 shadow-none rounded-none flex flex-col bg-transparent" : ""}>
       <CardHeader className={`pb-2 flex flex-row items-center justify-between ${fullScreen ? 'pt-2' : ''}`}>
@@ -202,14 +206,23 @@ export function PomodoroTimer({
             onValueChange={handleTabChange} 
             className="w-full"
           >
-            <TabsList className={`grid w-full grid-cols-3 mb-6 ${activeTabStyleClass}`}>
-              <TabsTrigger value="work" className="px-2 py-1.5 text-xs sm:text-sm">
+            <TabsList className={`grid w-full grid-cols-3 mb-6`}>
+              <TabsTrigger 
+                value="work" 
+                className={cn(tabsTriggerBaseClass, mode === "work" ? `${activeTabStyleClass} ${activeBorderClass}` : "border-transparent")}
+              >
                 {t("work")}
               </TabsTrigger>
-              <TabsTrigger value="shortBreak" className="px-2 py-1.5 text-xs sm:text-sm">
+              <TabsTrigger 
+                value="shortBreak" 
+                className={cn(tabsTriggerBaseClass, mode === "shortBreak" ? `${activeTabStyleClass} ${activeBorderClass}` : "border-transparent")}
+              >
                 {t("shortBreak")}
               </TabsTrigger>
-              <TabsTrigger value="longBreak" className="px-2 py-1.5 text-xs sm:text-sm">
+              <TabsTrigger 
+                value="longBreak" 
+                className={cn(tabsTriggerBaseClass, mode === "longBreak" ? `${activeTabStyleClass} ${activeBorderClass}` : "border-transparent")}
+              >
                 {t("longBreak")}
               </TabsTrigger>
             </TabsList>
