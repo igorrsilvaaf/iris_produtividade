@@ -21,15 +21,13 @@ export async function POST(request: NextRequest) {
     console.log(`[ForgotPassword] Solicitação de recuperação de senha para: ${email}`);
 
     // Verificar variáveis de ambiente necessárias
-    if (process.env.NODE_ENV === 'production') {
-      if (!process.env.EMAIL_SERVER_HOST || !process.env.EMAIL_SERVER_PORT || 
-          !process.env.EMAIL_SERVER_USER || !process.env.EMAIL_SERVER_PASSWORD) {
-        console.error('[ForgotPassword] Configuração de e-mail incompleta em produção');
-        return NextResponse.json(
-          { message: "Server configuration error" },
-          { status: 500 }
-        )
-      }
+    if (!process.env.EMAIL_SERVER_HOST || !process.env.EMAIL_SERVER_PORT || 
+        !process.env.EMAIL_SERVER_USER || !process.env.EMAIL_SERVER_PASSWORD) {
+      console.error('[ForgotPassword] Configuração de e-mail incompleta');
+      return NextResponse.json(
+        { message: "Server configuration error" },
+        { status: 500 }
+      )
     }
     
     // Buscar o nome do usuário
@@ -45,54 +43,44 @@ export async function POST(request: NextRequest) {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
         const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
         
-        console.log(`[Recuperação de senha] Token criado: ${resetToken} para ${email}`);
-        console.log(`[Recuperação de senha] URL de recuperação: ${resetUrl}`);
-        
         try {
           // Enviar email
           const emailHtml = createPasswordResetEmailHtml(resetUrl, userName);
+          
           const emailResult = await sendEmail({
             to: email,
             subject: 'Redefinição de Senha - Íris',
             html: emailHtml,
           });
           
-          console.log(`[Recuperação de senha] Email enviado com sucesso: ${JSON.stringify(emailResult)}`);
-          
-          if (emailResult.previewUrl) {
-            console.log(`[Recuperação de senha] LINK PARA VISUALIZAR O EMAIL: ${emailResult.previewUrl}`);
-          }
+          console.log(`[Recuperação de senha] Email enviado com sucesso para: ${email}`);
         } catch (emailError) {
           console.error(`[Recuperação de senha] Erro ao enviar email:`, emailError);
-          // Em produção, propagamos o erro para que o usuário saiba que houve um problema
-          if (process.env.NODE_ENV === 'production') {
-            throw emailError;
-          }
-          // Em desenvolvimento, continuamos sem propagar o erro
+          throw emailError;
         }
       } else {
-        console.log(`[Recuperação de senha] Nenhum token criado para ${email} (usuário provavelmente não existe)`);
+        console.log(`[Recuperação de senha] Email não encontrado no banco de dados: ${email}`);
       }
 
       // Sempre retornar sucesso, mesmo se o email não existir, para evitar vazamento de informações
       return NextResponse.json(
         { 
           success: true, 
-          message: "If your email exists in our system, you will receive a password reset link." 
+          message: "Se seu email existir em nosso sistema, você receberá um link para redefinição de senha." 
         },
         { status: 200 }
       )
     } catch (tokenError) {
       console.error("[ForgotPassword] Erro ao criar token ou enviar email:", tokenError);
       return NextResponse.json(
-        { message: "Failed to process password reset request" },
+        { message: "Falha ao processar a solicitação de redefinição de senha" },
         { status: 500 }
       )
     }
   } catch (error) {
     console.error("[ForgotPassword] Erro na solicitação:", error);
     return NextResponse.json(
-      { message: "Failed to process password reset request" },
+      { message: "Falha ao processar a solicitação de redefinição de senha" },
       { status: 500 }
     )
   }

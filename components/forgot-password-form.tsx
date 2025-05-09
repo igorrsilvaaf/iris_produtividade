@@ -62,9 +62,7 @@ export function ForgotPasswordForm() {
       toast({
         variant: "success",
         title: t("Request submitted"),
-        description: process.env.NODE_ENV !== 'production' 
-          ? t("Check the console for the email preview link")
-          : t("Check your email for password reset instructions."),
+        description: t("Check your email for password reset instructions."),
         duration: 8000,
       })
     } catch (error: any) {
@@ -87,21 +85,17 @@ export function ForgotPasswordForm() {
           <Mail className="h-5 w-5 mr-2" />
           <AlertTitle>{t("Check your email")}</AlertTitle>
           <AlertDescription>
-            {process.env.NODE_ENV !== 'production' 
-              ? "No modo de desenvolvimento, verifique o console do servidor para obter o link de visualização do email. Procure uma linha que diz 'LINK PARA VISUALIZAR O EMAIL:' e clique nessa URL para ver o email."
-              : t(`We've sent a password reset link to ${submittedEmail}. The email should arrive within a few minutes. If you don't see it, please check your spam or junk folder.`)}
+            {t(`Enviamos um link de redefinição de senha para ${submittedEmail}. O email deve chegar em alguns minutos. Se você não vê-lo, verifique sua pasta de spam ou lixo eletrônico.`)}
           </AlertDescription>
         </Alert>
         
-        {process.env.NODE_ENV === 'production' && (
-          <Alert variant="warning" className="bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300">
-            <AlertTriangle className="h-5 w-5 mr-2" />
-            <AlertTitle>{t("Important")}</AlertTitle>
-            <AlertDescription>
-              {t("The password reset link will expire after 1 hour. If you don't receive the email, please verify that you entered the correct email address and check your spam folder before trying again.")}
-            </AlertDescription>
-          </Alert>
-        )}
+        <Alert variant="warning" className="bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300">
+          <AlertTriangle className="h-5 w-5 mr-2" />
+          <AlertTitle>{t("Important")}</AlertTitle>
+          <AlertDescription>
+            {t("O link de redefinição de senha expirará após 1 hora. Se você não receber o email, verifique se digitou o endereço de email correto e verifique sua pasta de spam antes de tentar novamente.")}
+          </AlertDescription>
+        </Alert>
         
         <div className="flex justify-center items-center gap-4">
           <Button variant="outline" asChild>
