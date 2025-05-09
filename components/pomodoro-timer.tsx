@@ -86,7 +86,7 @@ export function PomodoroTimer({
       if (mode === "work") {
         const newCycles = cycles + 1
         setCycles(newCycles)
-        if (newCycles % storeSettings.longBreakInterval === 0) {
+        if (storeSettings.longBreakInterval > 0 && (newCycles % storeSettings.longBreakInterval === 0)) {
           setStoreMode("longBreak")
         } else {
           setStoreMode("shortBreak")
