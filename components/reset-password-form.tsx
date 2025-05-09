@@ -56,11 +56,11 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   const formSchema = z.object({
     password: z.string()
-      .min(6, { message: t("Password must be at least 6 characters") }),
+      .min(6, { message: t("A senha deve ter pelo menos 6 caracteres") }),
     confirmPassword: z.string()
-      .min(1, { message: t("Please confirm your password") }),
+      .min(1, { message: t("Por favor, confirme sua senha") }),
   }).refine((data) => data.password === data.confirmPassword, {
-    message: t("Passwords do not match"),
+    message: t("As senhas não coincidem"),
     path: ["confirmPassword"],
   })
 
@@ -95,14 +95,14 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       
       toast({
         variant: "success",
-        title: t("Password reset successful"),
-        description: t("Your password has been successfully reset."),
+        title: t("Senha redefinida com sucesso"),
+        description: t("Sua senha foi redefinida com sucesso."),
         duration: 5000,
       })
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: t("Error"),
+        title: t("Erro"),
         description: error.message,
         duration: 5000,
       })
@@ -124,15 +124,15 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       <div className="space-y-6">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>{t("Invalid or expired token")}</AlertTitle>
+          <AlertTitle>{t("Link inválido ou expirado")}</AlertTitle>
           <AlertDescription>
-            {t("The password reset link is invalid or has expired. Please request a new one.")}
+            {t("O link de redefinição de senha é inválido ou expirou. Por favor, solicite um novo.")}
           </AlertDescription>
         </Alert>
         <Button variant="outline" asChild className="w-full">
           <Link href="/forgot-password">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("Back to Forgot Password")}
+            {t("Voltar para Esqueci a Senha")}
           </Link>
         </Button>
       </div>
@@ -144,14 +144,14 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       <div className="space-y-6">
         <Alert className="border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-700">
           <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-          <AlertTitle>{t("Password reset successful")}</AlertTitle>
+          <AlertTitle>{t("Senha redefinida com sucesso")}</AlertTitle>
           <AlertDescription>
-            {t("Your password has been successfully reset. You can now log in with your new password.")}
+            {t("Sua senha foi redefinida com sucesso. Você já pode fazer login com sua nova senha.")}
           </AlertDescription>
         </Alert>
         <Button className="w-full" asChild>
           <Link href="/login">
-            {t("Go to Login")}
+            {t("Ir para Login")}
           </Link>
         </Button>
       </div>
@@ -160,12 +160,6 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">{t("Reset your password")}</h2>
-        <p className="text-sm text-muted-foreground mt-2">
-          {t("Enter your new password below.")}
-        </p>
-      </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -173,7 +167,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("New Password")}</FormLabel>
+                <FormLabel>{t("Nova Senha")}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input 
@@ -189,14 +183,14 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                       size="icon"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? t("Hide password") : t("Show password")}
+                      aria-label={showPassword ? t("Ocultar senha") : t("Mostrar senha")}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
                       ) : (
                         <Eye className="h-4 w-4 text-muted-foreground" />
                       )}
-                      <span className="sr-only">{showPassword ? t("Hide password") : t("Show password")}</span>
+                      <span className="sr-only">{showPassword ? t("Ocultar senha") : t("Mostrar senha")}</span>
                     </Button>
                   </div>
                 </FormControl>
@@ -209,7 +203,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("Confirm Password")}</FormLabel>
+                <FormLabel>{t("Confirmar Senha")}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input 
@@ -225,14 +219,14 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                       size="icon"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
+                      aria-label={showConfirmPassword ? t("Ocultar senha") : t("Mostrar senha")}
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
                       ) : (
                         <Eye className="h-4 w-4 text-muted-foreground" />
                       )}
-                      <span className="sr-only">{showConfirmPassword ? t("Hide password") : t("Show password")}</span>
+                      <span className="sr-only">{showConfirmPassword ? t("Ocultar senha") : t("Mostrar senha")}</span>
                     </Button>
                   </div>
                 </FormControl>
@@ -244,16 +238,16 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             <Button variant="outline" asChild>
               <Link href="/login">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {t("Back to Login")}
+                {t("Voltar para Login")}
               </Link>
             </Button>
             <Button type="submit" disabled={isResetting}>
               {isResetting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Resetting...")}
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Redefinindo...")}
                 </>
               ) : (
-                t("Reset Password")
+                t("Redefinir Senha")
               )}
             </Button>
           </div>

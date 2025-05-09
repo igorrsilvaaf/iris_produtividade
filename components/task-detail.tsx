@@ -59,13 +59,13 @@ function isAllDayDate(dateString: string | null): boolean {
 }
 
 function getTimeFromDate(dateString: string | null): string {
-  if (!dateString) return "12:00";
+  if (!dateString) return "00:00";
   try {
     const date = new Date(dateString);
-    if (date.getHours() === 0 && date.getMinutes() === 0) return "12:00";
+    // Preservar a hora real, incluindo 00:00
     return date.toTimeString().slice(0, 5);
   } catch (e) {
-    return "12:00";
+    return "00:00";
   }
 }
 
@@ -75,10 +75,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const [dueDate, setDueDate] = useState<Date | undefined>(task.due_date ? new Date(task.due_date) : undefined)
   const [dueTime, setDueTime] = useState<string | undefined>(
     task.due_date
-      ? new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
-        ? "12:00"
-        : new Date(task.due_date).toTimeString().slice(0, 5)
-      : "12:00"
+      ? new Date(task.due_date).toTimeString().slice(0, 5)
+      : "00:00"
   )
   const [dueTimeUpdate, setDueTimeUpdate] = useState(false)
   const [isAllDay, setIsAllDay] = useState(
@@ -153,22 +151,27 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         try {
           const dueDate = new Date(task.due_date)
           setDueDate(dueDate)
-          setDueTime(
-            dueDate.getHours() === 0 && dueDate.getMinutes() === 0
-              ? "12:00"
-              : dueDate.toTimeString().slice(0, 5)
-          )
-          setIsAllDay(dueDate.getHours() === 0 && dueDate.getMinutes() === 0)
-          console.log(`[TaskDetail] Data configurada: ${dueDate}, isAllDay: ${dueDate.getHours() === 0 && dueDate.getMinutes() === 0}, hora: ${dueDate.toTimeString().slice(0, 5)}`)
+          
+          // Extrair a hora da data
+          const hours = dueDate.getHours();
+          const minutes = dueDate.getMinutes();
+          const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+          setDueTime(timeString)
+          
+          // Verificar se é "all day" (00:00)
+          const isAllDayTime = hours === 0 && minutes === 0;
+          setIsAllDay(isAllDayTime)
+          
+          console.log(`[TaskDetail] Data configurada: ${dueDate}, isAllDay: ${isAllDayTime}, hora: ${timeString}`)
         } catch (error) {
           console.error(`[TaskDetail] Erro ao processar data: ${error}`)
           setDueDate(undefined)
-          setDueTime("12:00")
+          setDueTime("00:00")
           setIsAllDay(true)
         }
       } else {
         setDueDate(undefined)
-        setDueTime("12:00")
+        setDueTime("00:00")
         setIsAllDay(true)
       }
       
@@ -267,7 +270,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         body: JSON.stringify({
           title,
           description: description || null,
-          dueDate: dueDateWithTime,
+          due_date: dueDateWithTime,
           priority: Number.parseInt(priority),
           points,
           attachments,
@@ -672,7 +675,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         setIsAllDay(dueDate.getHours() === 0 && dueDate.getMinutes() === 0);
       } else {
         setDueDate(undefined);
-        setDueTime("12:00");
+        setDueTime("00:00");
         setIsAllDay(true);
       }
       
@@ -1022,7 +1025,11 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                       disabled={!isEditMode}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dueDate ? format(dueDate, "PPP") : <span>{t("Pick a date")}</span>}
+                      {dueDate ? (
+                        isAllDay ? 
+                          format(dueDate, "PPP") :
+                          `${format(dueDate, "PPP")} ${dueTime}`
+                      ) : <span>{t("Pick a date")}</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -1062,7 +1069,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                               if (checked) {
                                 setDueTime("00:00");
                               } else {
-                                setDueTime("12:00");
+                                setDueTime("00:00");
                               }
                               if (typeof window !== 'undefined') {
                                 setTimeout(() => {
@@ -1083,7 +1090,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                             type="time" 
                             value={dueTime}
                             onChange={(e) => {
-                              setDueTime(e.target.value || "12:00");
+                              setDueTime(e.target.value || "00:00");
                               setDueTimeUpdate(true);
                             }}
                             className="w-full"
@@ -1506,13 +1513,13 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   setDueDate(new Date(task.due_date))
                   setDueTime(
                     new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
-                      ? "12:00"
+                      ? "00:00"
                       : new Date(task.due_date).toTimeString().slice(0, 5)
                   )
                   setIsAllDay(new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0)
                 } else {
                   setDueDate(undefined)
-                  setDueTime("12:00")
+                  setDueTime("00:00")
                   setIsAllDay(true)
                 }
               } else {

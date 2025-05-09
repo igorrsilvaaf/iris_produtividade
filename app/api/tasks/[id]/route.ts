@@ -109,6 +109,29 @@ export async function PATCH(
     
     console.log(`[PATCH /api/tasks/${taskId}] Dados recebidos:`, JSON.stringify(body));
     console.log(`[PATCH /api/tasks/${taskId}] Tempo estimado recebido:`, body.estimated_time);
+    
+    // Logs adicionais sobre data e hora
+    if (body.dueDate) {
+      console.log(`[PATCH /api/tasks/${taskId}] Data recebida (dueDate):`, body.dueDate);
+      try {
+        const date = new Date(body.dueDate);
+        console.log(`[PATCH /api/tasks/${taskId}] Data convertida:`, date);
+        console.log(`[PATCH /api/tasks/${taskId}] Hora da data:`, date.getHours(), ":", date.getMinutes());
+      } catch (e) {
+        console.error(`[PATCH /api/tasks/${taskId}] Erro ao analisar data:`, e);
+      }
+    } else if (body.due_date) {
+      console.log(`[PATCH /api/tasks/${taskId}] Data recebida (due_date):`, body.due_date);
+      try {
+        const date = new Date(body.due_date);
+        console.log(`[PATCH /api/tasks/${taskId}] Data convertida:`, date);
+        console.log(`[PATCH /api/tasks/${taskId}] Hora da data:`, date.getHours(), ":", date.getMinutes());
+      } catch (e) {
+        console.error(`[PATCH /api/tasks/${taskId}] Erro ao analisar data:`, e);
+      }
+    } else {
+      console.log(`[PATCH /api/tasks/${taskId}] Nenhuma data recebida`);
+    }
 
     // Verificar se a tarefa existe
     const existingTask = await getTaskById(taskId, userId);
