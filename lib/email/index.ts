@@ -13,30 +13,15 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Configurar o transporte de e-mail
 const createTransporter = async () => {
-  if (isDevelopment) {
-    // Para ambiente de desenvolvimento, usamos o Ethereal (serviço de testes)
-    const testAccount = await nodemailer.createTestAccount();
-    
-    console.log(`[Email] Criando conta de teste Ethereal: ${testAccount.user}`);
-    
-    return nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
-  } else {
-    // Para produção, verificamos se as configurações de e-mail estão presentes
+  try {
+    // Sempre usar as configurações de email reais (mesmo em desenvolvimento)
     const host = process.env.EMAIL_SERVER_HOST;
     const port = process.env.EMAIL_SERVER_PORT;
     const user = process.env.EMAIL_SERVER_USER;
     const pass = process.env.EMAIL_SERVER_PASSWORD;
     
     if (!host || !port || !user || !pass) {
-      console.error('[Email] Configurações de e-mail em produção incompletas:',
+      console.error('[Email] Configurações de e-mail incompletas:',
         { host: !!host, port: !!port, user: !!user, pass: !!pass });
       throw new Error('Email server configuration is incomplete');
     }
@@ -49,6 +34,9 @@ const createTransporter = async () => {
       secure: process.env.EMAIL_SERVER_SECURE === 'true',
       auth: { user, pass },
     });
+  } catch (error) {
+    console.error('[Email] Erro ao criar transportador de email:', error);
+    throw error;
   }
 };
 
@@ -58,6 +46,8 @@ export const sendEmail = async (options: EmailOptions) => {
 
   try {
     console.log(`[Email] Tentando enviar e-mail para: ${to} com assunto: ${subject}`);
+    console.log(`[Email] Ambiente: ${isDevelopment ? 'Desenvolvimento' : 'Produção'}`);
+    
     const transporter = await createTransporter();
     
     const info = await transporter.sendMail({
@@ -69,22 +59,11 @@ export const sendEmail = async (options: EmailOptions) => {
 
     console.log(`[Email] E-mail enviado com ID de mensagem: ${info.messageId}`);
     
-    if (isDevelopment) {
-      // No ambiente de desenvolvimento, exibimos o URL de preview
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      console.log(`[Email] URL de visualização: ${previewUrl}`);
-      return {
-        success: true,
-        messageId: info.messageId,
-        previewUrl,
-      };
-    }
-
     return {
       success: true,
       messageId: info.messageId,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Email] Erro ao enviar email:', error);
     throw new Error(`Failed to send email: ${error.message}`);
   }
