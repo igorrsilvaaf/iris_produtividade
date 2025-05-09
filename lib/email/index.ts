@@ -9,12 +9,41 @@ export interface EmailOptions {
 }
 
 // Verificar o ambiente (desenvolvimento ou produção)
-const isDevelopment = process.env.NODE_ENV !== 'production';
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 // Configurar o transporte de e-mail
 const createTransporter = async () => {
   try {
-    // Sempre usar as configurações de email reais (mesmo em desenvolvimento)
+    // Verificar se estamos em ambiente de desenvolvimento
+    if (isDevelopment) {
+      console.log('[Email] Ambiente de desenvolvimento detectado');
+      
+      // Em desenvolvimento, verificar se temos configurações SMTP
+      const hasSmtpConfig = process.env.EMAIL_SERVER_HOST && 
+                           process.env.EMAIL_SERVER_PORT && 
+                           process.env.EMAIL_SERVER_USER && 
+                           process.env.EMAIL_SERVER_PASSWORD;
+      
+      if (!hasSmtpConfig) {
+        console.log('[Email] Configuração SMTP não encontrada. Usando transportador para testes.');
+        
+        // Em desenvolvimento sem configuração SMTP, criar um transportador que apenas loga
+        return {
+          sendMail: (mailOptions: any) => {
+            console.log('========================');
+            console.log('[Email TEST] Enviaria email com as seguintes configurações:');
+            console.log('De:', mailOptions.from);
+            console.log('Para:', mailOptions.to);
+            console.log('Assunto:', mailOptions.subject);
+            console.log('Conteúdo HTML:', mailOptions.html.substring(0, 500) + '...');
+            console.log('========================');
+            return Promise.resolve({ messageId: 'test-message-id' });
+          }
+        };
+      }
+    }
+    
+    // Configuração para produção ou desenvolvimento com SMTP configurado
     const host = process.env.EMAIL_SERVER_HOST;
     const port = process.env.EMAIL_SERVER_PORT;
     const user = process.env.EMAIL_SERVER_USER;
@@ -65,6 +94,17 @@ export const sendEmail = async (options: EmailOptions) => {
     };
   } catch (error: any) {
     console.error('[Email] Erro ao enviar email:', error);
+    
+    // Em desenvolvimento, permitir que o fluxo continue mesmo com erro de email
+    if (isDevelopment) {
+      console.log('[Email] Ambiente de desenvolvimento - continuando fluxo mesmo com erro de email');
+      return {
+        success: false,
+        error: error.message,
+        isDevelopment: true
+      };
+    }
+    
     throw new Error(`Failed to send email: ${error.message}`);
   }
 };

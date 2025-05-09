@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'Íris Team' }],
   creator: 'Íris Team',
   publisher: 'Íris',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://iris-todo.vercel.app'),
   formatDetection: {
     email: false,
     address: false,
