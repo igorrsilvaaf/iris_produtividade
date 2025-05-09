@@ -87,7 +87,6 @@ export const usePomodoroStore = create<PomodoroState>()(
         set({ 
           settings,
           timeLeft: newTimeLeft,
-          isRunning: false,
         })
       },
       setTimeLeft: (timeLeft) => {

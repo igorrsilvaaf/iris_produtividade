@@ -17,6 +17,7 @@ interface PomodoroTimerProps {
   fullScreen?: boolean
   timerTextColorClass?: string
   activeTabStyleClass?: string
+  playButtonColorClass?: string
 }
 
 export function PomodoroTimer({
@@ -24,6 +25,7 @@ export function PomodoroTimer({
   fullScreen = false,
   timerTextColorClass = "",
   activeTabStyleClass = "",
+  playButtonColorClass = "bg-primary text-primary-foreground hover:bg-primary/90 border-primary",
 }: PomodoroTimerProps) {
   const {
     isRunning,
@@ -243,7 +245,7 @@ export function PomodoroTimer({
               variant="outline" 
               size="icon" 
               onClick={toggleStoreTimer} 
-              className={`${fullScreen ? 'h-16 w-16' : 'h-12 w-12'} rounded-full ${isRunning ? 'bg-primary/10 hover:bg-primary/20 border-primary/20' : 'bg-primary text-primary-foreground hover:bg-primary/90 border-primary'}`}
+              className={`${fullScreen ? 'h-16 w-16' : 'h-12 w-12'} rounded-full ${isRunning ? 'bg-primary/10 hover:bg-primary/20 border-primary/20' : playButtonColorClass}`}
             >
               {isRunning ? 
                 <Pause className={fullScreen ? "h-8 w-8" : "h-6 w-6"} /> : 

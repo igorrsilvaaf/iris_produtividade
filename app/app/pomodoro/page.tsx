@@ -48,14 +48,24 @@ export default function PomodoroPage() {
   
   const alreadyFetchedSettings = useRef(false)
 
+  // Função para lidar com a seleção de tarefas
+  const handleTaskSelect = (taskId: string) => {
+    if (taskId === "none") {
+      setSelectedTaskId(null);
+      router.push('/app/pomodoro', { scroll: false });
+    } else {
+      setSelectedTaskId(taskId);
+      router.push(`/app/pomodoro?taskId=${taskId}`, { scroll: false });
+    }
+  };
+
   useEffect(() => {
     setIsClient(true)
   }, [])
 
   useEffect(() => {
-    if (!isClient) return
-    if (alreadyFetchedSettings.current && !pomodoroStore.isRunning) return 
-    
+    if (!isClient || alreadyFetchedSettings.current) return;
+
     const fetchUserSettings = async () => {
       try {
         setIsSettingsLoading(true)
@@ -65,7 +75,7 @@ export default function PomodoroPage() {
         
         if (response.ok) {
           const data = await response.json()
-          alreadyFetchedSettings.current = true
+          alreadyFetchedSettings.current = true;
           
           pomodoroStore.updateSettings({
             workMinutes: data.settings.pomodoro_work_minutes,
@@ -100,7 +110,7 @@ export default function PomodoroPage() {
     
     fetchUserSettings()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient, pomodoroStore.isRunning])
+  }, [isClient])
 
   useEffect(() => {
     setPomodoroSettingsState({
@@ -161,7 +171,7 @@ export default function PomodoroPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isClient])
 
-  const { timerTextColorClass, activeTabClasses } = getPomodoroModeStyles(currentMode);
+  const { timerTextColorClass, activeTabClasses, playButtonClasses } = getPomodoroModeStyles(currentMode);
   const transitionClasses = "transition-colors duration-300 ease-in-out";
 
   if (isSettingsLoading) {
@@ -178,6 +188,38 @@ export default function PomodoroPage() {
         <h1 className="text-3xl font-bold">{t("pomodoroTimer")}</h1>
         <p className="text-muted-foreground">{t("focusOnYourTasks")}</p>
       </div>
+
+      {/* Seletor de Tarefas para Desktop */}
+      {!isMobile && (
+        <div className="mb-6">
+          <label htmlFor="task-select-desktop" className="block text-sm font-medium text-foreground mb-1.5">
+            {t("selectTaskLabel", "Select a task to focus on")}
+          </label>
+          <Select
+            value={selectedTaskId || "none"}
+            onValueChange={handleTaskSelect}
+            disabled={isLoading || tasks.length === 0 && !selectedTaskId}
+          >
+            <SelectTrigger id="task-select-desktop" className="w-full md:w-[450px]">
+              <SelectValue placeholder={t("selectTaskPlaceholder", "Choose a task...")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">{t("noTaskSelected", "No task selected")}</SelectItem>
+              {tasks.map((task) => (
+                <SelectItem key={task.id} value={String(task.id)}>
+                  {task.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {isLoading && tasks.length === 0 && (
+            <p className="text-xs text-muted-foreground mt-1.5">{t("loadingTasks", "Loading tasks...")}</p>
+          )}
+          {!isLoading && tasks.length === 0 && !selectedTaskId && (
+             <p className="text-xs text-muted-foreground mt-1.5">{t("noPendingTasksPomodoro", "You have no pending tasks to focus on.")}</p>
+          )}
+        </div>
+      )}
 
       {isMobile && (
         <div className={`fixed inset-0 z-50 flex flex-col bg-background`}>
@@ -196,12 +238,42 @@ export default function PomodoroPage() {
             }} />
             <h2 className="text-lg font-medium ml-4">{t("pomodoroTimer")}</h2>
           </div>
+          {/* Seletor de Tarefas para Mobile */}
+          <div className="p-4 border-b">
+            <label htmlFor="task-select-mobile" className="sr-only">
+              {t("selectTaskLabel", "Select a task to focus on")}
+            </label>
+            <Select
+              value={selectedTaskId || "none"}
+              onValueChange={handleTaskSelect}
+              disabled={isLoading || tasks.length === 0 && !selectedTaskId}
+            >
+              <SelectTrigger id="task-select-mobile" className="w-full">
+                <SelectValue placeholder={t("selectTaskPlaceholder", "Choose a task...")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t("noTaskSelected", "No task selected")}</SelectItem>
+                {tasks.map((task) => (
+                  <SelectItem key={task.id} value={String(task.id)}>
+                    {task.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {isLoading && tasks.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-1.5">{t("loadingTasks", "Loading tasks...")}</p>
+            )}
+            {!isLoading && tasks.length === 0 && !selectedTaskId && (
+               <p className="text-xs text-muted-foreground mt-1.5">{t("noPendingTasksPomodoro", "You have no pending tasks to focus on.")}</p>
+            )}
+          </div>
           <div className="flex-1 flex flex-col items-center justify-center p-4">
             <PomodoroTimer 
               selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
               fullScreen={true} 
               timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
               activeTabStyleClass={activeTabClasses}
+              playButtonColorClass={playButtonClasses}
             />
           </div>
         </div>
@@ -218,6 +290,7 @@ export default function PomodoroPage() {
               fullScreen={false}
               timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
               activeTabStyleClass={activeTabClasses}
+              playButtonColorClass={playButtonClasses}
             />
           </CardContent>
         </Card>

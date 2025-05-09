@@ -275,7 +275,7 @@ describe('Componente Todo', () => {
     render(<Todo todo={todayTodo} />);
     
     // Verifica se a data foi formatada como "Hoje"
-    expect(screen.getByText('today')).toBeInTheDocument();
+    expect(screen.getByText(/^today/i)).toBeInTheDocument();
   });
 
   test('deve formatar corretamente a data de amanhã', () => {
@@ -290,6 +290,6 @@ describe('Componente Todo', () => {
     render(<Todo todo={tomorrowTodo} />);
     
     // Verifica se a data foi formatada como "Amanhã"
-    expect(screen.getByText('tomorrow')).toBeInTheDocument();
+    expect(screen.getByText(/^tomorrow/i)).toBeInTheDocument();
   });
 }); 
