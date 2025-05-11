@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import "swagger-ui-react/swagger-ui.css";
+import "@/styles/swagger-custom.css";
 
 // Importação dinâmica do Swagger UI para evitar problemas de renderização no servidor
 const SwaggerUI = dynamic(() => import("swagger-ui-react"), { ssr: false });
-import "swagger-ui-react/swagger-ui.css";
 
 export default function ApiDocsPage() {
   const [activeTab, setActiveTab] = useState<string>("swagger");
@@ -49,7 +50,7 @@ export default function ApiDocsPage() {
         </TabsList>
         
         <TabsContent value="swagger" className="mt-4">
-          <div className="bg-white dark:bg-gray-800 rounded-md p-4">
+          <div className="rounded-md p-4">
             <SwaggerUI url="/swagger.yaml" />
           </div>
         </TabsContent>
