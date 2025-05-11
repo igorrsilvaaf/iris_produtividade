@@ -1,0 +1,854 @@
+{
+  "info": {
+    "name": "To-Do List API",
+    "description": "API para gerenciamento de tarefas, projetos, configurações e usuários",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Endpoints de autenticação e gestão de usuários",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@exemplo.com\",\n  \"password\": \"senha123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Registro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nome Completo\",\n  \"email\": \"usuario@exemplo.com\",\n  \"password\": \"senha123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Informações do Usuário (Me)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Recuperar Senha",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@exemplo.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Redefinir Senha",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset-token-aqui\",\n  \"password\": \"nova-senha123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verificar Token de Reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-reset-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "verify-reset-token"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset-token-aqui\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verificar Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/check-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "check-email"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@exemplo.com\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "description": "Endpoints para gerenciamento de tarefas",
+      "item": [
+        {
+          "name": "Listar Tarefas (Inbox)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/inbox",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "inbox"]
+            }
+          }
+        },
+        {
+          "name": "Listar Tarefas (Hoje)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/today",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "today"]
+            }
+          }
+        },
+        {
+          "name": "Listar Tarefas (Próximas)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/upcoming",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "upcoming"]
+            }
+          }
+        },
+        {
+          "name": "Listar Tarefas (Calendário)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/calendar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "calendar"]
+            }
+          }
+        },
+        {
+          "name": "Buscar Tarefas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/search?query=exemplo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "exemplo"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obter Tarefa Específica",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "123"]
+            }
+          }
+        },
+        {
+          "name": "Criar Tarefa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Nova tarefa\",\n  \"description\": \"Descrição da tarefa\",\n  \"dueDate\": \"2023-12-31T23:59:59Z\",\n  \"priority\": \"medium\",\n  \"projectId\": null,\n  \"labels\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Atualizar Tarefa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "123"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tarefa atualizada\",\n  \"description\": \"Nova descrição\",\n  \"dueDate\": \"2023-12-31T23:59:59Z\",\n  \"priority\": \"high\",\n  \"projectId\": 1,\n  \"labels\": [1, 2]\n}"
+            }
+          }
+        },
+        {
+          "name": "Excluir Tarefa",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "123"]
+            }
+          }
+        },
+        {
+          "name": "Completar Tarefa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/123/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "123", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"completed\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Alternar Estado da Tarefa",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/123/toggle",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "123", "toggle"]
+            }
+          }
+        },
+        {
+          "name": "Adicionar Etiqueta à Tarefa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/123/labels",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "123", "labels"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"labelId\": 456\n}"
+            }
+          }
+        },
+        {
+          "name": "Atribuir Projeto à Tarefa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/123/project",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "123", "project"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": 789\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projetos",
+      "description": "Endpoints para gerenciamento de projetos",
+      "item": [
+        {
+          "name": "Listar Projetos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects"]
+            }
+          }
+        },
+        {
+          "name": "Obter Projeto Específico",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "123"]
+            }
+          }
+        },
+        {
+          "name": "Criar Projeto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Novo Projeto\",\n  \"color\": \"#FF5733\",\n  \"description\": \"Descrição do projeto\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Atualizar Projeto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "123"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Projeto Atualizado\",\n  \"color\": \"#33FF57\",\n  \"description\": \"Nova descrição do projeto\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Excluir Projeto",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "123"]
+            }
+          }
+        },
+        {
+          "name": "Marcar/Desmarcar Projeto como Favorito",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/123/favorite",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "123", "favorite"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isFavorite\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar Tarefas do Projeto",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/123/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "123", "tasks"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Etiquetas",
+      "description": "Endpoints para gerenciamento de etiquetas",
+      "item": [
+        {
+          "name": "Listar Etiquetas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/labels",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "labels"]
+            }
+          }
+        },
+        {
+          "name": "Obter Etiqueta Específica",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/labels/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "labels", "123"]
+            }
+          }
+        },
+        {
+          "name": "Criar Etiqueta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/labels",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "labels"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nova Etiqueta\",\n  \"color\": \"#3366FF\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Atualizar Etiqueta",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/labels/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "labels", "123"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Etiqueta Atualizada\",\n  \"color\": \"#FF33CC\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Excluir Etiqueta",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/labels/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "labels", "123"]
+            }
+          }
+        },
+        {
+          "name": "Listar Tarefas por Etiqueta",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/labels/123/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "labels", "123", "tasks"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Anexos",
+      "description": "Endpoints para gerenciamento de anexos",
+      "item": [
+        {
+          "name": "Upload de Anexo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "upload"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/caminho/para/arquivo.jpg"
+                },
+                {
+                  "key": "taskId",
+                  "value": "123",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obter Anexo",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/attachments/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attachments", "123"]
+            }
+          }
+        },
+        {
+          "name": "Excluir Anexo",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/attachments/123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attachments", "123"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notificações",
+      "description": "Endpoints para gerenciamento de notificações",
+      "item": [
+        {
+          "name": "Listar Notificações",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "Marcar Notificação como Lida",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/123/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "123", "read"]
+            }
+          }
+        },
+        {
+          "name": "Listar Notificações de Tarefas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "tasks"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Relatórios",
+      "description": "Endpoints para geração de relatórios",
+      "item": [
+        {
+          "name": "Gerar Relatório PDF",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "pdf"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2023-01-01\",\n  \"endDate\": \"2023-12-31\",\n  \"includeCompleted\": true,\n  \"includeUncompleted\": true,\n  \"projectIds\": [1, 2, 3],\n  \"labelIds\": [4, 5, 6]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Backup",
+      "description": "Endpoints para backup e restauração de dados",
+      "item": [
+        {
+          "name": "Exportar Backup",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/backup/export",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "backup", "export"]
+            }
+          }
+        },
+        {
+          "name": "Importar Backup",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/backup/import",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "backup", "import"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/caminho/para/backup.json"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Configurações",
+      "description": "Endpoints para gerenciamento de configurações do usuário",
+      "item": [
+        {
+          "name": "Obter Configurações",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings"]
+            }
+          }
+        },
+        {
+          "name": "Atualizar Configurações",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"dark\",\n  \"language\": \"pt-BR\",\n  \"timezone\": \"America/Sao_Paulo\",\n  \"notifications_enabled\": true,\n  \"pomodoro_work_minutes\": 25,\n  \"pomodoro_break_minutes\": 5,\n  \"pomodoro_long_break_minutes\": 15,\n  \"pomodoro_cycles\": 4,\n  \"enable_sound\": true,\n  \"notification_sound\": \"bell\",\n  \"pomodoro_sound\": \"pomodoro\",\n  \"enable_desktop_notifications\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Perfil",
+      "description": "Endpoints para gerenciamento do perfil do usuário",
+      "item": [
+        {
+          "name": "Atualizar Avatar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "avatar"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": "/caminho/para/avatar.jpg"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar Perfil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nome Atualizado\",\n  \"email\": \"novo-email@exemplo.com\",\n  \"bio\": \"Minha bio atualizada\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pomodoro",
+      "description": "Endpoints para o recurso de Pomodoro",
+      "item": [
+        {
+          "name": "Registrar Sessão Pomodoro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pomodoro/log",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pomodoro", "log"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": 123,\n  \"duration\": 25\n}"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+} 

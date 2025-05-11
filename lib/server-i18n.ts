@@ -44,6 +44,10 @@ export const translations: Translations = {
     en: "Calendar",
     pt: "Calendário",
   },
+  apiDocs: {
+    en: "API Documentation",
+    pt: "Documentação da API",
+  },
   addTask: {
     en: "Add Task",
     pt: "Adicionar Tarefa",

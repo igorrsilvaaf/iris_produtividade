@@ -53,7 +53,7 @@ export function PomodoroTimer({
         playSound(storeSettings.pomodoroSound)
       }
 
-      if (storeSettings.enableDesktopNotifications && Notification.permission === "granted") {
+      if (storeSettings.enableDesktopNotifications && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === "granted") {
         const title = mode === "work" ? t("workComplete") : t("breakComplete")
         const body =
           mode === "work"
@@ -83,24 +83,48 @@ export function PomodoroTimer({
         })
       }
 
+      let nextMode: TimerMode;
+      let newInternalCycle = cycles; // Usaremos 'cycles' para rastrear o estágio no ciclo de 4 partes.
+
       if (mode === "work") {
-        const newCycles = cycles + 1
-        setCycles(newCycles)
-        if (storeSettings.longBreakInterval > 0 && (newCycles % storeSettings.longBreakInterval === 0)) {
-          setStoreMode("longBreak")
-        } else {
-          setStoreMode("shortBreak")
+        if (newInternalCycle === 0) { // Primeiro trabalho no ciclo de 4 partes
+          nextMode = "shortBreak";
+          newInternalCycle = 1;
+        } else { // Segundo trabalho no ciclo de 4 partes (newInternalCycle era 2)
+          nextMode = "longBreak";
+          newInternalCycle = 3;
         }
-      } else {
-        setStoreMode("work")
+      } else if (mode === "shortBreak") { // Após Pausa Curta (newInternalCycle era 1)
+        nextMode = "work";
+        newInternalCycle = 2;
+      } else { // mode === "longBreak" // Após Pausa Longa (newInternalCycle era 3)
+        nextMode = "work";
+        newInternalCycle = 0; // Reinicia o ciclo de 4 partes
       }
-      setIsRunning(false)
+
+      setCycles(newInternalCycle);
+      setStoreMode(nextMode);
+      setIsRunning(false);
     } catch (error) {
       console.error("Error in handleTimerComplete:", error)
       setIsRunning(false)
-      setStoreMode("work")
+      setStoreMode("work") // Fallback para work em caso de erro
+      setCycles(0); // Resetar o ciclo em caso de erro
     }
-  }, [storeSettings, mode, selectedTaskId, cycles, setCycles, setStoreMode, setIsRunning, playSound, t]);
+  }, [
+    storeSettings.enableSound,
+    storeSettings.pomodoroSound,
+    storeSettings.enableDesktopNotifications,
+    storeSettings.workMinutes, // Adicionado pois é usado no fetch de log
+    mode,
+    selectedTaskId,
+    cycles,
+    setCycles,
+    setStoreMode,
+    setIsRunning,
+    playSound,
+    t,
+  ]);
 
   useEffect(() => {
     const fetchTaskDetails = async () => {
@@ -182,7 +206,9 @@ export function PomodoroTimer({
         totalDuration = storeSettings.workMinutes * 60
     }
     if (totalDuration === 0) return 0
-    return 100 - (timeLeft / totalDuration) * 100
+    // Garante que timeLeft não seja maior que totalDuration para evitar progresso > 100 ou < 0
+    const currentProgress = Math.max(0, Math.min(timeLeft, totalDuration));
+    return 100 - (currentProgress / totalDuration) * 100
   }
 
   const navigateToSettings = () => {
@@ -263,7 +289,7 @@ export function PomodoroTimer({
           </div>
 
           <div className={`text-xs sm:text-sm text-muted-foreground ${fullScreen ? 'mt-2' : 'mt-6'}`}>
-            {t("cycle")}: {storeSettings.longBreakInterval > 0 ? cycles % storeSettings.longBreakInterval : 0}/{storeSettings.longBreakInterval > 0 ? storeSettings.longBreakInterval : '-'}
+            {t("cycleStage")}: {cycles + 1}/4 
           </div>
         </div>
       </CardContent>

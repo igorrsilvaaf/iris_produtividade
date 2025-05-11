@@ -72,13 +72,31 @@ export const usePomodoroStore = create<PomodoroState>()(
           timeLeft: newTimeLeft,
         })
       },
-      setMode: (mode) => {
+      setMode: (newMode) => {
         const state = get()
-        const newTimeLeft = getInitialTimeLeft(mode, state.settings)
+        const newTimeLeft = getInitialTimeLeft(newMode, state.settings)
+        let newCycles;
+
+        switch (newMode) {
+          case "work":
+            newCycles = 0;
+            break;
+          case "shortBreak":
+            newCycles = 1;
+            break;
+          case "longBreak":
+            newCycles = 3;
+            break;
+          default:
+            newCycles = state.cycles;
+            break;
+        }
+
         set({
-          mode,
+          mode: newMode,
           timeLeft: newTimeLeft,
           isRunning: false,
+          cycles: newCycles,
         })
       },
       updateSettings: (settings) => {

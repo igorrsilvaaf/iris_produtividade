@@ -171,7 +171,12 @@ export default function PomodoroPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isClient])
 
-  const { timerTextColorClass, activeTabClasses, playButtonClasses } = getPomodoroModeStyles(currentMode);
+  const { 
+    timerTextColorClass, 
+    activeTabClasses, 
+    playButtonClasses, 
+    progressIndicatorClass 
+  } = getPomodoroModeStyles(currentMode);
   const transitionClasses = "transition-colors duration-300 ease-in-out";
 
   if (isSettingsLoading) {
@@ -268,29 +273,30 @@ export default function PomodoroPage() {
             )}
           </div>
           <div className="flex-1 flex flex-col items-center justify-center p-4">
+            <CardContent className="flex-1 flex flex-col p-0">
             <PomodoroTimer 
               selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
               fullScreen={true} 
               timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
               activeTabStyleClass={activeTabClasses}
-              playButtonColorClass={playButtonClasses}
+                playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
+                progressIndicatorClassProp={progressIndicatorClass}
             />
+            </CardContent>
           </div>
         </div>
       )}
 
       {!isMobile && (
-        <Card>
-          <CardHeader>
-            {/* Conteúdo do CardHeader se necessário */}
-          </CardHeader>
-          <CardContent className="p-6">
+        <Card className={`${isMobile ? "hidden" : "w-full md:max-w-2xl lg:max-w-3xl mx-auto shadow-lg"}`}>
+          <CardContent className="p-6 md:p-8">
             <PomodoroTimer 
               selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
               fullScreen={false}
               timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
               activeTabStyleClass={activeTabClasses}
-              playButtonColorClass={playButtonClasses}
+              playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
+              progressIndicatorClassProp={progressIndicatorClass}
             />
           </CardContent>
         </Card>
