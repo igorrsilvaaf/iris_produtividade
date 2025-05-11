@@ -642,56 +642,31 @@ A estrutura utiliza:
 
 ## API Endpoints
 
-O sistema utiliza API Routes do Next.js para gerenciar operações no backend:
+A API do Íris produtividade segue os princípios REST e fornece os seguintes endpoints principais:
 
-### Tarefas
-- `GET /api/tasks` - Lista todas as tarefas
-- `POST /api/tasks` - Cria nova tarefa
-- `GET /api/tasks/today` - Obtém tarefas de hoje
-- `GET /api/tasks/inbox` - Obtém tarefas da caixa de entrada
-- `GET /api/tasks/completed` - Obtém tarefas concluídas
-- `GET /api/tasks/:id` - Obtém tarefa específica
-- `PUT /api/tasks/:id` - Atualiza tarefa
-- `DELETE /api/tasks/:id` - Remove tarefa
-- `PATCH /api/tasks/:id/toggle` - Alterna conclusão
+* Autenticação: `/api/auth/*` (login, registro, logout, etc.)
+* Tarefas: `/api/tasks/*` (CRUD, listagem, filtros)
+* Projetos: `/api/projects/*` (CRUD, listagem)
+* Etiquetas: `/api/labels/*` (CRUD, listagem)
+* Configurações: `/api/settings/*`
+* Perfil: `/api/profile/*`
+* Notificações: `/api/notifications/*`
+* Anexos: `/api/attachments/*` e `/api/upload`
+* Backup: `/api/backup/*` (exportar, importar)
+* Relatórios: `/api/reports/pdf`
 
-### Projetos
-- `GET /api/projects` - Lista todos os projetos
-- `POST /api/projects` - Cria novo projeto
-- `GET /api/projects/:id` - Obtém projeto específico
-- `PUT /api/projects/:id` - Atualiza projeto
-- `DELETE /api/projects/:id` - Remove projeto
-- `GET /api/projects/:id/tasks` - Obtém tarefas de um projeto
+Para uma lista completa e detalhada de todos os endpoints, parâmetros e respostas, consulte a documentação interativa da API.
 
-### Etiquetas
-- `GET /api/labels` - Lista todas as etiquetas
-- `POST /api/labels` - Cria nova etiqueta
-- `GET /api/labels/:id` - Obtém etiqueta específica
-- `PUT /api/labels/:id` - Atualiza etiqueta
-- `DELETE /api/labels/:id` - Remove etiqueta
-- `GET /api/labels/:id/tasks` - Obtém tarefas com etiqueta
+### Acesso à Documentação da API (Swagger)
 
-### Autenticação
-- `POST /api/auth/register` - Registra novo usuário
-- `POST /api/auth/login` - Autentica usuário
-- `POST /api/auth/logout` - Encerra sessão
-- `POST /api/auth/reset-password` - Solicita redefinição de senha
+A documentação interativa da API, gerada com Swagger UI, pode ser acessada diretamente pela seguinte URL no ambiente de desenvolvimento:
 
-### Usuário
-- `GET /api/user/profile` - Obtém perfil do usuário
-- `PUT /api/user/profile` - Atualiza perfil
-- `GET /api/user/settings` - Obtém configurações
-- `PUT /api/user/settings` - Atualiza configurações
+`/app/api-docs`
 
-### Integrações
-- `GET /api/spotify/auth` - Autentica com Spotify
-- `GET /api/spotify/callback` - Callback de autenticação
-- `GET /api/spotify/playlists` - Lista playlists disponíveis
-- `POST /api/spotify/play` - Inicia reprodução
+Anteriormente, havia um link direto no menu lateral, mas ele foi removido para simplificar a interface para o usuário final. Os desenvolvedores podem continuar acessando a documentação através da URL especificada.
 
-### Backup
-- `GET /api/backup/export` - Exporta dados do usuário
-- `POST /api/backup/import` - Importa dados de backup
+**Customização do Tema:**
+O tema visual da documentação do Swagger foi customizado para se alinhar com a paleta de cores escura do sistema Íris Produtividade. As principais customizações de cores são gerenciadas no arquivo `styles/swagger-custom.css`, que sobrescreve os estilos padrão do `swagger-ui-react` utilizando as variáveis CSS globais do projeto definidas em `styles/globals.css`.
 
 ## APIs e Integrações Detalhadas
 

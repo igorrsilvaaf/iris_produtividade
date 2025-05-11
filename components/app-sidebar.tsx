@@ -83,11 +83,13 @@ const navItems: NavItem[] = [
     icon: <Database className="h-5 w-5" />,
     translationKey: "storage",
   },
+  /* Comentado para remover do menu lateral
   {
     href: "/app/api-docs",
     icon: <FileJson className="h-5 w-5" />,
     translationKey: "apiDocs",
   },
+  */
 ]
 
 export function AppSidebar({ user }: { user: User }) {

@@ -1,0 +1,187 @@
+/* styles/swagger-custom.css */
+
+/* --- Cores Globais --- */
+.swagger-ui .scheme-container,
+.swagger-ui .wrapper {
+  background-color: hsl(var(--background)) !important; /* Força o background do tema */
+}
+
+.swagger-ui {
+  color: hsl(var(--foreground));
+  font-family: Arial, Helvetica, sans-serif; /* Pode ajustar para a fonte do seu sistema se desejar */
+}
+
+/* --- Topbar --- */
+.swagger-ui .topbar {
+  background-color: hsl(var(--primary));
+}
+.swagger-ui .topbar .link,
+.swagger-ui .topbar .link img {
+  color: hsl(var(--primary-foreground));
+}
+
+/* --- Títulos das Seções (Auth, Tasks, etc.) --- */
+.swagger-ui .opblock-tag {
+  color: hsl(var(--primary));
+  border-bottom-color: hsl(var(--border));
+}
+
+/* --- Descrições e Textos --- */
+.swagger-ui .info .title,
+.swagger-ui .info .description .renderedMarkdown p,
+.swagger-ui .info .baseurl,
+.swagger-ui .info a,
+.swagger-ui .opblock .opblock-summary-description,
+.swagger-ui .opblock .opblock-summary-path,
+.swagger-ui .opblock .opblock-summary-path a,
+.swagger-ui .opblock .opblock-summary-path__deprecated,
+.swagger-ui .parameter__name,
+.swagger-ui .parameter__type,
+.swagger-ui .parameter__in,
+.swagger-ui .response-col_status,
+.swagger-ui .response-col_description p,
+.swagger-ui .response-col_description .renderedMarkdown p,
+.swagger-ui label,
+.swagger-ui .dialog-ux .modal-ux-content p,
+.swagger-ui .dialog-ux .modal-ux-content span,
+.swagger-ui .dialog-ux .modal-ux-content div,
+.swagger-ui .model-title,
+.swagger-ui .model .property.primitive {
+  color: hsl(var(--foreground)) !important;
+}
+
+.swagger-ui .info .link {
+  color: hsl(var(--accent-foreground)) !important; /* Cor de destaque para links no cabeçalho */
+  background-color: hsl(var(--accent)) !important;
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+
+.swagger-ui .opblock .opblock-section-header h4,
+.swagger-ui .opblock table thead tr th,
+.swagger-ui .model-toggle,
+.swagger-ui .model-title span {
+    color: hsl(var(--foreground)) !important;
+}
+
+/* --- Botões --- */
+.swagger-ui .btn {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.swagger-ui .btn.authorize {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  border-color: hsl(var(--accent));
+}
+
+.swagger-ui .btn.cancel {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border-color: hsl(var(--secondary));
+}
+
+/* --- Inputs e Selects --- */
+.swagger-ui input[type="text"],
+.swagger-ui input[type="password"],
+.swagger-ui select,
+.swagger-ui .opblock-body .opblock-params select {
+  background-color: hsl(var(--input));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+/* --- Fundo de Blocos de Operação --- */
+.swagger-ui .opblock {
+    background-color: hsl(var(--card));
+    border-color: hsl(var(--border));
+}
+
+.swagger-ui .opblock .opblock-section-header {
+    background-color: hsl(var(--card)); /* Ou um tom ligeiramente diferente se preferir */
+    border-bottom-color: hsl(var(--border));
+}
+
+/* --- Cores dos Métodos HTTP --- */
+.swagger-ui .opblock.opblock-get .opblock-summary-method {
+  background: hsl(var(--chart-2));
+}
+.swagger-ui .opblock.opblock-post .opblock-summary-method {
+  background: hsl(var(--chart-1));
+}
+.swagger-ui .opblock.opblock-put .opblock-summary-method {
+  background: hsl(var(--chart-4));
+}
+.swagger-ui .opblock.opblock-delete .opblock-summary-method {
+  background: hsl(var(--destructive));
+}
+.swagger-ui .opblock.opblock-patch .opblock-summary-method {
+  background: hsl(var(--chart-5));
+}
+
+/* --- Modal de Autorização --- */
+.swagger-ui .dialog-ux .modal-ux-header {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-bottom-color: hsl(var(--border));
+}
+
+.swagger-ui .dialog-ux .modal-ux-content {
+  background-color: hsl(var(--card));
+}
+
+/* --- Tabela de Respostas --- */
+.swagger-ui .responses-table tbody tr td,
+.swagger-ui .responses-table thead tr th {
+    border-color: hsl(var(--border));
+}
+
+/* --- Links --- */
+.swagger-ui a {
+    color: hsl(var(--primary));
+}
+
+/* Se houver um container específico para o "Servers" que precisa de um fundo diferente */
+.swagger-ui .servers {
+    background-color: hsl(var(--card)); /* Exemplo, ajuste se necessário */
+    border-radius: var(--radius);
+    padding: 10px;
+}
+
+.swagger-ui .servers select {
+    background-color: hsl(var(--input));
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border));
+}
+
+/* Garantir que o texto dentro das abas também use a cor do foreground */
+.swagger-ui .tab li button.tablinks {
+    color: hsl(var(--foreground));
+}
+
+/* Outros ajustes finos podem ser necessários aqui */
+
+/* Ajustes específicos para garantir que o texto dentro dos blocos de operação tenha bom contraste */
+.swagger-ui .opblock-description-wrapper p,
+.swagger-ui .opblock-external-docs-wrapper p,
+.swagger-ui .opblock-title_normal p,
+.swagger-ui .parameter-row .description p,
+.swagger-ui .response-control-media-type__title,
+.swagger-ui .response-control-media-type--accept-controller select,
+.swagger-ui .responses-inner>div>h4,
+.swagger-ui .responses-inner>div>h5,
+.swagger-ui .highlight-code .microlight {
+    color: hsl(var(--foreground)) !important;
+}
+
+.swagger-ui .response-col_links {
+    color: hsl(var(--primary)) !important; /* Para links na tabela de respostas */
+}
+
+/* Cor para o texto do placeholder nos inputs */
+.swagger-ui input[type="text"]::placeholder,
+.swagger-ui input[type="password"]::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+} 

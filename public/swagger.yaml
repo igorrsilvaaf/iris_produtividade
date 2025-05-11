@@ -6,7 +6,7 @@ info:
 servers:
   - url: http://localhost:3000
     description: Servidor de desenvolvimento
-  - url: https://api.seudominio.com
+  - url: https://v5-todoist-app.vercel.app/app
     description: Servidor de produção
 components:
   securitySchemes:
