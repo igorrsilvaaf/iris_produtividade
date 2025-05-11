@@ -20,6 +20,7 @@ import {
   Tag,
   Timer,
   Trello,
+  FileJson,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -81,6 +82,11 @@ const navItems: NavItem[] = [
     href: "/app/storage",
     icon: <Database className="h-5 w-5" />,
     translationKey: "storage",
+  },
+  {
+    href: "/app/api-docs",
+    icon: <FileJson className="h-5 w-5" />,
+    translationKey: "apiDocs",
   },
 ]
 

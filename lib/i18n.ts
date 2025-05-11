@@ -60,6 +60,10 @@ export const translations: Translations = {
     en: "Kanban",
     pt: "Kanban",
   },
+  apiDocs: {
+    en: "API Documentation",
+    pt: "Documentação da API",
+  },
   backlog: {
     en: "Backlog",
     pt: "Backlog",

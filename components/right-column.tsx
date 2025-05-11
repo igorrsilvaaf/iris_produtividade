@@ -44,7 +44,12 @@ export function RightColumn({ initialSettings }: RightColumnProps) {
     }
   }, [initialSettings, pomodoroStore.updateSettings]);
 
-  const { timerTextColorClass, activeTabClasses } = getPomodoroModeStyles(currentMode);
+  const { 
+    timerTextColorClass, 
+    activeTabClasses, 
+    playButtonClasses, 
+    progressIndicatorClass
+  } = getPomodoroModeStyles(currentMode);
   const transitionClasses = "transition-colors duration-300 ease-in-out";
 
   return (
@@ -54,6 +59,8 @@ export function RightColumn({ initialSettings }: RightColumnProps) {
         fullScreen={false}
         timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
         activeTabStyleClass={activeTabClasses}
+        playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
+        progressIndicatorClassProp={progressIndicatorClass}
       />
       {initialSettings.enable_flip_clock && (
         <FlipClock 
