@@ -19,6 +19,7 @@ export function ForgotPasswordForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submittedEmail, setSubmittedEmail] = useState("")
+  const [apiResponseMessage, setApiResponseMessage] = useState("")
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
@@ -56,15 +57,19 @@ export function ForgotPasswordForm() {
         throw new Error(t(data.message) || t("Failed to process request"));
       }
 
-      setSubmittedEmail(values.email)
-      setIsSubmitted(true)
-      
-      toast({
-        variant: "success",
-        title: t("Request submitted"),
-        description: t("Check your email for password reset instructions."),
-        duration: 8000,
-      })
+      if (data.emailFound === false) {
+        toast({
+          variant: "destructive",
+          title: t("Atenção!"),
+          description: t(data.message),
+          duration: 5000,
+        });
+        form.reset();
+      } else {
+        setSubmittedEmail(values.email)
+        setApiResponseMessage(data.message)
+        setIsSubmitted(true)
+      }
     } catch (error: any) {
       console.error("Erro no processo de recuperação de senha:", error);
       toast({
@@ -81,15 +86,15 @@ export function ForgotPasswordForm() {
   if (isSubmitted) {
     return (
       <div className="space-y-6">
-        <Alert>
+        <Alert variant="default" className="border-blue-200 bg-blue-50 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300">
           <Mail className="h-5 w-5 mr-2" />
-          <AlertTitle>{t("Check your email")}</AlertTitle>
+          <AlertTitle>{t("Informação")}</AlertTitle>
           <AlertDescription>
-            {t(`Enviamos um link de redefinição de senha para ${submittedEmail}. O email deve chegar em alguns minutos. Se você não vê-lo, verifique sua pasta de spam ou lixo eletrônico.`)}
+            {t(apiResponseMessage)}
           </AlertDescription>
         </Alert>
         
-        <Alert variant="warning" className="bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300">
+        <Alert className="bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300">
           <AlertTriangle className="h-5 w-5 mr-2" />
           <AlertTitle>{t("Important")}</AlertTitle>
           <AlertDescription>
