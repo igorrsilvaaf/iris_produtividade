@@ -1,8 +1,11 @@
+# Imagem base para todos os jobs
 image: node:18
 
+# Definição das fases do pipeline
 stages:
   - test
 
+# Cache compartilhado entre execuções
 cache:
   key:
     files:
@@ -11,18 +14,26 @@ cache:
     - node_modules/
   policy: pull-push
 
+# Job de testes unitários
 unit_tests:
   stage: test
+  # sobrescreve a imagem se quiser outra versão de Node apenas neste job
+  image: node:18
   script:
-    - echo "Verificando versão do Node.js e npm..."
+    - echo "✔️ Verificando versão do Node.js e npm..."
     - node -v
     - npm -v
-    - echo "Limpando cache do npm (precaução)..."
+
+    - echo "🧹 Limpando cache do npm (precaução)..."
     - npm cache clean --force
-    - echo "Instalando dependências usando npm ci..."
-    - npm install --legacy-peer-deps
-    - echo "Rodando testes unitários com o script test:ci..."
+
+    - echo "📦 Instalando dependências com npm ci..."
+    - npm ci --legacy-peer-deps
+
+    - echo "🧪 Rodando testes unitários (test:ci)..."
     - npm run test:ci
+
+  # Gerar artefatos de cobertura sempre que rodar
   artifacts:
     when: always
     paths:
@@ -32,6 +43,8 @@ unit_tests:
         coverage_format: cobertura
         path: coverage/cobertura-coverage.xml
 
+  # Regras de execução: somente em push para main
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
+      when: on_success
+    - when: never
