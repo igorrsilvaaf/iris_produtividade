@@ -24,18 +24,18 @@ export async function POST(request: NextRequest) {
     console.log(`[ForgotPassword] Solicitação de recuperação de senha para: ${email}`);
 
     // Verificar variáveis de ambiente necessárias
+    let emailConfigComplete = true;
     if (!process.env.EMAIL_SERVER_HOST || !process.env.EMAIL_SERVER_PORT || 
         !process.env.EMAIL_SERVER_USER || !process.env.EMAIL_SERVER_PASSWORD) {
       console.error('[ForgotPassword] Configuração de e-mail incompleta');
-      
-      // Em desenvolvimento, podemos continuar sem email completo
+      emailConfigComplete = false;
       if (!isDevelopment) {
         return NextResponse.json(
           { message: "Erro de configuração do servidor" },
           { status: 500 }
-        )
+        );
       } else {
-        console.log('[ForgotPassword] Ambiente de desenvolvimento - continuando mesmo sem configuração completa');
+        console.log('[ForgotPassword] Ambiente de desenvolvimento - O envio de e-mail real será pulado.');
       }
     }
     
@@ -60,30 +60,41 @@ export async function POST(request: NextRequest) {
           console.log('======================================================================');
         }
         
-        try {
-          // Enviar email
-          const emailHtml = createPasswordResetEmailHtml(resetUrl, userName);
-          
-          const emailResult = await sendEmail({
-            to: email,
-            subject: 'Redefinição de Senha - Íris',
-            html: emailHtml,
-          });
-          
-          if (emailResult.success) {
-            console.log(`[Recuperação de senha] Email enviado com sucesso para: ${email}`);
-          } else if (isDevelopment && emailResult.isDevelopment) {
-            console.log(`[Recuperação de senha] Email simulado em ambiente de desenvolvimento`);
+        // Tentar enviar o e-mail apenas se a configuração estiver completa
+        if (emailConfigComplete) {
+          try {
+            // Enviar email
+            const emailHtml = createPasswordResetEmailHtml(resetUrl, userName);
+            
+            const emailResult = await sendEmail({
+              to: email,
+              subject: 'Redefinição de Senha - Íris',
+              html: emailHtml,
+            });
+            
+            if (emailResult.success) {
+              console.log(`[Recuperação de senha] Email enviado com sucesso para: ${email}`);
+            } else if (isDevelopment && emailResult.isDevelopment) {
+              // Este caso pode ocorrer se o sendEmail tiver sua própria lógica de simulação para dev
+              console.log(`[Recuperação de senha] Email simulado em ambiente de desenvolvimento pela função sendEmail`);
+            }
+          } catch (emailError) {
+            console.error(`[Recuperação de senha] Erro ao enviar email:`, emailError);
+            // Em produção, se chegou aqui com config completa mas falhou, é um erro real de envio.
+            // Em desenvolvimento, mesmo com config completa, pode falhar (ex: servidor de email de teste offline).
+            // O importante é não travar o fluxo em dev se o problema for só o envio.
+            if (!isDevelopment) {
+              // Repropagar o erro para ser pego pelo catch mais externo e retornar 500.
+              // Não queremos que o usuário veja uma mensagem de sucesso se o email não pôde ser enviado em produção.
+              throw emailError;
+            } else {
+              console.log('[ForgotPassword] Ambiente de desenvolvimento - continuando mesmo com erro no envio de email (configuração estava completa).');
+            }
           }
-        } catch (emailError) {
-          console.error(`[Recuperação de senha] Erro ao enviar email:`, emailError);
-          
-          // Em produção, propagar o erro; em desenvolvimento, continuar
-          if (!isDevelopment) {
-            throw emailError;
-          } else {
-            console.log('[ForgotPassword] Ambiente de desenvolvimento - continuando mesmo com erro de email');
-          }
+        } else if (isDevelopment) {
+          // Se a configuração de email não estava completa e estamos em desenvolvimento,
+          // logamos que o envio foi pulado. O token já foi logado acima.
+          console.log('[ForgotPassword] Ambiente de desenvolvimento - Envio de email pulado devido à configuração de email incompleta.');
         }
       } else {
         console.log(`[Recuperação de senha] Email não encontrado no banco de dados: ${email}`);
