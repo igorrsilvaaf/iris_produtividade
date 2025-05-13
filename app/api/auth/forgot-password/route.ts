@@ -9,6 +9,7 @@ const sql = neon(process.env.DATABASE_URL!)
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 export async function POST(request: NextRequest) {
+  console.log(`[ForgotPassword] Iniciando POST. NODE_ENV: ${process.env.NODE_ENV}, isDevelopment: ${isDevelopment}`);
   try {
     const data = await request.json()
     const { email } = data
