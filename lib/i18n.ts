@@ -366,7 +366,11 @@ export const translations: Translations = {
   // Pomodoro
   pomodoroTimer: {
     en: "Pomodoro Timer",
-    pt: "Temporizador Pomodoro",
+    pt: "Cronômetro Pomodoro",
+  },
+  cycleStage: { // Nova chave adicionada
+    en: "Cycle Stage",
+    pt: "Ciclo",
   },
   work: {
     en: "Work",
