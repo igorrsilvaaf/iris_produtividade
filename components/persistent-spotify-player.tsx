@@ -17,6 +17,8 @@ export default function PersistentSpotifyPlayer() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
+  console.log('[PersistentSpotifyPlayer] Renderizando. Playlist ID:', playlistId, 'Content Type:', contentType, 'Enabled:', isEnabled);
+
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);

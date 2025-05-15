@@ -54,6 +54,25 @@ export const CHANGELOG_DATA: ChangelogData[] = [
           {
             type: 'bugfix',
             content: 'Corrigida dessincronização de configurações do Pomodoro entre a página inicial e a página dedicada.'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigida a exibição do texto "Ciclo" no temporizador Pomodoro (anteriormente mostrava "cycleStage").'
+          }
+        ]
+      },
+      {
+        id: 'api-task-testing-enhancements',
+        title: 'Melhorias na Confiabilidade da API de Tarefas',
+        description: 'Aumento significativo da cobertura de testes automatizados para a API de gerenciamento de tarefas, garantindo maior estabilidade e prevenindo regressões.',
+        items: [
+          {
+            type: 'improvement',
+            content: 'Implementados testes unitários abrangentes para a rota `/api/tasks`, cobrindo diversos cenários de criação, leitura, e tratamento de erros.'
+          },
+          {
+            type: 'improvement',
+            content: 'Aprimorada a configuração do ambiente de teste para simular de forma eficaz as dependências externas, como banco de dados e autenticação.'
           }
         ]
       }
