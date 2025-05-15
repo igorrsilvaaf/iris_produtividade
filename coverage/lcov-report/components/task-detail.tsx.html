@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/488</span>
+                <span class='fraction'>0/490</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/337</span>
+                <span class='fraction'>0/325</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/473</span>
+                <span class='fraction'>0/476</span>
             </div>
         
             
@@ -1640,7 +1640,14 @@
 <a name='L1575'></a><a href='#L1575'>1575</a>
 <a name='L1576'></a><a href='#L1576'>1576</a>
 <a name='L1577'></a><a href='#L1577'>1577</a>
-<a name='L1578'></a><a href='#L1578'>1578</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L1578'></a><a href='#L1578'>1578</a>
+<a name='L1579'></a><a href='#L1579'>1579</a>
+<a name='L1580'></a><a href='#L1580'>1580</a>
+<a name='L1581'></a><a href='#L1581'>1581</a>
+<a name='L1582'></a><a href='#L1582'>1582</a>
+<a name='L1583'></a><a href='#L1583'>1583</a>
+<a name='L1584'></a><a href='#L1584'>1584</a>
+<a name='L1585'></a><a href='#L1585'>1585</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1704,7 +1711,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1716,12 +1723,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1790,7 +1795,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1798,9 +1802,15 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -2639,6 +2649,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -3278,13 +3292,13 @@ function <span class="fstat-no" title="function not covered" >isAllDayDate(</spa
 }
 &nbsp;
 function <span class="fstat-no" title="function not covered" >getTimeFromDate(</span>dateString: string | null): string {
-<span class="cstat-no" title="statement not covered" >  if (!dateString) <span class="cstat-no" title="statement not covered" >return "12:00";</span></span>
+<span class="cstat-no" title="statement not covered" >  if (!dateString) <span class="cstat-no" title="statement not covered" >return "00:00";</span></span>
 <span class="cstat-no" title="statement not covered" >  try {</span>
     const date = <span class="cstat-no" title="statement not covered" >new Date(dateString);</span>
-<span class="cstat-no" title="statement not covered" >    if (date.getHours() === 0 &amp;&amp; date.getMinutes() === 0) <span class="cstat-no" title="statement not covered" >return "12:00";</span></span>
+    // Preservar a hora real, incluindo 00:00
 <span class="cstat-no" title="statement not covered" >    return date.toTimeString().slice(0, 5);</span>
   } catch (e) {
-<span class="cstat-no" title="statement not covered" >    return "12:00";</span>
+<span class="cstat-no" title="statement not covered" >    return "00:00";</span>
   }
 }
 &nbsp;
@@ -3294,10 +3308,8 @@ export function <span class="fstat-no" title="function not covered" >TaskDetail(
   const [dueDate, setDueDate] = <span class="cstat-no" title="statement not covered" >useState&lt;Date | undefined&gt;(task.due_date ? new Date(task.due_date) : undefined)</span>
   const [dueTime, setDueTime] = <span class="cstat-no" title="statement not covered" >useState&lt;string | undefined&gt;(</span>
     task.due_date
-      ? new Date(task.due_date).getHours() === 0 &amp;&amp; new Date(task.due_date).getMinutes() === 0
-        ? "12:00"
-        : new Date(task.due_date).toTimeString().slice(0, 5)
-      : "12:00"
+      ? new Date(task.due_date).toTimeString().slice(0, 5)
+      : "00:00"
   )
   const [dueTimeUpdate, setDueTimeUpdate] = <span class="cstat-no" title="statement not covered" >useState(false)</span>
   const [isAllDay, setIsAllDay] = <span class="cstat-no" title="statement not covered" >useState(</span>
@@ -3372,22 +3384,27 @@ export function <span class="fstat-no" title="function not covered" >TaskDetail(
 <span class="cstat-no" title="statement not covered" >        try {</span>
           const dueDate = <span class="cstat-no" title="statement not covered" >new Date(task.due_date)</span>
 <span class="cstat-no" title="statement not covered" >          setDueDate(dueDate)</span>
-<span class="cstat-no" title="statement not covered" >          setDueTime(</span>
-            dueDate.getHours() === 0 &amp;&amp; dueDate.getMinutes() === 0
-              ? "12:00"
-              : dueDate.toTimeString().slice(0, 5)
-          )
-<span class="cstat-no" title="statement not covered" >          setIsAllDay(dueDate.getHours() === 0 &amp;&amp; dueDate.getMinutes() === 0)</span>
-<span class="cstat-no" title="statement not covered" >          console.log(`[TaskDetail] Data configurada: ${dueDate}, isAllDay: ${dueDate.getHours() === 0 &amp;&amp; dueDate.getMinutes() === 0}, hora: ${dueDate.toTimeString().slice(0, 5)}`)</span>
+          
+          // Extrair a hora da data
+          const hours = <span class="cstat-no" title="statement not covered" >dueDate.getHours();</span>
+          const minutes = <span class="cstat-no" title="statement not covered" >dueDate.getMinutes();</span>
+          const timeString = <span class="cstat-no" title="statement not covered" >`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;</span>
+<span class="cstat-no" title="statement not covered" >          setDueTime(timeString)</span>
+          
+          // Verificar se é "all day" (00:00)
+          const isAllDayTime = <span class="cstat-no" title="statement not covered" >hours === 0 &amp;&amp; minutes === 0;</span>
+<span class="cstat-no" title="statement not covered" >          setIsAllDay(isAllDayTime)</span>
+          
+<span class="cstat-no" title="statement not covered" >          console.log(`[TaskDetail] Data configurada: ${dueDate}, isAllDay: ${isAllDayTime}, hora: ${timeString}`)</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >          console.error(`[TaskDetail] Erro ao processar data: ${error}`)</span>
 <span class="cstat-no" title="statement not covered" >          setDueDate(undefined)</span>
-<span class="cstat-no" title="statement not covered" >          setDueTime("12:00")</span>
+<span class="cstat-no" title="statement not covered" >          setDueTime("00:00")</span>
 <span class="cstat-no" title="statement not covered" >          setIsAllDay(true)</span>
         }
       } else {
 <span class="cstat-no" title="statement not covered" >        setDueDate(undefined)</span>
-<span class="cstat-no" title="statement not covered" >        setDueTime("12:00")</span>
+<span class="cstat-no" title="statement not covered" >        setDueTime("00:00")</span>
 <span class="cstat-no" title="statement not covered" >        setIsAllDay(true)</span>
       }
       
@@ -3486,7 +3503,7 @@ export function <span class="fstat-no" title="function not covered" >TaskDetail(
         body: JSON.stringify({
           title,
           description: description || null,
-          dueDate: dueDateWithTime,
+          due_date: dueDateWithTime,
           priority: Number.parseInt(priority),
           points,
           attachments,
@@ -3891,7 +3908,7 @@ export function <span class="fstat-no" title="function not covered" >TaskDetail(
 <span class="cstat-no" title="statement not covered" >        setIsAllDay(dueDate.getHours() === 0 &amp;&amp; dueDate.getMinutes() === 0);</span>
       } else {
 <span class="cstat-no" title="statement not covered" >        setDueDate(undefined);</span>
-<span class="cstat-no" title="statement not covered" >        setDueTime("12:00");</span>
+<span class="cstat-no" title="statement not covered" >        setDueTime("00:00");</span>
 <span class="cstat-no" title="statement not covered" >        setIsAllDay(true);</span>
       }
       
@@ -4241,7 +4258,11 @@ export function <span class="fstat-no" title="function not covered" >TaskDetail(
                       disabled={!isEditMode}
                     &gt;
                       &lt;CalendarIcon className="mr-2 h-4 w-4" /&gt;
-                      {dueDate ? format(dueDate, "PPP") : &lt;span&gt;{t("Pick a date")}&lt;/span&gt;}
+                      {dueDate ? (
+                        isAllDay ? 
+                          format(dueDate, "PPP") :
+                          `${format(dueDate, "PPP")} ${dueTime}`
+                      ) : &lt;span&gt;{t("Pick a date")}&lt;/span&gt;}
                     &lt;/Button&gt;
                   &lt;/PopoverTrigger&gt;
                   &lt;PopoverContent className="w-auto p-0" align="start"&gt;
@@ -4281,7 +4302,7 @@ export function <span class="fstat-no" title="function not covered" >TaskDetail(
 <span class="cstat-no" title="statement not covered" >                              if (checked) {</span>
 <span class="cstat-no" title="statement not covered" >                                setDueTime("00:00");</span>
                               } else {
-<span class="cstat-no" title="statement not covered" >                                setDueTime("12:00");</span>
+<span class="cstat-no" title="statement not covered" >                                setDueTime("00:00");</span>
                               }
 <span class="cstat-no" title="statement not covered" >                              if (typeof window !== 'undefined') {</span>
 <span class="cstat-no" title="statement not covered" >                                setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
@@ -4302,7 +4323,7 @@ export function <span class="fstat-no" title="function not covered" >TaskDetail(
                             type="time" 
                             value={dueTime}
                             onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; {
-<span class="cstat-no" title="statement not covered" >                              setDueTime(e.target.value || "12:00");</span>
+<span class="cstat-no" title="statement not covered" >                              setDueTime(e.target.value || "00:00");</span>
 <span class="cstat-no" title="statement not covered" >                              setDueTimeUpdate(true);</span>
                             }}
                             className="w-full"
@@ -4554,7 +4575,7 @@ export function <span class="fstat-no" title="function not covered" >TaskDetail(
 &nbsp;
           &lt;div className="space-y-2"&gt;
             &lt;label className="text-sm font-medium"&gt;
-              {t("attachments")}
+              {t("attachment.list")}
             &lt;/label&gt;
             &lt;div className="space-y-2"&gt;
               {task.attachments &amp;&amp; task.attachments.length &gt; 0 &amp;&amp; (
@@ -4725,13 +4746,13 @@ export function <span class="fstat-no" title="function not covered" >TaskDetail(
 <span class="cstat-no" title="statement not covered" >                  setDueDate(new Date(task.due_date))</span>
 <span class="cstat-no" title="statement not covered" >                  setDueTime(</span>
                     new Date(task.due_date).getHours() === 0 &amp;&amp; new Date(task.due_date).getMinutes() === 0
-                      ? "12:00"
+                      ? "00:00"
                       : new Date(task.due_date).toTimeString().slice(0, 5)
                   )
 <span class="cstat-no" title="statement not covered" >                  setIsAllDay(new Date(task.due_date).getHours() === 0 &amp;&amp; new Date(task.due_date).getMinutes() === 0)</span>
                 } else {
 <span class="cstat-no" title="statement not covered" >                  setDueDate(undefined)</span>
-<span class="cstat-no" title="statement not covered" >                  setDueTime("12:00")</span>
+<span class="cstat-no" title="statement not covered" >                  setDueTime("00:00")</span>
 <span class="cstat-no" title="statement not covered" >                  setIsAllDay(true)</span>
                 }
               } else {
@@ -4801,7 +4822,7 @@ export function <span class="fstat-no" title="function not covered" >TaskDetail(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-09T00:42:41.585Z
+                at 2025-05-14T22:44:52.580Z
             </div>
         <script src="../prettify.js"></script>
         <script>

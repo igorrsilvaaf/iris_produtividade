@@ -13,6 +13,9 @@
     "test:ci": "jest --config=jest.config.mjs --ci --coverage",
     "test:coverage": "jest --config=jest.config.mjs --coverage",
     "test:core": "jest --config=jest.config.mjs --coverage --collectCoverageFrom='components/{Todo,todo-list,quick-add-todo}.tsx'",
+    "test:kanban": "jest --config=jest.config.mjs --coverage --collectCoverageFrom='components/kanban-board.tsx'",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "prebuild": "npm run test:ci && npm run lint"
   },
   "dependencies": {

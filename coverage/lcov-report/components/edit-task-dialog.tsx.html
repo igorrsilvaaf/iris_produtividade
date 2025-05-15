@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/209</span>
+                <span class='fraction'>0/215</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/231</span>
+                <span class='fraction'>0/227</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/63</span>
+                <span class='fraction'>0/65</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/203</span>
+                <span class='fraction'>0/209</span>
             </div>
         
             
@@ -1045,7 +1045,13 @@
 <a name='L980'></a><a href='#L980'>980</a>
 <a name='L981'></a><a href='#L981'>981</a>
 <a name='L982'></a><a href='#L982'>982</a>
-<a name='L983'></a><a href='#L983'>983</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L983'></a><a href='#L983'>983</a>
+<a name='L984'></a><a href='#L984'>984</a>
+<a name='L985'></a><a href='#L985'>985</a>
+<a name='L986'></a><a href='#L986'>986</a>
+<a name='L987'></a><a href='#L987'>987</a>
+<a name='L988'></a><a href='#L988'>988</a>
+<a name='L989'></a><a href='#L989'>989</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1154,10 +1160,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2135,12 +2147,18 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
       description: task.description || "",
       dueDate: task.due_date ? new Date(task.due_date) : undefined,
       dueTime: task.due_date 
-        ? new Date(task.due_date).getHours() === 0 &amp;&amp; new Date(task.due_date).getMinutes() === 0
-          ? "12:00"
-          : new Date(task.due_date).toTimeString().slice(0, 5)
-        : "12:00",
+        ? (<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+            const date = <span class="cstat-no" title="statement not covered" >new Date(task.due_date);</span>
+            const hours = <span class="cstat-no" title="statement not covered" >date.getHours();</span>
+            const minutes = <span class="cstat-no" title="statement not covered" >date.getMinutes();</span>
+<span class="cstat-no" title="statement not covered" >            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;</span>
+          })()
+        : "00:00",
       isAllDay: task.due_date 
-        ? new Date(task.due_date).getHours() === 0 &amp;&amp; new Date(task.due_date).getMinutes() === 0
+        ? (<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+            const date = <span class="cstat-no" title="statement not covered" >new Date(task.due_date);</span>
+<span class="cstat-no" title="statement not covered" >            return date.getHours() === 0 &amp;&amp; date.getMinutes() === 0;</span>
+          })()
         : true,
       priority: task.priority.toString(),
       projectId: "noProject",
@@ -2327,7 +2345,7 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
         body: JSON.stringify({
           title: values.title,
           description: values.description || null,
-          dueDate: dueDateWithTime,
+          due_date: dueDateWithTime,
           priority: Number.parseInt(values.priority),
           points: values.points,
           attachments: values.attachments,
@@ -2486,7 +2504,7 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
 <span class="cstat-no" title="statement not covered" >                                        if (checked) {</span>
 <span class="cstat-no" title="statement not covered" >                                          form.setValue("dueTime", "00:00");</span>
                                         } else {
-<span class="cstat-no" title="statement not covered" >                                          form.setValue("dueTime", "12:00");</span>
+<span class="cstat-no" title="statement not covered" >                                          form.setValue("dueTime", "00:00");</span>
                                         }
 <span class="cstat-no" title="statement not covered" >                                        if (typeof window !== 'undefined') {</span>
 <span class="cstat-no" title="statement not covered" >                                          setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
@@ -2513,17 +2531,17 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
                                   &lt;FormControl&gt;
                                     &lt;Input 
                                       type="text" 
-                                      value={field.value || "12:00"}
+                                      value={field.value || "00:00"}
                                       onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; {
                                         const value = <span class="cstat-no" title="statement not covered" >e.target.value;</span>
 <span class="cstat-no" title="statement not covered" >                                        if (!value || /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value) || /^([0-1]?[0-9]|2[0-3]):[0-5]?$/.test(value) || /^([0-1]?[0-9]|2[0-3])?$/.test(value)) {</span>
-<span class="cstat-no" title="statement not covered" >                                          field.onChange(value || "12:00");</span>
+<span class="cstat-no" title="statement not covered" >                                          field.onChange(value || "00:00");</span>
                                         }
                                       }}
                                       onBlur={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; {
                                         let value = <span class="cstat-no" title="statement not covered" >e.target.value;</span>
 <span class="cstat-no" title="statement not covered" >                                        if (!value) {</span>
-<span class="cstat-no" title="statement not covered" >                                          field.onChange("12:00");</span>
+<span class="cstat-no" title="statement not covered" >                                          field.onChange("00:00");</span>
 <span class="cstat-no" title="statement not covered" >                                          return;</span>
                                         }
                                         
@@ -2536,7 +2554,7 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
                                           const formattedTime = <span class="cstat-no" title="statement not covered" >`${hours.padStart(2, '0')}:${minutes}`;</span>
 <span class="cstat-no" title="statement not covered" >                                          field.onChange(formattedTime);</span>
                                         } else {
-<span class="cstat-no" title="statement not covered" >                                          field.onChange("12:00");</span>
+<span class="cstat-no" title="statement not covered" >                                          field.onChange("00:00");</span>
                                         }
                                       }}
                                       className="w-full"
@@ -3016,7 +3034,7 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-09T00:42:41.585Z
+                at 2025-05-14T22:44:52.580Z
             </div>
         <script src="../prettify.js"></script>
         <script>

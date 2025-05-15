@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { createTask, getCompletedTasks, getInboxTasks, getTasksForNotifications, searchTasks } from "@/lib/todos"
+import { createTask, getCompletedTasks, getInboxTasks, getTasksForNotifications, searchTasks, getAllTasksForUser } from "@/lib/todos"
 import { neon } from "@neondatabase/serverless"
 import prisma from '@/lib/prisma'
 
@@ -24,14 +24,7 @@ export async function GET(request: NextRequest) {
     let tasks = [];
     
     if (all === "true") {
-      tasks = await sql`
-        SELECT t.*, p.name as project_name, p.color as project_color
-        FROM todos t
-        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-        LEFT JOIN projects p ON tp.project_id = p.id
-        WHERE t.user_id = ${userId}
-        ORDER BY t.created_at DESC
-      `;
+      tasks = await getAllTasksForUser(userId);
     }
     else if (searchText) {
       tasks = await searchTasks(userId, searchText);

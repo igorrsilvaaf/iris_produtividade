@@ -85,6 +85,8 @@ model Task {
   userId      String
   points      Int?        @default(3)
   estimatedTime Int?
+  kanban_column String?
+  kanban_order  Int?
   attachments Attachment[]
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
