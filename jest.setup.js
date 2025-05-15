@@ -1,5 +1,11 @@
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/testdb'; // Adicionar URL dummy
+
 // Importa as extensões do Jest para o DOM
 import '@testing-library/jest-dom';
+import { TextEncoder, TextDecoder } from 'util';
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Mock da função global fetch
 global.fetch = jest.fn();

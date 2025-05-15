@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/61</span>
+                <span class='fraction'>0/60</span>
             </div>
         
             
@@ -299,7 +299,8 @@
 <a name='L234'></a><a href='#L234'>234</a>
 <a name='L235'></a><a href='#L235'>235</a>
 <a name='L236'></a><a href='#L236'>236</a>
-<a name='L237'></a><a href='#L237'>237</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -318,9 +319,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -353,7 +351,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -462,6 +459,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -493,6 +491,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -512,6 +511,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -546,16 +548,13 @@ import type { UserSettings } from "@/lib/settings";
 &nbsp;
 export default function <span class="fstat-no" title="function not covered" >PersistentSpotifyPlayer(</span>) {
   const [isCompact, setIsCompact] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
-  const { playlistId, contentType, isEnabled, position, setPlaylistId, setPosition } = <span class="cstat-no" title="statement not covered" >useSpotifyStore();</span>
+  const { playlistId, contentType, isEnabled, position, setPosition } = <span class="cstat-no" title="statement not covered" >useSpotifyStore();</span>
   const [settings, setSettings] = <span class="cstat-no" title="statement not covered" >useState&lt;UserSettings | null&gt;(null);</span>
   const [isLoading, setIsLoading] = <span class="cstat-no" title="statement not covered" >useState(true);</span>
   const [mounted, setMounted] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
   const playerRef = <span class="cstat-no" title="statement not covered" >useRef&lt;HTMLDivElement&gt;(null);</span>
   const [isDragging, setIsDragging] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
   const [dragOffset, setDragOffset] = <span class="cstat-no" title="statement not covered" >useState({ x: 0, y: 0 });</span>
-&nbsp;
-  // Verificar se os dados da store já estão disponíveis
-  const storeReady = <span class="cstat-no" title="statement not covered" >playlistId &amp;&amp; contentType &amp;&amp; isEnabled;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    setMounted(true);</span>
@@ -590,7 +589,6 @@ export default function <span class="fstat-no" title="function not covered" >Per
 <span class="cstat-no" title="statement not covered" >    if (mounted) {</span>
 <span class="cstat-no" title="statement not covered" >      fetchSettings();</span>
       
-      // Adicionar um listener para o evento customizado de atualização de configurações
       const handleSettingsUpdate = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        console.log("PersistentPlayer: Detectada atualização de configurações");</span>
 <span class="cstat-no" title="statement not covered" >        fetchSettings();</span>
@@ -695,8 +693,9 @@ export default function <span class="fstat-no" title="function not covered" >Per
 <span class="cstat-no" title="statement not covered" >    return null;</span>
   }
 &nbsp;
-  // Se não tiver playlistId, não mostrar nada
+  // Adicionado: Se não tiver playlistId, não mostrar nada, pois a configuração é externa
 <span class="cstat-no" title="statement not covered" >  if (!playlistId) {</span>
+<span class="cstat-no" title="statement not covered" >    console.log("PersistentPlayer: No playlistId, not rendering iframe.");</span>
 <span class="cstat-no" title="statement not covered" >    return null;</span>
   }
 &nbsp;
@@ -747,7 +746,10 @@ export default function <span class="fstat-no" title="function not covered" >Per
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setIsCompact(!isCompact)}</span>
+            onClick={<span class="fstat-no" title="function not covered" >()</span> =&gt; {
+<span class="cstat-no" title="statement not covered" >              setIsCompact(!isCompact);</span>
+            }}
+            title={isCompact ? "Expandir Player" : "Minimizar Player"}
           &gt;
             {isCompact ? (
               &lt;Maximize2 className="h-4 w-4" /&gt;
@@ -760,13 +762,14 @@ export default function <span class="fstat-no" title="function not covered" >Per
 &nbsp;
       &lt;div className="p-2"&gt;
         &lt;iframe
+          key={playlistId}
           src={`https://open.spotify.com/embed/${contentType || 'playlist'}/${playlistId}?utm_source=generator`}
           width="100%"
           height={isCompact ? "80" : "352"}
           frameBorder="0"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy"
-          className="rounded-md"
+          className="rounded-md transition-all duration-300"
         /&gt;
       &lt;/div&gt;
     &lt;/div&gt;
@@ -778,7 +781,7 @@ export default function <span class="fstat-no" title="function not covered" >Per
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-14T22:44:52.580Z
+                at 2025-05-15T15:51:03.215Z
             </div>
         <script src="../prettify.js"></script>
         <script>
