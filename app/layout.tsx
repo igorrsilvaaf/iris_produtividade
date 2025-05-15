@@ -8,7 +8,9 @@ import { PomodoroProvider } from "@/lib/pomodoro-context"
 import { getUserSettings } from "@/lib/settings"
 import { getSession } from "@/lib/auth"
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
-import { SpotifyPortal } from "@/components/spotify-portal"
+// import { SpotifyPortal } from "@/components/spotify-portal" // Comentado ou removido
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 // Importação correta do CSS global
 import "@/app/globals.css"
@@ -102,19 +104,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 }}
               >
                 <ServiceWorkerRegistration />
-                <SpotifyPortal />
-                {children}
+                {/* <SpotifyPortal /> // Comentado ou removido */}
+                <div className="flex-1">{children}</div>
               </PomodoroProvider>
             ) : (
               <>
                 <ServiceWorkerRegistration />
-                <SpotifyPortal />
-                {children}
+                {/* <SpotifyPortal /> // Comentado ou removido */}
+                <div className="flex-1">{children}</div>
               </>
             )}
             <Toaster />
           </LanguageProvider>
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
+        {/* <SpotifyPortal /> // Comentado ou removido */}
       </body>
     </html>
   )

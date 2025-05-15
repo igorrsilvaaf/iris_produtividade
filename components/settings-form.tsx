@@ -163,18 +163,18 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           console.log('form.watch: Spotify habilitado com URL existente, tentando definir playlistId.');
           try {
             const urlString = value.spotify_playlist_url;
-            let type = '';
-            let id = '';
+              let type = '';
+              let id = '';
             if (urlString.includes('/playlist/')) { type = 'playlist'; id = urlString.split('/playlist/')[1]?.split('?')[0] || ''; }
             else if (urlString.includes('/episode/')) { type = 'episode'; id = urlString.split('/episode/')[1]?.split('?')[0] || ''; }
             else if (urlString.includes('/track/')) { type = 'track'; id = urlString.split('/track/')[1]?.split('?')[0] || ''; }
             else if (urlString.includes('/album/')) { type = 'album'; id = urlString.split('/album/')[1]?.split('?')[0] || ''; }
             else if (urlString.includes('/show/')) { type = 'show'; id = urlString.split('/show/')[1]?.split('?')[0] || ''; }
-            
-            if (id && type) {
+              
+              if (id && type) {
               console.log(`form.watch: Restaurando ${type} ID:`, id);
-              setPlaylistId(id);
-              setContentType(type);
+                setPlaylistId(id);
+                setContentType(type);
             }
           } catch (error) {
             console.error("form.watch: Erro ao extrair dados da URL do Spotify:", error);

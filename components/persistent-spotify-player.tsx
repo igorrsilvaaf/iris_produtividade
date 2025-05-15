@@ -207,7 +207,9 @@ export default function PersistentSpotifyPlayer() {
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={() => setIsCompact(!isCompact)}
+            onClick={() => {
+              setIsCompact(!isCompact);
+            }}
             title={isCompact ? "Expandir Player" : "Minimizar Player"}
           >
             {isCompact ? (
@@ -228,7 +230,7 @@ export default function PersistentSpotifyPlayer() {
           frameBorder="0"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy"
-          className="rounded-md"
+          className="rounded-md transition-all duration-300"
         />
       </div>
     </div>
