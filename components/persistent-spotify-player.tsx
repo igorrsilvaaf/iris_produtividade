@@ -9,16 +9,13 @@ import type { UserSettings } from "@/lib/settings";
 
 export default function PersistentSpotifyPlayer() {
   const [isCompact, setIsCompact] = useState(false);
-  const { playlistId, contentType, isEnabled, position, setPlaylistId, setPosition } = useSpotifyStore();
+  const { playlistId, contentType, isEnabled, position, setPosition } = useSpotifyStore();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-
-  // Verificar se os dados da store já estão disponíveis
-  const storeReady = playlistId && contentType && isEnabled;
 
   useEffect(() => {
     setMounted(true);
@@ -53,7 +50,6 @@ export default function PersistentSpotifyPlayer() {
     if (mounted) {
       fetchSettings();
       
-      // Adicionar um listener para o evento customizado de atualização de configurações
       const handleSettingsUpdate = () => {
         console.log("PersistentPlayer: Detectada atualização de configurações");
         fetchSettings();
@@ -158,8 +154,9 @@ export default function PersistentSpotifyPlayer() {
     return null;
   }
 
-  // Se não tiver playlistId, não mostrar nada
+  // Adicionado: Se não tiver playlistId, não mostrar nada, pois a configuração é externa
   if (!playlistId) {
+    console.log("PersistentPlayer: No playlistId, not rendering iframe.");
     return null;
   }
 
@@ -211,6 +208,7 @@ export default function PersistentSpotifyPlayer() {
             size="icon"
             className="h-8 w-8"
             onClick={() => setIsCompact(!isCompact)}
+            title={isCompact ? "Expandir Player" : "Minimizar Player"}
           >
             {isCompact ? (
               <Maximize2 className="h-4 w-4" />
@@ -223,6 +221,7 @@ export default function PersistentSpotifyPlayer() {
 
       <div className="p-2">
         <iframe
+          key={playlistId}
           src={`https://open.spotify.com/embed/${contentType || 'playlist'}/${playlistId}?utm_source=generator`}
           width="100%"
           height={isCompact ? "80" : "352"}
