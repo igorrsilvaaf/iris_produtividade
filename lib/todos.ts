@@ -14,6 +14,7 @@ export type Todo = {
   project_name?: string
   project_color?: string
   kanban_column?: "backlog" | "planning" | "inProgress" | "validation" | "completed" | null
+  kanban_order?: number | null
   points?: number
   attachments?: any[]
   estimated_time?: number | null
@@ -37,7 +38,7 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     AND t.due_date >= ${today.toISOString()}
     AND t.due_date < ${tomorrow.toISOString()}
     AND t.completed = false
-    ORDER BY t.priority ASC, t.due_date ASC
+    ORDER BY t.kanban_order ASC NULLS LAST, t.priority ASC, t.due_date ASC
   `;
   
   tasks.forEach((task: any) => {
@@ -55,7 +56,7 @@ export async function getInboxTasks(userId: number): Promise<Todo[]> {
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
     AND t.completed = false
-    ORDER BY t.created_at DESC
+    ORDER BY t.kanban_order ASC NULLS LAST, t.created_at DESC
   `
 
   return tasks as Todo[]
@@ -69,7 +70,7 @@ export async function getCompletedTasks(userId: number): Promise<Todo[]> {
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
     AND t.completed = true
-    ORDER BY t.updated_at DESC
+    ORDER BY t.kanban_order ASC NULLS LAST, t.updated_at DESC
     LIMIT 50
   `
 
@@ -84,6 +85,7 @@ export async function createTask({
   priority = 4,
   projectId = null,
   kanbanColumn = null,
+  kanbanOrder = null,
   points = 3,
   attachments = [],
   estimatedTime = null,
@@ -95,6 +97,7 @@ export async function createTask({
   priority?: number;
   projectId?: number | null;
   kanbanColumn?: string | null;
+  kanbanOrder?: number | null;
   points?: number;
   attachments?: any[];
   estimatedTime?: number | null;
@@ -152,8 +155,8 @@ export async function createTask({
   console.log(`[createTask] Inserindo tarefa com tempo estimado: ${estimatedTime}`);
 
   const [task] = await sql`
-    INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column, points, attachments, estimated_time)
-    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now}, ${kanbanColumn}, ${points}, ${JSON.stringify(normalizedAttachments)}, ${estimatedTime})
+    INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column, kanban_order, points, attachments, estimated_time)
+    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now}, ${kanbanColumn}, ${kanbanOrder}, ${points}, ${JSON.stringify(normalizedAttachments)}, ${estimatedTime})
     RETURNING *
   `
 
@@ -164,7 +167,7 @@ export async function createTask({
     `
   }
   
-  console.log(`[createTask] Tarefa criada: ID=${task.id}, data=${task.due_date}, coluna=${task.kanban_column}, pontos=${task.points}`)
+  console.log(`[createTask] Tarefa criada: ID=${task.id}, data=${task.due_date}, coluna=${task.kanban_column}, ordem=${task.kanban_order}, pontos=${task.points}`)
   console.log(`[createTask] Anexos da tarefa:`, task.attachments)
   
   // Parse os anexos antes de retornar
@@ -218,6 +221,10 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
     console.log(`[updateTask] Atualizando coluna Kanban: ${updates.kanban_column}`);
   }
 
+  if (updates.kanban_order !== undefined) {
+    console.log(`[updateTask] Atualizando ordem Kanban: ${updates.kanban_order}`);
+  }
+
   if (updates.points !== undefined) {
     console.log(`[updateTask] Atualizando pontos: ${updates.points}`);
   }
@@ -241,6 +248,7 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
       priority = COALESCE(${updates.priority}, priority),
       completed = COALESCE(${updates.completed}, completed),
       kanban_column = COALESCE(${updates.kanban_column}, kanban_column),
+      kanban_order = COALESCE(${updates.kanban_order}, kanban_order),
       points = COALESCE(${updates.points}, points),
       attachments = COALESCE(${updates.attachments !== undefined ? JSON.stringify(updates.attachments) : null}, attachments),
       estimated_time = COALESCE(${updates.estimated_time}, estimated_time),
@@ -249,9 +257,19 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
     RETURNING *
   `
   
-  console.log(`[updateTask] Tarefa atualizada: ID=${task.id}, nova data=${task.due_date}, coluna=${task.kanban_column}, pontos=${task.points}`);
+  if (!task) {
+    throw new Error("Failed to update task or task not found");
+  }
+  
+  console.log(`[updateTask] Tarefa ID ${taskId} atualizada. Coluna: ${task.kanban_column}, Ordem: ${task.kanban_order}`);
 
-  return task as Todo
+  // Parse os anexos antes de retornar
+  const taskWithParsedAttachments = {
+    ...task,
+    attachments: typeof task.attachments === 'string' ? JSON.parse(task.attachments) : task.attachments || []
+  };
+  
+  return taskWithParsedAttachments as Todo;
 }
 
 export async function toggleTaskCompletion(taskId: number, userId: number): Promise<Todo> {
@@ -331,9 +349,8 @@ export async function setTaskProject(taskId: number, projectId: number | null): 
 }
 
 export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
-  const now = new Date();
-  const nowIsoString = now.toISOString();
-  const todayDate = now.toISOString().split('T')[0];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Início do dia de hoje
 
   const tasks = await sql`
     SELECT t.*, p.name as project_name, p.color as project_color
@@ -341,17 +358,11 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
     LEFT JOIN todo_projects tp ON t.id = tp.todo_id
     LEFT JOIN projects p ON tp.project_id = p.id
     WHERE t.user_id = ${userId}
-    AND t.due_date IS NOT NULL
-    AND (
-      -- Tarefas de hoje com horário futuro
-      (CAST(t.due_date AS DATE) = CAST(${todayDate} AS DATE) AND t.due_date > ${nowIsoString})
-      -- OU tarefas de dias futuros
-      OR CAST(t.due_date AS DATE) > CAST(${todayDate} AS DATE)
-    )
+    AND t.due_date IS NOT NULL 
+    AND t.due_date >= ${today.toISOString()}
     AND t.completed = false
-    ORDER BY t.due_date ASC, t.priority ASC
+    ORDER BY t.kanban_order ASC NULLS LAST, t.due_date ASC, t.priority ASC
   `;
-
   
   tasks.forEach((task: any) => {
     console.log(`[getUpcomingTasks] ID: ${task.id}, Título: ${task.title}, Data: ${task.due_date}`);
@@ -532,5 +543,29 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
       upcomingTasks: []
     };
   }
+}
+
+export async function getAllTasksForUser(userId: number): Promise<Todo[]> {
+  // Esta é uma representação da lógica que deve ser aplicada
+  // na sua rota GET /api/tasks quando all=true
+  const tasks = await sql`
+    SELECT t.*, p.name as project_name, p.color as project_color
+    FROM todos t
+    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+    LEFT JOIN projects p ON tp.project_id = p.id
+    WHERE t.user_id = ${userId}
+    ORDER BY 
+      CASE t.kanban_column
+        WHEN 'backlog' THEN 1
+        WHEN 'planning' THEN 2
+        WHEN 'inProgress' THEN 3
+        WHEN 'validation' THEN 4
+        WHEN 'completed' THEN 5
+        ELSE 6
+      END, 
+      t.kanban_order ASC NULLS LAST, 
+      t.created_at DESC
+  `;
+  return tasks as Todo[];
 }
 

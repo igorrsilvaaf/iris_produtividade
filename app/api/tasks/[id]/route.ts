@@ -8,7 +8,6 @@ export async function GET(
 ) {
   try {
     const { params } = context;
-    // Check authentication
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -21,7 +20,6 @@ export async function GET(
       return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
     }
 
-    // Fetch task
     const task = await getTaskById(taskId, userId);
 
     if (!task) {
@@ -44,7 +42,6 @@ export async function PUT(
 ) {
   try {
     const { params } = context;
-    // Check authentication
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -59,14 +56,12 @@ export async function PUT(
 
     const body = await request.json();
 
-    // Verificar se a tarefa existe
     const existingTask = await getTaskById(taskId, userId);
 
     if (!existingTask) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // Update task usando a função do lib/todos
     const updatedTask = await updateTask(taskId, userId, {
       title: body.title,
       description: body.description,
@@ -95,7 +90,6 @@ export async function PATCH(
 ) {
   try {
     const { params } = context;
-    // Check authentication
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -113,7 +107,6 @@ export async function PATCH(
     console.log(`[PATCH /api/tasks/${taskId}] Dados recebidos:`, JSON.stringify(body));
     console.log(`[PATCH /api/tasks/${taskId}] Tempo estimado recebido:`, body.estimated_time);
     
-    // Logs adicionais sobre data e hora
     if (body.dueDate) {
       console.log(`[PATCH /api/tasks/${taskId}] Data recebida (dueDate):`, body.dueDate);
       try {
@@ -136,14 +129,12 @@ export async function PATCH(
       console.log(`[PATCH /api/tasks/${taskId}] Nenhuma data recebida`);
     }
 
-    // Verificar se a tarefa existe
     const existingTask = await getTaskById(taskId, userId);
 
     if (!existingTask) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // Update parcial da tarefa
     const updatedTask = await updateTask(taskId, userId, body);
 
     return NextResponse.json(updatedTask);
@@ -162,7 +153,6 @@ export async function DELETE(
 ) {
   try {
     const { params } = context;
-    // Check authentication
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -175,14 +165,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
     }
 
-    // Verificar se a tarefa existe
     const existingTask = await getTaskById(taskId, userId);
 
     if (!existingTask) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // Excluir tarefa usando a função do lib/todos
     await deleteTask(taskId, userId);
 
     return NextResponse.json({ message: "Task deleted successfully" });
