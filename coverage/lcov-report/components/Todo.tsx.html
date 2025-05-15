@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80.95% </span>
+                <span class="strong">81.39% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>68/84</span>
+                <span class='fraction'>70/86</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">73.73% </span>
+                <span class="strong">68.14% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>73/99</span>
+                <span class='fraction'>77/113</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">81.25% </span>
+                <span class="strong">81.7% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>65/80</span>
+                <span class='fraction'>67/82</span>
             </div>
         
             
@@ -346,7 +346,17 @@
 <a name='L281'></a><a href='#L281'>281</a>
 <a name='L282'></a><a href='#L282'>282</a>
 <a name='L283'></a><a href='#L283'>283</a>
-<a name='L284'></a><a href='#L284'>284</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -419,12 +429,22 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">25x</span>
 <span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -702,12 +722,22 @@ function formatDueDate(dueDate: string | null, t: any) {
           date1.getFullYear() === date2.getFullYear();
   };
   
+  // Verifica se o horário não é 00:00
+  const hasTime = date.getHours() !== 0 || <span class="branch-1 cbranch-no" title="branch not covered" >date.getMinutes() !== 0;</span>
+  const timeString = hasTime ? ` ${format(date, "HH:mm")}` : <span class="branch-1 cbranch-no" title="branch not covered" >"";</span>
+  
   if (isSameDate(date, today)) {
-    return t ? t("today") : <span class="branch-1 cbranch-no" title="branch not covered" >"Hoje"</span>
+    return hasTime 
+      ? `${t ? t("today") : <span class="branch-1 cbranch-no" title="branch not covered" >"Hoje"}</span>${timeString}`
+      : <span class="branch-1 cbranch-no" title="branch not covered" >t ? t("today") : "Hoje"</span>
   } else if (isSameDate(date, tomorrow)) {
-    return t ? t("tomorrow") : <span class="branch-1 cbranch-no" title="branch not covered" >"Amanhã"</span>
+    return hasTime 
+      ? `${t ? t("tomorrow") : <span class="branch-1 cbranch-no" title="branch not covered" >"Amanhã"}</span>${timeString}`
+      : <span class="branch-1 cbranch-no" title="branch not covered" >t ? t("tomorrow") : "Amanhã"</span>
   } else <span class="missing-if-branch" title="else path not taken" >E</span>{
-<span class="cstat-no" title="statement not covered" >    return format(date, "dd/MM/yyyy")</span>
+<span class="cstat-no" title="statement not covered" >    return hasTime </span>
+      ? `${format(date, "dd/MM/yyyy")}${timeString}`
+      : format(date, "dd/MM/yyyy")
   }
 }
 &nbsp;
@@ -919,7 +949,7 @@ export default Todo </pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-09T00:42:41.585Z
+                at 2025-05-14T22:44:52.580Z
             </div>
         <script src="../prettify.js"></script>
         <script>
