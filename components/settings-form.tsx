@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -42,7 +42,7 @@ const formSchema = z.object({
       const parsed = parseInt(String(val), 10);
       return isNaN(parsed) ? 3 : parsed;
     }),
-  enable_spotify: z.boolean().default(true),
+  enable_spotify: z.boolean().default(false),
   spotify_playlist_url: z.string().optional(),
   enable_flip_clock: z.boolean().default(true),
   flip_clock_size: z.string().default("medium"),
@@ -51,10 +51,9 @@ const formSchema = z.object({
 
 interface SettingsFormProps {
   settings: UserSettings;
-  defaultTab?: string;
 }
 
-export function SettingsForm({ settings, defaultTab = "general" }: SettingsFormProps) {
+export function SettingsForm({ settings }: SettingsFormProps) {
   const router = useRouter()
   const { setTheme } = useTheme()
   const { toast } = useToast()
@@ -64,7 +63,10 @@ export function SettingsForm({ settings, defaultTab = "general" }: SettingsFormP
   const [isSaved, setIsSaved] = useState(false)
   const { playlistId, setPlaylistId, setContentType, isEnabled, setIsEnabled } = useSpotifyStore()
   const [playlistUrl, setPlaylistUrl] = useState(settings.spotify_playlist_url || '')
-  const [activeTab, setActiveTab] = useState<string>(defaultTab)
+  
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'general';
+  const [activeTab, setActiveTab] = useState<string>(initialTab)
 
   // Inicializar o playlistId na primeira carga se o Spotify estiver habilitado
   useEffect(() => {
@@ -139,7 +141,7 @@ export function SettingsForm({ settings, defaultTab = "general" }: SettingsFormP
       enable_desktop_notifications: settings.enable_desktop_notifications,
       enable_task_notifications: settings.enable_task_notifications,
       task_notification_days: settings.task_notification_days,
-      enable_spotify: settings.enable_spotify !== undefined ? settings.enable_spotify : true,
+      enable_spotify: settings.enable_spotify !== undefined ? settings.enable_spotify : false,
       spotify_playlist_url: settings.spotify_playlist_url,
       enable_flip_clock: settings.enable_flip_clock,
       flip_clock_size: settings.flip_clock_size || "medium",
@@ -149,48 +151,33 @@ export function SettingsForm({ settings, defaultTab = "general" }: SettingsFormP
 
   // Monitorar mudanças na configuração do Spotify
   useEffect(() => {
-    // Verificar quando o formulário é alterado e a opção enable_spotify muda para false
-    const subscription = form.watch((value, { name }) => {
+    const subscription = form.watch((value, { name, type: watchType }) => {
+      // Reagir apenas a mudanças no campo 'enable_spotify' ou na carga inicial para 'spotify_playlist_url'
       if (name === 'enable_spotify') {
         if (value.enable_spotify === false) {
-          console.log('Detectada desativação do Spotify no formulário');
-          // Limpar o playlistId no zustand store
-          setPlaylistId(null);
+          console.log('form.watch: Spotify desabilitado, limpando playlistId.');
+          setPlaylistId(null); // Limpa o ID no store se o switch for desligado
         } else if (value.enable_spotify === true && value.spotify_playlist_url) {
-          // Quando o Spotify é ativado, tentar restaurar o contentId
-          console.log('Detectada ativação do Spotify no formulário');
+          // Se o Spotify for habilitado e já houver uma URL no campo,
+          // tentar extrair e definir o ID (útil se o usuário colar URL e depois ligar o switch)
+          console.log('form.watch: Spotify habilitado com URL existente, tentando definir playlistId.');
           try {
             const urlString = value.spotify_playlist_url;
-            if (urlString) {
-              // Determinar o tipo de conteúdo baseado na URL
-              let type = '';
-              let id = '';
-              
-              if (urlString.includes('/playlist/')) {
-                type = 'playlist';
-                id = urlString.split('/playlist/')[1]?.split('?')[0] || '';
-              } else if (urlString.includes('/episode/')) {
-                type = 'episode';
-                id = urlString.split('/episode/')[1]?.split('?')[0] || '';
-              } else if (urlString.includes('/track/')) {
-                type = 'track';
-                id = urlString.split('/track/')[1]?.split('?')[0] || '';
-              } else if (urlString.includes('/album/')) {
-                type = 'album';
-                id = urlString.split('/album/')[1]?.split('?')[0] || '';
-              } else if (urlString.includes('/show/')) {
-                type = 'show';
-                id = urlString.split('/show/')[1]?.split('?')[0] || '';
-              }
-              
-              if (id && type) {
-                console.log(`Restaurando ${type} ID:`, id);
-                setPlaylistId(id);
-                setContentType(type);
-              }
+            let type = '';
+            let id = '';
+            if (urlString.includes('/playlist/')) { type = 'playlist'; id = urlString.split('/playlist/')[1]?.split('?')[0] || ''; }
+            else if (urlString.includes('/episode/')) { type = 'episode'; id = urlString.split('/episode/')[1]?.split('?')[0] || ''; }
+            else if (urlString.includes('/track/')) { type = 'track'; id = urlString.split('/track/')[1]?.split('?')[0] || ''; }
+            else if (urlString.includes('/album/')) { type = 'album'; id = urlString.split('/album/')[1]?.split('?')[0] || ''; }
+            else if (urlString.includes('/show/')) { type = 'show'; id = urlString.split('/show/')[1]?.split('?')[0] || ''; }
+            
+            if (id && type) {
+              console.log(`form.watch: Restaurando ${type} ID:`, id);
+              setPlaylistId(id);
+              setContentType(type);
             }
           } catch (error) {
-            console.error("Erro ao extrair dados da URL do Spotify:", error);
+            console.error("form.watch: Erro ao extrair dados da URL do Spotify:", error);
           }
         }
       }
@@ -198,6 +185,12 @@ export function SettingsForm({ settings, defaultTab = "general" }: SettingsFormP
     
     return () => subscription.unsubscribe();
   }, [form, setPlaylistId, setContentType]);
+
+  useEffect(() => {
+    if (settings.language && (settings.language === "en" || settings.language === "pt")) {
+      setLanguage(settings.language as "en" | "pt")
+    }
+  }, [settings.language, setLanguage])
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
@@ -333,7 +326,7 @@ export function SettingsForm({ settings, defaultTab = "general" }: SettingsFormP
         </div>
       )}
       <Tabs 
-        defaultValue={defaultTab} 
+        defaultValue={initialTab} 
         onValueChange={(value) => {
           setActiveTab(value);
           console.log("Aba ativa alterada para:", value);

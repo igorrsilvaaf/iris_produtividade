@@ -27,25 +27,6 @@ export default function SpotifyPlayerWrapper() {
             setIsEnabled(true);
           } else {
             setIsEnabled(false);
-            // Se estiver desabilitado mas o playlistId estiver definido, limpá-lo
-            if (playlistId) {
-              console.log("SpotifyPlayerWrapper: Spotify desabilitado mas playlistId existe, limpando");
-              setPlaylistId(null);
-              
-              // Limpar também o localStorage
-              try {
-                const spotifyStorage = localStorage.getItem('spotify-storage');
-                if (spotifyStorage) {
-                  const spotifyData = JSON.parse(spotifyStorage);
-                  if (spotifyData.state) {
-                    spotifyData.state.playlistId = null;
-                    localStorage.setItem('spotify-storage', JSON.stringify(spotifyData));
-                  }
-                }
-              } catch (err) {
-                console.error("SpotifyPlayerWrapper: Erro ao limpar localStorage:", err);
-              }
-            }
           }
         }
       } catch (error) {
