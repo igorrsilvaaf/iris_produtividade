@@ -70,38 +70,80 @@ export function PomodoroTimer({
         setTimeout(() => notification.close(), 5000)
       }
 
-      if (mode === "work" && selectedTaskId) {
-        fetch(`/api/pomodoro/log`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            taskId: selectedTaskId,
-            duration: storeSettings.workMinutes,
-          }),
-        }).catch((error) => {
-          console.error("Error logging pomodoro:", error)
-        })
-      }
+      // Registra qualquer tipo de sessão completa (work, shortBreak ou longBreak)
+      fetch(`/api/pomodoro/log`, {
+        method: "POST",
+        credentials: 'include',
+        headers: { 
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache"
+        },
+        body: JSON.stringify({
+          taskId: selectedTaskId || undefined,
+          duration: mode === "work" 
+            ? storeSettings.workMinutes 
+            : mode === "shortBreak" 
+              ? storeSettings.shortBreakMinutes 
+              : storeSettings.longBreakMinutes,
+          mode: mode,
+        }),
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log("Pomodoro log salvo com sucesso");
+          
+          // Disparar um evento personalizado para notificar outros componentes
+          if (typeof window !== 'undefined') {
+            const event = new CustomEvent('pomodoroCompleted', { 
+              detail: { taskId: selectedTaskId, timestamp: Date.now() }
+            });
+            window.dispatchEvent(event);
+          }
+          
+          // Tentar forçar uma atualização de rota para atualizar o histórico
+          if (typeof window !== 'undefined') {
+            // Atualiza a URL atual com um timestamp para forçar a recarga dos dados
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('/app/pomodoro')) {
+              // Somente se estiver na página do pomodoro
+              router.refresh();
+            }
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error logging pomodoro:", error)
+      })
 
       let nextMode: TimerMode;
-      let newInternalCycle = cycles; // Usaremos 'cycles' para rastrear o estágio no ciclo de 4 partes.
+      let newInternalCycle = cycles;
+      
+      // Usar o longBreakInterval das configurações (pomodoro_cycles)
+      const longBreakInterval = storeSettings.longBreakInterval || 4;
+      console.log(`Ciclo atual: ${cycles}, Intervalo de pausa longa configurado: ${longBreakInterval}`);
 
       if (mode === "work") {
-        if (newInternalCycle === 0) { // Primeiro trabalho no ciclo de 4 partes
-          nextMode = "shortBreak";
-          newInternalCycle = 1;
-        } else { // Segundo trabalho no ciclo de 4 partes (newInternalCycle era 2)
+        // Verificar se completamos o número de ciclos de trabalho definido antes da pausa longa
+        const isLongBreakDue = (cycles + 1) % longBreakInterval === 0;
+        
+        if (isLongBreakDue) {
+          // É hora de uma pausa longa
+          console.log(`Completou ${longBreakInterval} ciclos de trabalho, iniciando pausa longa`);
           nextMode = "longBreak";
-          newInternalCycle = 3;
+        } else {
+          // Ainda não é hora de pausa longa, então é pausa curta
+          console.log(`Completou ${(cycles + 1) % longBreakInterval} de ${longBreakInterval} ciclos, iniciando pausa curta`);
+          nextMode = "shortBreak";
         }
-      } else if (mode === "shortBreak") { // Após Pausa Curta (newInternalCycle era 1)
+        
+        // Incrementa o ciclo após o trabalho
+        newInternalCycle = cycles + 1;
+      } else {
+        // Após qualquer tipo de pausa, voltamos ao trabalho (sem incrementar o ciclo)
         nextMode = "work";
-        newInternalCycle = 2;
-      } else { // mode === "longBreak" // Após Pausa Longa (newInternalCycle era 3)
-        nextMode = "work";
-        newInternalCycle = 0; // Reinicia o ciclo de 4 partes
       }
 
+      console.log(`Próximo modo: ${nextMode}, Próximo ciclo: ${newInternalCycle}`);
       setCycles(newInternalCycle);
       setStoreMode(nextMode);
       setIsRunning(false);
@@ -116,6 +158,7 @@ export function PomodoroTimer({
     storeSettings.pomodoroSound,
     storeSettings.enableDesktopNotifications,
     storeSettings.workMinutes, // Adicionado pois é usado no fetch de log
+    storeSettings.longBreakInterval, // Adicionado para usar a configuração de ciclos
     mode,
     selectedTaskId,
     cycles,
@@ -124,6 +167,7 @@ export function PomodoroTimer({
     setIsRunning,
     playSound,
     t,
+    router,
   ]);
 
   useEffect(() => {
@@ -289,7 +333,7 @@ export function PomodoroTimer({
           </div>
 
           <div className={`text-xs sm:text-sm text-muted-foreground ${fullScreen ? 'mt-2' : 'mt-6'}`}>
-            {t("cycleStage")}: {cycles + 1}/4 
+            {t("cycleStage")}: {mode === "work" ? (cycles % (storeSettings.longBreakInterval || 4)) + 1 : cycles % (storeSettings.longBreakInterval || 4)}/{storeSettings.longBreakInterval || 4} 
           </div>
         </div>
       </CardContent>

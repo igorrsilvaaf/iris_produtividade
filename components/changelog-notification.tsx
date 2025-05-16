@@ -158,7 +158,17 @@ export function ChangelogNotification() {
         <div className="p-5">
           <div className="border-l-4 border-primary/30 pl-3 py-2 mb-4 rounded-sm bg-primary/5">
             <p className="text-sm text-muted-foreground">
-              {latestChangelog === '2.7.1' ? (
+              {latestChangelog === '2.8.0' ? (
+                <>
+                  <span className="font-medium text-primary">Histórico de Pomodoro e Integração com Deezer</span>
+                  <br />
+                  Adicionamos um histórico completo para o Pomodoro! Agora você pode visualizar todas as suas sessões anteriores, com detalhes de data, duração e tipo (trabalho ou pausa). O histórico é facilmente acessível na própria página do Pomodoro e você pode filtrar por tarefas específicas.
+                  <br /><br />
+                  Também incluímos integração com o Deezer como alternativa ao Spotify. Configure sua playlist preferida nas configurações e continue ouvindo música enquanto trabalha.
+                  <br /><br />
+                  <span className="font-medium">Como usar:</span> Acesse a página do Pomodoro e o histórico será exibido logo abaixo do timer. Para configurar o Deezer, vá até as configurações do sistema na aba "Música".
+                </>
+              ) : latestChangelog === '2.7.1' ? (
                 <>
                   <span className="font-medium text-primary">Melhorias no Temporizador Pomodoro</span>
                   <br />

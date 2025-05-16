@@ -5,8 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ac8cfec0-295c-4bd1-b2e9-bda1512c6d93" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/app/app/api-docs/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/api-docs/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/postman.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/tasks/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/tasks/[id]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/app/pomodoro/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/app/pomodoro/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/changelog-notification.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/changelog-notification.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/pomodoro-timer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/pomodoro-timer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/changelog-data.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/changelog-data.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/i18n.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/i18n.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,9 +49,14 @@
     "settings.editor.selected.configurable": "preferences.lookFeel",
     "ts.external.directory.path": "/media/igorqa/SSD128/Repositorios/to_do_list/node_modules/typescript/lib",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ]
   }
 }]]></component>
-  <component name="RunManager" selected="npm.Next.js: server-side">
+  <component name="RunManager">
     <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
       <method v="2" />
     </configuration>

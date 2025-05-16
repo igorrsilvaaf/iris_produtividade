@@ -7,14 +7,18 @@ export async function GET(
   context: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userId = session.user.id;
-    const taskId = parseInt(params.id, 10);
+    
+    // Extrair o ID da URL em vez de usar params.id
+    const url = request.url;
+    const urlParts = url.split('/');
+    const idFromUrl = urlParts[urlParts.length - 1].split('?')[0]; // Pega o último segmento da URL e remove query params
+    const taskId = parseInt(idFromUrl, 10);
 
     if (isNaN(taskId)) {
       return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
@@ -38,10 +42,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -86,10 +89,9 @@ export async function PUT(
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -149,10 +151,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

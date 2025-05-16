@@ -23,6 +23,33 @@ export const CHANGELOG_DATA: ChangelogData[] = [
     },
     entries: [
       {
+        id: 'pomodoro-history',
+        title: 'Histórico de Pomodoro',
+        description: 'Novo histórico de sessões do Pomodoro para acompanhar seu progresso',
+        items: [
+          {
+            type: 'feature',
+            content: 'Adicionado histórico completo das sessões de Pomodoro (trabalho e pausas)'
+          },
+          {
+            type: 'feature',
+            content: 'Registro detalhado de data, hora, duração e tipo de cada sessão'
+          },
+          {
+            type: 'feature',
+            content: 'Visualização de sessões associadas a tarefas específicas'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface intuitiva com paginação para navegar pelo histórico'
+          },
+          {
+            type: 'improvement',
+            content: 'Distinção visual por cores entre os diferentes tipos de sessões'
+          }
+        ]
+      },
+      {
         id: 'deezer-integration',
         title: 'Integração com Deezer',
         description: 'Nova opção de player de música com integração ao Deezer',
