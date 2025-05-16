@@ -152,7 +152,7 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle>{t("pomodoroHistory")}</CardTitle>
+          <CardTitle className="text-center">{t("pomodoroHistory")}</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center py-6">
           <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full"></div>
@@ -165,14 +165,14 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle>{t("pomodoroHistory")}</CardTitle>
+          <CardTitle className="text-center">{t("pomodoroHistory")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-red-500 text-center py-4">
             {error}
             {error.includes("401") && (
               <p className="text-sm mt-2 text-muted-foreground">
-                {t("notAuthenticated", "Você não está autenticado. Tente recarregar a página.")}
+                {t("notAuthenticated")}
               </p>
             )}
           </div>
@@ -183,14 +183,14 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
                   size="sm" 
                   onClick={() => fetchSessions(1)}
                 >
-                  {t("tryAgain", "Tentar novamente")}
+                  {t("tryAgain")}
                 </Button>
                 <Button 
                   variant="secondary" 
                   size="sm" 
                   onClick={() => window.location.reload()}
                 >
-                  {t("reload", "Recarregar página")}
+                  {t("reload")}
                 </Button>
               </div>
           </div>
@@ -202,7 +202,7 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>{t("pomodoroHistory")}</CardTitle>
+        <CardTitle className="text-center">{t("pomodoroHistory")}</CardTitle>
       </CardHeader>
       <CardContent>
         {sessions.length === 0 ? (
@@ -255,10 +255,7 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
           </Button>
           
           <div className="text-sm text-muted-foreground">
-            {t("pageXofY", { 
-              current: pagination.page, 
-              total: pagination.totalPages 
-            })}
+            {t("pageXofY")}
           </div>
           
           <Button

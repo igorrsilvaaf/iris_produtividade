@@ -265,7 +265,8 @@ export function PomodoroTimer({
   return (
     <Card className={fullScreen ? "h-full border-0 shadow-none rounded-none flex flex-col bg-transparent" : ""}>
       <CardHeader className={`pb-2 flex flex-row items-center justify-between ${fullScreen ? 'pt-2' : ''}`}>
-        <CardTitle className="text-lg sm:text-xl">{t("pomodoroTimer")}</CardTitle>
+        <div className="w-9"></div>
+        <CardTitle className="text-lg sm:text-xl text-center flex-1">{t("pomodoroTimer")}</CardTitle>
         <Button variant="ghost" size="icon" onClick={navigateToSettings}>
           <Settings className="h-4 w-4" />
           <span className="sr-only">{t("settings")}</span>
@@ -340,4 +341,3 @@ export function PomodoroTimer({
     </Card>
   )
 }
-

@@ -190,14 +190,14 @@ export default function PomodoroPage() {
 
   return (
     <div className={`container mx-auto py-6 ${isMobile ? "px-0" : "px-6"}`}>
-      <div className={`mb-6 ${isMobile ? "hidden" : ""}`}>
+      <div className={`mb-6 ${isMobile ? "hidden" : ""} text-center`}>
         <h1 className="text-3xl font-bold">{t("pomodoroTimer")}</h1>
         <p className="text-muted-foreground">{t("focusOnYourTasks")}</p>
       </div>
 
       {/* Seletor de Tarefas para Desktop */}
       {!isMobile && (
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col items-center">
           <label htmlFor="task-select-desktop" className="block text-sm font-medium text-foreground mb-1.5">
             {t("selectTaskLabel", "Select a task to focus on")}
           </label>
@@ -206,7 +206,7 @@ export default function PomodoroPage() {
             onValueChange={handleTaskSelect}
             disabled={isLoading || tasks.length === 0 && !selectedTaskId}
           >
-            <SelectTrigger id="task-select-desktop" className="w-full md:w-[450px]">
+            <SelectTrigger id="task-select-desktop" className="w-full md:max-w-2xl lg:max-w-3xl mx-auto">
               <SelectValue placeholder={t("selectTaskPlaceholder", "Choose a task...")} />
             </SelectTrigger>
             <SelectContent>
@@ -266,11 +266,11 @@ export default function PomodoroPage() {
                 ))}
               </SelectContent>
             </Select>
-            {isLoading && tasks.length === 0 && (
-              <p className="text-xs text-muted-foreground mt-1.5">{t("loadingTasks", "Loading tasks...")}</p>
+            {isLoading && (
+              <p className="text-xs text-muted-foreground mt-1.5 text-center">{t("loadingTasks", "Loading tasks...")}</p>
             )}
             {!isLoading && tasks.length === 0 && !selectedTaskId && (
-               <p className="text-xs text-muted-foreground mt-1.5">{t("noPendingTasksPomodoro", "You have no pending tasks to focus on.")}</p>
+              <p className="text-xs text-muted-foreground mt-1.5 text-center">{t("noPendingTasksPomodoro", "You have no pending tasks to focus on.")}</p>
             )}
           </div>
           
