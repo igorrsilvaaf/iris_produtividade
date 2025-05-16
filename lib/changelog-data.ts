@@ -15,6 +15,49 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.8.0',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'deezer-integration',
+        title: 'Integração com Deezer',
+        description: 'Nova opção de player de música com integração ao Deezer',
+        items: [
+          {
+            type: 'feature',
+            content: 'Adicionado player do Deezer para reproduzir playlists durante o trabalho'
+          },
+          {
+            type: 'feature',
+            content: 'Configuração do Deezer através das configurações do sistema'
+          },
+          {
+            type: 'feature',
+            content: 'Player persistente que continua tocando durante a navegação'
+          },
+          {
+            type: 'feature',
+            content: 'Suporte completo para contas premium do Deezer sem limitações de prévia'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface unificada que permite escolher entre Spotify e Deezer'
+          },
+          {
+            type: 'improvement',
+            content: 'Controles de playback adaptados para funcionar com ambos os serviços'
+          }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date(),
     version: '2.7.1',
     author: {
       name: 'Igor Silva',
