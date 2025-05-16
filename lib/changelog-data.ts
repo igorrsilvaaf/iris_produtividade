@@ -23,6 +23,33 @@ export const CHANGELOG_DATA: ChangelogData[] = [
     },
     entries: [
       {
+        id: 'pomodoro-history',
+        title: 'Histórico de Pomodoro',
+        description: 'Novo histórico de sessões do Pomodoro para acompanhar seu progresso',
+        items: [
+          {
+            type: 'feature',
+            content: 'Adicionado histórico completo das sessões de Pomodoro (trabalho e pausas)'
+          },
+          {
+            type: 'feature',
+            content: 'Registro detalhado de data, hora, duração e tipo de cada sessão'
+          },
+          {
+            type: 'feature',
+            content: 'Visualização de sessões associadas a tarefas específicas'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface intuitiva com paginação para navegar pelo histórico'
+          },
+          {
+            type: 'improvement',
+            content: 'Distinção visual por cores entre os diferentes tipos de sessões'
+          }
+        ]
+      },
+      {
         id: 'deezer-integration',
         title: 'Integração com Deezer',
         description: 'Nova opção de player de música com integração ao Deezer',
@@ -50,6 +77,60 @@ export const CHANGELOG_DATA: ChangelogData[] = [
           {
             type: 'improvement',
             content: 'Controles de playback adaptados para funcionar com ambos os serviços'
+          }
+        ]
+      },
+      {
+        id: 'pomodoro-improvements',
+        title: 'Melhorias no Pomodoro',
+        description: 'Aprimoramentos visuais e funcionais no componente de Pomodoro',
+        items: [
+          {
+            type: 'improvement',
+            content: 'Interface centralizada e mais intuitiva para melhor experiência visual'
+          },
+          {
+            type: 'improvement',
+            content: 'Ajuste no posicionamento do botão de configurações para fácil acesso'
+          },
+          {
+            type: 'improvement',
+            content: 'Seletor de tarefas com largura alinhada ao componente do timer'
+          },
+          {
+            type: 'improvement',
+            content: 'Melhor visualização do histórico de sessões do Pomodoro'
+          },
+          {
+            type: 'bugfix',
+            content: 'Correção de erros de tipagem nos componentes do histórico'
+          }
+        ]
+      },
+      {
+        id: 'drag-drop-enhancements',
+        title: 'Melhorias no Sistema de Arrastar e Soltar',
+        description: 'Aprimoramentos nos componentes de arrastar e soltar para Playlists e Kanban',
+        items: [
+          {
+            type: 'improvement',
+            content: 'Implementação mais fluida para arrastar itens nas playlists do Deezer e Spotify'
+          },
+          {
+            type: 'improvement',
+            content: 'Reorganização facilitada de cards no Kanban com feedback visual melhorado'
+          },
+          {
+            type: 'improvement',
+            content: 'Animações suaves ao arrastar e soltar elementos na interface'
+          },
+          {
+            type: 'improvement',
+            content: 'Indicadores visuais aprimorados para áreas de soltura dos itens'
+          },
+          {
+            type: 'bugfix',
+            content: 'Correção de problemas de performance ao arrastar múltiplos itens'
           }
         ]
       }

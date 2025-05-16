@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 // import { ArrowLeft } from "lucide-react" // Comentado se não estiver usando diretamente
 import { Card, CardContent, CardHeader /*, CardTitle */ } from "@/components/ui/card" // CardTitle pode ser removida se não usada no JSX diretamente
 import { PomodoroTimer } from "@/components/pomodoro-timer"
+import { PomodoroHistory } from "@/components/pomodoro-history"
 import { usePomodoroStore, type TimerMode } from "@/lib/stores/pomodoro-store"
 import { getPomodoroModeStyles } from "@/lib/pomodoro-utils"; // Importar a função utilitária
 import { useTranslation } from "@/lib/i18n"
@@ -189,14 +190,14 @@ export default function PomodoroPage() {
 
   return (
     <div className={`container mx-auto py-6 ${isMobile ? "px-0" : "px-6"}`}>
-      <div className={`mb-6 ${isMobile ? "hidden" : ""}`}>
+      <div className={`mb-6 ${isMobile ? "hidden" : ""} text-center`}>
         <h1 className="text-3xl font-bold">{t("pomodoroTimer")}</h1>
         <p className="text-muted-foreground">{t("focusOnYourTasks")}</p>
       </div>
 
       {/* Seletor de Tarefas para Desktop */}
       {!isMobile && (
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col items-center">
           <label htmlFor="task-select-desktop" className="block text-sm font-medium text-foreground mb-1.5">
             {t("selectTaskLabel", "Select a task to focus on")}
           </label>
@@ -205,7 +206,7 @@ export default function PomodoroPage() {
             onValueChange={handleTaskSelect}
             disabled={isLoading || tasks.length === 0 && !selectedTaskId}
           >
-            <SelectTrigger id="task-select-desktop" className="w-full md:w-[450px]">
+            <SelectTrigger id="task-select-desktop" className="w-full md:max-w-2xl lg:max-w-3xl mx-auto">
               <SelectValue placeholder={t("selectTaskPlaceholder", "Choose a task...")} />
             </SelectTrigger>
             <SelectContent>
@@ -265,41 +266,66 @@ export default function PomodoroPage() {
                 ))}
               </SelectContent>
             </Select>
-            {isLoading && tasks.length === 0 && (
-              <p className="text-xs text-muted-foreground mt-1.5">{t("loadingTasks", "Loading tasks...")}</p>
+            {isLoading && (
+              <p className="text-xs text-muted-foreground mt-1.5 text-center">{t("loadingTasks", "Loading tasks...")}</p>
             )}
             {!isLoading && tasks.length === 0 && !selectedTaskId && (
-               <p className="text-xs text-muted-foreground mt-1.5">{t("noPendingTasksPomodoro", "You have no pending tasks to focus on.")}</p>
+              <p className="text-xs text-muted-foreground mt-1.5 text-center">{t("noPendingTasksPomodoro", "You have no pending tasks to focus on.")}</p>
             )}
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center p-4">
-            <CardContent className="flex-1 flex flex-col p-0">
-            <PomodoroTimer 
-              selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
-              fullScreen={true} 
-              timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
-              activeTabStyleClass={activeTabClasses}
-                playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
-                progressIndicatorClassProp={progressIndicatorClass}
-            />
-            </CardContent>
+          
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="h-1/2 flex items-center justify-center p-4">
+                <CardContent className="flex-1 flex flex-col p-0">
+                  <PomodoroTimer 
+                    selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
+                    fullScreen={true} 
+                    timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
+                    activeTabStyleClass={activeTabClasses}
+                    playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
+                    progressIndicatorClassProp={progressIndicatorClass}
+                  />
+                </CardContent>
+              </div>
+              
+              {isClient && (
+                <div className="h-1/2 overflow-y-auto p-4 pt-0">
+                  <PomodoroHistory 
+                    taskId={selectedTaskId}
+                    className="shadow-none border-0"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {!isMobile && (
-        <Card className={`${isMobile ? "hidden" : "w-full md:max-w-2xl lg:max-w-3xl mx-auto shadow-lg"}`}>
-          <CardContent className="p-6 md:p-8">
-            <PomodoroTimer 
-              selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
-              fullScreen={false}
-              timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
-              activeTabStyleClass={activeTabClasses}
-              playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
-              progressIndicatorClassProp={progressIndicatorClass}
-            />
-          </CardContent>
-        </Card>
+        <>
+          <Card className={`${isMobile ? "hidden" : "w-full md:max-w-2xl lg:max-w-3xl mx-auto shadow-lg"}`}>
+            <CardContent className="p-6 md:p-8">
+              <PomodoroTimer 
+                selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
+                fullScreen={false}
+                timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
+                activeTabStyleClass={activeTabClasses}
+                playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
+                progressIndicatorClassProp={progressIndicatorClass}
+              />
+            </CardContent>
+          </Card>
+          
+          {isClient && (
+            <div className="mt-8 w-full md:max-w-2xl lg:max-w-3xl mx-auto">
+              <PomodoroHistory 
+                taskId={selectedTaskId}
+                className="shadow-lg"
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

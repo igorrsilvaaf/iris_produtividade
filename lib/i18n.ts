@@ -384,6 +384,27 @@ export const translations: Translations = {
     en: "Long Break",
     pt: "Pausa Longa",
   },
+  // Notificações do Pomodoro
+  workComplete: {
+    en: "Work Complete",
+    pt: "Trabalho Concluído",
+  },
+  breakComplete: {
+    en: "Break Complete",
+    pt: "Pausa Concluída",
+  },
+  timeToTakeABreak: {
+    en: "Time to take a break",
+    pt: "Hora de fazer uma pausa",
+  },
+  timeToWorkAgain: {
+    en: "Time to work again",
+    pt: "Hora de voltar ao trabalho",
+  },
+  longBreakComplete: {
+    en: "Long break complete",
+    pt: "Pausa longa concluída",
+  },
 
   // Notificações
   notifications: {
@@ -1511,8 +1532,8 @@ export const translations: Translations = {
     pt: "Melhoramos o aplicativo com novos recursos e correções de bugs. Confira as novidades!",
   },
   latestUpdateInfo: {
-    en: "Our latest update includes estimated time tracking and file attachments for tasks.",
-    pt: "Nossa mais recente atualização inclui tempo estimado e anexos para tarefas."
+    en: "Our latest update includes Pomodoro history tracking and Deezer music integration.",
+    pt: "Nossa mais recente atualização inclui histórico de Pomodoro e integração com Deezer."
   },
   viewChangelog: {
     en: "View Updates",
@@ -2215,6 +2236,54 @@ export const translations: Translations = {
     pt: "Você não possui tarefas pendentes para focar.",
   },
   // Fim das novas traduções
+  pomodoroHistory: {
+    en: "Pomodoro History",
+    pt: "Histórico de Pomodoro",
+  },
+  date: {
+    en: "Date",
+    pt: "Data",
+  },
+  task: {
+    en: "Task",
+    pt: "Tarefa",
+  },
+  mode: {
+    en: "Mode",
+    pt: "Modo",
+  },
+  durationMinutes: {
+    en: "Duration (min)",
+    pt: "Duração (min)",
+  },
+  noSessionsFound: {
+    en: "No sessions found",
+    pt: "Nenhuma sessão encontrada",
+  },
+  previous: {
+    en: "Previous",
+    pt: "Anterior",
+  },
+  next: {
+    en: "Next",
+    pt: "Próximo",
+  },
+  pageXofY: {
+    en: "Page {current} of {total}",
+    pt: "Página {current} de {total}",
+  },
+  notAuthenticated: {
+    en: "You are not authenticated. Try reloading the page.",
+    pt: "Você não está autenticado. Tente recarregar a página.",
+  },
+  reload: {
+    en: "Reload page",
+    pt: "Recarregar página",
+  },
+  tryAgain: {
+    en: "Try again",
+    pt: "Tentar novamente",
+  },
 }
 
 type LanguageState = {

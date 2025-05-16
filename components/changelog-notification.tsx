@@ -25,7 +25,18 @@ export function ChangelogNotification() {
   const router = useRouter()
   const { t } = useTranslation()
 
-  // Detectar quando está no cliente
+  const markVersionAsSeen = (version: string) => {
+    localStorage.setItem('lastSeenChangelogVersion', version)
+    
+    const dismissedVersions = localStorage.getItem('dismissedChangelogVersions')
+    const dismissedArray = dismissedVersions ? JSON.parse(dismissedVersions) : []
+    
+    if (!dismissedArray.includes(version)) {
+      dismissedArray.push(version)
+      localStorage.setItem('dismissedChangelogVersions', JSON.stringify(dismissedArray))
+    }
+  }
+
   useEffect(() => {
     setIsClient(true)
   }, [])
@@ -33,7 +44,6 @@ export function ChangelogNotification() {
   useEffect(() => {
     if (!isClient) return
     
-    // Adicionar um estilo ao botão de fechar
     const style = document.createElement('style')
     style.innerHTML = `
       .changelog-dialog [data-state="open"].dialog-close {
@@ -66,17 +76,12 @@ export function ChangelogNotification() {
       if (newChanges.length === 0) return
       
       const latestNewVersion = newChanges[0].version
-      
-      // Verificar a última versão vista no localStorage
       const lastSeenVersion = localStorage.getItem('lastSeenChangelogVersion')
 
-      // Se nunca viu essa versão antes, mostrar a notificação
       if (lastSeenVersion !== latestNewVersion) {
-        // Verificar se o usuário já marcou que não quer ver mais notificações para esta versão
         const dismissedVersions = localStorage.getItem('dismissedChangelogVersions')
         const dismissedArray = dismissedVersions ? JSON.parse(dismissedVersions) : []
         
-        // Se a versão não estiver na lista de versões dispensadas, mostrar a notificação
         if (!dismissedArray.includes(latestNewVersion)) {
           console.log(`[Changelog] Mostrando notificação para nova versão: ${latestNewVersion}`)
           setLatestChangelog(latestNewVersion)
@@ -85,43 +90,76 @@ export function ChangelogNotification() {
       }
     }
     
-    const timer = setTimeout(checkForNewChangelog, 2000)
+    checkForNewChangelog()
     
-    return () => clearTimeout(timer)
+    const initialTimer = setTimeout(checkForNewChangelog, 2000)
+    const periodicTimer = setInterval(checkForNewChangelog, 2 * 60 * 60 * 1000)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'lastSeenChangelogVersion' || e.key === 'dismissedChangelogVersions') {
+        checkForNewChangelog()
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkForNewChangelog()
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      clearTimeout(initialTimer)
+      clearInterval(periodicTimer)
+      window.removeEventListener('storage', handleStorageChange)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [isClient])
+
+  useEffect(() => {
+    if (!isClient) return
+    
+    const handleNavigateToChangelog = () => {
+      const changelogData = getChangelogData()
+      const newChanges = changelogData.filter(item => item.isNew)
+      
+      if (newChanges.length > 0) {
+        const latestNewVersion = newChanges[0].version
+        markVersionAsSeen(latestNewVersion)
+        setOpen(false)
+      }
+    }
+    
+    window.addEventListener('navigateToChangelog', handleNavigateToChangelog)
+    
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/app/changelog')) {
+      handleNavigateToChangelog()
+    }
+    
+    return () => {
+      window.removeEventListener('navigateToChangelog', handleNavigateToChangelog)
+    }
   }, [isClient])
 
   const handleDismiss = () => {
     if (latestChangelog) {
-      // Marcar esta versão como última vista
-      localStorage.setItem('lastSeenChangelogVersion', latestChangelog)
-      
-      // Salvar na lista de versões dispensadas
-      const dismissedVersions = localStorage.getItem('dismissedChangelogVersions')
-      const dismissedArray = dismissedVersions ? JSON.parse(dismissedVersions) : []
-      
-      if (!dismissedArray.includes(latestChangelog)) {
-        dismissedArray.push(latestChangelog)
-        localStorage.setItem('dismissedChangelogVersions', JSON.stringify(dismissedArray))
-      }
+      markVersionAsSeen(latestChangelog)
     }
     setOpen(false)
   }
 
   const handleViewChangelog = () => {
     if (latestChangelog) {
-      // Marcar esta versão como última vista
-      localStorage.setItem('lastSeenChangelogVersion', latestChangelog)
-      
-      // Salvar na lista de versões dispensadas
-      const dismissedVersions = localStorage.getItem('dismissedChangelogVersions')
-      const dismissedArray = dismissedVersions ? JSON.parse(dismissedVersions) : []
-      
-      if (!dismissedArray.includes(latestChangelog)) {
-        dismissedArray.push(latestChangelog)
-        localStorage.setItem('dismissedChangelogVersions', JSON.stringify(dismissedArray))
-      }
+      markVersionAsSeen(latestChangelog)
     }
     setOpen(false)
+    
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('navigateToChangelog'))
+    }
+    
     router.push('/app/changelog')
   }
 
@@ -158,7 +196,17 @@ export function ChangelogNotification() {
         <div className="p-5">
           <div className="border-l-4 border-primary/30 pl-3 py-2 mb-4 rounded-sm bg-primary/5">
             <p className="text-sm text-muted-foreground">
-              {latestChangelog === '2.7.1' ? (
+              {latestChangelog === '2.8.0' ? (
+                <>
+                  <span className="font-medium text-primary">Histórico de Pomodoro e Melhorias na Interface</span>
+                  <br />
+                  Adicionamos um histórico completo para o Pomodoro! Agora você pode visualizar todas as suas sessões anteriores, com detalhes de data, duração e tipo (trabalho ou pausa). A interface foi aprimorada com alinhamento centralizado e melhor organização visual.
+                  <br /><br />
+                  Também incluímos integração com o Deezer como alternativa ao Spotify, e aprimoramos o sistema de arrastar e soltar para uma experiência mais fluida tanto nas playlists quanto no quadro Kanban.
+                  <br /><br />
+                  <span className="font-medium">Novidades:</span> O botão de configurações do Pomodoro foi reposicionado para facilitar o acesso, e o seletor de tarefas agora tem a mesma largura do timer para uma aparência mais consistente.
+                </>
+              ) : latestChangelog === '2.7.1' ? (
                 <>
                   <span className="font-medium text-primary">Melhorias no Temporizador Pomodoro</span>
                   <br />

@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/73</span>
+                <span class='fraction'>0/76</span>
             </div>
         
             
@@ -368,7 +368,33 @@
 <a name='L303'></a><a href='#L303'>303</a>
 <a name='L304'></a><a href='#L304'>304</a>
 <a name='L305'></a><a href='#L305'>305</a>
-<a name='L306'></a><a href='#L306'>306</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -391,6 +417,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -630,6 +657,31 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -680,6 +732,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 // import { ArrowLeft } from "lucide-react" // Comentado se não estiver usando diretamente
 import { Card, CardContent, CardHeader /*, CardTitle */ } from "@/components/ui/card" // CardTitle pode ser removida se não usada no JSX diretamente
 import { PomodoroTimer } from "@/components/pomodoro-timer"
+import { PomodoroHistory } from "@/components/pomodoro-history"
 import { usePomodoroStore, type TimerMode } from "@/lib/stores/pomodoro-store"
 import { getPomodoroModeStyles } from "@/lib/pomodoro-utils"; // Importar a função utilitária
 import { useTranslation } from "@/lib/i18n"
@@ -864,14 +917,14 @@ export default function <span class="fstat-no" title="function not covered" >Pom
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;div className={`container mx-auto py-6 ${isMobile ? "px-0" : "px-6"}`}&gt;
-      &lt;div className={`mb-6 ${isMobile ? "hidden" : ""}`}&gt;
+      &lt;div className={`mb-6 ${isMobile ? "hidden" : ""} text-center`}&gt;
         &lt;h1 className="text-3xl font-bold"&gt;{t("pomodoroTimer")}&lt;/h1&gt;
         &lt;p className="text-muted-foreground"&gt;{t("focusOnYourTasks")}&lt;/p&gt;
       &lt;/div&gt;
 &nbsp;
       {/* Seletor de Tarefas para Desktop */}
       {!isMobile &amp;&amp; (
-        &lt;div className="mb-6"&gt;
+        &lt;div className="mb-6 flex flex-col items-center"&gt;
           &lt;label htmlFor="task-select-desktop" className="block text-sm font-medium text-foreground mb-1.5"&gt;
             {t("selectTaskLabel", "Select a task to focus on")}
           &lt;/label&gt;
@@ -880,7 +933,7 @@ export default function <span class="fstat-no" title="function not covered" >Pom
             onValueChange={handleTaskSelect}
             disabled={isLoading || tasks.length === 0 &amp;&amp; !selectedTaskId}
           &gt;
-            &lt;SelectTrigger id="task-select-desktop" className="w-full md:w-[450px]"&gt;
+            &lt;SelectTrigger id="task-select-desktop" className="w-full md:max-w-2xl lg:max-w-3xl mx-auto"&gt;
               &lt;SelectValue placeholder={t("selectTaskPlaceholder", "Choose a task...")} /&gt;
             &lt;/SelectTrigger&gt;
             &lt;SelectContent&gt;
@@ -940,41 +993,66 @@ export default function <span class="fstat-no" title="function not covered" >Pom
                 ))}
               &lt;/SelectContent&gt;
             &lt;/Select&gt;
-            {isLoading &amp;&amp; tasks.length === 0 &amp;&amp; (
-              &lt;p className="text-xs text-muted-foreground mt-1.5"&gt;{t("loadingTasks", "Loading tasks...")}&lt;/p&gt;
+            {isLoading &amp;&amp; (
+              &lt;p className="text-xs text-muted-foreground mt-1.5 text-center"&gt;{t("loadingTasks", "Loading tasks...")}&lt;/p&gt;
             )}
             {!isLoading &amp;&amp; tasks.length === 0 &amp;&amp; !selectedTaskId &amp;&amp; (
-               &lt;p className="text-xs text-muted-foreground mt-1.5"&gt;{t("noPendingTasksPomodoro", "You have no pending tasks to focus on.")}&lt;/p&gt;
+              &lt;p className="text-xs text-muted-foreground mt-1.5 text-center"&gt;{t("noPendingTasksPomodoro", "You have no pending tasks to focus on.")}&lt;/p&gt;
             )}
           &lt;/div&gt;
-          &lt;div className="flex-1 flex flex-col items-center justify-center p-4"&gt;
-            &lt;CardContent className="flex-1 flex flex-col p-0"&gt;
-            &lt;PomodoroTimer 
-              selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
-              fullScreen={true} 
-              timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
-              activeTabStyleClass={activeTabClasses}
-                playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
-                progressIndicatorClassProp={progressIndicatorClass}
-            /&gt;
-            &lt;/CardContent&gt;
+          
+          &lt;div className="flex-1 flex flex-col overflow-hidden"&gt;
+            &lt;div className="flex-1 flex flex-col min-h-0"&gt;
+              &lt;div className="h-1/2 flex items-center justify-center p-4"&gt;
+                &lt;CardContent className="flex-1 flex flex-col p-0"&gt;
+                  &lt;PomodoroTimer 
+                    selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
+                    fullScreen={true} 
+                    timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
+                    activeTabStyleClass={activeTabClasses}
+                    playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
+                    progressIndicatorClassProp={progressIndicatorClass}
+                  /&gt;
+                &lt;/CardContent&gt;
+              &lt;/div&gt;
+              
+              {isClient &amp;&amp; (
+                &lt;div className="h-1/2 overflow-y-auto p-4 pt-0"&gt;
+                  &lt;PomodoroHistory 
+                    taskId={selectedTaskId}
+                    className="shadow-none border-0"
+                  /&gt;
+                &lt;/div&gt;
+              )}
+            &lt;/div&gt;
           &lt;/div&gt;
         &lt;/div&gt;
       )}
 &nbsp;
       {!isMobile &amp;&amp; (
-        &lt;Card className={`${isMobile ? "hidden" : "w-full md:max-w-2xl lg:max-w-3xl mx-auto shadow-lg"}`}&gt;
-          &lt;CardContent className="p-6 md:p-8"&gt;
-            &lt;PomodoroTimer 
-              selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
-              fullScreen={false}
-              timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
-              activeTabStyleClass={activeTabClasses}
-              playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
-              progressIndicatorClassProp={progressIndicatorClass}
-            /&gt;
-          &lt;/CardContent&gt;
-        &lt;/Card&gt;
+        &lt;&gt;
+          &lt;Card className={`${isMobile ? "hidden" : "w-full md:max-w-2xl lg:max-w-3xl mx-auto shadow-lg"}`}&gt;
+            &lt;CardContent className="p-6 md:p-8"&gt;
+              &lt;PomodoroTimer 
+                selectedTaskId={selectedTaskId ? Number(selectedTaskId) : null} 
+                fullScreen={false}
+                timerTextColorClass={`${timerTextColorClass} ${transitionClasses}`}
+                activeTabStyleClass={activeTabClasses}
+                playButtonColorClass={`${playButtonClasses} ${transitionClasses}`}
+                progressIndicatorClassProp={progressIndicatorClass}
+              /&gt;
+            &lt;/CardContent&gt;
+          &lt;/Card&gt;
+          
+          {isClient &amp;&amp; (
+            &lt;div className="mt-8 w-full md:max-w-2xl lg:max-w-3xl mx-auto"&gt;
+              &lt;PomodoroHistory 
+                taskId={selectedTaskId}
+                className="shadow-lg"
+              /&gt;
+            &lt;/div&gt;
+          )}
+        &lt;/&gt;
       )}
     &lt;/div&gt;
   );
@@ -985,7 +1063,7 @@ export default function <span class="fstat-no" title="function not covered" >Pom
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-15T15:51:03.215Z
+                at 2025-05-16T18:01:41.572Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
