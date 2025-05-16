@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, KeyboardSensor, closestCorners } from "@dnd-kit/core"
+import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, KeyboardSensor, TouchSensor, closestCorners } from "@dnd-kit/core"
 import { SortableContext, arrayMove, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -73,6 +73,56 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
     }
   };
   
+  // Define a ordem das colunas para facilitar a navegação entre elas
+  const columnOrder: KanbanColumn[] = ["backlog", "planning", "inProgress", "validation", "completed"];
+  
+  // Encontra o índice da coluna atual
+  const currentColumnIndex = columnOrder.indexOf(card.column);
+  
+  // Determina se temos colunas anterior e próxima
+  const hasPreviousColumn = currentColumnIndex > 0;
+  const hasNextColumn = currentColumnIndex < columnOrder.length - 1;
+  
+  // Obtém as colunas anterior e próxima (se existirem)
+  const previousColumn = hasPreviousColumn ? columnOrder[currentColumnIndex - 1] : null;
+  const nextColumn = hasNextColumn ? columnOrder[currentColumnIndex + 1] : null;
+  
+  // Função para mover card para a coluna anterior
+  const moveCardToPreviousColumn = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (previousColumn) {
+      // Criar um evento sintético de arrastar para a coluna anterior
+      const customEvent = {
+        active: { id: card.id },
+        over: { 
+          id: `column-${previousColumn}`,
+          data: { current: { type: 'column', column: previousColumn } }
+        }
+      };
+      // Dispara evento personalizado para mover o card
+      window.dispatchEvent(new CustomEvent('kanban-move-card', { detail: customEvent }));
+    }
+  };
+  
+  // Função para mover card para a próxima coluna
+  const moveCardToNextColumn = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (nextColumn) {
+      // Criar um evento sintético de arrastar para a próxima coluna
+      const customEvent = {
+        active: { id: card.id },
+        over: { 
+          id: `column-${nextColumn}`,
+          data: { current: { type: 'column', column: nextColumn } }
+        }
+      };
+      // Dispara evento personalizado para mover o card
+      window.dispatchEvent(new CustomEvent('kanban-move-card', { detail: customEvent }));
+    }
+  };
+  
   return (
     <Card 
       ref={setNodeRef} 
@@ -125,31 +175,63 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
           </Badge>
         )}
       </CardContent>
-      <CardFooter className="p-1 pt-0 flex justify-end">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer" 
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            onEdit(card.id);
-          }}
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-destructive cursor-pointer" 
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            onDelete(card.id);
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+      <CardFooter className="p-1 pt-0 flex justify-between">
+        <div className="flex items-center gap-1 md:hidden">
+          {hasPreviousColumn && (
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={moveCardToPreviousColumn}
+              className="h-7 px-2 text-xs"
+              title={t("Move to previous column")}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5" />
+                <path d="M12 19l-7-7 7-7" />
+              </svg>
+            </Button>
+          )}
+          {hasNextColumn && (
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={moveCardToNextColumn}
+              className="h-7 px-2 text-xs"
+              title={t("Move to next column")}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14" />
+                <path d="M12 5l7 7-7 7" />
+              </svg>
+            </Button>
+          )}
+        </div>
+        <div className="flex">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer" 
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onEdit(card.id);
+            }}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-destructive cursor-pointer" 
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onDelete(card.id);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
@@ -313,7 +395,12 @@ export function KanbanBoard() {
         distance: 3,
       },
     }),
-    useSensor(KeyboardSensor)
+    useSensor(KeyboardSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        distance: 3,
+      },
+    })
   );
   
   const [isClient, setIsClient] = useState(false);
@@ -322,6 +409,23 @@ export function KanbanBoard() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+  
+  // Manipulador para o evento personalizado 'kanban-move-card'
+  useEffect(() => {
+    const handleKanbanMoveCard = (event: CustomEvent) => {
+      const detail = event.detail;
+      if (!detail || !detail.active || !detail.over) return;
+      
+      console.log('Evento kanban-move-card acionado:', detail);
+      handleDragEnd(detail);
+    };
+    
+    window.addEventListener('kanban-move-card', handleKanbanMoveCard as EventListener);
+    
+    return () => {
+      window.removeEventListener('kanban-move-card', handleKanbanMoveCard as EventListener);
+    };
+  }, [cards]); // Dependência em cards para garantir acesso aos dados mais recentes
 
   const updateTasksOnServer = async (tasksToUpdate: Array<{ id: number; column?: KanbanColumn; completed?: boolean; kanban_order?: number }>) => {
     if (tasksToUpdate.length === 0) return;
