@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSpotifyStore } from "@/lib/stores/spotify-store";
-import PersistentSpotifyPlayer from './persistent-spotify-player';
+import PersistentMusicPlayer from './persistent-music-player';
 
 export function SpotifyPortal() {
   const [mounted, setMounted] = useState(false);
@@ -15,11 +15,11 @@ export function SpotifyPortal() {
   }, []);
 
   // Se não estiver montado ou não tiver playlist, não mostrar nada
-  // A verificação de isEnabled já é feita dentro do PersistentSpotifyPlayer
+  // A verificação de isEnabled já é feita dentro do PersistentMusicPlayer
   if (!mounted || !playlistId) return null;
 
   return createPortal(
-    <PersistentSpotifyPlayer />,
+    <PersistentMusicPlayer />,
     document.body
   );
 } 

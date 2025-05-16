@@ -2257,6 +2257,7 @@ export function useTranslation() {
   const { language, setLanguage, isHydrated } = useLanguageStore()
   
   useEffect(() => {
+    // Deixado em branco mas mantido para compatibilidade
   }, [])
 
   const t = (key: string): string => {

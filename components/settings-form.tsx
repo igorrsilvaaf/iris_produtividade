@@ -356,7 +356,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
             value="spotify" 
             className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
           >
-            Spotify
+            Música
           </TabsTrigger>
           <TabsTrigger 
             value="flipclock" 
@@ -938,8 +938,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
             <TabsContent value="spotify">
               <Card className="overflow-hidden">
                 <CardHeader className="px-4 sm:px-6">
-                  <CardTitle>Spotify</CardTitle>
-                  <CardDescription>Configure sua playlist do Spotify para tocar durante suas tarefas.</CardDescription>
+                  <CardTitle>Player de Música</CardTitle>
+                  <CardDescription>Configure sua playlist do Spotify ou Deezer para tocar durante suas tarefas.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 px-4 sm:px-6">
                   <FormField
@@ -948,9 +948,9 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                          <FormLabel className="text-base">Ativar Spotify</FormLabel>
+                          <FormLabel className="text-base">Ativar Player de Música</FormLabel>
                           <FormDescription>
-                            Exibir o player do Spotify na interface para tocar música durante suas tarefas.
+                            Exibir o player de música na interface para tocar durante suas tarefas.
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -975,7 +975,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                           <FormLabel>Link da Playlist</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="https://open.spotify.com/playlist/... ou episódio, faixa, etc."
+                              placeholder="https://open.spotify.com/playlist/... ou https://www.deezer.com/..."
                               value={playlistUrl}
                               onChange={(e) => {
                                 const newValue = e.target.value;
@@ -985,7 +985,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                             />
                           </FormControl>
                           <FormDescription>
-                            Cole o link da sua playlist do Spotify para tocar durante suas tarefas.
+                            Cole o link da sua playlist do Spotify ou Deezer para tocar durante suas tarefas.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -1000,71 +1000,98 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     className="relative w-full sm:w-auto"
                     onClick={async () => {
                       try {
-                        console.log("Botão Salvar do Spotify clicado");
+                        console.log("Botão Salvar do Player de Música clicado");
                         setIsLoading(true);
                         
                         // Pegar os valores atuais do formulário
                         const allValues = form.getValues();
                         
-                        // Obter apenas os valores relevantes para o Spotify
-                        const spotifyValues = {
+                        // Obter apenas os valores relevantes para o player
+                        const musicValues = {
                           enable_spotify: allValues.enable_spotify,
                           spotify_playlist_url: allValues.spotify_playlist_url
                         };
                         
-                        // Processar a URL do Spotify
-                        if (spotifyValues.spotify_playlist_url && spotifyValues.enable_spotify) {
+                        // Processar a URL 
+                        if (musicValues.spotify_playlist_url && musicValues.enable_spotify) {
                           try {
-                            const url = spotifyValues.spotify_playlist_url;
+                            const url = musicValues.spotify_playlist_url;
                             
-                            // Determinar o tipo de conteúdo
-                            let type = 'playlist';
+                            // Determinar o tipo de player (Spotify ou Deezer)
+                            let playerType = 'spotify';
+                            let contentType = 'playlist';
                             let id = null;
                             
-                            if (url.includes('/playlist/')) {
-                              type = 'playlist';
-                              id = url.split('/playlist/')[1]?.split('?')[0];
-                            } else if (url.includes('/track/')) {
-                              type = 'track';
-                              id = url.split('/track/')[1]?.split('?')[0];
-                            } else if (url.includes('/album/')) {
-                              type = 'album';
-                              id = url.split('/album/')[1]?.split('?')[0];
-                            } else if (url.includes('/show/')) {
-                              type = 'show';
-                              id = url.split('/show/')[1]?.split('?')[0];
-                            } else if (url.includes('/episode/')) {
-                              type = 'episode';
-                              id = url.split('/episode/')[1]?.split('?')[0];
+                            // Verificar se é Deezer
+                            if (url.includes('deezer.com')) {
+                              playerType = 'deezer';
+                              
+                              if (url.includes('/playlist/')) {
+                                contentType = 'playlist';
+                                id = url.split('/playlist/')[1]?.split('?')[0];
+                              } else if (url.includes('/track/')) {
+                                contentType = 'track';
+                                id = url.split('/track/')[1]?.split('?')[0];
+                              } else if (url.includes('/album/')) {
+                                contentType = 'album';
+                                id = url.split('/album/')[1]?.split('?')[0];
+                              } else if (url.includes('/artist/')) {
+                                contentType = 'artist';
+                                id = url.split('/artist/')[1]?.split('?')[0];
+                              }
+                            } 
+                            // Verificar se é Spotify
+                            else if (url.includes('spotify.com')) {
+                              playerType = 'spotify';
+                              
+                              if (url.includes('/playlist/')) {
+                                contentType = 'playlist';
+                                id = url.split('/playlist/')[1]?.split('?')[0];
+                              } else if (url.includes('/track/')) {
+                                contentType = 'track';
+                                id = url.split('/track/')[1]?.split('?')[0];
+                              } else if (url.includes('/album/')) {
+                                contentType = 'album';
+                                id = url.split('/album/')[1]?.split('?')[0];
+                              } else if (url.includes('/show/')) {
+                                contentType = 'show';
+                                id = url.split('/show/')[1]?.split('?')[0];
+                              } else if (url.includes('/episode/')) {
+                                contentType = 'episode';
+                                id = url.split('/episode/')[1]?.split('?')[0];
+                              }
                             }
                             
                             // Se conseguimos extrair o ID, atualizar o player
                             if (id) {
-                              console.log(`Spotify: Extraído ${type} com ID ${id}`);
-                              // Atualizar o store do Spotify
+                              console.log(`Player: Extraído ${contentType} com ID ${id}, player: ${playerType}`);
+                              // Atualizar o store do player
                               setPlaylistId(id);
                               if (useSpotifyStore.getState().setContentType) {
-                                useSpotifyStore.getState().setContentType(type);
+                                useSpotifyStore.getState().setContentType(contentType);
+                              }
+                              if (useSpotifyStore.getState().setPlayerType) {
+                                useSpotifyStore.getState().setPlayerType(playerType);
                               }
                               // Garantir que o player esteja ativado
                               setIsEnabled(true);
                             }
                           } catch (err) {
-                            console.error("Erro ao processar URL do Spotify:", err);
+                            console.error("Erro ao processar URL do player de música:", err);
                           }
-                        } else if (!spotifyValues.enable_spotify) {
-                          // Se o Spotify estiver desativado, limpar o playlistId
+                        } else if (!musicValues.enable_spotify) {
+                          // Se o player estiver desativado, limpar o playlistId
                           setPlaylistId(null);
                           setIsEnabled(false);
                         }
                         
-                        console.log("Salvando configurações do Spotify:", spotifyValues);
+                        console.log("Salvando configurações do player de música:", musicValues);
                         
                         // Salvar as configurações
                         const response = await fetch("/api/settings", {
                           method: "PATCH",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(spotifyValues),
+                          body: JSON.stringify(musicValues),
                         });
                         
                         if (!response.ok) {
@@ -1074,7 +1101,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                         // Disparar evento de atualização de configurações
                         window.dispatchEvent(new CustomEvent('settings-updated'));
                         
-                        console.log("Configurações do Spotify salvas com sucesso!");
+                        console.log("Configurações do player de música salvas com sucesso!");
                         
                         // Mostrar animação de sucesso
                         setIsSaved(true);
@@ -1083,7 +1110,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                         // Exibir notificação de sucesso
                         toast({
                           title: "Configurações atualizadas",
-                          description: "Suas configurações do Spotify foram atualizadas com sucesso.",
+                          description: "Suas configurações do player de música foram atualizadas com sucesso.",
                           variant: "success",
                           duration: 5000
                         });
@@ -1095,7 +1122,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                         
                         setPlaylistUrl('');
                       } catch (error) {
-                        console.error("Erro ao salvar configurações do Spotify:", error);
+                        console.error("Erro ao salvar configurações do player de música:", error);
                         toast({
                           variant: "destructive",
                           title: "Falha ao atualizar configurações",

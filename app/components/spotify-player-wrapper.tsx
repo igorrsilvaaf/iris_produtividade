@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useSpotifyStore } from "@/lib/stores/spotify-store";
 
-// Importar o componente PersistentSpotifyPlayer dinamicamente para evitar problemas de SSR
-const PersistentSpotifyPlayer = dynamic(
-  () => import('@/components/persistent-spotify-player'),
+// Importar o componente PersistentMusicPlayer dinamicamente para evitar problemas de SSR
+const PersistentMusicPlayer = dynamic(
+  () => import('@/components/persistent-music-player'),
   { ssr: false }
 );
 
@@ -14,27 +14,27 @@ export default function SpotifyPlayerWrapper() {
   const [isEnabled, setIsEnabled] = useState(false);
   const { playlistId, setPlaylistId } = useSpotifyStore();
   
-  useEffect(() => {
-    // Verificar se o Spotify está habilitado nas configurações
-    async function checkSpotifySettings() {
-      try {
-        const response = await fetch('/api/settings');
-        if (response.ok) {
-          const data = await response.json();
-          console.log("SpotifyPlayerWrapper: Verificando configurações:", data.settings.enable_spotify);
-          
-          if (data.settings && data.settings.enable_spotify) {
-            setIsEnabled(true);
-          } else {
-            setIsEnabled(false);
-          }
+  // Usar useCallback para prevenção de re-renders desnecessários
+  const checkSpotifySettings = useCallback(async () => {
+    try {
+      const response = await fetch('/api/settings');
+      if (response.ok) {
+        const data = await response.json();
+        console.log("SpotifyPlayerWrapper: Verificando configurações:", data.settings.enable_spotify);
+        
+        if (data.settings && data.settings.enable_spotify) {
+          setIsEnabled(true);
+        } else {
+          setIsEnabled(false);
         }
-      } catch (error) {
-        console.error("SpotifyPlayerWrapper: Erro ao verificar configurações:", error);
-        setIsEnabled(false);
       }
+    } catch (error) {
+      console.error("SpotifyPlayerWrapper: Erro ao verificar configurações:", error);
+      setIsEnabled(false);
     }
-    
+  }, []);
+  
+  useEffect(() => {
     // Verificação inicial ao montar o componente
     checkSpotifySettings();
     
@@ -49,7 +49,7 @@ export default function SpotifyPlayerWrapper() {
     return () => {
       window.removeEventListener('settings-updated', handleSettingsUpdate);
     };
-  }, [playlistId, setPlaylistId]);
+  }, [checkSpotifySettings]);
   
   // Só renderizar o player se estiver habilitado
   if (!isEnabled) {
@@ -57,5 +57,5 @@ export default function SpotifyPlayerWrapper() {
     return null;
   }
   
-  return <PersistentSpotifyPlayer />;
+  return <PersistentMusicPlayer />;
 } 
