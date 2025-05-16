@@ -17,7 +17,9 @@ export async function GET(
     // Extrair o ID da URL em vez de usar params.id
     const url = request.url;
     const urlParts = url.split('/');
-    const idFromUrl = urlParts[urlParts.length - 1].split('?')[0]; // Pega o último segmento da URL e remove query params
+    // Pega o último segmento não vazio da URL e remove query params
+    const lastSegment = urlParts.filter(part => part.length > 0).pop() || '';
+    const idFromUrl = lastSegment.split('?')[0];
     const taskId = parseInt(idFromUrl, 10);
 
     if (isNaN(taskId)) {

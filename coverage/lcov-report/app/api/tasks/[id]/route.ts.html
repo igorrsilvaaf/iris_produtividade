@@ -23,23 +23,23 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60.97% </span>
+                <span class="strong">61.44% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>50/82</span>
+                <span class='fraction'>51/83</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>14/28</span>
+                <span class='fraction'>15/30</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
@@ -248,7 +248,10 @@
 <a name='L183'></a><a href='#L183'>183</a>
 <a name='L184'></a><a href='#L184'>184</a>
 <a name='L185'></a><a href='#L185'>185</a>
-<a name='L186'></a><a href='#L186'>186</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -256,7 +259,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -264,6 +266,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -290,7 +299,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -341,7 +349,6 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -401,7 +408,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -442,14 +448,20 @@ export async function GET(
   context: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const session = await getSession();
     <span class="missing-if-branch" title="if path not taken" >I</span>if (!session) {
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });</span>
     }
 &nbsp;
     const userId = session.user.id;
-    const taskId = parseInt(params.id, 10);
+    
+    // Extrair o ID da URL em vez de usar params.id
+    const url = request.url;
+    const urlParts = url.split('/');
+    // Pega o último segmento não vazio da URL e remove query params
+    const lastSegment = urlParts.filter(part =&gt; part.length &gt; 0).pop() || <span class="branch-1 cbranch-no" title="branch not covered" >'';</span>
+    const idFromUrl = lastSegment.split('?')[0];
+    const taskId = parseInt(idFromUrl, 10);
 &nbsp;
     <span class="missing-if-branch" title="if path not taken" >I</span>if (isNaN(taskId)) {
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });</span>
@@ -473,10 +485,9 @@ export async function GET(
 &nbsp;
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const session = await getSession();
     <span class="missing-if-branch" title="if path not taken" >I</span>if (!session) {
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });</span>
@@ -521,10 +532,9 @@ export async function PUT(
 &nbsp;
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const session = await getSession();
     <span class="missing-if-branch" title="if path not taken" >I</span>if (!session) {
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });</span>
@@ -584,10 +594,9 @@ export async function PATCH(
 &nbsp;
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
     const session = await getSession();
     <span class="missing-if-branch" title="if path not taken" >I</span>if (!session) {
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });</span>
@@ -625,7 +634,7 @@ export async function DELETE(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-15T15:51:03.215Z
+                at 2025-05-16T18:01:41.572Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

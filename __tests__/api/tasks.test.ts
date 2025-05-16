@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as authLib from '@/lib/auth';
 import * as todosLib from '@/lib/todos';
-
 import { GET, PUT, PATCH, DELETE } from '@/app/api/tasks/[id]/route';
 
-// Mock para os módulos externos
 jest.mock('next/server', () => ({
   NextRequest: jest.fn(),
   NextResponse: {
@@ -46,11 +44,11 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
         completed: false
       };
 
-      // Configurar mocks
       (todosLib.getTaskById as jest.Mock).mockResolvedValue(mockTask);
 
-      // Chamada à função
-      const request = {} as NextRequest;
+      const request = { 
+        url: '/api/tasks/1'
+      } as unknown as NextRequest;
       const context = { params: { id: '1' } };
       const response = await GET(request, context);
 
@@ -63,13 +61,11 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
 
   describe('PATCH /api/tasks/[id]', () => {
     test('atualiza os campos kanban_column e kanban_order de uma tarefa', async () => {
-      // Mock do request com os campos kanban
       const mockRequestBody = {
         kanban_column: 'inProgress',
         kanban_order: 3
       };
 
-      // Mock da tarefa existente e atualizada
       const mockExistingTask = {
         id: 1,
         title: 'Tarefa Teste',
@@ -82,19 +78,14 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
         ...mockRequestBody
       };
 
-      // Configurar mocks
       (todosLib.getTaskById as jest.Mock).mockResolvedValue(mockExistingTask);
       (todosLib.updateTask as jest.Mock).mockResolvedValue(mockUpdatedTask);
       
-      // Mock do request body JSON
       const mockJson = jest.fn().mockResolvedValue(mockRequestBody);
       const request = { json: mockJson } as unknown as NextRequest;
       const context = { params: { id: '1' } };
-
-      // Chamada à função
       const response = await PATCH(request, context);
 
-      // Verificações
       expect(todosLib.getTaskById).toHaveBeenCalledWith(1, 1);
       expect(todosLib.updateTask).toHaveBeenCalledWith(
         1, 
@@ -109,12 +100,10 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
     });
 
     test('atualiza apenas o campo kanban_column de uma tarefa', async () => {
-      // Mock do request com apenas o campo kanban_column
       const mockRequestBody = {
         kanban_column: 'completed'
       };
 
-      // Mock da tarefa existente e atualizada
       const mockExistingTask = {
         id: 1,
         title: 'Tarefa Teste',
@@ -125,10 +114,9 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
       const mockUpdatedTask = {
         ...mockExistingTask,
         ...mockRequestBody,
-        completed: true // Quando move para completed, deve marcar como concluída
+        completed: true 
       };
 
-      // Configurar mocks
       (todosLib.getTaskById as jest.Mock).mockResolvedValue(mockExistingTask);
       (todosLib.updateTask as jest.Mock).mockResolvedValue(mockUpdatedTask);
       

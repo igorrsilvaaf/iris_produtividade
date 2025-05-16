@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/26</span>
+                <span class='fraction'>0/27</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/26</span>
+                <span class='fraction'>0/27</span>
             </div>
         
             
@@ -139,27 +139,27 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -185,13 +185,13 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">'use client';
 &nbsp;
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useSpotifyStore } from "@/lib/stores/spotify-store";
 &nbsp;
-// Importar o componente PersistentSpotifyPlayer dinamicamente para evitar problemas de SSR
-const PersistentSpotifyPlayer = <span class="cstat-no" title="statement not covered" >dynamic(</span>
-<span class="fstat-no" title="function not covered" >  ()</span> =&gt; <span class="cstat-no" title="statement not covered" >import('@/components/persistent-spotify-player'),</span>
+// Importar o componente PersistentMusicPlayer dinamicamente para evitar problemas de SSR
+const PersistentMusicPlayer = <span class="cstat-no" title="statement not covered" >dynamic(</span>
+<span class="fstat-no" title="function not covered" >  ()</span> =&gt; <span class="cstat-no" title="statement not covered" >import('@/components/persistent-music-player'),</span>
   { ssr: false }
 );
 &nbsp;
@@ -199,27 +199,27 @@ export default function <span class="fstat-no" title="function not covered" >Spo
   const [isEnabled, setIsEnabled] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
   const { playlistId, setPlaylistId } = <span class="cstat-no" title="statement not covered" >useSpotifyStore();</span>
   
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-    // Verificar se o Spotify está habilitado nas configurações
-    async function <span class="fstat-no" title="function not covered" >checkSpotifySettings(</span>) {
-<span class="cstat-no" title="statement not covered" >      try {</span>
-        const response = <span class="cstat-no" title="statement not covered" >await fetch('/api/settings');</span>
-<span class="cstat-no" title="statement not covered" >        if (response.ok) {</span>
-          const data = <span class="cstat-no" title="statement not covered" >await response.json();</span>
-<span class="cstat-no" title="statement not covered" >          console.log("SpotifyPlayerWrapper: Verificando configurações:", data.settings.enable_spotify);</span>
-          
-<span class="cstat-no" title="statement not covered" >          if (data.settings &amp;&amp; data.settings.enable_spotify) {</span>
-<span class="cstat-no" title="statement not covered" >            setIsEnabled(true);</span>
-          } else {
-<span class="cstat-no" title="statement not covered" >            setIsEnabled(false);</span>
-          }
+  // Usar useCallback para prevenção de re-renders desnecessários
+  const checkSpotifySettings = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    try {</span>
+      const response = <span class="cstat-no" title="statement not covered" >await fetch('/api/settings');</span>
+<span class="cstat-no" title="statement not covered" >      if (response.ok) {</span>
+        const data = <span class="cstat-no" title="statement not covered" >await response.json();</span>
+<span class="cstat-no" title="statement not covered" >        console.log("SpotifyPlayerWrapper: Verificando configurações:", data.settings.enable_spotify);</span>
+        
+<span class="cstat-no" title="statement not covered" >        if (data.settings &amp;&amp; data.settings.enable_spotify) {</span>
+<span class="cstat-no" title="statement not covered" >          setIsEnabled(true);</span>
+        } else {
+<span class="cstat-no" title="statement not covered" >          setIsEnabled(false);</span>
         }
-      } catch (error) {
-<span class="cstat-no" title="statement not covered" >        console.error("SpotifyPlayerWrapper: Erro ao verificar configurações:", error);</span>
-<span class="cstat-no" title="statement not covered" >        setIsEnabled(false);</span>
       }
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >      console.error("SpotifyPlayerWrapper: Erro ao verificar configurações:", error);</span>
+<span class="cstat-no" title="statement not covered" >      setIsEnabled(false);</span>
     }
-    
+  }, []);
+  
+<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
     // Verificação inicial ao montar o componente
 <span class="cstat-no" title="statement not covered" >    checkSpotifySettings();</span>
     
@@ -234,7 +234,7 @@ export default function <span class="fstat-no" title="function not covered" >Spo
 <span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      window.removeEventListener('settings-updated', handleSettingsUpdate);</span>
     };
-  }, [playlistId, setPlaylistId]);
+  }, [checkSpotifySettings]);
   
   // Só renderizar o player se estiver habilitado
 <span class="cstat-no" title="statement not covered" >  if (!isEnabled) {</span>
@@ -242,7 +242,7 @@ export default function <span class="fstat-no" title="function not covered" >Spo
 <span class="cstat-no" title="statement not covered" >    return null;</span>
   }
   
-<span class="cstat-no" title="statement not covered" >  return &lt;PersistentSpotifyPlayer /&gt;;</span>
+<span class="cstat-no" title="statement not covered" >  return &lt;PersistentMusicPlayer /&gt;;</span>
 } </pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -250,7 +250,7 @@ export default function <span class="fstat-no" title="function not covered" >Spo
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-15T15:51:03.215Z
+                at 2025-05-16T18:01:41.572Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
