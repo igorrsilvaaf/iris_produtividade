@@ -384,6 +384,27 @@ export const translations: Translations = {
     en: "Long Break",
     pt: "Pausa Longa",
   },
+  // Notificações do Pomodoro
+  workComplete: {
+    en: "Work Complete",
+    pt: "Trabalho Concluído",
+  },
+  breakComplete: {
+    en: "Break Complete",
+    pt: "Pausa Concluída",
+  },
+  timeToTakeABreak: {
+    en: "Time to take a break",
+    pt: "Hora de fazer uma pausa",
+  },
+  timeToWorkAgain: {
+    en: "Time to work again",
+    pt: "Hora de voltar ao trabalho",
+  },
+  longBreakComplete: {
+    en: "Long break complete",
+    pt: "Pausa longa concluída",
+  },
 
   // Notificações
   notifications: {
