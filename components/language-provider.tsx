@@ -14,8 +14,8 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ initialLanguage, children }: LanguageProviderProps) {
-  const { setLanguage } = useLanguageStore()
   const router = useRouter()
+  const { setLanguage } = useLanguageStore()
 
   useEffect(() => {
     console.log("[LanguageProvider] Setting initial language:", initialLanguage)

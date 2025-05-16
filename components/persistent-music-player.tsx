@@ -1,25 +1,31 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { FaSpotify } from 'react-icons/fa';
-import { SiDeezer } from 'react-icons/si';
+import { FaSpotify, FaDeezer } from 'react-icons/fa';
 import { Button } from "@/components/ui/button";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useSpotifyStore } from "@/lib/stores/spotify-store";
 import type { UserSettings } from "@/lib/settings";
 
 export default function PersistentMusicPlayer() {
+  // Todos os hooks no nível superior do componente, organizados por tipo
+  // State hooks
   const [isCompact, setIsCompact] = useState(false);
-  const { playlistId, contentType, playerType, isEnabled, position, setPosition } = useSpotifyStore();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const playerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  
+  // Ref hooks
+  const playerRef = useRef<HTMLDivElement>(null);
+  
+  // Custom hooks - garantir que são chamados no nível superior
+  const { playlistId, contentType, playerType, isEnabled, position, setPosition } = useSpotifyStore();
 
   console.log('[PersistentMusicPlayer] Renderizando. Playlist ID:', playlistId, 'Content Type:', contentType, 'Player Type:', playerType, 'Enabled:', isEnabled);
 
+  // Mounting effect
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
@@ -32,7 +38,7 @@ export default function PersistentMusicPlayer() {
     }
   }, [position, setPosition, playlistId, isEnabled]);
 
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/settings');
@@ -47,7 +53,7 @@ export default function PersistentMusicPlayer() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (mounted) {
@@ -64,7 +70,7 @@ export default function PersistentMusicPlayer() {
         window.removeEventListener('settings-updated', handleSettingsUpdate);
       };
     }
-  }, [mounted]);
+  }, [mounted, fetchSettings]);
 
   // Função para iniciar o arrastar com mouse
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -273,7 +279,7 @@ export default function PersistentMusicPlayer() {
       height: isCompact ? "80" : "352"
     },
     deezer: {
-      icon: <SiDeezer className="text-[#00C7F2] text-xl handle" />,
+      icon: <FaDeezer className="text-[#00C7F2] text-xl handle" />,
       name: "Deezer",
       iframeSrc: `https://widget.deezer.com/widget/dark/${contentType || 'playlist'}/${playlistId}`,
       height: isCompact ? "80" : "350"
@@ -331,4 +337,4 @@ export default function PersistentMusicPlayer() {
       </div>
     </div>
   );
-} 
+}
