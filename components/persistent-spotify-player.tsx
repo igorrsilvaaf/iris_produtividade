@@ -65,7 +65,7 @@ export default function PersistentSpotifyPlayer() {
     }
   }, [mounted]);
 
-  // Função para iniciar o arrastar
+  // Função para iniciar o arrastar com mouse
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!playerRef.current) return;
     
@@ -81,6 +81,32 @@ export default function PersistentSpotifyPlayer() {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top
       });
+      
+      // Impedir seleção de texto durante o arrasto
+      document.body.style.userSelect = 'none';
+    }
+  }, []);
+
+  // Função para iniciar o arrastar com toque
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (!playerRef.current) return;
+    
+    if (e.target === e.currentTarget || 
+        (e.target as HTMLElement).tagName === 'SPAN' ||
+        (e.target as HTMLElement).className?.includes('handle')) {
+      
+      setIsDragging(true);
+      
+      // Calcular o offset entre o ponto tocado e o canto superior esquerdo do elemento
+      const touch = e.touches[0];
+      const rect = playerRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      });
+      
+      // Impedir comportamentos padrão como scroll
+      e.preventDefault();
       
       // Impedir seleção de texto durante o arrasto
       document.body.style.userSelect = 'none';
@@ -112,7 +138,50 @@ export default function PersistentSpotifyPlayer() {
       playerRef.current.style.bottom = 'auto';
     };
     
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDragging || !playerRef.current) return;
+      
+      // Prevenir o comportamento padrão (rolagem da página)
+      e.preventDefault();
+      
+      const touch = e.touches[0];
+      const rect = playerRef.current.getBoundingClientRect();
+      
+      // Calcular nova posição baseada no movimento do toque e no offset inicial
+      const newLeft = touch.clientX - dragOffset.x;
+      const newTop = touch.clientY - dragOffset.y;
+      
+      // Limitar posição aos limites da janela
+      const maxX = window.innerWidth - rect.width;
+      const maxY = window.innerHeight - rect.height;
+      
+      const boundedLeft = Math.max(0, Math.min(newLeft, maxX));
+      const boundedTop = Math.max(0, Math.min(newTop, maxY));
+      
+      // Atualizar posição do elemento
+      playerRef.current.style.left = `${boundedLeft}px`;
+      playerRef.current.style.top = `${boundedTop}px`;
+      playerRef.current.style.right = 'auto';
+      playerRef.current.style.bottom = 'auto';
+    };
+    
     const handleMouseUp = () => {
+      if (isDragging && playerRef.current) {
+        setIsDragging(false);
+        
+        // Restaurar seleção de texto
+        document.body.style.userSelect = '';
+        
+        // Salvar a posição final
+        const rect = playerRef.current.getBoundingClientRect();
+        setPosition({
+          x: `left-[${Math.round(rect.left)}px]`,
+          y: `top-[${Math.round(rect.top)}px]`
+        });
+      }
+    };
+    
+    const handleTouchEnd = () => {
       if (isDragging && playerRef.current) {
         setIsDragging(false);
         
@@ -131,10 +200,14 @@ export default function PersistentSpotifyPlayer() {
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleTouchEnd);
       
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('touchmove', handleTouchMove);
+        window.removeEventListener('touchend', handleTouchEnd);
       };
     }
     
@@ -199,6 +272,7 @@ export default function PersistentSpotifyPlayer() {
       <div 
         className={`flex items-center justify-between p-2 border-b handle ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
       >
         <div className="flex items-center gap-2 handle">
           <FaSpotify className="text-[#1DB954] text-xl handle" />

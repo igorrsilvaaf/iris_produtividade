@@ -8,8 +8,7 @@ import { useTranslation } from "@/lib/i18n"
 export default function KanbanPage() {
   const { t } = useTranslation()
   const [isMobile, setIsMobile] = useState(false)
-  
-  // Check if it's a mobile device
+
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768)
