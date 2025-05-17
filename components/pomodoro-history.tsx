@@ -95,15 +95,37 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
       fetchSessions(1)
     }
   }, [taskId])
+
   useEffect(() => {
     const handlePomodoroCompleted = (event: Event) => {
-      setTimeout(() => {
-        if (taskId) fetchSessions(1);
-      }, 500);
+      console.log("[Pomodoro History Debug] Evento pomodoroCompleted recebido", event);
+      
+      try {
+        // Garantir que o evento pomodoroCompleted seja processado corretamente
+        const pomodoroEvent = event as CustomEvent;
+        console.log("[Pomodoro History Debug] Detalhes do evento:", 
+          pomodoroEvent.detail ? JSON.stringify(pomodoroEvent.detail) : "Sem detalhes");
+        
+        // Tentar atualizar o histórico mesmo que não tenhamos detalhes específicos
+        const currentTaskId = taskId;
+        console.log(`[Pomodoro History Debug] TaskId atual: ${currentTaskId}`);
+        
+        setTimeout(() => {
+          console.log("[Pomodoro History Debug] Atualizando histórico após evento completado");
+          if (currentTaskId) {
+            fetchSessions(1);
+          }
+        }, 500);
+      } catch (error) {
+        console.error("[Pomodoro History Debug] Erro ao processar evento pomodoroCompleted:", error);
+      }
     };
+    
     if (typeof window !== 'undefined') {
+      console.log("[Pomodoro History Debug] Adicionando listener para evento pomodoroCompleted");
       window.addEventListener('pomodoroCompleted', handlePomodoroCompleted);
       return () => {
+        console.log("[Pomodoro History Debug] Removendo listener do evento pomodoroCompleted");
         window.removeEventListener('pomodoroCompleted', handlePomodoroCompleted);
       };
     }
@@ -134,10 +156,6 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
     } catch (error) {
       return dateString
     }
-  }
-
-  if (!taskId) {
-    return null
   }
 
   if (isLoading && sessions.length === 0) {
@@ -189,6 +207,10 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
         </CardContent>
       </Card>
     )
+  }
+
+  if (!taskId) {
+    return null
   }
 
   return (
