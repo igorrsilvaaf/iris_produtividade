@@ -15,14 +15,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Check if email exists in the database
     const result = await sql`
       SELECT COUNT(*) as count
       FROM users
       WHERE email = ${email}
     `
-    
-    // If count > 0, email exists
+
     const emailExists = result[0].count > 0
     
     return NextResponse.json(
