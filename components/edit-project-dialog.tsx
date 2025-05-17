@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { ProjectForm } from "@/components/project-form"
+import { useTranslation } from "@/lib/i18n"
 
 interface EditProjectDialogProps {
   project: Project
@@ -23,6 +24,7 @@ interface EditProjectDialogProps {
 export function EditProjectDialog({ project, children }: EditProjectDialogProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const { t } = useTranslation()
 
   const handleSuccess = () => {
     setOpen(false)
@@ -34,8 +36,8 @@ export function EditProjectDialog({ project, children }: EditProjectDialogProps)
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Project</DialogTitle>
-          <DialogDescription>Update your project details.</DialogDescription>
+          <DialogTitle>{t("editProject")}</DialogTitle>
+          <DialogDescription>{t("updateProjectDetails")}</DialogDescription>
         </DialogHeader>
         <ProjectForm project={project} onSuccess={handleSuccess} />
       </DialogContent>

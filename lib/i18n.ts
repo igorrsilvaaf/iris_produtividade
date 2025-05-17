@@ -2284,6 +2284,50 @@ export const translations: Translations = {
     en: "Try again",
     pt: "Tentar novamente",
   },
+  deleteLabel: {
+    en: "Delete Label",
+    pt: "Excluir Etiqueta",
+  },
+  deleteLabelConfirm: {
+    en: "Are you sure you want to delete this label? This action cannot be undone.",
+    pt: "Tem certeza que deseja excluir esta etiqueta? Esta ação não pode ser desfeita.",
+  },
+  label: {
+    en: "Label",
+    pt: "Etiqueta",
+  },
+  labelDeleteInfo: {
+    en: "The label will be removed from all tasks, but the tasks themselves will not be deleted.",
+    pt: "A etiqueta será removida de todas as tarefas, mas as tarefas não serão excluídas.",
+  },
+  editLabel: {
+    en: "Edit Label",
+    pt: "Editar Etiqueta",
+  },
+  updateLabelDetails: {
+    en: "Update your label details.",
+    pt: "Atualize os detalhes da sua etiqueta.",
+  },
+  editProject: {
+    en: "Edit Project",
+    pt: "Editar Projeto",
+  },
+  updateProjectDetails: {
+    en: "Update your project details.",
+    pt: "Atualize os detalhes do seu projeto.",
+  },
+  deleteProject: {
+    en: "Delete Project",
+    pt: "Excluir Projeto",
+  },
+  deleteProjectConfirm: {
+    en: "Are you sure you want to delete this project? This action cannot be undone.",
+    pt: "Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita.",
+  },
+  projectDeleteInfo: {
+    en: "The project and all its tasks will be permanently deleted.",
+    pt: "O projeto e todas as suas tarefas serão excluídos permanentemente.",
+  },
 }
 
 type LanguageState = {

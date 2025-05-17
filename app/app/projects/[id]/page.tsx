@@ -7,6 +7,7 @@ import { AddTaskDialog } from "@/components/add-task-dialog"
 import { EditProjectDialog } from "@/components/edit-project-dialog"
 import { DeleteProjectDialog } from "@/components/delete-project-dialog"
 import { ToggleProjectFavorite } from "@/components/toggle-project-favorite"
+import { ProjectHeaderActions } from "@/components/project-header-actions"
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await requireAuth()
@@ -36,27 +37,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <div className="h-5 w-5 rounded-full" style={{ backgroundColor: project.color }}></div>
           <h1 className="text-2xl font-bold">{project.name}</h1>
         </div>
-        <div className="flex items-center gap-2">
-          <ToggleProjectFavorite project={project} />
-          <EditProjectDialog project={project}>
-            <Button variant="outline" size="icon">
-              <Edit className="h-4 w-4" />
-              <span className="sr-only">Edit Project</span>
-            </Button>
-          </EditProjectDialog>
-          <DeleteProjectDialog projectId={project.id} projectName={project.name}>
-            <Button variant="outline" size="icon">
-              <Trash className="h-4 w-4" />
-              <span className="sr-only">Delete Project</span>
-            </Button>
-          </DeleteProjectDialog>
-          <AddTaskDialog initialProjectId={project.id}>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Task
-            </Button>
-          </AddTaskDialog>
-        </div>
+        <ProjectHeaderActions project={project} />
       </div>
 
       <TaskList tasks={tasks} />

@@ -24,7 +24,6 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Configuração padrão dos mocks
     (authLib.getSession as jest.Mock).mockResolvedValue({
       user: { id: 1 }
     });
@@ -34,7 +33,6 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
 
   describe('GET /api/tasks/[id]', () => {
     test('retorna uma tarefa individual com campos kanban', async () => {
-      // Mock da tarefa com campos kanban
       const mockTask = {
         id: 1,
         title: 'Tarefa Teste',
@@ -52,7 +50,6 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
       const context = { params: { id: '1' } };
       const response = await GET(request, context);
 
-      // Verificações
       expect(todosLib.getTaskById).toHaveBeenCalledWith(1, 1);
       expect(NextResponse.json).toHaveBeenCalledWith(mockTask);
       expect(response).toEqual(mockTask);
@@ -120,15 +117,11 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
       (todosLib.getTaskById as jest.Mock).mockResolvedValue(mockExistingTask);
       (todosLib.updateTask as jest.Mock).mockResolvedValue(mockUpdatedTask);
       
-      // Mock do request body JSON
       const mockJson = jest.fn().mockResolvedValue(mockRequestBody);
       const request = { json: mockJson } as unknown as NextRequest;
       const context = { params: { id: '1' } };
-
-      // Chamada à função
       const response = await PATCH(request, context);
 
-      // Verificações
       expect(todosLib.getTaskById).toHaveBeenCalledWith(1, 1);
       expect(todosLib.updateTask).toHaveBeenCalledWith(
         1, 
@@ -144,7 +137,6 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
 
   describe('PUT /api/tasks/[id]', () => {
     test('atualiza completamente uma tarefa incluindo campos kanban', async () => {
-      // Mock do request body
       const mockRequestBody = {
         title: 'Tarefa Atualizada',
         description: 'Nova descrição',
