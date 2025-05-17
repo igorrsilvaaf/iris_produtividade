@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslation } from "@/lib/i18n"
 
 interface DeleteLabelDialogProps {
   labelId: number
@@ -27,6 +28,7 @@ export function DeleteLabelDialog({ labelId, labelName, children }: DeleteLabelD
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   const handleDelete = async () => {
     setIsLoading(true)
@@ -37,12 +39,12 @@ export function DeleteLabelDialog({ labelId, labelName, children }: DeleteLabelD
       })
 
       if (!response.ok) {
-        throw new Error("Failed to delete label")
+        throw new Error(t("Failed to delete label"))
       }
 
       toast({
-        title: "Label deleted",
-        description: "Your label has been deleted successfully.",
+        title: t("Label deleted"),
+        description: t("Your label has been deleted successfully."),
       })
 
       setOpen(false)
@@ -51,8 +53,8 @@ export function DeleteLabelDialog({ labelId, labelName, children }: DeleteLabelD
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to delete label",
-        description: "Please try again.",
+        title: t("Failed to delete label"),
+        description: t("Please try again."),
       })
     } finally {
       setIsLoading(false)
@@ -64,25 +66,25 @@ export function DeleteLabelDialog({ labelId, labelName, children }: DeleteLabelD
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Delete Label</DialogTitle>
+          <DialogTitle>{t("deleteLabel")}</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete this label? This action cannot be undone.
+            {t("deleteLabelConfirm")}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm font-medium">
-            Label: <span className="font-bold">{labelName}</span>
+            {t("label")}: <span className="font-bold">{labelName}</span>
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            The label will be removed from all tasks, but the tasks themselves will not be deleted.
+            {t("labelDeleteInfo")}
           </p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
-            {isLoading ? "Deleting..." : "Delete Label"}
+            {isLoading ? t("Deleting...") : t("Delete Label")}
           </Button>
         </DialogFooter>
       </DialogContent>

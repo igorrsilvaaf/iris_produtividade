@@ -41,7 +41,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Usar crypto.randomUUID() em vez de uuidv4()
     const newPomodoroLogId = crypto.randomUUID();
     console.log(`Criando novo log com ID: ${newPomodoroLogId}, userId: ${userId}, taskId: ${taskIdInt}, mode: ${mode}, duration: ${duration}`);
 
@@ -90,11 +89,10 @@ export async function GET(request: Request) {
     const limit = Number(url.searchParams.get("limit") || "50");
     const page = Number(url.searchParams.get("page") || "1");
     const skip = (page - 1) * limit;
-    const userId: string = String(session.user.id); // Garantindo que userId seja string
+    const userId: string = String(session.user.id); 
 
     console.log(`GET /api/pomodoro/log: Buscando logs para userId=${userId}, taskId=${taskIdParam}, page=${page}, limit=${limit}`);
 
-    // Filtro para buscar por taskId específico
     let taskIdInt: number | null = null;
     if (taskIdParam) {
         const parsedId = parseInt(taskIdParam, 10);
@@ -103,12 +101,10 @@ export async function GET(request: Request) {
             console.log(`GET /api/pomodoro/log: ID da tarefa válido: ${taskIdInt}`);
         } else {
             console.warn(`[API Pomodoro Log GET] Recebido taskId em formato inválido: ${taskIdParam}.`);
-            // Opcional: retornar erro se o taskId é obrigatório ou tem formato inválido
-            // return NextResponse.json({ error: "Formato de taskId inválido." }, { status: 400 });
         }
     }
     
-    const where: any = { // Usar 'any' temporariamente para where ou definir um tipo mais específico
+    const where: any = { 
       userId: userId,
     };
 

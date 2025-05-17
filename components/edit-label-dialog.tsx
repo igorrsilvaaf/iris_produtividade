@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { LabelForm } from "@/components/label-form"
+import { useTranslation } from "@/lib/i18n"
 
 interface EditLabelDialogProps {
   label: Label
@@ -23,6 +24,7 @@ interface EditLabelDialogProps {
 export function EditLabelDialog({ label, children }: EditLabelDialogProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const { t } = useTranslation()
 
   const handleSuccess = () => {
     setOpen(false)
@@ -34,8 +36,8 @@ export function EditLabelDialog({ label, children }: EditLabelDialogProps) {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Label</DialogTitle>
-          <DialogDescription>Update your label details.</DialogDescription>
+          <DialogTitle>{t("editLabel")}</DialogTitle>
+          <DialogDescription>{t("updateLabelDetails")}</DialogDescription>
         </DialogHeader>
         <LabelForm label={label} onSuccess={handleSuccess} />
       </DialogContent>

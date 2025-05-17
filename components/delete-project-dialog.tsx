@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslation } from "@/lib/i18n"
 
 interface DeleteProjectDialogProps {
   projectId: number
@@ -27,6 +28,7 @@ export function DeleteProjectDialog({ projectId, projectName, children }: Delete
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   const handleDelete = async () => {
     setIsLoading(true)
@@ -64,25 +66,23 @@ export function DeleteProjectDialog({ projectId, projectName, children }: Delete
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Delete Project</DialogTitle>
+          <DialogTitle>{t("deleteProject")}</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete this project? This action cannot be undone.
+            {t("deleteProjectConfirm")}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm font-medium">
-            Project: <span className="font-bold">{projectName}</span>
+            {t("project")}: <span className="font-bold">{projectName}</span>
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            All tasks associated with this project will be removed from the project but will not be deleted.
+          <p className="text-xs text-muted-foreground mt-2">
+            {t("projectDeleteInfo")}
           </p>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
-            Cancel
-          </Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>{t("cancel")}</Button>
           <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
-            {isLoading ? "Deleting..." : "Delete Project"}
+            {t("delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

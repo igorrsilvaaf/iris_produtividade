@@ -54,19 +54,16 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
   const [error, setError] = useState<string | null>(null)
 
   const fetchSessions = async (page = 1) => {
+    if (!taskId) return
     try {
       setIsLoading(true)
       setError(null)
-      
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: pagination.limit.toString(),
         ...(taskId ? { taskId } : {})
       })
-      
       const timestamp = Date.now();
-      console.log(`Buscando sessões de pomodoro: /api/pomodoro/log?${queryParams.toString()}&t=${timestamp}`);
-      
       const response = await fetch(`/api/pomodoro/log?${queryParams.toString()}&t=${timestamp}`, {
         method: 'GET',
         credentials: 'include',
@@ -76,22 +73,17 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
           'Pragma': 'no-cache'
         }
       })
-      
       if (!response.ok) {
         throw new Error(`Erro ao carregar histórico: ${response.status}`)
       }
-      
       const data = await response.json()
-      
       if (data.success) {
-        console.log(`Histórico carregado com sucesso: ${data.pomodoroLogs.length} registros`);
         setSessions(data.pomodoroLogs)
         setPagination(data.pagination)
       } else {
         throw new Error(data.error || "Erro desconhecido")
       }
     } catch (error) {
-      console.error("Erro ao buscar histórico:", error)
       setError(error instanceof Error ? error.message : "Erro ao carregar histórico")
     } finally {
       setIsLoading(false)
@@ -99,27 +91,23 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
   }
 
   useEffect(() => {
-    fetchSessions(1)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (taskId) {
+      fetchSessions(1)
+    }
   }, [taskId])
-  
   useEffect(() => {
     const handlePomodoroCompleted = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      console.log('Evento pomodoroCompleted detectado, atualizando histórico', customEvent.detail);
       setTimeout(() => {
-        fetchSessions(1);
+        if (taskId) fetchSessions(1);
       }, 500);
     };
-    
     if (typeof window !== 'undefined') {
       window.addEventListener('pomodoroCompleted', handlePomodoroCompleted);
-      
       return () => {
         window.removeEventListener('pomodoroCompleted', handlePomodoroCompleted);
       };
     }
-  }, []);
+  }, [taskId]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= pagination.totalPages) {
@@ -146,6 +134,10 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
     } catch (error) {
       return dateString
     }
+  }
+
+  if (!taskId) {
+    return null
   }
 
   if (isLoading && sessions.length === 0) {
