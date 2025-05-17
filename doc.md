@@ -86,7 +86,7 @@ O sistema segue um padrão de fluxo de dados unidirecional:
 
 ### DevOps
 - **Node.js**: Ambiente de execução JavaScript
-- **npm**: Gerenciador de pacotes
+- **npm / pnpm**: Gerenciador de pacotes
 - **Git**: Controle de versão
 
 ## Componentes Principais

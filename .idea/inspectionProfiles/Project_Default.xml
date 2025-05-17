@@ -162,8 +162,10 @@
     <inspection_tool class="DuplicatedCode" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <Languages>
         <language minSize="14" name="Style Sheets" />
+        <language minSize="270" name="TypeScript" />
       </Languages>
     </inspection_tool>
+    <inspection_tool class="DuplicatedJobUsage" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="DynamicallyGeneratedCodeJS" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="ES6BindWithArrowFunction" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ES6ClassMemberInitializationOrder" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -746,8 +748,10 @@
     <inspection_tool class="TypeScriptValidateJSTypes" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="TypeScriptValidateTypes" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="UndefinedAction" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="UndefinedJob" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="UndefinedNestedVariableInspection" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="UndefinedParamsPresent" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="UndefinedStage" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="UnnecessaryContinueJS" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnnecessaryLabelJS" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnnecessaryLabelOnBreakStatementJS" enabled="true" level="WARNING" enabled_by_default="true" />

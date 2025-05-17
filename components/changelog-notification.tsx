@@ -205,6 +205,8 @@ export function ChangelogNotification() {
                   Também incluímos integração com o Deezer como alternativa ao Spotify, e aprimoramos o sistema de arrastar e soltar para uma experiência mais fluida tanto nas playlists quanto no quadro Kanban.
                   <br /><br />
                   <span className="font-medium">Novidades:</span> O botão de configurações do Pomodoro foi reposicionado para facilitar o acesso, e o seletor de tarefas agora tem a mesma largura do timer para uma aparência mais consistente.
+                  <br /><br />
+                  <span className="font-medium text-red-600">Correção importante:</span> Resolvemos um problema que impedia o registro das sessões de Pomodoro em dispositivos móveis. Agora você pode usar o timer Pomodoro em smartphones e tablets, e todas as suas sessões serão registradas corretamente no histórico.
                 </>
               ) : latestChangelog === '2.7.1' ? (
                 <>

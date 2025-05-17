@@ -23,6 +23,25 @@ export const CHANGELOG_DATA: ChangelogData[] = [
     },
     entries: [
       {
+        id: 'pomodoro-mobile-bugfix',
+        title: 'Correção do Histórico de Pomodoro em Dispositivos Móveis',
+        description: 'Corrigido problema que impedia o registro de sessões do Pomodoro em dispositivos móveis',
+        items: [
+          {
+            type: 'bugfix',
+            content: 'Corrigido problema crítico que impedia o registro das sessões de Pomodoro em dispositivos móveis quando o timer era concluído'
+          },
+          {
+            type: 'improvement',
+            content: 'Melhorado o tratamento de requisições da API no endpoint de log do Pomodoro para garantir compatibilidade com dispositivos móveis'
+          },
+          {
+            type: 'improvement',
+            content: 'Adicionados headers anti-cache nas respostas da API para evitar problemas em navegadores mobile'
+          }
+        ]
+      },
+      {
         id: 'pomodoro-history',
         title: 'Histórico de Pomodoro',
         description: 'Novo histórico de sessões do Pomodoro para acompanhar seu progresso',

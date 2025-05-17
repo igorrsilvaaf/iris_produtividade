@@ -112,7 +112,6 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
     if (!isClient || initialLoadDone.current) return
     
     try {
-      // Se não temos todo via props, tentar carregar do localStorage
       if (!todo && localStorage) {
         const saved = localStorage.getItem('todo-data')
         if (saved) {
@@ -124,8 +123,7 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
       console.error("Erro ao carregar do localStorage:", error)
     }
   }, [isClient, todo])
-  
-  // Salvar dados no localStorage quando mudarem - usando useRef para evitar loop infinito
+
   useEffect(() => {
     if (!isClient || !todo) return
     
@@ -135,12 +133,11 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
       } catch (error) {
         console.error("Erro ao salvar no localStorage:", error)
       }
-    }, 500) // Debounce para evitar muitas gravações
+    }, 500)
     
     return () => clearTimeout(timeoutId)
   }, [isClient, todo])
-  
-  // Usar dados das props ou do localStorage
+
   const todoData = todo || localData
   
   if (!todoData) {
@@ -152,7 +149,6 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
     if (onComplete) {
       onComplete(todoData.id)
     } else {
-      // Implementação padrão caso onComplete não seja fornecido
       try {
         fetch(`/api/tasks/${todoData.id}/toggle`, {
           method: "PATCH",
@@ -178,7 +174,6 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
     if (onDelete) {
       onDelete(todoData.id)
     } else {
-      // Implementação padrão caso onDelete não seja fornecido
       try {
         fetch(`/api/tasks/${todoData.id}`, {
           method: "DELETE",
@@ -290,5 +285,4 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
   )
 }
 
-// Also export as default for convenience
 export default Todo 
