@@ -15,6 +15,41 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.8.1',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'markdown-task-support',
+        title: 'Suporte a Markdown nas Tarefas',
+        description: 'Adicionado suporte a formatação markdown nas descrições de tarefas',
+        items: [
+          {
+            type: 'feature',
+            content: 'Adicionado suporte a formatação markdown nas descrições de tarefas'
+          },
+          {
+            type: 'improvement',
+            content: 'As descrições de tarefas agora suportam formatação como negrito, itálico, listas, cabeçalhos, links e código'
+          },
+          {
+            type: 'improvement',
+            content: 'Melhor visualização de conteúdo formatado nos detalhes das tarefas'
+          },
+          {
+            type: 'improvement',
+            content: 'Mantida a compatibilidade com o sistema existente de checkboxes e listas'
+          }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date(),
     version: '2.8.0',
     author: {
       name: 'Igor Silva',
