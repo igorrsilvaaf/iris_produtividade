@@ -202,6 +202,53 @@ Timer Pomodoro para aplicação da técnica de gerenciamento de tempo.
 - Personalização de tempos e sons
 - Persistência de configurações
 - Integração com reprodutor Spotify
+- Feedback visual por cores para diferentes modos (trabalho, pausa curta, pausa longa)
+- Integração com tarefas existentes
+- Compatibilidade com dispositivos móveis através de interface adaptativa
+- Registro automático de sessões via API
+- Disparo de eventos personalizados para atualização do histórico
+
+**Propriedades:**
+```typescript
+interface PomodoroTimerProps {
+  selectedTaskId?: number | null    // ID da tarefa associada ao timer
+  fullScreen?: boolean              // Modo tela cheia (para mobile)
+  timerTextColorClass?: string      // Classe de estilo para o texto do timer
+  activeTabStyleClass?: string      // Classe de estilo para a aba ativa
+  playButtonColorClass?: string     // Classe de estilo para o botão de play
+}
+```
+
+#### PomodoroHistory (`components/pomodoro-history.tsx`)
+Componente para exibição do histórico de sessões do Pomodoro.
+
+**Características:**
+- Exibição de sessões de Pomodoro por tarefa
+- Filtros por tipo de sessão (trabalho, pausa curta, pausa longa)
+- Indicadores visuais codificados por cores para diferentes tipos de sessão
+- Paginação para navegar pelo histórico extenso
+- Atualização automática após conclusão de sessões
+- Interface responsiva adaptada para desktop e mobile
+- Detecção e tratamento de eventos personalizados para atualização em tempo real
+- Compatibilidade total com dispositivos móveis
+
+**Propriedades:**
+```typescript
+interface PomodoroHistoryProps {
+  taskId?: string | null       // ID da tarefa para filtrar o histórico
+  className?: string           // Classes CSS adicionais para estilização
+}
+```
+
+**Fluxo de Trabalho do Pomodoro Completo:**
+1. Usuário seleciona uma tarefa opcional para associar à sessão
+2. Configura o temporizador (tempos de trabalho/pausa nas configurações)
+3. Inicia a sessão de trabalho com o botão play
+4. Recebe notificação ao término do período de trabalho
+5. Sistema registra automaticamente a sessão via API
+6. O histórico é atualizado para mostrar a nova sessão
+7. O timer muda automaticamente para o modo de pausa
+8. O ciclo continua alternando entre trabalho e pausas
 
 #### PersistentSpotifyPlayer (`components/persistent-spotify-player.tsx`)
 Reprodutor de música integrado para aumentar a produtividade.
@@ -654,64 +701,251 @@ A API do Íris produtividade segue os princípios REST e fornece os seguintes en
 * Anexos: `/api/attachments/*` e `/api/upload`
 * Backup: `/api/backup/*` (exportar, importar)
 * Relatórios: `/api/reports/pdf`
+* Pomodoro: `/api/pomodoro/*` (registro e histórico de sessões)
 
 Para uma lista completa e detalhada de todos os endpoints, parâmetros e respostas, consulte a documentação interativa da API.
 
-### Acesso à Documentação da API (Swagger)
+### Endpoints de Pomodoro
 
-A documentação interativa da API, gerada com Swagger UI, pode ser acessada diretamente pela seguinte URL no ambiente de desenvolvimento:
+#### `POST /api/pomodoro/log`
+Registra uma sessão de Pomodoro concluída no banco de dados.
 
-`/app/api-docs`
+**Payload:**
+```json
+{
+  "taskId": number | null,   // ID da tarefa associada (opcional)
+  "duration": number,        // Duração em minutos
+  "mode": "work" | "shortBreak" | "longBreak"   // Tipo de sessão
+}
+```
 
-Anteriormente, havia um link direto no menu lateral, mas ele foi removido para simplificar a interface para o usuário final. Os desenvolvedores podem continuar acessando a documentação através da URL especificada.
+**Resposta:**
+```json
+{
+  "success": true,
+  "pomodoroSession": {
+    "id": string,
+    "userId": string,
+    "taskId": number | null,
+    "duration": number,
+    "mode": string,
+    "startedAt": string,
+    "completedAt": string
+  }
+}
+```
 
-**Customização do Tema:**
-O tema visual da documentação do Swagger foi customizado para se alinhar com a paleta de cores escura do sistema Íris Produtividade. As principais customizações de cores são gerenciadas no arquivo `styles/swagger-custom.css`, que sobrescreve os estilos padrão do `swagger-ui-react` utilizando as variáveis CSS globais do projeto definidas em `styles/globals.css`.
+**Observações:**
+- Implementa cabeçalhos anti-cache para garantir compatibilidade com dispositivos móveis
+- Headers adicionais: `Cache-Control: no-cache, no-store, must-revalidate`, `Pragma: no-cache`, `Expires: 0`
+- Logs detalhados para depuração em situações problemáticas
 
-## APIs e Integrações Detalhadas
+#### `GET /api/pomodoro/log`
+Recupera o histórico de sessões de Pomodoro com suporte a filtros e paginação.
 
-### Banco de Dados PostgreSQL (via Neon)
-- Armazenamento principal de dados
-- Modelo relacional para tarefas, projetos, etiquetas
-- Conexão serverless para escalabilidade
+**Parâmetros:**
+- `taskId`: (opcional) Filtra por tarefa específica
+- `page`: Página atual (padrão: 1)
+- `limit`: Limite de registros por página (padrão: 50)
+- `t`: Cache buster timestamp para evitar problemas de cache em dispositivos móveis
 
-### Spotify API
-- Autenticação OAuth
-- Busca e reprodução de playlists
-- Controles de reprodução
-- Recomendações personalizadas
+**Resposta:**
+```json
+{
+  "success": true,
+  "pomodoroLogs": [
+    {
+      "id": string,
+      "userId": string,
+      "taskId": number | null,
+      "duration": number,
+      "mode": string,
+      "startedAt": string,
+      "completedAt": string,
+      "task": {
+        "id": number,
+        "title": string
+      } | null
+    }
+  ],
+  "pagination": {
+    "total": number,
+    "page": number,
+    "limit": number,
+    "totalPages": number
+  }
+}
+```
 
-### Auth.js (NextAuth)
-- Autenticação segura
-- Múltiplos provedores (email/senha, Google, GitHub)
-- Gerenciamento de sessões
-- Proteção de rotas
+**Observações:**
+- Implementa cabeçalhos anti-cache para garantir compatibilidade com dispositivos móveis
+- Otimizado para todas as plataformas (desktop e dispositivos móveis)
+- Inclui ordenação por data de conclusão (mais recentes primeiro)
 
-## Guia de Uso
+### Componentes de Produtividade
 
-### Primeiros Passos
-1. Registro ou login na plataforma
-2. Configuração inicial de preferências
-3. Criação de projetos para organização
-4. Adição de primeiras tarefas
+#### PomodoroTimer (`components/pomodoro-timer.tsx`)
+Timer Pomodoro para aplicação da técnica de gerenciamento de tempo.
 
-### Organização Eficiente
-1. Uso de projetos para agrupar tarefas relacionadas
-2. Etiquetas para categorização transversal
-3. Priorização adequada de tarefas
-4. Datas de vencimento para tarefas temporais
+**Características:**
+- Temporizadores configuráveis para trabalho e pausa
+- Notificações sonoras e visuais
+- Estatísticas de sessões
+- Personalização de tempos e sons
+- Persistência de configurações
+- Integração com reprodutor Spotify
+- Feedback visual por cores para diferentes modos (trabalho, pausa curta, pausa longa)
+- Integração com tarefas existentes
+- Compatibilidade com dispositivos móveis através de interface adaptativa
+- Registro automático de sessões via API
+- Disparo de eventos personalizados para atualização do histórico
 
-### Técnica Pomodoro
-1. Seleção da tarefa atual
-2. Início da sessão Pomodoro
-3. Trabalho focado durante período definido
-4. Pausas regulares conforme metodologia
+**Propriedades:**
+```typescript
+interface PomodoroTimerProps {
+  selectedTaskId?: number | null    // ID da tarefa associada ao timer
+  fullScreen?: boolean              // Modo tela cheia (para mobile)
+  timerTextColorClass?: string      // Classe de estilo para o texto do timer
+  activeTabStyleClass?: string      // Classe de estilo para a aba ativa
+  playButtonColorClass?: string     // Classe de estilo para o botão de play
+}
+```
 
-### Visualizações Especializadas
-1. Hoje: foco nas tarefas imediatas
-2. Calendário: visão temporal ampla
-3. Kanban: acompanhamento de progresso
-4. Projetos: organização por contexto
+#### PomodoroHistory (`components/pomodoro-history.tsx`)
+Componente para exibição do histórico de sessões do Pomodoro.
+
+**Características:**
+- Exibição de sessões de Pomodoro por tarefa
+- Filtros por tipo de sessão (trabalho, pausa curta, pausa longa)
+- Indicadores visuais codificados por cores para diferentes tipos de sessão
+- Paginação para navegar pelo histórico extenso
+- Atualização automática após conclusão de sessões
+- Interface responsiva adaptada para desktop e mobile
+- Detecção e tratamento de eventos personalizados para atualização em tempo real
+- Compatibilidade total com dispositivos móveis
+
+**Propriedades:**
+```typescript
+interface PomodoroHistoryProps {
+  taskId?: string | null       // ID da tarefa para filtrar o histórico
+  className?: string           // Classes CSS adicionais para estilização
+}
+```
+
+**Fluxo de Trabalho do Pomodoro Completo:**
+1. Usuário seleciona uma tarefa opcional para associar à sessão
+2. Configura o temporizador (tempos de trabalho/pausa nas configurações)
+3. Inicia a sessão de trabalho com o botão play
+4. Recebe notificação ao término do período de trabalho
+5. Sistema registra automaticamente a sessão via API
+6. O histórico é atualizado para mostrar a nova sessão
+7. O timer muda automaticamente para o modo de pausa
+8. O ciclo continua alternando entre trabalho e pausas
+
+#### PersistentSpotifyPlayer (`components/persistent-spotify-player.tsx`)
+Reprodutor de música integrado para aumentar a produtividade.
+
+**Características:**
+- Autenticação com Spotify
+- Reprodução de playlists e músicas
+- Controles de reprodução (play, pause, skip)
+- Volume e configurações
+- Persistência durante navegação
+- Sugestões de playlists para produtividade
+
+### Interface e Usabilidade
+
+#### Temas
+Suporte a diferentes temas visuais:
+- Tema claro para uso diurno
+- Tema escuro para redução de fadiga visual
+- Detecção automática de preferências do sistema
+- Personalização de cores e contrastes
+
+#### Responsividade
+Adaptação a diferentes dispositivos e tamanhos de tela:
+- Layout responsivo para desktop, tablet e mobile
+- Reorganização inteligente de componentes
+- Comportamentos otimizados para touch e mouse
+- Mudanças dinâmicas durante redimensionamento
+
+#### Atalhos de Teclado
+Suporte a atalhos para usuários avançados:
+- Navegação entre seções
+- Criação rápida de tarefas
+- Edição e gerenciamento
+- Customização de atalhos
+
+### Integrações
+
+#### Notificações
+Sistema completo de alertas e lembretes:
+- Notificações no navegador
+- Lembretes próximos ao vencimento
+- Resumo diário de tarefas
+- Configurações personalizáveis
+
+#### Backup e Restauração
+Proteção contra perda de dados:
+- Exportação completa de dados
+- Importação de backups
+- Verificação de integridade
+- Programação de backups automáticos
+
+## Internacionalização (i18n)
+
+O Íris produtividade oferece suporte completo a múltiplos idiomas, atualmente:
+- Português (Brasil)
+- Inglês
+
+O sistema de internacionalização gerencia:
+- Traduções de textos da interface
+- Formatação de datas adaptada ao idioma
+- Formatação de números e valores
+- Pluralização correta por idioma
+
+A estrutura utiliza:
+- Arquivo centralizado de traduções (`lib/i18n.ts`)
+- Hook personalizado para acesso fácil em componentes
+- Detecção automática de preferência do usuário
+- Persistência de escolha de idioma
+
+## Fluxos de Trabalho
+
+### Fluxo de Criação de Tarefa
+1. Usuário clica no botão de criação ou usa atalho
+2. O componente `AddTaskDialog` é exibido
+3. Usuário preenche detalhes da tarefa
+4. Validação em tempo real é realizada
+5. Ao confirmar, a função `createTask` é chamada
+6. A API processa a solicitação e adiciona ao banco
+7. Feedback visual é fornecido ao usuário
+8. A lista de tarefas é atualizada para mostrar o novo item
+
+### Fluxo de Edição de Tarefa
+1. Usuário seleciona uma tarefa existente
+2. O componente `TaskDetail` exibe os detalhes
+3. Usuário clica em "Editar" para entrar no modo de edição
+4. Modificações são realizadas nos campos
+5. Ao salvar, a função `updateTask` é chamada
+6. A API atualiza os dados no banco
+7. Feedback visual confirma a operação
+8. As visualizações são atualizadas com os novos dados
+
+### Fluxo de Trabalho Kanban
+1. Usuário acessa a visualização Kanban
+2. O componente `KanbanBoard` carrega as tarefas por coluna
+3. Tarefas podem ser arrastadas entre colunas
+4. Ao soltar, a função `updateTask` atualiza o `kanban_column`
+5. Transições visuais indicam o progresso das tarefas
+6. Estatísticas são atualizadas por coluna
+
+### Fluxo do Temporizador Pomodoro
+1. Usuário inicia sessão Pomodoro
+2. Temporizador começa contagem regressiva
+3. Notificações são exibidas ao concluir períodos
+4. Sessões são registradas para estatísticas
+5. Integração opcional com tarefas ativas
 
 ## Performance e Otimização
 
