@@ -37,3 +37,8 @@ next-env.d.ts
 
 # Test
 coverage/
+
+# IDE
+.vscode/
+.idea/
+workspace.xml
