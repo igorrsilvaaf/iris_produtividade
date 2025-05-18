@@ -489,6 +489,9 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                       {...field} 
                     />
                   </FormControl>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {t("Supports markdown formatting like **bold**, *italic*, lists, and [links](https://example.com)")}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

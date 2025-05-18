@@ -196,7 +196,22 @@ export function ChangelogNotification() {
         <div className="p-5">
           <div className="border-l-4 border-primary/30 pl-3 py-2 mb-4 rounded-sm bg-primary/5">
             <p className="text-sm text-muted-foreground">
-              {latestChangelog === '2.8.0' ? (
+              {latestChangelog === '2.8.1' ? (
+                <>
+                  <span className="font-medium text-primary">Suporte a Markdown nas Tarefas</span>
+                  <br />
+                  Agora suas tarefas ficaram ainda mais expressivas! Adicionamos suporte completo a markdown 
+                  nas descrições de tarefas, permitindo que você formate seu texto com negrito, itálico, 
+                  listas, títulos, links e blocos de código.
+                  <br /><br />
+                  <span className="font-medium">Como usar:</span> Ao editar a descrição de uma tarefa, 
+                  você pode utilizar a sintaxe markdown como <code>**negrito**</code>, <code>*itálico*</code>, 
+                  <code># título</code>, <code>- item de lista</code>, <code>[link](url)</code> e muito mais.
+                  <br /><br />
+                  A formatação será aplicada automaticamente quando você visualizar os detalhes da tarefa, 
+                  tornando suas anotações mais organizadas e fáceis de ler.
+                </>
+              ) : latestChangelog === '2.8.0' ? (
                 <>
                   <span className="font-medium text-primary">Histórico de Pomodoro e Melhorias na Interface</span>
                   <br />

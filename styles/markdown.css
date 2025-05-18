@@ -1,0 +1,128 @@
+/* Markdown Content Styling */
+.markdown-content {
+  font-size: 0.95rem;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.25;
+}
+
+.markdown-content h1 {
+  font-size: 1.5rem;
+}
+
+.markdown-content h2 {
+  font-size: 1.25rem;
+}
+
+.markdown-content h3 {
+  font-size: 1.15rem;
+}
+
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-size: 1rem;
+}
+
+.markdown-content p,
+.markdown-content ul,
+.markdown-content ol {
+  margin-bottom: 1em;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 1.5em;
+}
+
+.markdown-content li {
+  margin-bottom: 0.25em;
+}
+
+.markdown-content ul > li {
+  list-style-type: disc;
+}
+
+.markdown-content ol > li {
+  list-style-type: decimal;
+}
+
+.markdown-content a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown-content a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.markdown-content blockquote {
+  border-left: 4px solid hsl(var(--muted));
+  padding-left: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+.markdown-content code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background-color: hsl(var(--muted) / 0.5);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+.markdown-content pre {
+  font-family: var(--font-mono);
+  background-color: hsl(var(--muted));
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.markdown-content pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.markdown-content hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 2em 0;
+}
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.markdown-content table th,
+.markdown-content table td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5em;
+}
+
+.markdown-content table th {
+  background-color: hsl(var(--muted));
+  font-weight: 600;
+} 
