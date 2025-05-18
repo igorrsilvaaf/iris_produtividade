@@ -393,6 +393,9 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                   <FormControl>
                     <Textarea placeholder="Add details about your task" className="resize-none" {...field} />
                   </FormControl>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {t("Supports markdown formatting like **bold**, *italic*, lists, and [links](https://example.com)")}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

@@ -151,14 +151,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         try {
           const dueDate = new Date(task.due_date)
           setDueDate(dueDate)
-          
-          // Extrair a hora da data
+
           const hours = dueDate.getHours();
           const minutes = dueDate.getMinutes();
           const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
           setDueTime(timeString)
-          
-          // Verificar se é "all day" (00:00)
+
           const isAllDayTime = hours === 0 && minutes === 0;
           setIsAllDay(isAllDayTime)
           
@@ -717,7 +715,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }
   
-  // Componente customizado para mostrar o valor dos pontos no trigger
   const PointsDisplay = () => {
     return (
       <div className="flex items-center">
@@ -727,7 +724,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     );
   };
 
-  // Função para formatar o tempo estimado
   const formatEstimatedTime = (minutes: number | null | undefined) => {
     if (!minutes) return null
     
@@ -750,7 +746,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }
 
-  // Atualizar attachments quando a task mudar
   useEffect(() => {
     if (task.attachments) {
       setAttachments(task.attachments)
@@ -764,7 +759,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('taskId', task.id)
+      formData.append('taskId', task.id.toString())
       
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -783,7 +778,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         name: data.name
       }
 
-      // Atualizar a task com o novo anexo
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -796,13 +790,11 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         throw new Error("Failed to update task attachments")
       }
 
-      // Atualizar o estado da task com os novos anexos
       const updatedTask = await taskResponse.json()
       task.attachments = updatedTask.attachments
       
       setShowAddAttachment(false)
       
-      // Limpar o input de arquivo
       if (event.target) {
         event.target.value = ""
       }
@@ -812,7 +804,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Your attachment has been added successfully."),
       })
 
-      // Atualizar a interface
       router.refresh()
     } catch (error) {
       console.error('Error uploading file:', error)
@@ -834,7 +825,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         name: attachmentName.trim() || attachmentUrl.trim()
       }
 
-      // Atualizar a task com o novo anexo
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -847,7 +837,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         throw new Error("Failed to update task attachments")
       }
 
-      // Atualizar o estado da task com os novos anexos
       const updatedTask = await taskResponse.json()
       task.attachments = updatedTask.attachments
       
@@ -860,7 +849,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Your attachment has been added successfully."),
       })
 
-      // Atualizar a interface
       router.refresh()
     } catch (error) {
       console.error('Error adding attachment:', error)
@@ -877,7 +865,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       const updatedAttachments = [...(task.attachments || [])]
       updatedAttachments.splice(index, 1)
       
-      // Atualizar a task com os anexos atualizados
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -890,7 +877,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         throw new Error("Failed to update task attachments")
       }
 
-      // Atualizar o estado da task com os novos anexos
       const updatedTask = await taskResponse.json()
       task.attachments = updatedTask.attachments
       
@@ -899,7 +885,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         description: t("Your attachment has been removed successfully."),
       })
 
-      // Atualizar a interface
       router.refresh()
     } catch (error) {
       console.error('Error removing attachment:', error)
@@ -919,7 +904,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }
 
-  // Função para converter minutos para a unidade selecionada
   const getTimeUnitAndValue = (minutes: number | null): { value: number | null, unit: string } => {
     if (minutes === null) return { value: null, unit: "min" }
     
@@ -932,7 +916,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }
 
-  // Função para converter para minutos
   const convertTimeToMinutes = (timeValue: number | null, unit: string): number | null => {
     if (timeValue === null) return null
     
@@ -946,7 +929,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     }
   }
 
-  // Inicializar os valores do tempo estimado
   useEffect(() => {
     if (task.estimated_time !== undefined && task.estimated_time !== null) {
       const { value, unit } = getTimeUnitAndValue(task.estimated_time)
@@ -996,16 +978,28 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             <label className="text-sm font-medium">
               {t("description")}
             </label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t("Add details about your task")}
-              className="min-h-[120px]"
-              rows={5}
-              readOnly={!isEditMode}
-              disabled={!isEditMode}
-            />
+            {isEditMode ? (
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={t("Add details about your task")}
+                className="min-h-[120px]"
+                rows={5}
+              />
+            ) : (
+              <div className="p-3 border rounded-md min-h-[120px] prose-sm max-w-none markdown-content">
+                {description ? (
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                  >
+                    {description}
+                  </ReactMarkdown>
+                ) : (
+                  <p className="text-muted-foreground">{t("No description")}</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -1504,7 +1498,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             onClick={() => {
               if (isEditMode) {
                 setIsEditMode(false)
-                // Reset form values
                 setTitle(task.title)
                 setDescription(task.description || "")
                 setPriority(task.priority.toString())

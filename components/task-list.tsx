@@ -21,20 +21,30 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select"
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 type SortOption = "priority" | "title" | "dueDate" | "createdAt"
 
 const processDescription = (text: string) => {
   if (!text) return "";
   
-  const checkboxText = text.replace(/\[([ xX]?)\]/g, (match, inside) => {
-    if (inside === 'x' || inside === 'X') {
-      return '✓ ';
-    }
-    return '□ ';
-  });
-  
-  return checkboxText.replace(/^-\s(.+)$/gm, '• $1');
+  const truncatedText = text.length > 100 
+    ? text.substring(0, 100) + '...'
+    : text;
+    
+  return truncatedText
+    .replace(/#{1,6}\s/g, '') 
+    .replace(/\*\*(.+?)\*\*/g, '$1') 
+    .replace(/\*(.+?)\*/g, '$1') 
+    .replace(/~~(.+?)~~/g, '$1') 
+    .replace(/`(.+?)`/g, '$1') 
+    .replace(/\[(.+?)\]\(.+?\)/g, '$1') 
+    .replace(/!\[(.+?)\]\(.+?\)/g, '[Image: $1]') 
+    .replace(/```[\s\S]+?```/g, '[Code block]') 
+    .replace(/^>\s(.+)$/gm, '$1') 
+    .replace(/^-\s(.+)$/gm, '• $1') 
+    .replace(/\[([ xX]?)\]/g, (match, inside) => inside === 'x' || inside === 'X' ? '✓ ' : '□ ');
 };
 
 export function TaskList({ tasks }: { tasks: Todo[] }) {
@@ -404,10 +414,14 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
             
             {expandedTask === task.id && task.description && (
               <div 
-                className="mt-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-md"
+                className="mt-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-md markdown-content"
                 onClick={(e) => e.stopPropagation()}
               >
-                {processDescription(task.description)}
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                >
+                  {task.description}
+                </ReactMarkdown>
               </div>
             )}
           </div>
@@ -427,4 +441,3 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
     </div>
   )
 }
-
