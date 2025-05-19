@@ -306,7 +306,18 @@ export async function getTaskById(taskId: number, userId: number): Promise<Todo 
   return tasks.length > 0 ? tasks[0] as Todo : null
 }
 
-export async function getTaskProject(taskId: number): Promise<number | null> {
+export async function getTaskProject(taskId: number, userId: number): Promise<number | null> {
+  // Verificar primeiro se a tarefa pertence ao usuário
+  const taskCheck = await sql`
+    SELECT id FROM todos WHERE id = ${taskId} AND user_id = ${userId}
+  `
+  
+  // Se a tarefa não pertencer ao usuário, retorne null
+  if (taskCheck.length === 0) {
+    console.log(`Tarefa ${taskId} não pertence ao usuário ${userId}`);
+    return null;
+  }
+  
   const projects = await sql`
     SELECT project_id
     FROM todo_projects
@@ -316,8 +327,8 @@ export async function getTaskProject(taskId: number): Promise<number | null> {
   return projects.length > 0 ? projects[0].project_id : null
 }
 
-export async function setTaskProject(taskId: number, projectId: number | null): Promise<void> {
-  console.log(`[setTaskProject] Iniciando com taskId=${taskId}, projectId=${projectId}`);
+export async function setTaskProject(taskId: number, userId: number, projectId: number | null): Promise<void> {
+  console.log(`[setTaskProject] Iniciando com taskId=${taskId}, userId=${userId}, projectId=${projectId}`);
   
   if (!taskId || isNaN(taskId) || taskId <= 0) {
     console.error(`[setTaskProject] ID de tarefa inválido: ${taskId}`);
@@ -325,6 +336,17 @@ export async function setTaskProject(taskId: number, projectId: number | null): 
   }
   
   try {
+    // Verificar primeiro se a tarefa pertence ao usuário
+    const taskCheck = await sql`
+      SELECT id FROM todos WHERE id = ${taskId} AND user_id = ${userId}
+    `;
+    
+    // Se a tarefa não pertencer ao usuário, lançar erro
+    if (taskCheck.length === 0) {
+      console.error(`[setTaskProject] Tarefa ${taskId} não pertence ao usuário ${userId}`);
+      throw new Error("Task not found or not owned by user");
+    }
+    
     console.log(`[setTaskProject] Removendo associações existentes para taskId=${taskId}`);
     await sql`
       DELETE FROM todo_projects
@@ -438,6 +460,21 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
   upcomingTasks: Todo[]
 }> {
   try {
+    console.log(`[getTasksForNotifications] Buscando notificações para usuário ${userId}`);
+    
+    // Verificar se o usuário existe
+    const userCheck = await sql`SELECT id FROM users WHERE id = ${userId} LIMIT 1`;
+    if (userCheck.length === 0) {
+      console.log(`[getTasksForNotifications] Usuário ${userId} não encontrado`);
+      return {
+        overdueCount: 0,
+        dueTodayCount: 0,
+        upcomingCount: 0,
+        overdueTasks: [],
+        dueTodayTasks: [],
+        upcomingTasks: []
+      };
+    }
     const now = new Date();
     const today = new Date(now);
     today.setHours(0, 0, 0, 0);
