@@ -10,9 +10,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     }
 
+    const userId = session.user.id
     const resolvedParams = await params
     const taskId = Number.parseInt(resolvedParams.id)
-    const projectId = await getTaskProject(taskId)
+    const projectId = await getTaskProject(taskId, userId)
 
     return NextResponse.json({ projectId })
   } catch (error: any) {
@@ -48,9 +49,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     
     // Convertendo para number ou permanecendo null
     const projectIdValue = projectId === null ? null : Number(projectId);
+    const userId = session.user.id;
     
-    console.log("Calling setTaskProject with:", { taskId, projectIdValue });
-    await setTaskProject(taskId, projectIdValue)
+    console.log("Calling setTaskProject with:", { taskId, userId, projectIdValue });
+    await setTaskProject(taskId, userId, projectIdValue)
 
     return NextResponse.json({ 
       message: "Task project updated successfully", 
