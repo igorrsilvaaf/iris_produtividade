@@ -6,6 +6,33 @@ import { Tag, Plus, X } from "lucide-react"
 import type { Label } from "@/lib/labels"
 import { useTranslation } from "@/lib/i18n"
 import { Button } from "@/components/ui/button"
+
+// Função para calcular a cor de texto baseada na cor de fundo
+function getContrastColor(hexColor: string) {
+  // Se não houver cor ou for inválida, retornar preto
+  if (!hexColor || !hexColor.startsWith('#')) {
+    return '#000000';
+  }
+  
+  // Converter hex para RGB
+  let r = 0, g = 0, b = 0;
+  if (hexColor.length === 7) {
+    r = parseInt(hexColor.substring(1, 3), 16);
+    g = parseInt(hexColor.substring(3, 5), 16);
+    b = parseInt(hexColor.substring(5, 7), 16);
+  } else if (hexColor.length === 4) {
+    r = parseInt(hexColor.substring(1, 2), 16) * 17;
+    g = parseInt(hexColor.substring(2, 3), 16) * 17;
+    b = parseInt(hexColor.substring(3, 4), 16) * 17;
+  }
+  
+  // Calcular luminância
+  // Fórmula YIQ: https://24ways.org/2010/calculating-color-contrast/
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  
+  // Retornar branco ou preto dependendo da luminância
+  return (yiq >= 128) ? '#000000' : '#ffffff';
+}
 import {
   Dialog,
   DialogContent,
@@ -187,7 +214,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
               className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
               style={{
                 backgroundColor: label.color,
-                color: label.text_color || "#ffffff",
+                color: getContrastColor(label.color),
               }}
             >
               <Tag className="mr-1 h-3 w-3" />
