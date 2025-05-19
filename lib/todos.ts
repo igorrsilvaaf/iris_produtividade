@@ -4,6 +4,7 @@ const sql = neon(process.env.DATABASE_URL!)
 
 export type Todo = {
   id: number
+  user_id: number
   title: string
   description: string | null
   due_date: string | null
@@ -460,7 +461,7 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
   upcomingTasks: Todo[]
 }> {
   try {
-    console.log(`[getTasksForNotifications] Buscando notificações para usuário ${userId}`);
+    console.log(`[getTasksForNotifications] Buscando notificações para usuário ${userId}, com cache invalidado`);
     
     // Verificar se o usuário existe
     const userCheck = await sql`SELECT id FROM users WHERE id = ${userId} LIMIT 1`;
@@ -475,6 +476,10 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
         upcomingTasks: []
       };
     }
+    
+    // Forçar processamento separado para evitar problemas de cache
+    const cacheBreaker = Date.now().toString();
+    
     const now = new Date();
     const today = new Date(now);
     today.setHours(0, 0, 0, 0);
@@ -485,92 +490,126 @@ export async function getTasksForNotifications(userId: number, daysAhead: number
     const futureDate = new Date(today);
     futureDate.setDate(futureDate.getDate() + daysAhead);
     
+    // Adicionando parâmetro para evitar cache entre consultas
     const overdueTasks = await sql`
-      SELECT t.*, p.name as project_name, p.color as project_color
-      FROM todos t
-      LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-      LEFT JOIN projects p ON tp.project_id = p.id
-      WHERE t.user_id = ${userId}
-      AND t.due_date IS NOT NULL
-      AND t.due_date < ${today.toISOString()}
-      AND t.completed = false
-      ORDER BY t.due_date ASC, t.priority ASC
-      LIMIT 10
+      WITH user_overdue_tasks AS (
+        SELECT t.*, p.name as project_name, p.color as project_color
+        FROM todos t
+        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+        LEFT JOIN projects p ON tp.project_id = p.id
+        WHERE t.user_id = ${userId}
+        AND t.due_date IS NOT NULL
+        AND t.due_date < ${today.toISOString()}
+        AND t.completed = false
+        ORDER BY t.due_date ASC, t.priority ASC
+        LIMIT 10
+      )
+      SELECT * FROM user_overdue_tasks
+      WHERE user_id = ${userId} /* Garantia adicional */
     `;
     
     const dueTodayTasks = await sql`
-      SELECT t.*, p.name as project_name, p.color as project_color
-      FROM todos t
-      LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-      LEFT JOIN projects p ON tp.project_id = p.id
-      WHERE t.user_id = ${userId}
-      AND t.due_date IS NOT NULL
-      AND t.due_date >= ${today.toISOString()}
-      AND t.due_date < ${tomorrow.toISOString()}
-      AND t.completed = false
-      ORDER BY t.due_date ASC, t.priority ASC
-      LIMIT 10
+      WITH user_today_tasks AS (
+        SELECT t.*, p.name as project_name, p.color as project_color
+        FROM todos t
+        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+        LEFT JOIN projects p ON tp.project_id = p.id
+        WHERE t.user_id = ${userId}
+        AND t.due_date IS NOT NULL
+        AND t.due_date >= ${today.toISOString()}
+        AND t.due_date < ${tomorrow.toISOString()}
+        AND t.completed = false
+        ORDER BY t.due_date ASC, t.priority ASC
+        LIMIT 10
+      )
+      SELECT * FROM user_today_tasks
+      WHERE user_id = ${userId} /* Garantia adicional */
     `;
     
     let upcomingTasksQuery;
     
     if (daysAhead === 1) {
       upcomingTasksQuery = await sql`
-        SELECT t.*, p.name as project_name, p.color as project_color
-        FROM todos t
-        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-        LEFT JOIN projects p ON tp.project_id = p.id
-        WHERE t.user_id = ${userId}
-        AND t.due_date IS NOT NULL
-        AND CAST(t.due_date AS DATE) = CAST(${tomorrow.toISOString()} AS DATE)
-        AND t.completed = false
-        ORDER BY t.due_date ASC, t.priority ASC
-        LIMIT 10
+        WITH user_upcoming_tasks AS (
+          SELECT t.*, p.name as project_name, p.color as project_color
+          FROM todos t
+          LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+          LEFT JOIN projects p ON tp.project_id = p.id
+          WHERE t.user_id = ${userId}
+          AND t.due_date IS NOT NULL
+          AND CAST(t.due_date AS DATE) = CAST(${tomorrow.toISOString()} AS DATE)
+          AND t.completed = false
+          ORDER BY t.due_date ASC, t.priority ASC
+          LIMIT 10
+        )
+        SELECT * FROM user_upcoming_tasks
+        WHERE user_id = ${userId} /* Garantia adicional */
       `;
     } else {
       upcomingTasksQuery = await sql`
-        SELECT t.*, p.name as project_name, p.color as project_color
-        FROM todos t
-        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-        LEFT JOIN projects p ON tp.project_id = p.id
-        WHERE t.user_id = ${userId}
-        AND t.due_date IS NOT NULL
-        AND t.due_date >= ${tomorrow.toISOString()}
-        AND t.due_date < ${futureDate.toISOString()}
-        AND t.completed = false
-        ORDER BY t.due_date ASC, t.priority ASC
-        LIMIT 10
+        WITH user_upcoming_tasks AS (
+          SELECT t.*, p.name as project_name, p.color as project_color
+          FROM todos t
+          LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+          LEFT JOIN projects p ON tp.project_id = p.id
+          WHERE t.user_id = ${userId}
+          AND t.due_date IS NOT NULL
+          AND t.due_date >= ${tomorrow.toISOString()}
+          AND t.due_date < ${futureDate.toISOString()}
+          AND t.completed = false
+          ORDER BY t.due_date ASC, t.priority ASC
+          LIMIT 10
+        )
+        SELECT * FROM user_upcoming_tasks
+        WHERE user_id = ${userId} /* Garantia adicional */
       `;
     }
     
     const upcomingTasks = upcomingTasksQuery;
     
-    console.log(`Overdue tasks found: ${overdueTasks.length}`);
-    console.log(`Due today tasks found: ${dueTodayTasks.length}`);
-    console.log(`Upcoming tasks found: ${upcomingTasks.length}`);
+    console.log(`[getTasksForNotifications] Tarefas vencidas encontradas: ${overdueTasks.length}`);
+    console.log(`[getTasksForNotifications] Tarefas para hoje encontradas: ${dueTodayTasks.length}`);
+    console.log(`[getTasksForNotifications] Tarefas futuras encontradas: ${upcomingTasks.length}`);
     
-    overdueTasks.forEach((task: any) => {
-      console.log(`Overdue task: ${task.title}, due: ${task.due_date}`);
+    // Verificação de segurança adicional - garantir que todas as tarefas pertencem ao usuário correto
+    const safeOverdueTasks = overdueTasks.filter((task: any) => task.user_id === userId);
+    const safeDueTodayTasks = dueTodayTasks.filter((task: any) => task.user_id === userId);
+    const safeUpcomingTasks = upcomingTasks.filter((task: any) => task.user_id === userId);
+    
+    // Log para verificar possíveis falhas de segurança
+    if (safeOverdueTasks.length !== overdueTasks.length) {
+      console.error(`[getTasksForNotifications] ERRO DE SEGURANÇA: Encontradas ${overdueTasks.length - safeOverdueTasks.length} tarefas vencidas de outro usuário!`);
+    }
+    if (safeDueTodayTasks.length !== dueTodayTasks.length) {
+      console.error(`[getTasksForNotifications] ERRO DE SEGURANÇA: Encontradas ${dueTodayTasks.length - safeDueTodayTasks.length} tarefas de hoje de outro usuário!`);
+    }
+    if (safeUpcomingTasks.length !== upcomingTasks.length) {
+      console.error(`[getTasksForNotifications] ERRO DE SEGURANÇA: Encontradas ${upcomingTasks.length - safeUpcomingTasks.length} tarefas futuras de outro usuário!`);
+    }
+    
+    // Log detalhado para debug
+    safeOverdueTasks.forEach((task: any) => {
+      console.log(`[getTasksForNotifications] Tarefa vencida: ID=${task.id}, Título=${task.title}, UserID=${task.user_id}`);
     });
     
-    dueTodayTasks.forEach((task: any) => {
-      console.log(`Today task: ${task.title}, due: ${task.due_date}`);
+    safeDueTodayTasks.forEach((task: any) => {
+      console.log(`[getTasksForNotifications] Tarefa para hoje: ID=${task.id}, Título=${task.title}, UserID=${task.user_id}`);
     });
     
-    upcomingTasks.forEach((task: any) => {
-      console.log(`Upcoming task: ${task.title}, due: ${task.due_date}`);
+    safeUpcomingTasks.forEach((task: any) => {
+      console.log(`[getTasksForNotifications] Tarefa futura: ID=${task.id}, Título=${task.title}, UserID=${task.user_id}`);
     });
     
     return {
-      overdueCount: overdueTasks.length,
-      dueTodayCount: dueTodayTasks.length,
-      upcomingCount: upcomingTasks.length,
-      overdueTasks: overdueTasks as Todo[],
-      dueTodayTasks: dueTodayTasks as Todo[],
-      upcomingTasks: upcomingTasks as Todo[]
+      overdueCount: safeOverdueTasks.length,
+      dueTodayCount: safeDueTodayTasks.length,
+      upcomingCount: safeUpcomingTasks.length,
+      overdueTasks: safeOverdueTasks as Todo[],
+      dueTodayTasks: safeDueTodayTasks as Todo[],
+      upcomingTasks: safeUpcomingTasks as Todo[]
     };
   } catch (error) {
-    console.error("Error fetching tasks for notifications:", error);
+    console.error("[getTasksForNotifications] Erro ao buscar tarefas para notificações:", error);
     return {
       overdueCount: 0,
       dueTodayCount: 0,

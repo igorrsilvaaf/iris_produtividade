@@ -22,6 +22,33 @@ export interface ReportData {
   filters?: ReportFilters;
 }
 
+// Função para calcular a cor de texto baseada na cor de fundo
+function getContrastColor(hexColor: string) {
+  // Se não houver cor ou for inválida, retornar preto
+  if (!hexColor || !hexColor.startsWith('#')) {
+    return '#000000';
+  }
+  
+  // Converter hex para RGB
+  let r = 0, g = 0, b = 0;
+  if (hexColor.length === 7) {
+    r = parseInt(hexColor.substring(1, 3), 16);
+    g = parseInt(hexColor.substring(3, 5), 16);
+    b = parseInt(hexColor.substring(5, 7), 16);
+  } else if (hexColor.length === 4) {
+    r = parseInt(hexColor.substring(1, 2), 16) * 17;
+    g = parseInt(hexColor.substring(2, 3), 16) * 17;
+    b = parseInt(hexColor.substring(3, 4), 16) * 17;
+  }
+  
+  // Calcular luminância
+  // Fórmula YIQ: https://24ways.org/2010/calculating-color-contrast/
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  
+  // Retornar branco ou preto dependendo da luminância
+  return (yiq >= 128) ? '#000000' : '#ffffff';
+}
+
 export async function fetchTasks(reportType: string, startDate: string, endDate: string, filters?: ReportFilters): Promise<Todo[]> {
   try {
     let url = `/api/reports?type=${reportType}&startDate=${startDate}&endDate=${endDate}`;
@@ -286,11 +313,14 @@ export function generateHTML(data: ReportData): string {
       includeIf: includeAll || customColumns.includes('priority'),
       format: (task) => {
         if (!task.priority) return '-';
-        const label = priorityLabels[task.priority] || task.priority.toString();
+        
+        const label = priorityLabels[task.priority] || task.priority;
         const color = priorityColors[task.priority] || '#777';
-        return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:white; font-size:11px; font-weight:bold;">${label}</span>`;
+        const textColor = getContrastColor(color);
+        
+        return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:${textColor}; font-size:11px; font-weight:bold;">${label}</span>`;
       },
-      width: "100px"
+      width: "80px"
     },
     {
       id: "completed", 
@@ -307,8 +337,11 @@ export function generateHTML(data: ReportData): string {
       includeIf: includeAll || customColumns.includes('project'),
       format: (task) => {
         if (!task.project_name) return '-';
-        const color = task.project_color || '#3b82f6';
-        return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:white; font-size:11px;">${escapeHtml(task.project_name)}</span>`;
+        
+        const color = task.project_color || '#777';
+        const textColor = getContrastColor(color);
+        
+        return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:${textColor}; font-size:11px;">${escapeHtml(task.project_name)}</span>`;
       },
       width: "120px"
     },
@@ -319,7 +352,9 @@ export function generateHTML(data: ReportData): string {
       format: (task) => {
         if (!task.labels || task.labels.length === 0) return '-';
         return task.labels.map((label: Label) => {
-          return `<span style="display:inline-block; margin:1px 2px; padding:1px 6px; border-radius:8px; background-color:${label.color || '#777'}; color:white; font-size:10px;">${escapeHtml(label.name)}</span>`;
+          const color = label.color || '#777';
+          const textColor = getContrastColor(color);
+          return `<span style="display:inline-block; margin:1px 2px; padding:1px 6px; border-radius:8px; background-color:${color}; color:${textColor}; font-size:10px;">${escapeHtml(label.name)}</span>`;
         }).join(' ');
       },
       width: "150px"
