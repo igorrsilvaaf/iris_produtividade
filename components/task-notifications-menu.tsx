@@ -69,23 +69,25 @@ export function TaskNotificationsMenu() {
     
     while (retryCount < maxRetries && !success) {
       try {
-        // Verificar se o navegador está online
         if (!navigator.onLine) {
           console.log("Navegador offline, aguardando reconexão para buscar notificações");
           break;
         }
         
-        // Adicionar timeout para a requisição
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000); 
+        const cacheKey = Date.now().toString();
+        const url = `/api/notifications/tasks?_cache=${cacheKey}`;
+        console.log(`[TaskNotificationsMenu] Buscando notificações em: ${url}`);
         
-        const response = await fetch("/api/notifications/tasks", {
+        const response = await fetch(url, {
           signal: controller.signal,
           cache: 'no-store',
           credentials: 'same-origin',
           headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
         });
         
@@ -93,6 +95,63 @@ export function TaskNotificationsMenu() {
         
         if (response.ok) {
           const data = await response.json();
+          
+          console.log(`[TaskNotificationsMenu] Recebidas notificações para usuário: ${data.userId}, email: ${data.userEmail}`);
+          
+          const sessionResponse = await fetch('/api/auth/session');
+          const sessionData = await sessionResponse.json();
+          
+          if (!sessionData || !sessionData.user || !sessionData.user.id) {
+            console.error('[TaskNotificationsMenu] Não foi possível obter informações da sessão do usuário');
+            setNotifications({
+              enabled: false,
+              overdueCount: 0,
+              dueTodayCount: 0,
+              upcomingCount: 0,
+              totalCount: 0,
+              tasks: {
+                overdueTasks: [],
+                dueTodayTasks: [],
+                upcomingTasks: []
+              }
+            });
+            success = true;
+            continue;
+          }
+          
+          const currentUserId = sessionData.user.id;
+          
+          if (data.userId && data.userId.toString() !== currentUserId.toString()) {
+            console.error(`[TaskNotificationsMenu] ERRO DE SEGURANÇA: Recebidas notificações para usuário incorreto. Esperado: ${currentUserId}, Recebido: ${data.userId}`);
+            throw new Error('Dados de usuário incorretos recebidos');
+          }
+          
+          if (data.tasks) {
+            const secureTasks = {
+              overdueTasks: data.tasks.overdueTasks?.filter((task: Todo) => task.user_id.toString() === currentUserId.toString()) || [],
+              dueTodayTasks: data.tasks.dueTodayTasks?.filter((task: Todo) => task.user_id.toString() === currentUserId.toString()) || [],
+              upcomingTasks: data.tasks.upcomingTasks?.filter((task: Todo) => task.user_id.toString() === currentUserId.toString()) || []
+            };
+            
+            if (secureTasks.overdueTasks.length !== data.tasks.overdueTasks?.length) {
+              console.error(`[TaskNotificationsMenu] Filtradas ${data.tasks.overdueTasks.length - secureTasks.overdueTasks.length} tarefas vencidas de outro usuário`);
+            }
+            if (secureTasks.dueTodayTasks.length !== data.tasks.dueTodayTasks?.length) {
+              console.error(`[TaskNotificationsMenu] Filtradas ${data.tasks.dueTodayTasks.length - secureTasks.dueTodayTasks.length} tarefas para hoje de outro usuário`);
+            }
+            if (secureTasks.upcomingTasks.length !== data.tasks.upcomingTasks?.length) {
+              console.error(`[TaskNotificationsMenu] Filtradas ${data.tasks.upcomingTasks.length - secureTasks.upcomingTasks.length} tarefas futuras de outro usuário`);
+            }
+            
+            data.tasks = secureTasks;
+            data.overdueCount = secureTasks.overdueTasks.length;
+            data.dueTodayCount = secureTasks.dueTodayTasks.length;
+            data.upcomingCount = secureTasks.upcomingTasks.length;
+            data.totalCount = secureTasks.overdueTasks.length + secureTasks.dueTodayTasks.length + secureTasks.upcomingTasks.length;
+            
+            console.log(`[TaskNotificationsMenu] Total de tarefas após filtragem de segurança: ${data.totalCount}`);
+          }
+          
           setNotifications(data);
           success = true;
         } else {
@@ -100,13 +159,11 @@ export function TaskNotificationsMenu() {
             response.status, response.statusText);
           retryCount++;
           
-          // Aguardar antes de tentar novamente (exponential backoff)
           if (retryCount < maxRetries) {
             await new Promise(r => setTimeout(r, retryCount * 1000));
           }
         }
       } catch (error) {
-        // Se for um erro de timeout, exibir mensagem específica
         if (error instanceof DOMException && error.name === 'AbortError') {
           console.error(`Timeout ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries})`);
         } else {
@@ -115,7 +172,6 @@ export function TaskNotificationsMenu() {
         
         retryCount++;
         
-        // Aguardar antes de tentar novamente (exponential backoff)
         if (retryCount < maxRetries) {
           await new Promise(r => setTimeout(r, retryCount * 1000));
         }
@@ -133,8 +189,6 @@ export function TaskNotificationsMenu() {
   }, [open])
   
   useEffect(() => {
-    // Verificar inicialmente apenas se estivermos na página principal do app
-    // ou nas páginas onde as notificações são relevantes
     const isRelevantPage = pathname?.includes('/app') || 
                           pathname?.includes('/inbox') || 
                           pathname?.includes('/today') ||
@@ -143,7 +197,6 @@ export function TaskNotificationsMenu() {
     if (isRelevantPage) {
       fetchTaskNotifications();
       
-      // Configurar intervalo apenas para páginas relevantes
       const interval = setInterval(() => {
         fetchTaskNotifications();
         if (!open) {
@@ -156,7 +209,6 @@ export function TaskNotificationsMenu() {
       };
     }
     
-    // Nas outras páginas, não configure nenhum intervalo
     return undefined;
   }, [pathname, open]);
 
@@ -314,7 +366,6 @@ export function TaskNotificationsMenu() {
           </Button>
         </div>
 
-        {/* Usar alturas diferentes baseado no tamanho da tela */}
         <ScrollArea className="h-[65vh] sm:h-[420px]">
           <div className="p-3">
             {loading ? (
