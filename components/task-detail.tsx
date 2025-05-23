@@ -989,7 +989,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 rows={5}
               />
             ) : (
-              <div className="p-3 border rounded-md min-h-[120px]">
+              <div className="p-3 border rounded-md min-h-[120px] cursor-not-allowed">
                 {description ? (
                   <MarkdownRenderer content={description} />
                 ) : (
@@ -1011,7 +1011,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !dueDate && "text-muted-foreground"
+                        !dueDate && "text-muted-foreground",
+                        !isEditMode && "cursor-not-allowed"
                       )}
                       disabled={!isEditMode}
                     >
@@ -1111,7 +1112,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 {t("priority")}
               </label>
               <Select value={priority} onValueChange={setPriority} disabled={!isEditMode}>
-                <SelectTrigger>
+                <SelectTrigger className={!isEditMode ? "cursor-not-allowed" : ""}>
                   <SelectValue placeholder={t("Select priority")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -1153,7 +1154,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 <PopoverTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="w-full justify-between text-left font-normal"
+                    className={`w-full justify-between text-left font-normal ${!isEditMode ? "cursor-not-allowed" : ""}`}
                     disabled={!isEditMode}
                   >
                     <div className="flex items-center">
@@ -1197,7 +1198,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 <Input
                   type="number"
                   placeholder={t("Tempo")}
-                  className="w-full"
+                  className={`w-full ${!isEditMode ? "cursor-not-allowed" : ""}`}
                   min="0"
                   disabled={!isEditMode}
                   value={estimatedTime === null ? "" : estimatedTime}
@@ -1208,7 +1209,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   onValueChange={setEstimatedTimeUnit} 
                   disabled={!isEditMode}
                 >
-                  <SelectTrigger className="w-[110px]">
+                  <SelectTrigger className={`w-[110px] ${!isEditMode ? "cursor-not-allowed" : ""}`}>
                     <SelectValue placeholder={t("Unidade")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -1225,7 +1226,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             <label className="text-sm font-medium">
               {t("project")}
             </label>
-            <div className="space-y-2">
+            <div className={`space-y-2 ${!isEditMode ? "cursor-not-allowed" : ""}`}>
               {projectId ? (
                 <div className="flex items-center justify-between p-2 border rounded">
                   <div className="flex items-center">
@@ -1235,16 +1236,18 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                     />
                     <span>{projects.find(p => p.id.toString() === projectId)?.name || t("Unknown project")}</span>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setProjectId(null)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">{t("Remove project")}</span>
-                  </Button>
+                  {isEditMode && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setProjectId(null)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">{t("Remove project")}</span>
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground p-2">{t("noProject")}</p>
@@ -1256,6 +1259,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                     variant="outline"
                     size="sm"
                     className="mt-2"
+                    disabled={!isEditMode}
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     {t("Add Project")}
@@ -1328,14 +1332,16 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             <label className="text-sm font-medium">
               {t("labels")}
             </label>
-            <TaskLabels key={taskLabelsKey} taskId={task.id} />
+            <div className={`${!isEditMode ? "cursor-not-allowed" : ""}`}>
+              <TaskLabels key={taskLabelsKey} taskId={task.id} readOnly={!isEditMode} />
+            </div>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
               {t("attachment.list")}
             </label>
-            <div className="space-y-2">
+            <div className={`space-y-2 ${!isEditMode ? "cursor-not-allowed" : ""}`}>
               {task.attachments && task.attachments.length > 0 && (
                 <div className="space-y-2">
                   {task.attachments.map((attachment, index) => (
@@ -1371,7 +1377,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 </div>
               )}
               
-              {isEditMode && (
+              {isEditMode ? (
                 showAddAttachment ? (
                   <div className="space-y-2 border rounded-md p-2">
                     <div className="grid grid-cols-3 gap-2">
@@ -1482,7 +1488,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                     {t("attachment.add")}
                   </Button>
                 )
-              )}
+              ) : null}
             </div>
           </div>
 
@@ -1546,16 +1552,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
               </>
             ) : (
               <>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="w-full sm:w-28"
-                >
-                  <Trash className="mr-1 h-4 w-4" />
-                  {isDeleting ? t("Deleting...") : t("delete")}
-                </Button>
                 <Button
                   size="sm"
                   onClick={() => setIsEditMode(true)}
