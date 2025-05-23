@@ -21,8 +21,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select"
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 
 type SortOption = "priority" | "title" | "dueDate" | "createdAt"
 
@@ -414,14 +413,10 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
             
             {expandedTask === task.id && task.description && (
               <div 
-                className="mt-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-md markdown-content"
+                className="mt-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-md"
                 onClick={(e) => e.stopPropagation()}
               >
-                <ReactMarkdown 
-                  remarkPlugins={[remarkGfm]}
-                >
-                  {task.description}
-                </ReactMarkdown>
+                <MarkdownRenderer content={task.description} />
               </div>
             )}
           </div>

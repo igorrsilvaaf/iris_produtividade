@@ -16,6 +16,7 @@ import { useTranslation } from "@/lib/i18n"
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from "@/lib/utils"
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 
 import { Button } from "@/components/ui/button"
 import { BackButton } from "@/components/ui/back-button"
@@ -988,13 +989,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 rows={5}
               />
             ) : (
-              <div className="p-3 border rounded-md min-h-[120px] prose-sm max-w-none markdown-content">
+              <div className="p-3 border rounded-md min-h-[120px]">
                 {description ? (
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm]}
-                  >
-                    {description}
-                  </ReactMarkdown>
+                  <MarkdownRenderer content={description} />
                 ) : (
                   <p className="text-muted-foreground">{t("No description")}</p>
                 )}
