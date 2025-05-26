@@ -232,6 +232,36 @@ export async function updateTask(taskId: number, userId: number, updates: Partia
 
   if (updates.attachments !== undefined) {
     console.log(`[updateTask] Atualizando anexos: ${JSON.stringify(updates.attachments)}`);
+    
+    // Garantir que attachments seja sempre um array válido antes de atualizar
+    let normalizedAttachments = [];
+    try {
+      if (Array.isArray(updates.attachments)) {
+        normalizedAttachments = updates.attachments;
+      } else if (typeof updates.attachments === 'string') {
+        try {
+          normalizedAttachments = JSON.parse(updates.attachments);
+        } catch (e) {
+          console.error(`[updateTask] Erro ao parsear anexos como string: ${e}`);
+          // Obter os anexos atuais da tarefa em vez de substituir com array vazio
+          const existingTask = await getTaskById(taskId, userId);
+          normalizedAttachments = existingTask?.attachments || [];
+        }
+      } else if (updates.attachments) {
+        console.error(`[updateTask] Anexos não é um array: ${typeof updates.attachments}`);
+        // Obter os anexos atuais da tarefa em vez de substituir com array vazio
+        const existingTask = await getTaskById(taskId, userId);
+        normalizedAttachments = existingTask?.attachments || [];
+      }
+    } catch (error) {
+      console.error(`[updateTask] Erro ao normalizar anexos: ${error}`);
+      // Obter os anexos atuais da tarefa em vez de substituir com array vazio
+      const existingTask = await getTaskById(taskId, userId);
+      normalizedAttachments = existingTask?.attachments || [];
+    }
+    
+    console.log(`[updateTask] Anexos normalizados: ${JSON.stringify(normalizedAttachments)}`);
+    updates.attachments = normalizedAttachments;
   }
 
   if (updates.estimated_time !== undefined) {
