@@ -49,8 +49,26 @@ export async function POST(request: NextRequest) {
       }
 
       // Pegar os anexos existentes e adicionar o novo
-      const currentAttachments = result[0].attachments || []
+      // Garantir que os anexos sejam um array válido, independente de como estão armazenados no banco
+      let currentAttachments = [];
+      try {
+        if (result[0].attachments) {
+          if (Array.isArray(result[0].attachments)) {
+            currentAttachments = result[0].attachments;
+          } else if (typeof result[0].attachments === 'string') {
+            // Tentar fazer parse se for uma string JSON
+            currentAttachments = JSON.parse(result[0].attachments);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao processar anexos existentes:", error);
+        currentAttachments = [];
+      }
+
+      console.log(`[upload] Anexos atuais da tarefa ${taskId}:`, JSON.stringify(currentAttachments));
+      
       const updatedAttachments = [...currentAttachments, newAttachment]
+      console.log(`[upload] Anexos atualizados da tarefa ${taskId}:`, JSON.stringify(updatedAttachments));
 
       // Atualizar a task com o novo array de anexos
       await sql`

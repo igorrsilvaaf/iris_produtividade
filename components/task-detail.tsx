@@ -175,6 +175,28 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       }
       
       setPriority(task.priority.toString())
+      
+      // Normalizar anexos para garantir que sempre seja um array válido
+      try {
+        let normalizedAttachments = [];
+        if (task.attachments) {
+          if (Array.isArray(task.attachments)) {
+            normalizedAttachments = task.attachments;
+          } else if (typeof task.attachments === 'string') {
+            try {
+              normalizedAttachments = JSON.parse(task.attachments);
+            } catch (e) {
+              console.error(`[TaskDetail] Erro ao parsear anexos como string: ${e}`);
+              normalizedAttachments = [];
+            }
+          }
+        }
+        console.log(`[TaskDetail] Anexos normalizados:`, JSON.stringify(normalizedAttachments));
+        setAttachments(normalizedAttachments);
+      } catch (error) {
+        console.error(`[TaskDetail] Erro ao processar anexos:`, error);
+        setAttachments([]);
+      }
     }
   }, [open, task])
 
@@ -779,20 +801,28 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         name: data.name
       }
 
-      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          attachments: [...(task.attachments || []), newAttachment]
-        }),
-      })
-
-      if (!taskResponse.ok) {
-        throw new Error("Failed to update task attachments")
+      // Buscar a tarefa atualizada para ter certeza que os anexos estão corretos
+      const taskDetailResponse = await fetch(`/api/tasks/${task.id}`)
+      
+      if (!taskDetailResponse.ok) {
+        throw new Error("Failed to fetch updated task")
       }
-
-      const updatedTask = await taskResponse.json()
-      task.attachments = updatedTask.attachments
+      
+      const updatedTaskData = await taskDetailResponse.json()
+      
+      // Atualizar os anexos da tarefa atual com os dados mais recentes do servidor
+      if (updatedTaskData && updatedTaskData.attachments) {
+        console.log(`[handleFileUpload] Anexos atualizados da tarefa:`, JSON.stringify(updatedTaskData.attachments))
+        task.attachments = updatedTaskData.attachments
+        setAttachments(updatedTaskData.attachments)
+      } else {
+        console.log(`[handleFileUpload] Servidor não retornou anexos atualizados, usando nova lista`)
+        // Se não recebemos dados da tarefa, mantenha o novo anexo
+        const currentAttachments = Array.isArray(task.attachments) ? [...task.attachments] : []
+        const updatedAttachments = [...currentAttachments, newAttachment]
+        task.attachments = updatedAttachments
+        setAttachments(updatedAttachments)
+      }
       
       setShowAddAttachment(false)
       
@@ -826,11 +856,30 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         name: attachmentName.trim() || attachmentUrl.trim()
       }
 
+      // Garantir que estamos trabalhando com um array válido de anexos
+      let currentAttachments = [];
+      if (task.attachments) {
+        if (Array.isArray(task.attachments)) {
+          currentAttachments = [...task.attachments];
+        } else if (typeof task.attachments === 'string') {
+          try {
+            currentAttachments = JSON.parse(task.attachments);
+          } catch (e) {
+            console.error(`[addAttachment] Erro ao parsear anexos existentes: ${e}`);
+            currentAttachments = [];
+          }
+        }
+      }
+      
+      console.log(`[addAttachment] Anexos atuais:`, JSON.stringify(currentAttachments));
+      const updatedAttachments = [...currentAttachments, newAttachment];
+      console.log(`[addAttachment] Anexos atualizados:`, JSON.stringify(updatedAttachments));
+
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          attachments: [...(task.attachments || []), newAttachment]
+          attachments: updatedAttachments
         }),
       })
 
@@ -863,8 +912,32 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
   const removeAttachment = async (index: number) => {
     try {
-      const updatedAttachments = [...(task.attachments || [])]
-      updatedAttachments.splice(index, 1)
+      // Garantir que estamos trabalhando com um array válido de anexos
+      let currentAttachments = [];
+      if (task.attachments) {
+        if (Array.isArray(task.attachments)) {
+          currentAttachments = [...task.attachments];
+        } else if (typeof task.attachments === 'string') {
+          try {
+            currentAttachments = JSON.parse(task.attachments);
+          } catch (e) {
+            console.error(`[removeAttachment] Erro ao parsear anexos existentes: ${e}`);
+            currentAttachments = [];
+          }
+        }
+      }
+      
+      console.log(`[removeAttachment] Anexos atuais:`, JSON.stringify(currentAttachments));
+      
+      // Verificar se o índice é válido
+      if (index < 0 || index >= currentAttachments.length) {
+        console.error(`[removeAttachment] Índice inválido: ${index}, total de anexos: ${currentAttachments.length}`);
+        throw new Error("Invalid attachment index");
+      }
+      
+      const updatedAttachments = [...currentAttachments];
+      updatedAttachments.splice(index, 1);
+      console.log(`[removeAttachment] Anexos após remoção:`, JSON.stringify(updatedAttachments));
       
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
