@@ -39,11 +39,11 @@ export default async function UpcomingPage() {
     initialLanguage = languageCookie.value
   }
 
-  console.log("[upcoming.tsx] Idioma do cookie:", initialLanguage);
+
   
   // Obter a tradução diretamente usando getServerTranslation
   const translatedTitle = getServerTranslation("upcoming", initialLanguage as "en" | "pt");
-  console.log("[upcoming.tsx] Título traduzido:", translatedTitle);
+
 
   return (
     <div className="space-y-8">

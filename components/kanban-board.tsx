@@ -416,7 +416,7 @@ export function KanbanBoard() {
       const detail = event.detail;
       if (!detail || !detail.active || !detail.over) return;
       
-      console.log('Evento kanban-move-card acionado:', detail);
+
       handleDragEnd(detail);
     };
     
@@ -441,7 +441,7 @@ export function KanbanBoard() {
           ...(kanban_order !== undefined && { kanban_order })
         };
 
-        console.log(`Enviando atualização para tarefa ID ${id}:`, updates);
+
 
         const response = await fetch(`/api/tasks/${id}`, {
           method: "PATCH",
@@ -452,12 +452,12 @@ export function KanbanBoard() {
         });
       
         if (response.ok) {
-          console.log(`Tarefa ID ${id} atualizada no servidor com:`, updates);
+
           try {
             const responseData = await response.json();
-            console.log(`Resposta do servidor para ID ${id}:`, responseData);
+
           } catch (e) {
-            console.log(`Resposta sem corpo JSON para ID ${id}`);
+
           }
         } else {
           console.error(`Erro ao atualizar tarefa ID ${id}: ${response.status}`);
@@ -516,7 +516,7 @@ export function KanbanBoard() {
     const cacheTime = 5000; 
     
     if (now - lastFetchTimeRef.current < cacheTime && initialLoadDoneRef.current) {
-      console.log("Ignorando solicitação recente, dados carregados há menos de 5 segundos");
+
       return Promise.resolve();
     }
     
@@ -524,7 +524,7 @@ export function KanbanBoard() {
     
     try {
       setIsLoading(true);
-      console.log("Buscando tarefas para Kanban...");
+
       
       const tasksResponse = await fetch("/api/tasks?all=true", {
         method: "GET",
@@ -602,15 +602,15 @@ export function KanbanBoard() {
       const todayList = Array.isArray(todayData.tasks) ? todayData.tasks : [];
       const upcomingList = Array.isArray(upcomingData.tasks) ? upcomingData.tasks : [];
       
-      console.log(`Total de tarefas: ${allTasks.length}, Hoje: ${todayList.length}, Próximas: ${upcomingList.length}`);
+
       
       if (upcomingList.length > 0) {
-        console.log("Tarefas em Próximos:");
+
         upcomingList.forEach((task: any) => {
-          console.log(`- ID ${task.id}, Título: "${task.title}"`);
+
         });
       } else {
-        console.log("Nenhuma tarefa na lista de Próximos");
+
       }
       let orderCounter = 0;
       const tasksToUpdateOnServer: Array<{ id: number; column?: KanbanColumn; completed?: boolean; kanban_order?: number }> = [];
@@ -623,32 +623,32 @@ export function KanbanBoard() {
         if (task.kanban_column && 
             ["backlog", "planning", "inProgress", "validation", "completed"].includes(task.kanban_column)) {
           column = task.kanban_column as KanbanColumn;
-          console.log(`Tarefa ID ${task.id} mantém coluna definida: ${column}`);
+
         } 
         else {
           needsServerUpdate = true;
           if (task.completed) {
             column = "completed";
-            console.log(`Tarefa concluída ID ${task.id} => coluna: completed`);
+
           } 
           else if (todayList.some((t: any) => t.id === task.id)) {
             column = "planning";
-            console.log(`Tarefa de hoje ID ${task.id} => coluna: planning`);
+
           } 
           else if (upcomingList.some((t: any) => t.id === task.id)) {
             column = "backlog";
-            console.log(`Tarefa em Próximos ID ${task.id} => coluna: backlog`);
+
           }
           else {
             column = "backlog"; 
-            console.log(`Tarefa não categorizada ID ${task.id} => coluna: backlog`);
+
           }
         }
 
         if (currentKanbanOrder == null) {
           currentKanbanOrder = orderCounter++;
           needsServerUpdate = true;
-          console.log(`Tarefa ID ${task.id} recebeu nova ordem: ${currentKanbanOrder}`);
+
         }
         
         if (needsServerUpdate) {
@@ -669,9 +669,9 @@ export function KanbanBoard() {
         return (a.kanban_order || 0) - (b.kanban_order || 0);
       });
       
-      console.log("Tarefas distribuídas para o Kanban:", kanbanCards.length);
+
       if (tasksToUpdateOnServer.length > 0) {
-        console.log("Tarefas para atualizar no servidor (coluna/ordem inicial):", tasksToUpdateOnServer.length);
+
         updateTasksOnServer(tasksToUpdateOnServer);
       }
       
@@ -683,17 +683,10 @@ export function KanbanBoard() {
         const validation = kanbanCards.filter(c => c.column === "validation").length;
         const completed = kanbanCards.filter(c => c.column === "completed").length;
         
-        console.log("==== RESUMO DA DISTRIBUIÇÃO ====");
-        console.log(`Total de tarefas: ${kanbanCards.length}`);
-        console.log(`Backlog: ${backlog}`);
-        console.log(`Planejamento: ${planning}`);
-        console.log(`Em Progresso: ${inProgress}`);
-        console.log(`Validação: ${validation}`);
-        console.log(`Concluídas: ${completed}`);
-        console.log("================================");
+
         
         if (kanbanCards.length === 0) {
-          console.log("ATENÇÃO: Nenhuma tarefa encontrada!");
+
         }
       }, 100);
       
@@ -726,7 +719,7 @@ export function KanbanBoard() {
         const savedCards = localStorage.getItem('kanban-cards');
         if (savedCards) {
           const parsedCards = JSON.parse(savedCards) as KanbanCard[];
-          console.log(`Carregados ${parsedCards.length} cartões do localStorage`);
+
           setCards(parsedCards);
           setIsLoading(false);
           initialLoadDoneRef.current = true;
@@ -738,11 +731,11 @@ export function KanbanBoard() {
     
     loadFromLocalStorage();
     
-    console.log("Inicializando Kanban - busca inicial de tarefas");
+
     fetchAndDistributeTasks(controller.signal)
       .then(() => {
         if (mounted) {
-          console.log("Inicialização do Kanban concluída");
+
         }
       })
       .catch(error => {
@@ -753,7 +746,7 @@ export function KanbanBoard() {
     
     const intervalId = setInterval(() => {
       if (mounted && document.visibilityState === 'visible') {
-        console.log("Atualizando tarefas do Kanban automaticamente...");
+
         fetchAndDistributeTasks().catch(err => {
           console.error("Erro na atualização automática:", err);
         });
@@ -774,7 +767,7 @@ export function KanbanBoard() {
       try {
         const cardsJson = JSON.stringify(cards);
         localStorage.setItem('kanban-cards', cardsJson);
-        console.log(`Salvos ${cards.length} cartões no localStorage`);
+
       } catch (error) {
         console.error("Erro ao salvar no localStorage:", error);
       }
@@ -789,7 +782,7 @@ export function KanbanBoard() {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && !isRefreshing) {
         isRefreshing = true;
-        console.log("Página voltou a ficar visível, recarregando tarefas...");
+
         
         fetchAndDistributeTasks()
           .finally(() => {
@@ -801,7 +794,7 @@ export function KanbanBoard() {
     const handleFocus = () => {
       if (!isRefreshing) {
         isRefreshing = true;
-        console.log("Janela ganhou foco, recarregando tarefas...");
+
         
         fetchAndDistributeTasks()
           .finally(() => {
@@ -823,7 +816,7 @@ export function KanbanBoard() {
     if (!newCardTitle.trim()) return;
     
     try {
-      console.log(`Criando nova tarefa no Kanban, coluna: ${column}`);
+
       setIsLoading(true);
       
       const taskData = {
@@ -833,7 +826,7 @@ export function KanbanBoard() {
         completed: column === "completed",
       };
       
-      console.log(`Dados da tarefa para criação: ${JSON.stringify(taskData)}`);
+
       
       const response = await fetch("/api/tasks", {
         method: "POST",
@@ -843,15 +836,15 @@ export function KanbanBoard() {
         body: JSON.stringify(taskData),
       });
       
-      console.log(`Resposta da criação da tarefa - Status: ${response.status}`);
+
       
       if (response.ok) {
         const data = await response.json();
-        console.log(`Tarefa criada com sucesso: ID ${data.task.id}, coluna: ${column}`);
+
         
         try {
           await updateColumnOnServer(data.task.id, column, column === "completed");
-          console.log(`Coluna da tarefa ${data.task.id} definida como ${column}`);
+
         } catch (error) {
           console.error("Erro ao definir coluna da tarefa:", error);
         }
@@ -928,7 +921,7 @@ export function KanbanBoard() {
   const handleDragStart = (event: any) => {
     const { active } = event;
     setActiveCardId(active.id);
-    console.log(`Iniciando arrastar tarefa ID ${active.id}`);
+
   };
   
   const handleDragOver = (event: any) => {
@@ -941,7 +934,7 @@ export function KanbanBoard() {
     
     const activeCard = cards.find(card => card.id === active.id);
     
-    console.log(`Arrastando ID ${active.id} sobre ${over.id}, tipo: ${over.data?.current?.type}`);
+
     
     if (over.data?.current?.type === 'column') {
       const newColumn = over.data.current.column as KanbanColumn;
@@ -949,7 +942,7 @@ export function KanbanBoard() {
       setHighlightedColumn(newColumn);
       
       if (activeCard && activeCard.column !== newColumn) {
-        console.log(`Mudando coluna temporária para ${newColumn}`);
+
         setCards(cards.map(card => {
           if (card.id === active.id) {
             return {
@@ -968,7 +961,7 @@ export function KanbanBoard() {
         setHighlightedColumn(overCard.column);
         
         if (activeCard && activeCard.column !== overCard.column) {
-          console.log(`Mudando para coluna do cartão: ${overCard.column}`);
+
           setCards(cards.map(card => {
             if (card.id === active.id) {
               return {
@@ -1203,7 +1196,7 @@ export function KanbanBoard() {
     }
 
     if (tasksToUpdate.length > 0) {
-      console.log("Enviando atualizações para o servidor:", JSON.stringify(tasksToUpdate, null, 2));
+
       updateTasksOnServer(tasksToUpdate);
       // Notificar o usuário sobre a ação (opcional, pode ser coberto por updateTasksOnServer)
       toast({
@@ -1272,13 +1265,13 @@ export function KanbanBoard() {
             if (isLoading) return;
             
             // Forçar atualização das tarefas
-            console.log("Atualizando manualmente todas as tarefas do Kanban...");
+
             setIsLoading(true);
             
             // Primeiro vamos buscar as tarefas
             fetchAndDistributeTasks()
               .then(() => {
-                console.log("Atualização manual concluída com sucesso!");
+
                 toast({
                   variant: "default",
                   title: t("Tasks updated"),

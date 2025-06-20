@@ -18,7 +18,7 @@ export default function PersistentMusicPlayer() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  console.log('[PersistentMusicPlayer] Renderizando. Playlist ID:', playlistId, 'Content Type:', contentType, 'Player Type:', playerType, 'Enabled:', isEnabled);
+
 
   useEffect(() => {
     setMounted(true);
@@ -39,8 +39,8 @@ export default function PersistentMusicPlayer() {
       if (response.ok) {
         const data = await response.json();
         setSettings(data.settings);
-        console.log("PersistentPlayer: Settings carregadas:", data.settings);
-        console.log("PersistentPlayer: enable_spotify:", data.settings.enable_spotify);
+
+
       }
     } catch (error) {
       console.error('PersistentPlayer: Erro ao carregar configurações do player de música:', error);
@@ -54,7 +54,7 @@ export default function PersistentMusicPlayer() {
       fetchSettings();
       
       const handleSettingsUpdate = () => {
-        console.log("PersistentPlayer: Detectada atualização de configurações");
+
         fetchSettings();
       };
       
@@ -220,19 +220,19 @@ export default function PersistentMusicPlayer() {
   
   // Não mostrar se isEnabled for falso (toggled off)
   if (!isEnabled) {
-    console.log("PersistentPlayer: Player desativado pelo isEnabled");
+
     return null;
   }
   
   // Não mostrar se as configurações indicarem que o Spotify está desativado
   if (settings && !settings.enable_spotify) {
-    console.log("PersistentPlayer: Música desativada nas configurações");
+
     return null;
   }
 
   // Adicionado: Se não tiver playlistId, não mostrar nada, pois a configuração é externa
   if (!playlistId) {
-    console.log("PersistentPlayer: No playlistId, not rendering iframe.");
+
     return null;
   }
 

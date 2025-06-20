@@ -43,11 +43,11 @@ export default async function AppPage() {
     initialLanguage = languageCookie.value
   }
 
-  console.log("[page.tsx] Idioma do cookie:", initialLanguage);
+
 
   // Obter a tradução diretamente usando getServerTranslation
   const translatedTitle = getServerTranslation("today", initialLanguage as "en" | "pt");
-  console.log("[page.tsx] Título traduzido:", translatedTitle);
+
 
   return (
     <div className="space-y-8">

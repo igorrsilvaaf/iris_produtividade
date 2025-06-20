@@ -15,7 +15,7 @@ type Translations = {
 function setCookie(name: string, value: string) {
   if (typeof document !== 'undefined') {
     document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Strict`;
-    console.log(`[i18n] Cookie '${name}' definido para: '${value}'`);
+
   }
 }
 
@@ -2719,19 +2719,19 @@ export const useLanguageStore = create<LanguageState>()(
       language: "en",
       isHydrated: false,
       setLanguage: (language) => {
-        console.log("[i18n] Setting language in store:", language)
+
         set({ language })
         setCookie('user-language', language)
       },
       setHydrated: (hydrated) => {
-        console.log("[i18n] Setting hydration state:", hydrated)
+
         set({ isHydrated: hydrated })
       },
     }),
     {
       name: 'language-storage',
       onRehydrateStorage: () => (state) => {
-        console.log("[i18n] Rehydrating language store, current state:", state)
+
         if (state) {
           state.setHydrated(true)
         }
@@ -2762,7 +2762,7 @@ export function useTranslation() {
     const translated = translations[key][language] || translations[key]['en'] || key
     
     if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
-      console.log(`[useTranslation] Tradução: "${key}" -> "${translated}" (idioma: ${language})`)
+
     }
     
     return translated
@@ -2780,7 +2780,7 @@ export function getServerTranslation(key: string, language: "en" | "pt" = "pt"):
   const translated = translations[key][language] || key
   
   if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
-    console.log(`[getServerTranslation] Tradução: "${key}" -> "${translated}" (idioma: ${language})`)
+
   }
   
   return translated

@@ -54,27 +54,27 @@ export async function fetchTasks(reportType: string, startDate: string, endDate:
     let url = `/api/reports?type=${reportType}&startDate=${startDate}&endDate=${endDate}`;
     
     const safeFilters = filters || {};
-    console.log("Filtros sendo aplicados:", JSON.stringify(safeFilters));
+
     
     if (safeFilters.projectIds && Array.isArray(safeFilters.projectIds) && safeFilters.projectIds.length > 0) {
       const projectString = safeFilters.projectIds.join(',');
       url += `&projectIds=${projectString}`;
-      console.log(`Filtrando por projetos [${projectString}]`);
+
     }
     
     if (safeFilters.labelIds && Array.isArray(safeFilters.labelIds) && safeFilters.labelIds.length > 0) {
       const labelString = safeFilters.labelIds.join(',');
       url += `&labelIds=${labelString}`;
-      console.log(`Filtrando por etiquetas [${labelString}]`);
+
     }
     
     if (safeFilters.priorities && Array.isArray(safeFilters.priorities) && safeFilters.priorities.length > 0) {
       const priorityString = safeFilters.priorities.join(',');
       url += `&priorities=${priorityString}`;
-      console.log(`Filtrando por prioridades [${priorityString}]`);
+
     }
     
-    console.log("URL de requisição do relatório:", url);
+
     
     const response = await fetch(url);
     
@@ -84,7 +84,7 @@ export async function fetchTasks(reportType: string, startDate: string, endDate:
     }
     
     const data = await response.json();
-    console.log(`Recebidas ${data.tasks?.length || 0} tarefas do servidor`);
+
     
     if (safeFilters.projectIds && safeFilters.projectIds.length > 0) {
       const projectIds = safeFilters.projectIds;

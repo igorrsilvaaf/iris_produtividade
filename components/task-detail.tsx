@@ -116,7 +116,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       if (!open || task.id === undefined) return;
       
       try {
-        console.log(`[TaskDetail] Buscando projeto para tarefa ${task.id}`);
+
         const response = await fetch(`/api/tasks/${task.id}/project`);
         if (response.ok) {
           const data = await response.json();
@@ -148,7 +148,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       setPoints(task.points || 3)
       
       if (task.due_date) {
-        console.log(`[TaskDetail] Data da tarefa: ${task.due_date}`)
+
         try {
           const dueDate = new Date(task.due_date)
           setDueDate(dueDate)
@@ -161,7 +161,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           const isAllDayTime = hours === 0 && minutes === 0;
           setIsAllDay(isAllDayTime)
           
-          console.log(`[TaskDetail] Data configurada: ${dueDate}, isAllDay: ${isAllDayTime}, hora: ${timeString}`)
+
         } catch (error) {
           console.error(`[TaskDetail] Erro ao processar data: ${error}`)
           setDueDate(undefined)
@@ -191,7 +191,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             }
           }
         }
-        console.log(`[TaskDetail] Anexos normalizados:`, JSON.stringify(normalizedAttachments));
+
         setAttachments(normalizedAttachments);
       } catch (error) {
         console.error(`[TaskDetail] Erro ao processar anexos:`, error);
@@ -246,7 +246,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             }),
           }).then((response) => {
             if (response.ok) {
-              console.log(`[TaskDetail] Projeto associado automaticamente: ${newProject.id} - ${newProject.name}`);
+
               setTimeout(() => {
                 router.refresh();
               }, 100);
@@ -264,7 +264,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      console.log(`[TaskDetail] Salvando tarefa ${task.id}`);
+
       
       let dueDateWithTime = null;
       
@@ -273,13 +273,13 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           const date = new Date(dueDate);
           date.setHours(0, 0, 0, 0);
           dueDateWithTime = date.toISOString();
-          console.log('[TaskDetail] Data salva como dia todo:', dueDateWithTime);
+
         } else if (dueTime) {
           const date = new Date(dueDate);
           const [hours, minutes] = dueTime.split(':').map(Number);
           date.setHours(hours, minutes, 0, 0);
           dueDateWithTime = date.toISOString();
-          console.log('[TaskDetail] Data salva com hora específica:', dueDateWithTime);
+
         }
       }
 
@@ -445,8 +445,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   
   const updateTaskDescription = async (newDescription: string) => {
     try {
-      console.log(`[TaskDetail] Atualizando descrição da tarefa ${task.id}:`, newDescription);
-      console.log(`[TaskDetail] Descrição está vazia: ${newDescription === ""}`);
+
+
       
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
@@ -463,7 +463,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       }
       
       const updatedData = await response.json();
-      console.log(`[TaskDetail] Descrição atualizada com sucesso:`, updatedData);
+
       
       toast({
         title: t("Task updated"),
@@ -496,7 +496,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       });
     }
     
-    console.log(`Total de checkboxes encontrados: ${allCheckboxes.length}`);
+
     
     let globalCheckboxIndex = 0;
     return description.split('\n').map((line, lineIndex) => {
@@ -572,7 +572,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log(`Clicando no checkbox ${currentCheckboxIndex}, estado atual: ${isChecked}`);
+
                 toggleCheckboxInDescription(currentCheckboxIndex);
               }}
               disabled={isEditMode}
@@ -636,7 +636,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
   useEffect(() => {
     if (open && task.due_date) {
-      console.log(`[TaskDetail] Verificando data ao abrir: ${task.due_date}`);
+
       if (dueDate === undefined) {
         console.warn("[TaskDetail] Data indefinida detectada, tentando reparar");
         try {
@@ -812,11 +812,11 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       
       // Atualizar os anexos da tarefa atual com os dados mais recentes do servidor
       if (updatedTaskData && updatedTaskData.attachments) {
-        console.log(`[handleFileUpload] Anexos atualizados da tarefa:`, JSON.stringify(updatedTaskData.attachments))
+
         task.attachments = updatedTaskData.attachments
         setAttachments(updatedTaskData.attachments)
       } else {
-        console.log(`[handleFileUpload] Servidor não retornou anexos atualizados, usando nova lista`)
+
         // Se não recebemos dados da tarefa, mantenha o novo anexo
         const currentAttachments = Array.isArray(task.attachments) ? [...task.attachments] : []
         const updatedAttachments = [...currentAttachments, newAttachment]
@@ -871,9 +871,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         }
       }
       
-      console.log(`[addAttachment] Anexos atuais:`, JSON.stringify(currentAttachments));
+
       const updatedAttachments = [...currentAttachments, newAttachment];
-      console.log(`[addAttachment] Anexos atualizados:`, JSON.stringify(updatedAttachments));
+
 
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
@@ -927,7 +927,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         }
       }
       
-      console.log(`[removeAttachment] Anexos atuais:`, JSON.stringify(currentAttachments));
+
       
       // Verificar se o índice é válido
       if (index < 0 || index >= currentAttachments.length) {
@@ -937,7 +937,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       
       const updatedAttachments = [...currentAttachments];
       updatedAttachments.splice(index, 1);
-      console.log(`[removeAttachment] Anexos após remoção:`, JSON.stringify(updatedAttachments));
+
       
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
