@@ -150,7 +150,6 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
         estimated_time: 120
       };
 
-      // Mock da tarefa existente
       const mockExistingTask = {
         id: 1,
         title: 'Tarefa Original',
@@ -158,25 +157,20 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
         kanban_order: 3
       };
 
-      // Mock da tarefa atualizada
       const mockUpdatedTask = {
         ...mockExistingTask,
         ...mockRequestBody
       };
 
-      // Configurar mocks
       (todosLib.getTaskById as jest.Mock).mockResolvedValue(mockExistingTask);
       (todosLib.updateTask as jest.Mock).mockResolvedValue(mockUpdatedTask);
       
-      // Mock do request body JSON
       const mockJson = jest.fn().mockResolvedValue(mockRequestBody);
       const request = { json: mockJson } as unknown as NextRequest;
       const context = { params: { id: '1' } };
 
-      // Chamada à função
       const response = await PUT(request, context);
 
-      // Verificações
       expect(todosLib.getTaskById).toHaveBeenCalledWith(1, 1);
       expect(todosLib.updateTask).toHaveBeenCalledWith(
         1, 
@@ -194,7 +188,6 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
 
   describe('DELETE /api/tasks/[id]', () => {
     test('exclui uma tarefa', async () => {
-      // Mock da tarefa existente
       const mockExistingTask = {
         id: 1,
         title: 'Tarefa para Excluir',
@@ -202,17 +195,14 @@ describe('API de Tarefas - Endpoints para Kanban', () => {
         kanban_order: 0
       };
 
-      // Configurar mocks
       (todosLib.getTaskById as jest.Mock).mockResolvedValue(mockExistingTask);
       (todosLib.deleteTask as jest.Mock).mockResolvedValue(undefined);
       
       const request = {} as NextRequest;
       const context = { params: { id: '1' } };
 
-      // Chamada à função
       const response = await DELETE(request, context);
 
-      // Verificações
       expect(todosLib.getTaskById).toHaveBeenCalledWith(1, 1);
       expect(todosLib.deleteTask).toHaveBeenCalledWith(1, 1);
       expect(NextResponse.json).toHaveBeenCalledWith({ message: "Task deleted successfully" });

@@ -1,16 +1,13 @@
 import { GET, POST } from '@/app/api/tasks/route';
-// Removido: import { NextResponse } from 'next/server'; // Agora virá do mock
 import * as auth from '@/lib/auth';
 import * as todos from '@/lib/todos';
 
-// Mock de next/server
 jest.mock('next/server', () => ({
   NextResponse: {
     json: jest.fn((body, init) => ({
       json: async () => body,
       status: init?.status || 200,
       ok: (init?.status || 200) < 300,
-      // @ts-ignore
       headers: new global.Headers(init?.headers), // Usar Headers global do JSDOM
       text: async () => JSON.stringify(body),
       clone: jest.fn().mockImplementation(function() { return { ...this }; }),
@@ -19,11 +16,9 @@ jest.mock('next/server', () => ({
   NextRequest: jest.fn(), // Mock NextRequest como uma função simples
 }));
 
-// Mock das dependências
 jest.mock('@/lib/auth');
 jest.mock('@/lib/todos');
 
-// Mock de NextRequest
 const mockRequest = (method: string, searchParams?: URLSearchParams, body?: any) => ({
   method,
   nextUrl: {
@@ -34,13 +29,11 @@ const mockRequest = (method: string, searchParams?: URLSearchParams, body?: any)
 
 describe('API /api/tasks', () => {
   beforeEach(() => {
-    // Limpar mocks antes de cada teste
     jest.clearAllMocks();
   });
 
   describe('GET', () => {
     it('should return 401 if user is not authenticated', async () => {
-      // Configurar getSession para retornar null (sem sessão)
       (auth.getSession as jest.Mock).mockResolvedValue(null);
 
       const req = mockRequest('GET');
@@ -140,7 +133,6 @@ describe('API /api/tasks', () => {
       const mockOverdueTasks = [{ id: 'task-overdue-1', title: 'Overdue Task' }];
       
       (auth.getSession as jest.Mock).mockResolvedValue({ user: mockUser });
-      // getTasksForNotifications retorna um objeto com overdueTasks e upcomingTasks
       (todos.getTasksForNotifications as jest.Mock).mockResolvedValue({ 
         overdueTasks: mockOverdueTasks, 
         upcomingTasks: [] 
@@ -184,7 +176,6 @@ describe('API /api/tasks', () => {
       expect(jsonResponse.error).toBe('Failed to fetch tasks');
     });
 
-    // Outros testes para GET virão aqui
   });
 
   describe('POST', () => {
@@ -318,11 +309,6 @@ describe('API /api/tasks', () => {
       const jsonResponse = await response.json();
 
       expect(response.status).toBe(500);
-      // A rota POST tem um try-catch externo que pode levar a uma mensagem de erro diferente
-      // se o erro do getSession não for pego pelo primeiro if (!session)
-      // No entanto, o mais provável é que caia no "Failed to create task" do catch mais externo.
-      // Vamos verificar a mensagem exata retornada pela rota.
-      // Pela lógica da rota, se getSession() falha, deve cair no catch externo.
       expect(jsonResponse.error).toBe('Failed to create task'); 
     });
 

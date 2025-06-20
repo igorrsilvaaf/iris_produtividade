@@ -33,11 +33,11 @@ export default async function StoragePage() {
     initialLanguage = languageCookie.value
   }
 
-  console.log("[storage.tsx] Idioma do cookie:", initialLanguage);
+
   
   // Obter a tradução diretamente usando getServerTranslation
   const translatedTitle = getServerTranslation("storage", initialLanguage as "en" | "pt");
-  console.log("[storage.tsx] Título traduzido:", translatedTitle);
+
 
   return (
     <div className="space-y-8">

@@ -14,10 +14,9 @@ export async function GET(
 
     const userId = session.user.id;
     
-    // Extrair o ID da URL em vez de usar params.id
     const url = request.url;
     const urlParts = url.split('/');
-    // Pega o último segmento não vazio da URL e remove query params
+    
     const lastSegment = urlParts.filter(part => part.length > 0).pop() || '';
     const idFromUrl = lastSegment.split('?')[0];
     const taskId = parseInt(idFromUrl, 10);
@@ -34,7 +33,6 @@ export async function GET(
 
     return NextResponse.json(task);
   } catch (error) {
-    console.error("Error fetching task:", error);
     return NextResponse.json(
       { error: "Failed to fetch task" },
       { status: 500 }
@@ -81,7 +79,6 @@ export async function PUT(
 
     return NextResponse.json(updatedTask);
   } catch (error) {
-    console.error("Error updating task:", error);
     return NextResponse.json(
       { error: "Failed to update task" },
       { status: 500 }
@@ -107,31 +104,6 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    
-    console.log(`[PATCH /api/tasks/${taskId}] Dados recebidos:`, JSON.stringify(body));
-    console.log(`[PATCH /api/tasks/${taskId}] Tempo estimado recebido:`, body.estimated_time);
-    
-    if (body.dueDate) {
-      console.log(`[PATCH /api/tasks/${taskId}] Data recebida (dueDate):`, body.dueDate);
-      try {
-        const date = new Date(body.dueDate);
-        console.log(`[PATCH /api/tasks/${taskId}] Data convertida:`, date);
-        console.log(`[PATCH /api/tasks/${taskId}] Hora da data:`, date.getHours(), ":", date.getMinutes());
-      } catch (e) {
-        console.error(`[PATCH /api/tasks/${taskId}] Erro ao analisar data:`, e);
-      }
-    } else if (body.due_date) {
-      console.log(`[PATCH /api/tasks/${taskId}] Data recebida (due_date):`, body.due_date);
-      try {
-        const date = new Date(body.due_date);
-        console.log(`[PATCH /api/tasks/${taskId}] Data convertida:`, date);
-        console.log(`[PATCH /api/tasks/${taskId}] Hora da data:`, date.getHours(), ":", date.getMinutes());
-      } catch (e) {
-        console.error(`[PATCH /api/tasks/${taskId}] Erro ao analisar data:`, e);
-      }
-    } else {
-      console.log(`[PATCH /api/tasks/${taskId}] Nenhuma data recebida`);
-    }
 
     const existingTask = await getTaskById(taskId, userId);
 
@@ -143,7 +115,6 @@ export async function PATCH(
 
     return NextResponse.json(updatedTask);
   } catch (error) {
-    console.error("Error updating task:", error);
     return NextResponse.json(
       { error: "Failed to update task" },
       { status: 500 }
@@ -178,11 +149,9 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Task deleted successfully" });
   } catch (error) {
-    console.error("Error deleting task:", error);
     return NextResponse.json(
       { error: "Failed to delete task" },
       { status: 500 }
     );
   }
 }
-

@@ -10,12 +10,12 @@ const QUERY_TIMEOUT = 30000; // 30 segundos de timeout
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("Endpoint de PDF chamado");
+    ("Endpoint de PDF chamado");
     
     // Get user session
     const session = await getSession();
     if (!session) {
-      console.log("Acesso não autorizado");
+      ("Acesso não autorizado");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const filteredPriorities = Array.isArray(priorities) ? priorities : [];
     const filteredCustomColumns = Array.isArray(customColumns) ? customColumns : [];
 
-    console.log("Parâmetros recebidos:", { 
+    ("Parâmetros recebidos:", { 
       reportType, 
       startDate, 
       endDate, 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!reportType || !startDate || !endDate) {
-      console.log("Parâmetros obrigatórios faltando");
+      ("Parâmetros obrigatórios faltando");
       return NextResponse.json(
         { error: "Missing required parameters" },
         { status: 400 }
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       
       query += `)`;
       
-      console.log(`Aplicando filtro de projetos PDF: ${filteredProjectIds.join(', ')}`);
+      (`Aplicando filtro de projetos PDF: ${filteredProjectIds.join(', ')}`);
     } else {
       // Se não há filtros de projeto, usar LEFT JOIN para incluir todas as tarefas
       query += `
@@ -131,10 +131,9 @@ export async function POST(request: NextRequest) {
     // Adicionar ordenação e limite
     query += ` ORDER BY t.due_date ASC, t.priority ASC LIMIT 1000`;
     
-    console.log("Executando consulta SQL...");
-    console.log("Query:", query);
-    console.log("Params:", params);
-
+    ("Executando consulta SQL...");
+    ("Query:", query);
+    ("Params:", params);
     try {
       // Executar a consulta com timeout
       const queryPromise = sql.query(query, params);
@@ -146,11 +145,9 @@ export async function POST(request: NextRequest) {
       
       // Executar a consulta com timeout
       let tasks = await Promise.race([queryPromise, timeoutPromise]) as any[];
-      console.log(`Consulta SQL retornou ${tasks.length} tarefas`);
       
       // Verificar se a resposta da consulta é um array
       if (!Array.isArray(tasks)) {
-        console.error("Resposta da consulta não é um array:", tasks);
         tasks = [];
       }
       
@@ -168,7 +165,7 @@ export async function POST(request: NextRequest) {
           `;
           
           const labelsResults = await sql.query(labelsQuery, [taskIds]);
-          console.log(`Consulta de etiquetas retornou ${labelsResults.length} registros`);
+          (`Consulta de etiquetas retornou ${labelsResults.length} registros`);
           
           // Agrupar etiquetas por ID de tarefa
           const labelsByTaskId: Record<number, any[]> = {};
@@ -199,7 +196,7 @@ export async function POST(request: NextRequest) {
           
           // Se há filtros de etiquetas, aplicar o filtro apenas depois de ter carregado todas as etiquetas
           if (filteredLabelIds.length > 0) {
-            console.log(`Aplicando filtro de etiquetas: ${filteredLabelIds.join(', ')}`);
+            (`Aplicando filtro de etiquetas: ${filteredLabelIds.join(', ')}`);
             
             // Verificamos se há tarefas com etiquetas
             if (Array.isArray(tasks) && tasks.length > 0 && tasks.some(t => t.labels && t.labels.length > 0)) {
@@ -214,18 +211,18 @@ export async function POST(request: NextRequest) {
               // Só substituímos se tivermos tarefas filtradas
               if (filteredTasks.length > 0) {
                 tasks = filteredTasks;
-                console.log(`Após filtro de etiquetas, restam ${tasks.length} tarefas`);
+                (`Após filtro de etiquetas, restam ${tasks.length} tarefas`);
               } else {
                 // Se não encontramos nenhuma tarefa com as etiquetas solicitadas,
                 // é provavelmente um erro do usuário, então vamos manter as tarefas originais
-                console.log(`Aviso: Filtro de etiquetas não encontrou resultados. Mantendo resultado original.`);
+                (`Aviso: Filtro de etiquetas não encontrou resultados. Mantendo resultado original.`);
               }
             } else {
-              console.log(`Aviso: Não há etiquetas nas tarefas para filtrar.`);
+              (`Aviso: Não há etiquetas nas tarefas para filtrar.`);
             }
           }
         } catch (labelError) {
-          console.error("Erro ao processar etiquetas:", labelError);
+          ("Erro ao processar etiquetas:", labelError);
           // Continuar sem as etiquetas em caso de erro
         }
       }
@@ -264,7 +261,7 @@ export async function POST(request: NextRequest) {
               sanitizedTask.labels = [];
             }
           } catch (e) {
-            console.error('Erro ao processar etiquetas:', e);
+            ('Erro ao processar etiquetas:', e);
             sanitizedTask.labels = [];
           }
         }
@@ -294,7 +291,7 @@ export async function POST(request: NextRequest) {
         }
       };
   
-      console.log("Iniciando geração do PDF com os dados coletados");
+      ("Iniciando geração do PDF com os dados coletados");
       
       try {
         // Gerar o PDF
@@ -304,7 +301,7 @@ export async function POST(request: NextRequest) {
         const date = new Date().toISOString().split('T')[0];
         const fileName = `Relatorio_${reportType.charAt(0).toUpperCase() + reportType.slice(1)}_${date}.pdf`;
         
-        console.log("PDF gerado com sucesso, montando resposta");
+        ("PDF gerado com sucesso, montando resposta");
         
         // Configurar os cabeçalhos da resposta
         const headers = new Headers();
@@ -318,21 +315,21 @@ export async function POST(request: NextRequest) {
           headers
         });
       } catch (pdfError) {
-        console.error("Erro específico ao gerar PDF:", pdfError);
+        ("Erro específico ao gerar PDF:", pdfError);
         return NextResponse.json(
           { error: "Erro ao gerar PDF: " + (pdfError instanceof Error ? pdfError.message : String(pdfError)) },
           { status: 500 }
         );
       }
     } catch (dbError) {
-      console.error("Erro na consulta ao banco de dados:", dbError);
+      ("Erro na consulta ao banco de dados:", dbError);
       return NextResponse.json(
         { error: "Erro ao consultar o banco de dados: " + (dbError instanceof Error ? dbError.message : String(dbError)) },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error("Erro geral na rota de PDF:", error);
+    ("Erro geral na rota de PDF:", error);
     
     // Tratamento especial para timeout
     if (error instanceof Error && error.message === "Query timeout") {

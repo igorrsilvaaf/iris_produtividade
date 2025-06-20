@@ -28,10 +28,7 @@ export function ServiceWorkerRegistration() {
         navigator.serviceWorker
           .register("/service-worker.js")
           .then((registration) => {
-            console.log(
-              "Service Worker registrado com sucesso:",
-              registration.scope
-            );
+
           })
           .catch((error) => {
             console.error("Erro ao registrar Service Worker:", error);
@@ -40,7 +37,7 @@ export function ServiceWorkerRegistration() {
         console.error("Erro ao inicializar Service Worker:", error);
       }
     } else {
-      console.log("Service Workers não são suportados neste navegador.");
+
     }
 
     const safeClipboardWrite = async (text: string): Promise<void> => {
@@ -56,13 +53,13 @@ export function ServiceWorkerRegistration() {
 
     if ('Notification' in window) {
       if (Notification.permission === 'granted') {
-        console.log('Permissão para notificações já concedida')
+
       }
       else if (Notification.permission === 'denied') {
-        console.log('Permissão para notificações foi negada pelo usuário')
+
       }
     } else {
-      console.log('Este navegador não suporta notificações desktop')
+
     }
 
     return () => {

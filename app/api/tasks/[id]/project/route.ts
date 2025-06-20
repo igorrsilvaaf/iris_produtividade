@@ -17,7 +17,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json({ projectId })
   } catch (error: any) {
-    console.error("Error fetching task project:", error);
     return NextResponse.json({ message: error.message || "Failed to fetch task project" }, { status: 500 })
   }
 }
@@ -40,18 +39,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json()
     const { projectId } = body
     
-    console.log("Task project update request:", { taskId, projectId, body });
 
-    // Verificar se o projectId é válido (null ou número)
     if (projectId !== null && (isNaN(Number(projectId)) || Number(projectId) <= 0)) {
       return NextResponse.json({ message: "Invalid project ID format" }, { status: 400 })
     }
     
-    // Convertendo para number ou permanecendo null
+
     const projectIdValue = projectId === null ? null : Number(projectId);
     const userId = session.user.id;
     
-    console.log("Calling setTaskProject with:", { taskId, userId, projectIdValue });
     await setTaskProject(taskId, userId, projectIdValue)
 
     return NextResponse.json({ 
@@ -59,11 +55,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       data: { taskId, projectId: projectIdValue } 
     })
   } catch (error: any) {
-    console.error("Error updating task project:", error);
     return NextResponse.json({ 
       message: error.message || "Failed to update task project",
       error: error.toString()
     }, { status: 500 })
   }
 }
-

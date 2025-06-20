@@ -35,7 +35,7 @@ async function ensureUserSettingsTable() {
     `;
 
     if (!tableExists[0].exists) {
-      console.log("Creating user_settings table...");
+
       
       await sql`
         CREATE TABLE user_settings (
@@ -64,7 +64,7 @@ async function ensureUserSettingsTable() {
         );
       `;
       
-      console.log("user_settings table created successfully");
+
     } else {
       // Verificar se as colunas existem
       const columnsExist = await sql`
@@ -80,42 +80,42 @@ async function ensureUserSettingsTable() {
       `;
       
       if (!columnsExist[0].enable_task_notifications_exists) {
-        console.log("Adding enable_task_notifications column to user_settings table...");
+
         await sql`ALTER TABLE user_settings ADD COLUMN enable_task_notifications BOOLEAN NOT NULL DEFAULT true`;
       }
       
       if (!columnsExist[0].task_notification_days_exists) {
-        console.log("Adding task_notification_days column to user_settings table...");
+
         await sql`ALTER TABLE user_settings ADD COLUMN task_notification_days INTEGER NOT NULL DEFAULT 3`;
       }
       
       if (!columnsExist[0].pomodoro_sound_exists) {
-        console.log("Adding pomodoro_sound column to user_settings table...");
+
         await sql`ALTER TABLE user_settings ADD COLUMN pomodoro_sound VARCHAR(50) NOT NULL DEFAULT 'pomodoro'`;
       }
       
       if (!columnsExist[0].spotify_playlist_url_exists) {
-        console.log("Adding spotify_playlist_url column to user_settings table...");
+
         await sql`ALTER TABLE user_settings ADD COLUMN spotify_playlist_url TEXT`;
       }
       
       if (!columnsExist[0].enable_spotify_exists) {
-        console.log("Adding enable_spotify column to user_settings table...");
+
         await sql`ALTER TABLE user_settings ADD COLUMN enable_spotify BOOLEAN NOT NULL DEFAULT true`;
       }
       
       if (!columnsExist[0].enable_flip_clock_exists) {
-        console.log("Adding enable_flip_clock column to user_settings table...");
+
         await sql`ALTER TABLE user_settings ADD COLUMN enable_flip_clock BOOLEAN NOT NULL DEFAULT true`;
       }
       
       if (!columnsExist[0].flip_clock_size_exists) {
-        console.log("Adding flip_clock_size column to user_settings table...");
+
         await sql`ALTER TABLE user_settings ADD COLUMN flip_clock_size VARCHAR(20) NOT NULL DEFAULT 'medium'`;
       }
       
       if (!columnsExist[0].flip_clock_color_exists) {
-        console.log("Adding flip_clock_color column to user_settings table...");
+
         await sql`ALTER TABLE user_settings ADD COLUMN flip_clock_color VARCHAR(20) NOT NULL DEFAULT '#ff5722'`;
       }
     }
@@ -230,10 +230,7 @@ export async function updateUserSettings(userId: number, settings: Partial<UserS
   try {
     await ensureUserSettingsTable();
     
-    console.log("[Settings] Atualizando configurações do usuário:", userId);
-    console.log("[Settings] Valores recebidos:", settings);
-    console.log("[Settings] Dias de notificação:", settings.task_notification_days, "tipo:", typeof settings.task_notification_days);
-    
+
     const now = new Date().toISOString()
 
     const updatedSettings = await sql`

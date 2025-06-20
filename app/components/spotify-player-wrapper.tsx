@@ -20,7 +20,7 @@ export default function SpotifyPlayerWrapper() {
       const response = await fetch('/api/settings');
       if (response.ok) {
         const data = await response.json();
-        console.log("SpotifyPlayerWrapper: Verificando configurações:", data.settings.enable_spotify);
+
         
         if (data.settings && data.settings.enable_spotify) {
           setIsEnabled(true);
@@ -40,7 +40,7 @@ export default function SpotifyPlayerWrapper() {
     
     // Adicionar listener para evento de atualização de configurações
     const handleSettingsUpdate = () => {
-      console.log("SpotifyPlayerWrapper: Detectada atualização de configurações");
+
       checkSpotifySettings();
     };
     
@@ -53,7 +53,7 @@ export default function SpotifyPlayerWrapper() {
   
   // Só renderizar o player se estiver habilitado
   if (!isEnabled) {
-    console.log("SpotifyPlayerWrapper: Spotify desabilitado, não renderizando player");
+
     return null;
   }
   

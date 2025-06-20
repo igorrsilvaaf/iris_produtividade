@@ -83,7 +83,7 @@ export function ChangelogNotification() {
         const dismissedArray = dismissedVersions ? JSON.parse(dismissedVersions) : []
         
         if (!dismissedArray.includes(latestNewVersion)) {
-          console.log(`[Changelog] Mostrando notificação para nova versão: ${latestNewVersion}`)
+
           setLatestChangelog(latestNewVersion)
           setOpen(true)
         }

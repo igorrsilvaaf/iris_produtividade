@@ -9,34 +9,30 @@ export async function GET(request: NextRequest) {
     const apiToken = request.headers.get('x-api-token');
     const isDevelopment = process.env.NODE_ENV === 'development';
     
-    console.log("Iniciando migração da coluna points...");
+    ("Iniciando migração da coluna points...");
 
     // Adiciona uma nova coluna 'points' à tabela 'todos'
     await sql`ALTER TABLE todos ADD COLUMN IF NOT EXISTS points INTEGER DEFAULT 3;`
-    console.log("Coluna points adicionada ou já existente.");
+    ("Coluna points adicionada ou já existente.");
     
     // Adiciona validação para garantir que os pontos estejam entre 1 e 5
     try {
       await sql`ALTER TABLE todos ADD CONSTRAINT chk_todos_points CHECK (points BETWEEN 1 AND 5);`
-      console.log("Constraint para points adicionada.");
     } catch (error) {
-      console.log("Constraint já existe ou não pode ser criada:", error);
     }
     
     // Cria um índice para otimizar consultas por points
     await sql`CREATE INDEX IF NOT EXISTS idx_todos_points ON todos(points);`
-    console.log("Índice para points criado ou já existente.");
 
     // Verificar dados após migração
     const taskCheck = await sql`SELECT COUNT(*) as count, points FROM todos GROUP BY points;`
-    console.log("Verificação de tarefas após migração:", taskCheck);
 
     return NextResponse.json({ 
       message: "Points migration executed successfully",
       taskCheck
     })
   } catch (error: any) {
-    console.error("Erro ao executar migração points:", error)
+    ("Erro ao executar migração points:", error)
     return NextResponse.json({ message: error.message || "Failed to run points migration" }, { status: 500 })
   }
 } 

@@ -50,13 +50,13 @@ export function useAudioPlayer() {
       const validSoundName = Object.keys(SOUND_URLS).includes(soundName) ? soundName : 'pomodoro';
       
       if (validSoundName === 'none') {
-        console.log('Som desativado: nenhum som será tocado');
+
         return;
       }
       
       const soundUrl = SOUND_URLS[validSoundName as keyof typeof SOUND_URLS];
       
-      console.log(`Tocando som: ${validSoundName}, URL: ${soundUrl}`);
+
       
       let audio = audioCache.current.get(validSoundName);
       

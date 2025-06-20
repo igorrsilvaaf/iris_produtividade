@@ -41,9 +41,9 @@ export function ForgotPasswordForm() {
     setIsLoading(true)
 
     try {
-      console.log("Verificando estrutura do banco de dados...");
+
       await fetch("/api/auth/verify-db").then(res => res.json());
-      console.log("Estrutura do banco de dados verificada");
+
       
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",

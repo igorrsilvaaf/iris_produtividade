@@ -135,7 +135,7 @@ export function getServerTranslation(key: string, language: Language = "pt"): st
   
   // Log apenas para depuração
   if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
-    console.log(`[getServerTranslation] Tradução: "${key}" -> "${translated}" (idioma: ${language})`)
+
   }
   
   return translated

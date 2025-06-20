@@ -49,7 +49,7 @@ export function LoginForm() {
     try {
       const currentLanguage = (language && ["pt", "en"].includes(language)) ? language : "pt"
       
-      console.log("Tentando login com rememberMe:", values.rememberMe)
+
       
       const response = await fetch("/api/auth/login", {
         method: "POST",

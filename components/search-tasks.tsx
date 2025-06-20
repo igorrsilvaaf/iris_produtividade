@@ -88,7 +88,7 @@ export function SearchTasks() {
 
     try {
       const normalizedQuery = searchQuery.trim()
-      console.log("Buscando por:", normalizedQuery)
+
       
       const timestamp = new Date().getTime()
       const url = `/api/tasks/search?q=${encodeURIComponent(normalizedQuery)}&_=${timestamp}`
@@ -130,7 +130,7 @@ export function SearchTasks() {
       }
 
       const data = await response.json()
-      console.log("Resultados:", data.tasks?.length || 0)
+
       
       setResults(data.tasks || [])
       setIsLoading(false)

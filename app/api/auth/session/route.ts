@@ -11,7 +11,6 @@ export async function GET() {
 
     return NextResponse.json(session)
   } catch (error: any) {
-    console.error("Erro ao obter sessão:", error)
     return NextResponse.json(null, { status: 500 })
   }
-} 
+}

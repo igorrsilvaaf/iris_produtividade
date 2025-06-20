@@ -71,7 +71,7 @@ export function PomodoroTimer({
       }
 
       // Registra qualquer tipo de sessão completa (work, shortBreak ou longBreak)
-      console.log(`[Pomodoro Mobile Debug] Iniciando registro de Pomodoro - Modo: ${mode}, TaskId: ${selectedTaskId}, Duração: ${mode === "work" ? storeSettings.workMinutes : mode === "shortBreak" ? storeSettings.shortBreakMinutes : storeSettings.longBreakMinutes}`);
+
 
       fetch(`/api/pomodoro/log`, {
         method: "POST",
@@ -92,9 +92,9 @@ export function PomodoroTimer({
         }),
       })
       .then(response => {
-        console.log(`[Pomodoro Mobile Debug] Resposta da API: Status ${response.status}`);
+
         if (response.ok) {
-          console.log("[Pomodoro Mobile Debug] Pomodoro log salvo com sucesso");
+
           
           // Disparar um evento personalizado para notificar outros componentes
           if (typeof window !== 'undefined') {
@@ -103,7 +103,7 @@ export function PomodoroTimer({
                 detail: { taskId: selectedTaskId, timestamp: Date.now() }
               });
               window.dispatchEvent(event);
-              console.log("[Pomodoro Mobile Debug] Evento pomodoroCompleted disparado");
+
             } catch (error) {
               console.error("[Pomodoro Mobile Debug] Erro ao disparar evento:", error);
             }
@@ -114,10 +114,10 @@ export function PomodoroTimer({
             // Atualiza a URL atual com um timestamp para forçar a recarga dos dados
             try {
               const currentPath = window.location.pathname;
-              console.log(`[Pomodoro Mobile Debug] Caminho atual: ${currentPath}`);
+
               if (currentPath.includes('/app/pomodoro')) {
                 // Somente se estiver na página do pomodoro
-                console.log("[Pomodoro Mobile Debug] Tentando atualizar a rota");
+
                 router.refresh();
               }
             } catch (error) {
@@ -147,7 +147,7 @@ export function PomodoroTimer({
         
         // Usar o longBreakInterval das configurações (pomodoro_cycles)
         const longBreakInterval = storeSettings.longBreakInterval || 4;
-        console.log(`[Pomodoro Mobile Debug] Ciclo atual: ${cycles}, Intervalo de pausa longa: ${longBreakInterval}`);
+  
 
         if (mode === "work") {
           // Verificar se completamos o número de ciclos de trabalho definido antes da pausa longa
@@ -155,11 +155,11 @@ export function PomodoroTimer({
           
           if (isLongBreakDue) {
             // É hora de uma pausa longa
-            console.log(`[Pomodoro Mobile Debug] Completou ${longBreakInterval} ciclos, iniciando pausa longa`);
+
             nextMode = "longBreak";
           } else {
             // Ainda não é hora de pausa longa, então é pausa curta
-            console.log(`[Pomodoro Mobile Debug] Completou ${(cycles + 1) % longBreakInterval} de ${longBreakInterval} ciclos, iniciando pausa curta`);
+
             nextMode = "shortBreak";
           }
           
@@ -170,7 +170,7 @@ export function PomodoroTimer({
           nextMode = "work";
         }
 
-        console.log(`[Pomodoro Mobile Debug] Próximo modo: ${nextMode}, Próximo ciclo: ${newInternalCycle}`);
+  
         setCycles(newInternalCycle);
         setStoreMode(nextMode);
         setIsRunning(false);
