@@ -3,7 +3,6 @@ import { getSession } from "@/lib/auth"
 import { neon } from "@neondatabase/serverless"
 import { put } from '@vercel/blob'
 import { v4 as uuidv4 } from 'uuid'
-import type { Blob } from '@vercel/blob'
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -62,5 +61,4 @@ export const config = {
       sizeLimit: '5mb',
     },
   },
-}
 } 
