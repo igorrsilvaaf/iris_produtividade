@@ -70,7 +70,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
       setIsLoading(true);
       
       try {
-        console.log(`[TaskLabels] Iniciando carregamento de labels para tarefa ${taskId}`);
+
         
         const taskLabelsResponse = await fetch(`/api/tasks/${taskId}/labels`);
         
@@ -81,7 +81,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
         }
         
         const taskLabelsData = await taskLabelsResponse.json();
-        console.log(`[TaskLabels] Labels da tarefa carregadas:`, taskLabelsData.labels);
+
         setLabels(taskLabelsData.labels);
 
         const allLabelsResponse = await fetch("/api/labels");
@@ -93,7 +93,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
         }
         
         const allLabelsData = await allLabelsResponse.json();
-        console.log(`[TaskLabels] Todas as labels carregadas:`, allLabelsData.labels);
+
         setAllLabels(allLabelsData.labels);
         
         setIsFetched(true);
@@ -186,7 +186,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
       .then((response) => response.json())
       .then((data) => {
         setAllLabels(data.labels);
-        console.log(`[TaskLabels] Labels atualizadas após criação:`, data.labels);
+
       })
       .catch((error) => {
         console.error(`[TaskLabels] Erro ao atualizar labels após criação:`, error);

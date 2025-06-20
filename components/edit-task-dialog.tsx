@@ -89,16 +89,6 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
   
   const { value: estimatedTimeValue, unit: estimatedTimeUnit } = getTimeUnitAndValue(task.estimated_time || null)
 
-  console.log("[EditTaskDialog] Task data:", {
-    id: task.id,
-    title: task.title,
-    has_attachments: !!task.attachments && task.attachments.length > 0,
-    attachments_count: task.attachments?.length || 0,
-    estimated_time: task.estimated_time,
-    calculated_value: estimatedTimeValue,
-    calculated_unit: estimatedTimeUnit
-  });
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -130,7 +120,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
   useEffect(() => {
     if (open) {
-      console.log("[EditTaskDialog] Setting attachments from task:", task.attachments);
+
       setAttachments(task.attachments || []);
     }
   }, [open, task.attachments]);
@@ -286,13 +276,13 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
           const date = new Date(values.dueDate);
           date.setHours(0, 0, 0, 0);
           dueDateWithTime = date.toISOString();
-          console.log('[EditTask] Data para dia todo:', dueDateWithTime);
+
         } else if (values.dueTime) {
           const date = new Date(values.dueDate);
           const [hours, minutes] = values.dueTime.split(':').map(Number);
           date.setHours(hours, minutes, 0, 0);
           dueDateWithTime = date.toISOString();
-          console.log('[EditTask] Data com hora específica:', dueDateWithTime);
+
         }
       }
 

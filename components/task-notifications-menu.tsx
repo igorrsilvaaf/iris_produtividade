@@ -70,7 +70,7 @@ export function TaskNotificationsMenu() {
     while (retryCount < maxRetries && !success) {
       try {
         if (!navigator.onLine) {
-          console.log("Navegador offline, aguardando reconexão para buscar notificações");
+
           break;
         }
         
@@ -78,7 +78,7 @@ export function TaskNotificationsMenu() {
         const timeoutId = setTimeout(() => controller.abort(), 10000); 
         const cacheKey = Date.now().toString();
         const url = `/api/notifications/tasks?_cache=${cacheKey}`;
-        console.log(`[TaskNotificationsMenu] Buscando notificações em: ${url}`);
+
         
         const response = await fetch(url, {
           signal: controller.signal,
@@ -96,7 +96,7 @@ export function TaskNotificationsMenu() {
         if (response.ok) {
           const data = await response.json();
           
-          console.log(`[TaskNotificationsMenu] Recebidas notificações para usuário: ${data.userId}, email: ${data.userEmail}`);
+
           
           const sessionResponse = await fetch('/api/auth/session');
           const sessionData = await sessionResponse.json();
@@ -149,7 +149,7 @@ export function TaskNotificationsMenu() {
             data.upcomingCount = secureTasks.upcomingTasks.length;
             data.totalCount = secureTasks.overdueTasks.length + secureTasks.dueTodayTasks.length + secureTasks.upcomingTasks.length;
             
-            console.log(`[TaskNotificationsMenu] Total de tarefas após filtragem de segurança: ${data.totalCount}`);
+
           }
           
           setNotifications(data);
@@ -521,7 +521,7 @@ export function TaskNotificationsMenu() {
         task={selectedTask} 
         open={showTaskDetail} 
         onOpenChange={(open) => {
-          console.log("Alterando estado do modal:", open);
+
           setShowTaskDetail(open);
           if (!open) {
             setTimeout(() => setSelectedTask(null), 300);

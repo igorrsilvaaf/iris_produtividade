@@ -27,6 +27,31 @@ export type Todo = {
   estimated_time?: number | null;
 };
 
+// Função auxiliar para verificar se uma tarefa é válida para hoje
+// Considera data e horário para determinar se ainda não venceu
+function isTaskValidForToday(task: any): boolean {
+  if (!task.due_date) return false;
+  
+  const now = new Date();
+  const taskDueDate = new Date(task.due_date);
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  // Verifica se é para hoje (mesmo dia)
+  const isToday = taskDueDate >= today && taskDueDate < tomorrow;
+  
+  // Verifica se o horário ainda não passou
+  const notExpired = taskDueDate >= now;
+  
+  // Verifica se não está concluída
+  const notCompleted = !task.completed;
+  
+  return isToday && notExpired && notCompleted;
+}
+
 export async function getTodayTasks(userId: number): Promise<Todo[]> {
   const now = new Date();
   const today = new Date(now);
@@ -48,9 +73,20 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     ORDER BY t.kanban_order ASC NULLS LAST, t.priority ASC, t.due_date ASC
   `;
 
-  tasks.forEach((task: any) => {});
+  // Filtrar tarefas que ainda não venceram hoje
+  // Uma tarefa só aparece no "Hoje" se:
+  // 1. É para hoje (mesmo dia)
+  // 2. O horário ainda não passou (não vencida)
+  // 3. Não está concluída (já verificado na query)
+  const currentTime = new Date();
+  
+  const validTasks = tasks.filter((task: any) => {
+    const taskDueDate = new Date(task.due_date);
+    // Só mostra tarefas cujo horário ainda não passou
+    return taskDueDate >= currentTime;
+  });
 
-  return tasks as Todo[];
+  return validTasks as Todo[];
 }
 
 export async function getInboxTasks(userId: number): Promise<Todo[]> {
@@ -204,9 +240,7 @@ export async function updateTask(
   }
 
   if (updates.attachments !== undefined) {
-    console.log(
-      `[updateTask] Atualizando anexos: ${JSON.stringify(updates.attachments)}`,
-    );
+
 
     // Garantir que attachments seja sempre um array válido antes de atualizar
     let normalizedAttachments = [];
@@ -225,23 +259,16 @@ export async function updateTask(
           normalizedAttachments = existingTask?.attachments || [];
         }
       } else if (updates.attachments) {
-        console.error(
-          `[updateTask] Anexos não é um array: ${typeof updates.attachments}`,
-        );
         // Obter os anexos atuais da tarefa em vez de substituir com array vazio
         const existingTask = await getTaskById(taskId, userId);
         normalizedAttachments = existingTask?.attachments || [];
       }
     } catch (error) {
-      console.error(`[updateTask] Erro ao normalizar anexos: ${error}`);
       // Obter os anexos atuais da tarefa em vez de substituir com array vazio
       const existingTask = await getTaskById(taskId, userId);
       normalizedAttachments = existingTask?.attachments || [];
     }
 
-    console.log(
-      `[updateTask] Anexos normalizados: ${JSON.stringify(normalizedAttachments)}`,
-    );
     updates.attachments = normalizedAttachments;
   }
 
@@ -352,12 +379,7 @@ export async function setTaskProject(
   userId: number,
   projectId: number | null,
 ): Promise<void> {
-  console.log(
-    `[setTaskProject] Iniciando com taskId=${taskId}, userId=${userId}, projectId=${projectId}`,
-  );
-
   if (!taskId || isNaN(taskId) || taskId <= 0) {
-    console.error(`[setTaskProject] ID de tarefa inválido: ${taskId}`);
     throw new Error("Invalid task ID");
   }
 
@@ -369,35 +391,23 @@ export async function setTaskProject(
 
     // Se a tarefa não pertencer ao usuário, lançar erro
     if (taskCheck.length === 0) {
-      console.error(
-        `[setTaskProject] Tarefa ${taskId} não pertence ao usuário ${userId}`,
-      );
       throw new Error("Task not found or not owned by user");
     }
 
-    console.log(
-      `[setTaskProject] Removendo associações existentes para taskId=${taskId}`,
-    );
     await sql`
       DELETE FROM todo_projects
       WHERE todo_id = ${taskId}
     `;
 
     if (projectId !== null && projectId > 0) {
-      console.log(
-        `[setTaskProject] Adicionando nova associação: taskId=${taskId}, projectId=${projectId}`,
-      );
       await sql`
         INSERT INTO todo_projects (todo_id, project_id)
         VALUES (${taskId}, ${projectId})
       `;
     } else {
-      console.log(
-        `[setTaskProject] Nenhum projectId válido fornecido (${projectId}), apenas removendo associações existentes`,
-      );
     }
 
-    console.log(`[setTaskProject] Concluído com sucesso para taskId=${taskId}`);
+
   } catch (error) {
     console.error(`[setTaskProject] Erro ao definir projeto da tarefa:`, error);
     throw error;
@@ -421,9 +431,7 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
   `;
 
   tasks.forEach((task: any) => {
-    console.log(
-      `[getUpcomingTasks] ID: ${task.id}, Título: ${task.title}, Data: ${task.due_date}`,
-    );
+;
   });
 
   return tasks as Todo[];
@@ -441,18 +449,18 @@ export async function searchTasks(
     const normalizedSearchText = searchText.toLowerCase().trim();
     const pattern = `%${normalizedSearchText}%`;
 
-    console.log(`Buscando tarefas com padrão: "${pattern}"`);
+
 
     const userCheck =
       await sql`SELECT id FROM users WHERE id = ${userId} LIMIT 1`;
     if (userCheck.length === 0) {
-      console.log(`Usuário com ID ${userId} não encontrado`);
+
       return [];
     }
 
     const taskCount =
       await sql`SELECT COUNT(*) as count FROM todos WHERE user_id = ${userId}`;
-    console.log(`Total de tarefas do usuário: ${taskCount[0]?.count || 0}`);
+
 
     const result = await sql`
       SELECT *
@@ -466,7 +474,7 @@ export async function searchTasks(
       LIMIT 50
     `;
 
-    console.log(`Resultados encontrados: ${result.length}`);
+
 
     if (result.length > 0) {
       for (const task of result) {
@@ -610,9 +618,17 @@ export async function getTasksForNotifications(
     const safeOverdueTasks = overdueTasks.filter(
       (task: any) => task.user_id === userId,
     );
-    const safeDueTodayTasks = dueTodayTasks.filter(
-      (task: any) => task.user_id === userId,
-    );
+    
+    // Aplicar o mesmo filtro de horário para as tarefas de hoje nas notificações
+    // Isso garante consistência com a função getTodayTasks
+    const safeDueTodayTasks = dueTodayTasks
+      .filter((task: any) => task.user_id === userId)
+      .filter((task: any) => {
+        const taskDueDate = new Date(task.due_date);
+        // Só inclui tarefas cujo horário ainda não passou
+        return taskDueDate >= now;
+      });
+      
     const safeUpcomingTasks = upcomingTasks.filter(
       (task: any) => task.user_id === userId,
     );

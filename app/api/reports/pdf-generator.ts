@@ -27,19 +27,16 @@ const formatDate = (dateString: string): string => {
     const [year, month, day] = dateString.split('-');
     return `${day}/${month}/${year}`;
   } catch (error) {
-    console.error("Erro ao formatar data:", error);
     return dateString;
   }
 };
 
 export function generatePDF(data: ReportData): Buffer {
   try {
-    console.log("Iniciando geração de PDF...");
     
     // Limitar o número de itens para evitar problemas de memória ou desempenho
     const MAX_ITEMS = 500;
     if (data.items.length > MAX_ITEMS) {
-      console.log(`Limitando relatório de ${data.items.length} para ${MAX_ITEMS} itens`);
       data.items = data.items.slice(0, MAX_ITEMS);
     }
     
@@ -54,8 +51,6 @@ export function generatePDF(data: ReportData): Buffer {
           try {
             itemWithExtras.labels = JSON.parse(itemWithExtras.labels as unknown as string);
           } catch (e) {
-            // Se não conseguir converter, definir como array vazio
-            console.error('Erro ao processar etiquetas:', e);
             itemWithExtras.labels = [];
           }
         }
@@ -372,7 +367,7 @@ export function generatePDF(data: ReportData): Buffer {
           );
         }
       } catch (err) {
-        console.error("Erro ao adicionar numeração de página:", err);
+        ("Erro ao adicionar numeração de página:", err);
         // Continuar sem a numeração em caso de erro
       }
     };
@@ -463,7 +458,7 @@ export function generatePDF(data: ReportData): Buffer {
               }
             }
           } catch (error) {
-            console.error('Erro na formatação condicional de células:', error);
+            ('Erro na formatação condicional de células:', error);
             // Continuar sem a formatação em caso de erro
           }
         }
@@ -491,22 +486,22 @@ export function generatePDF(data: ReportData): Buffer {
         doc.text('Relatório gerado automaticamente pelo sistema', doc.internal.pageSize.width / 2, pageHeight - 5, { align: 'center' });
       }
     } catch (err) {
-      console.error("Erro ao adicionar rodapé:", err);
+      ("Erro ao adicionar rodapé:", err);
       // Continuar sem o rodapé se houver erro
     }
     
-    console.log("Geração de PDF concluída, convertendo para buffer...");
+    ("Geração de PDF concluída, convertendo para buffer...");
     
     // Converter para buffer com tratamento de erro
     try {
       const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
       return pdfBuffer;
     } catch (err) {
-      console.error("Erro ao converter PDF para buffer:", err);
+      ("Erro ao converter PDF para buffer:", err);
       throw new Error("Falha ao converter o PDF para download: " + (err instanceof Error ? err.message : String(err)));
     }
   } catch (error) {
-    console.error('Erro ao gerar PDF:', error);
+    ('Erro ao gerar PDF:', error);
     throw new Error('Falha ao gerar o PDF: ' + (error instanceof Error ? error.message : String(error)));
   }
 } 

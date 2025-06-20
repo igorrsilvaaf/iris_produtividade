@@ -409,12 +409,12 @@ export function AddTaskDialog({
           return;
         }
 
-        console.log(`[AddTask] Processando data: ${date.toString()}`);
+
 
         if (values.isAllDay) {
           date.setHours(0, 0, 0, 0);
           dueDateTime = date.toISOString();
-          console.log(`[AddTask] Data para dia todo: ${dueDateTime}`);
+
         } else if (values.dueTime) {
           const [hours, minutes] = values.dueTime.split(":").map(Number);
 
@@ -434,7 +434,7 @@ export function AddTaskDialog({
           date.setHours(hours, minutes, 0, 0);
           dueDateTime = date.toISOString();
 
-          console.log(`[AddTask] Data com hora específica: ${dueDateTime}`);
+
         }
       }
 
@@ -451,7 +451,7 @@ export function AddTaskDialog({
         name: attachment.name,
       }));
 
-      console.log(`[AddTaskDialog] Anexos formatados:`, formattedAttachments);
+
 
       const taskData = {
         title: values.title,
@@ -469,18 +469,11 @@ export function AddTaskDialog({
         estimated_time: estimatedTimeInMinutes,
       };
 
-      console.log(
-        "[AddTaskDialog] Enviando dados da tarefa:",
-        JSON.stringify(taskData),
-      );
-
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(taskData),
       });
-
-      console.log(`[AddTaskDialog] Status da resposta: ${response.status}`);
 
       if (!response.ok) {
         const errorData = await response.text();

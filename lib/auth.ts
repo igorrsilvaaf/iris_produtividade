@@ -26,7 +26,7 @@ export async function getSession(): Promise<Session | null> {
 
   try {
     // Log para debug
-    console.log("Tentando recuperar sessão com token:", sessionToken)
+
     
     const user = await sql`
     SELECT u.id, u.name, u.email, u.avatar_url
@@ -37,11 +37,11 @@ export async function getSession(): Promise<Session | null> {
   `
 
     if (!user || user.length === 0) {
-      console.log("Nenhum usuário encontrado com o token de sessão")
+
       return null
     }
 
-    console.log("Sessão recuperada com sucesso para:", user[0].email)
+
     
     return { 
       user: {
@@ -73,10 +73,10 @@ export async function createSession(userId: number, rememberMe: boolean = false)
   
   if (rememberMe) {
     expires.setDate(expires.getDate() + 30)
-    console.log(`Criando sessão para usuário ${userId} com "Lembrar de mim" ativado. Expiração: ${expires.toISOString()}`)
+
   } else {
     expires.setHours(expires.getHours() + 24)
-    console.log(`Criando sessão para usuário ${userId} sem "Lembrar de mim". Expiração: ${expires.toISOString()}`)
+
   }
 
   await sql`

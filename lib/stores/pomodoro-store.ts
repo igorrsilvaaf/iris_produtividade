@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
-type TimerMode = "work" | "shortBreak" | "longBreak"
+export type TimerMode = "work" | "shortBreak" | "longBreak"
 
 interface PomodoroState {
   isRunning: boolean

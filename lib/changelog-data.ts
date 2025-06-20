@@ -790,7 +790,7 @@ export function getChangelogData(): ChangelogData[] {
     // Se o changelog está marcado como isNew=true no código, mas não é recente, 
     // eliminaremos a flag isNew
     if (entry.isNew && !isRecent) {
-      console.log(`[Changelog] Removendo flag 'isNew' de changelog antigo: ${entry.version}`);
+
       return {
         ...entry,
         isNew: false

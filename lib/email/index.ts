@@ -16,7 +16,7 @@ const createTransporter = async () => {
   try {
     // Verificar se estamos em ambiente de desenvolvimento
     if (isDevelopment) {
-      console.log('[Email] Ambiente de desenvolvimento detectado');
+
       
       // Em desenvolvimento, verificar se temos configurações SMTP
       const hasSmtpConfig = process.env.EMAIL_SERVER_HOST && 
@@ -25,18 +25,12 @@ const createTransporter = async () => {
                            process.env.EMAIL_SERVER_PASSWORD;
       
       if (!hasSmtpConfig) {
-        console.log('[Email] Configuração SMTP não encontrada. Usando transportador para testes.');
+
         
         // Em desenvolvimento sem configuração SMTP, criar um transportador que apenas loga
         return {
           sendMail: (mailOptions: any) => {
-            console.log('========================');
-            console.log('[Email TEST] Enviaria email com as seguintes configurações:');
-            console.log('De:', mailOptions.from);
-            console.log('Para:', mailOptions.to);
-            console.log('Assunto:', mailOptions.subject);
-            console.log('Conteúdo HTML:', mailOptions.html.substring(0, 500) + '...');
-            console.log('========================');
+
             return Promise.resolve({ messageId: 'test-message-id' });
           }
         };
@@ -55,7 +49,7 @@ const createTransporter = async () => {
       throw new Error('Email server configuration is incomplete');
     }
     
-    console.log(`[Email] Usando servidor SMTP: ${host}:${port} com usuário: ${user}`);
+
     
     return nodemailer.createTransport({
       host,
@@ -74,8 +68,7 @@ export const sendEmail = async (options: EmailOptions) => {
   const { to, subject, html, from = process.env.EMAIL_FROM || 'noreply@todolist.com' } = options;
 
   try {
-    console.log(`[Email] Tentando enviar e-mail para: ${to} com assunto: ${subject}`);
-    console.log(`[Email] Ambiente: ${isDevelopment ? 'Desenvolvimento' : 'Produção'}`);
+
     
     const transporter = await createTransporter();
     
@@ -86,7 +79,7 @@ export const sendEmail = async (options: EmailOptions) => {
       html,
     });
 
-    console.log(`[Email] E-mail enviado com ID de mensagem: ${info.messageId}`);
+
     
     return {
       success: true,
@@ -97,7 +90,7 @@ export const sendEmail = async (options: EmailOptions) => {
     
     // Em desenvolvimento, permitir que o fluxo continue mesmo com erro de email
     if (isDevelopment) {
-      console.log('[Email] Ambiente de desenvolvimento - continuando fluxo mesmo com erro de email');
+
       return {
         success: false,
         error: error.message,

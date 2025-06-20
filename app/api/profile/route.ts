@@ -18,7 +18,6 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: "Name and email are required" }, { status: 400 })
     }
 
-    // Check if email is already taken by another user
     const existingUser = await sql`
       SELECT id FROM users
       WHERE email = ${email} AND id != ${session.user.id}
@@ -40,4 +39,3 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ message: error.message || "Failed to update profile" }, { status: 500 })
   }
 }
-

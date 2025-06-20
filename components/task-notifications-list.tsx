@@ -95,7 +95,7 @@ export function TaskNotificationsList({ taskNotifications, daysAhead }: TaskNoti
 
   const handleViewTask = (task: Todo) => {
     try {
-      console.log("Abrindo tarefa da lista:", task);
+
       setSelectedTask({...task});
       setShowTaskDetail(true);
     } catch (error) {
@@ -269,7 +269,7 @@ export function TaskNotificationsList({ taskNotifications, daysAhead }: TaskNoti
           task={selectedTask} 
           open={showTaskDetail} 
           onOpenChange={(open) => {
-            console.log("Alterando estado do modal da lista:", open);
+
             setShowTaskDetail(open);
             if (!open) {
               setTimeout(() => setSelectedTask(null), 300);

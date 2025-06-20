@@ -18,7 +18,7 @@ export function LanguageProvider({ initialLanguage, children }: LanguageProvider
   const { setLanguage } = useLanguageStore()
 
   useEffect(() => {
-    console.log("[LanguageProvider] Setting initial language:", initialLanguage)
+
     
     // Clear old cookie before setting new one
     document.cookie = `language-storage=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
@@ -37,7 +37,7 @@ export function LanguageProvider({ initialLanguage, children }: LanguageProvider
     setTimeout(() => {
       const cookies = document.cookie.split(';').map(c => c.trim())
       const langCookie = cookies.find(c => c.startsWith('user-language='))
-      console.log("[LanguageProvider] Language cookie after setting:", langCookie)
+
     }, 100)
   }, [initialLanguage, setLanguage])
 

@@ -61,14 +61,10 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch (error) {
-        console.error("Erro ao processar anexos existentes:", error);
         currentAttachments = [];
       }
 
-      console.log(`[upload] Anexos atuais da tarefa ${taskId}:`, JSON.stringify(currentAttachments));
-      
       const updatedAttachments = [...currentAttachments, newAttachment]
-      console.log(`[upload] Anexos atualizados da tarefa ${taskId}:`, JSON.stringify(updatedAttachments));
 
       // Atualizar a task com o novo array de anexos
       await sql`
@@ -80,7 +76,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newAttachment)
   } catch (error) {
-    console.error("Error uploading file:", error)
     return NextResponse.json(
       { error: "Failed to upload file" },
       { status: 500 }

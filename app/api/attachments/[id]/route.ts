@@ -37,7 +37,6 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error("Error serving attachment:", error)
     return NextResponse.json(
       { error: "Failed to serve attachment" },
       { status: 500 }
