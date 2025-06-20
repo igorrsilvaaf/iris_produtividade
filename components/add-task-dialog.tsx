@@ -1,20 +1,44 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, type Resolver } from "react-hook-form";
+import * as z from "zod";
+import {
+  CalendarIcon,
+  Flag,
+  Tag,
+  X,
+  Clock,
+  Plus,
+  PlusCircle,
+  CircleAlert,
+  CircleDot,
+  ChevronDown,
+  Check,
+  Paperclip,
+  Timer,
+  Link,
+  Image,
+  FileText,
+} from "lucide-react";
+import { format } from "date-fns";
+import type { Project } from "@/lib/projects";
+import type { Label } from "@/lib/labels";
+import { useToast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/lib/i18n";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { CalendarIcon, Flag, Tag, X, Clock, Plus, PlusCircle, CircleAlert, CircleDot, ChevronDown, Check, Paperclip, Timer, Link, Image, FileText } from "lucide-react"
-import { format } from "date-fns"
-import type { Project } from "@/lib/projects"
-import type { Label } from "@/lib/labels"
-import { useToast } from "@/components/ui/use-toast"
-import { useTranslation } from "@/lib/i18n"
+type AttachmentType = "link" | "file" | "image";
 
-import { Button } from "@/components/ui/button"
+interface Attachment {
+  type: string;
+  url: string;
+  name: string;
+}
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -23,19 +47,36 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Checkbox } from "@/components/ui/checkbox"
-import { LabelForm } from "@/components/label-form"
-import { ProjectForm } from "@/components/project-form"
-import { BackButton } from "@/components/ui/back-button"
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { LabelForm } from "@/components/label-form";
+import { ProjectForm } from "@/components/project-form";
+import { BackButton } from "@/components/ui/back-button";
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -47,54 +88,66 @@ const formSchema = z.object({
   projectId: z.string().optional(),
   labelIds: z.array(z.number()).default([]),
   points: z.number().min(1).max(5).default(3),
-  attachments: z.array(z.object({
-    type: z.string(),
-    url: z.string(),
-    name: z.string()
-  })).default([]),
+  attachments: z
+    .array(
+      z.object({
+        type: z.string(),
+        url: z.string(),
+        name: z.string(),
+      }),
+    )
+    .default([]),
   estimatedTime: z.number().nullable().default(null),
   estimatedTimeUnit: z.string().default("min"),
-})
+  kanban_column: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface AddTaskDialogProps {
-  children: React.ReactNode
-  initialProjectId?: number
-  initialLanguage: string
-  initialColumn?: string
+  children: React.ReactNode;
+  initialProjectId?: number;
+  initialLanguage: string;
+  initialColumn?: string;
 }
 
-export function AddTaskDialog({ children, initialProjectId, initialLanguage, initialColumn }: AddTaskDialogProps) {
-  const [open, setOpen] = useState(false)
-  const [projects, setProjects] = useState<Project[]>([])
-  const [labels, setLabels] = useState<Label[]>([])
-  const [selectedLabels, setSelectedLabels] = useState<Label[]>([])
-  const [isLoadingProjects, setIsLoadingProjects] = useState(false)
-  const [isLoadingLabels, setIsLoadingLabels] = useState(false)
-  const [showAddLabel, setShowAddLabel] = useState(false)
-  const [showCreateLabel, setShowCreateLabel] = useState(false)
-  const [showAddProject, setShowAddProject] = useState(false)
-  const [showCreateProject, setShowCreateProject] = useState(false)
-  const [datePickerOpen, setDatePickerOpen] = useState(false)
-  const router = useRouter()
-  const { toast } = useToast()
-  const { t, setLanguage } = useTranslation()
-  const [isLoading, setIsLoading] = useState(false)
-  const [attachments, setAttachments] = useState<Array<{ type: string; url: string; name: string }>>([])
-  const [attachmentUrl, setAttachmentUrl] = useState("")
-  const [attachmentName, setAttachmentName] = useState("")
-  const [attachmentType, setAttachmentType] = useState("link")
-  const [showAddAttachment, setShowAddAttachment] = useState(false)
-  const [fileUploadRef, setFileUploadRef] = useState<HTMLInputElement | null>(null)
-  const [imageUploadRef, setImageUploadRef] = useState<HTMLInputElement | null>(null)
+export function AddTaskDialog({
+  children,
+  initialProjectId,
+  initialLanguage,
+  initialColumn,
+}: AddTaskDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [labels, setLabels] = useState<Label[]>([]);
+  const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+  const [isLoadingLabels, setIsLoadingLabels] = useState(false);
+  const [showAddLabel, setShowAddLabel] = useState(false);
+  const [showCreateLabel, setShowCreateLabel] = useState(false);
+  const [showAddProject, setShowAddProject] = useState(false);
+  const [showCreateProject, setShowCreateProject] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+  const { t, setLanguage } = useTranslation();
+  const [isLoading, setIsLoading] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [attachmentUrl, setAttachmentUrl] = useState("");
+  const [attachmentName, setAttachmentName] = useState("");
+  const [attachmentType, setAttachmentType] = useState<AttachmentType>("link");
+  const [showAddAttachment, setShowAddAttachment] = useState(false);
+  const fileUploadRef = useRef<HTMLInputElement>(null);
+  const imageUploadRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialLanguage) {
-      setLanguage(initialLanguage as "en" | "pt")
+      setLanguage(initialLanguage as "en" | "pt");
     }
-  }, [initialLanguage, setLanguage])
+  }, [initialLanguage, setLanguage]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
       title: "",
       description: "",
@@ -108,232 +161,267 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
       attachments: [],
       estimatedTime: null,
       estimatedTimeUnit: "min",
+      kanban_column: initialColumn || undefined,
     },
-  })
+  });
 
   useEffect(() => {
     const fetchProjects = async () => {
-      setIsLoadingProjects(true)
+      setIsLoadingProjects(true);
       try {
-        const response = await fetch("/api/projects")
+        const response = await fetch("/api/projects");
         if (response.ok) {
-          const data = await response.json()
-          setProjects(data.projects)
+          const data = await response.json();
+          setProjects(data.projects);
         }
       } catch (error) {
-        console.error("Failed to fetch projects:", error)
+        console.error("Failed to fetch projects:", error);
       } finally {
-        setIsLoadingProjects(false)
+        setIsLoadingProjects(false);
       }
-    }
+    };
 
     const fetchLabels = async () => {
-      setIsLoadingLabels(true)
+      setIsLoadingLabels(true);
       try {
-        const response = await fetch("/api/labels")
+        const response = await fetch("/api/labels");
         if (response.ok) {
-          const data = await response.json()
-          setLabels(data.labels)
+          const data = await response.json();
+          setLabels(data.labels);
         }
       } catch (error) {
-        console.error("Failed to fetch labels:", error)
+        console.error("Failed to fetch labels:", error);
       } finally {
-        setIsLoadingLabels(false)
+        setIsLoadingLabels(false);
       }
-    }
+    };
 
     if (open) {
-      fetchProjects()
-      fetchLabels()
+      fetchProjects();
+      fetchLabels();
     }
-  }, [open])
+  }, [open]);
 
   const toggleLabel = (label: Label) => {
-    const labelIds = form.getValues("labelIds") || []
+    const labelIds = form.getValues("labelIds") || [];
 
     if (labelIds.includes(label.id)) {
-      const updatedLabelIds = labelIds.filter((id) => id !== label.id)
-      form.setValue("labelIds", updatedLabelIds)
-      setSelectedLabels(selectedLabels.filter((l) => l.id !== label.id))
+      const updatedLabelIds = labelIds.filter((id) => id !== label.id);
+      form.setValue("labelIds", updatedLabelIds);
+      setSelectedLabels(selectedLabels.filter((l) => l.id !== label.id));
     } else {
-      form.setValue("labelIds", [...labelIds, label.id])
-      setSelectedLabels([...selectedLabels, label])
+      form.setValue("labelIds", [...labelIds, label.id]);
+      setSelectedLabels([...selectedLabels, label]);
     }
-  }
+  };
 
   const removeLabel = (labelId: number) => {
-    const labelIds = form.getValues("labelIds") || []
-    const updatedLabelIds = labelIds.filter((id) => id !== labelId)
-    form.setValue("labelIds", updatedLabelIds)
-    setSelectedLabels(selectedLabels.filter((l) => l.id !== labelId))
-  }
+    const labelIds = form.getValues("labelIds") || [];
+    const updatedLabelIds = labelIds.filter((id) => id !== labelId);
+    form.setValue("labelIds", updatedLabelIds);
+    setSelectedLabels(selectedLabels.filter((l) => l.id !== labelId));
+  };
 
-  const handleCreateLabelSuccess = () => {
-    setShowCreateLabel(false)
-    fetch("/api/labels")
-      .then((response) => response.json())
-      .then((data) => {
-        setLabels(data.labels)
-      })
-      .catch((error) => {
-        console.error("Failed to refresh labels:", error)
-      })
-  }
+  const handleCreateLabelSuccess = async (newLabel: Label) => {
+    setShowCreateLabel(false);
+    try {
+      const response = await fetch("/api/labels");
+      const data = await response.json();
+      setLabels(data.labels);
 
-  const handleCreateProjectSuccess = () => {
-    setShowCreateProject(false)
-    fetch("/api/projects")
-      .then((response) => response.json())
-      .then((data) => {
-        setProjects(data.projects)
-        if (data.projects && data.projects.length > 0) {
-          const newProject = data.projects[data.projects.length - 1];
-          
-          form.setValue("projectId", newProject.id.toString(), { 
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true
-          });
-          
-          setShowAddProject(false);
-          
-          setTimeout(() => {
-            form.trigger("projectId");
-          }, 100);
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to refresh projects:", error)
-      })
-  }
+      if (newLabel) {
+        const currentLabelIds = form.getValues("labelIds") || [];
+        form.setValue("labelIds", [...currentLabelIds, newLabel.id], {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+        setSelectedLabels((prev) => [...prev, newLabel]);
+      }
+    } catch (error) {
+      console.error("Failed to refresh labels:", error);
+    }
+  };
+
+  const handleCreateProjectSuccess = async (newProject: Project) => {
+    setShowCreateProject(false);
+    try {
+      const response = await fetch("/api/projects");
+      const data = await response.json();
+      setProjects(data.projects);
+
+      if (newProject) {
+        form.setValue("projectId", newProject.id.toString(), {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
+      }
+
+      setShowAddProject(false);
+
+      setTimeout(() => {
+        form.trigger("projectId");
+      }, 100);
+    } catch (error) {
+      console.error("Failed to refresh projects:", error);
+    }
+  };
 
   const addAttachment = () => {
-    if (!attachmentUrl.trim()) return
+    if (!attachmentUrl.trim()) return;
 
     const newAttachment = {
       type: attachmentType,
       url: attachmentUrl.trim(),
       name: attachmentName.trim() || attachmentUrl.trim(),
-    }
+    };
 
-    const currentAttachments = form.getValues("attachments") || []
-    form.setValue("attachments", [...currentAttachments, newAttachment])
-    setAttachments([...attachments, newAttachment])
-    setAttachmentUrl("")
-    setAttachmentName("")
-    setShowAddAttachment(false)
-  }
+    const currentAttachments = form.getValues("attachments") || [];
+    form.setValue("attachments", [...currentAttachments, newAttachment]);
+    setAttachments([...attachments, newAttachment]);
+    setAttachmentUrl("");
+    setAttachmentName("");
+    setShowAddAttachment(false);
+  };
 
   const removeAttachment = (index: number) => {
-    const currentAttachments = [...attachments]
-    currentAttachments.splice(index, 1)
-    setAttachments(currentAttachments)
-    form.setValue("attachments", currentAttachments)
-  }
+    const currentAttachments = [...attachments];
+    currentAttachments.splice(index, 1);
+    setAttachments(currentAttachments);
+    form.setValue("attachments", currentAttachments);
+  };
 
-  const convertTimeToMinutes = (timeValue: number | null, unit: string): number | null => {
-    if (timeValue === null) return null
-    
+  const convertTimeToMinutes = (
+    timeValue: number | null,
+    unit: string,
+  ): number | null => {
+    if (timeValue === null) return null;
+
     switch (unit) {
       case "h":
-        return timeValue * 60
+        return timeValue * 60;
       case "d":
-        return timeValue * 60 * 8 // considerando 8 horas por dia
+        return timeValue * 60 * 8; // considerando 8 horas por dia
       default:
-        return timeValue
+        return timeValue;
     }
-  }
+  };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
+    event.preventDefault();
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        variant: "destructive",
+        title: t("Arquivo muito grande"),
+        description: t("O tamanho máximo permitido é 5MB"),
+      });
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-      
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to upload file')
+        throw new Error("Failed to upload file");
       }
-      
-      const data = await response.json()
+
+      const data = await response.json();
       const newAttachment = {
         type: attachmentType,
         url: data.url,
-        name: file.name
-      }
+        name: file.name,
+      };
 
-      const currentAttachments = [...attachments]
-      const updatedAttachments = [...currentAttachments, newAttachment]
-      
-      setAttachments(updatedAttachments)
-      form.setValue("attachments", updatedAttachments)
-      setShowAddAttachment(false)
-      
+      const currentAttachments = [...attachments];
+      const updatedAttachments = [...currentAttachments, newAttachment];
+
+      setAttachments(updatedAttachments);
+      form.setValue("attachments", updatedAttachments, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      setShowAddAttachment(false);
+
       // Limpar o input de arquivo
       if (event.target) {
-        event.target.value = ""
+        event.target.value = "";
       }
-      
+
       toast({
         title: t("Attachment added"),
         description: t("Your attachment has been added successfully."),
-      })
+      });
     } catch (error) {
-      console.error('Error uploading file:', error)
+      console.error("Error uploading file:", error);
       toast({
         variant: "destructive",
         title: t("Failed to upload file"),
         description: t("Please try again."),
-      })
+      });
     }
-  }
+  };
 
   const triggerFileUpload = () => {
     if (attachmentType === "image") {
-      imageUploadRef?.click()
+      imageUploadRef.current?.click();
     } else if (attachmentType === "file") {
-      fileUploadRef?.click()
+      fileUploadRef.current?.click();
     }
-  }
+  };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
+  const onSubmit = async (values: FormValues): Promise<void> => {
+    if (!values.title.trim()) {
+      toast({
+        variant: "destructive",
+        title: t("Título obrigatório"),
+        description: t("Por favor, insira um título para a tarefa."),
+      });
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      let dueDateTime = null;
-      
-      console.log(`[AddTaskDialog] Iniciando criação de tarefa na coluna: ${initialColumn || 'sem coluna definida'}`);
-      
+      let dueDateTime: string | null = null;
+
       if (values.dueDate) {
         const date = new Date(values.dueDate);
-        
+
         if (isNaN(date.getTime())) {
-          console.error(`[AddTask] Data inválida: ${values.dueDate}`);
           toast({
             variant: "destructive",
             title: t("Data inválida"),
             description: t("Por favor, selecione uma data válida."),
           });
-          setIsLoading(false);
           return;
         }
-        
+
         console.log(`[AddTask] Processando data: ${date.toString()}`);
-        
+
         if (values.isAllDay) {
           date.setHours(0, 0, 0, 0);
           dueDateTime = date.toISOString();
           console.log(`[AddTask] Data para dia todo: ${dueDateTime}`);
         } else if (values.dueTime) {
-          const [hours, minutes] = values.dueTime.split(':').map(Number);
-          
+          const [hours, minutes] = values.dueTime.split(":").map(Number);
+
           if (isNaN(hours) || isNaN(minutes)) {
-            console.error(`[AddTask] Formato de hora inválido: ${values.dueTime}`);
+            console.error(
+              `[AddTask] Formato de hora inválido: ${values.dueTime}`,
+            );
             toast({
               variant: "destructive",
               title: t("Formato de hora inválido"),
@@ -342,80 +430,81 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
             setIsLoading(false);
             return;
           }
-          
+
           date.setHours(hours, minutes, 0, 0);
           dueDateTime = date.toISOString();
-          
+
           console.log(`[AddTask] Data com hora específica: ${dueDateTime}`);
         }
       }
 
       // Converter tempo estimado para minutos
-      const estimatedTimeInMinutes = convertTimeToMinutes(values.estimatedTime, values.estimatedTimeUnit)
-      
+      const estimatedTimeInMinutes = convertTimeToMinutes(
+        values.estimatedTime,
+        values.estimatedTimeUnit,
+      );
+
       // Garantir que os anexos sejam enviados corretamente
-      const formattedAttachments = attachments.map(attachment => ({
+      const formattedAttachments = attachments.map((attachment) => ({
         type: attachment.type,
         url: attachment.url,
-        name: attachment.name
+        name: attachment.name,
       }));
-      
+
       console.log(`[AddTaskDialog] Anexos formatados:`, formattedAttachments);
-      
+
       const taskData = {
         title: values.title,
         description: values.description || null,
         due_date: dueDateTime,
         priority: Number.parseInt(values.priority),
-        project_id: values.projectId && values.projectId !== "noProject" ? Number.parseInt(values.projectId) : null,
+        project_id:
+          values.projectId && values.projectId !== "noProject"
+            ? Number.parseInt(values.projectId)
+            : null,
         kanban_column: initialColumn || null,
         completed: initialColumn === "completed",
         points: values.points,
         attachments: formattedAttachments,
         estimated_time: estimatedTimeInMinutes,
       };
-      
-      console.log('[AddTaskDialog] Enviando dados da tarefa:', JSON.stringify(taskData));
+
+      console.log(
+        "[AddTaskDialog] Enviando dados da tarefa:",
+        JSON.stringify(taskData),
+      );
 
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(taskData),
-      })
+      });
 
       console.log(`[AddTaskDialog] Status da resposta: ${response.status}`);
-      
+
       if (!response.ok) {
         const errorData = await response.text();
-        console.error(`[AddTaskDialog] Erro ao criar tarefa: ${errorData}`);
-        throw new Error(`Failed to create task: ${errorData}`);
+        throw new Error(errorData);
       }
 
       const responseData = await response.json();
-      console.log(`[AddTaskDialog] Tarefa criada com sucesso:`, responseData);
-      
-      // Adicionar etiquetas à tarefa se houver etiquetas selecionadas
       const taskId = responseData.task.id;
       const labelIds = values.labelIds || [];
-      
+
       if (labelIds.length > 0) {
-        console.log(`[AddTaskDialog] Adicionando ${labelIds.length} etiquetas à tarefa ${taskId}`);
-        
-        for (const labelId of labelIds) {
-          try {
+        await Promise.all(
+          labelIds.map(async (labelId) => {
             const labelResponse = await fetch(`/api/tasks/${taskId}/labels`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ labelId }),
             });
-            
+
             if (!labelResponse.ok) {
-              console.error(`[AddTaskDialog] Erro ao adicionar etiqueta ${labelId} à tarefa ${taskId}`);
+              throw new Error(`Falha ao adicionar etiqueta ${labelId}`);
             }
-          } catch (error) {
-            console.error(`[AddTaskDialog] Erro ao adicionar etiqueta ${labelId}:`, error);
-          }
-        }
+          }),
+        );
       }
 
       // Atualizar a interface com os dados da tarefa criada, incluindo os anexos
@@ -428,19 +517,19 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
         });
       }
 
-      form.reset()
-      setSelectedLabels([])
+      form.reset();
+      setSelectedLabels([]);
     } catch (error) {
-      console.error('[AddTaskDialog] Erro detalhado:', error);
+      console.error("[AddTaskDialog] Erro detalhado:", error);
       toast({
         variant: "destructive",
         title: t("Failed to create task"),
         description: t("Please try again."),
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -453,10 +542,15 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
             </div>
             <DialogTitle>{t("addTask")}</DialogTitle>
           </div>
-          <DialogDescription>{t("Create a new task to keep track of your work.")}</DialogDescription>
+          <DialogDescription>
+            {t("Create a new task to keep track of your work.")}
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 sm:space-y-6"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -482,15 +576,17 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                 <FormItem>
                   <FormLabel>{t("description")}</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder={t("Add details about your task")} 
+                    <Textarea
+                      placeholder={t("Add details about your task")}
                       className="min-h-[200px] text-base"
                       rows={8}
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <div className="text-xs text-muted-foreground mt-1">
-                    {t("Supports markdown formatting like **bold**, *italic*, lists, and [links](https://example.com)")}
+                    {t(
+                      "Supports markdown formatting like **bold**, *italic*, lists, and [links](https://example.com)",
+                    )}
                   </div>
                   <FormMessage />
                 </FormItem>
@@ -503,7 +599,10 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("dueDate")}</FormLabel>
-                    <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                    <Popover
+                      open={datePickerOpen}
+                      onOpenChange={setDatePickerOpen}
+                    >
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -514,38 +613,50 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                             type="button"
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value 
-                              ? form.watch("isAllDay")
-                                ? format(field.value, "PPP")
-                                : `${format(field.value, "PPP")} - ${form.watch("dueTime") || "12:00"}`
-                              : <span>{t("pickDate")}</span>}
+                            {field.value ? (
+                              form.watch("isAllDay") ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                `${format(field.value, "PPP")} - ${form.watch("dueTime") || "12:00"}`
+                              )
+                            ) : (
+                              <span>{t("pickDate")}</span>
+                            )}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start" side="bottom">
+                      <PopoverContent
+                        className="w-auto p-0"
+                        align="start"
+                        side="bottom"
+                      >
                         <div className="p-3">
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium">{t("pickDate")}</span>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-7 w-7 p-0 rounded-full" 
+                            <span className="text-sm font-medium">
+                              {t("pickDate")}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 rounded-full"
                               onClick={() => setDatePickerOpen(false)}
                             >
                               <X className="h-4 w-4" />
                               <span className="sr-only">{t("close")}</span>
                             </Button>
                           </div>
-                          <Calendar 
-                            mode="single" 
-                            selected={field.value} 
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
                             onSelect={(date) => {
                               if (date) {
                                 field.onChange(date);
                                 setTimeout(() => setDatePickerOpen(false), 100);
                               }
                             }}
-                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                            disabled={(date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
                           />
                           <div className="pt-3 pb-2 border-t mt-3">
                             <FormField
@@ -564,7 +675,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                                         } else {
                                           form.setValue("dueTime", "12:00");
                                         }
-                                        if (typeof window !== 'undefined') {
+                                        if (typeof window !== "undefined") {
                                           setTimeout(() => {
                                             form.trigger("dueTime");
                                           }, 0);
@@ -572,7 +683,10 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                                       }}
                                     />
                                   </FormControl>
-                                  <FormLabel className="text-sm font-normal cursor-pointer" htmlFor="isAllDay">
+                                  <FormLabel
+                                    className="text-sm font-normal cursor-pointer"
+                                    htmlFor="isAllDay"
+                                  >
                                     {t("allDay")}
                                   </FormLabel>
                                 </FormItem>
@@ -583,22 +697,34 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                             control={form.control}
                             name="dueTime"
                             render={({ field }) => (
-                              <FormItem className={`mt-2 ${form.watch("isAllDay") ? "hidden" : ""}`}>
+                              <FormItem
+                                className={`mt-2 ${form.watch("isAllDay") ? "hidden" : ""}`}
+                              >
                                 <div className="flex items-center">
                                   <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
                                   <FormControl>
-                                    <Input 
-                                      type="time" 
+                                    <Input
+                                      type="time"
                                       value={field.value || "12:00"}
-                                      onChange={(e) => field.onChange(e.target.value || "12:00")}
+                                      onChange={(e) =>
+                                        field.onChange(
+                                          e.target.value || "12:00",
+                                        )
+                                      }
                                       className="w-full"
                                       inputMode="text"
                                       pattern="[0-9]{2}:[0-9]{2}"
                                       placeholder="HH:MM"
                                       onClick={(e) => {
-                                        const target = e.target as HTMLInputElement;
+                                        const target =
+                                          e.target as HTMLInputElement;
                                         target.focus();
-                                        if (typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                                        if (
+                                          typeof window !== "undefined" &&
+                                          /iPhone|iPad|iPod/.test(
+                                            navigator.userAgent,
+                                          )
+                                        ) {
                                           setTimeout(() => {
                                             target.click();
                                           }, 100);
@@ -623,7 +749,10 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("priority")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("Select priority")} />
@@ -668,28 +797,42 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                     <FormLabel>{t("points") || "Pontos"}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           className="w-full justify-between text-left font-normal"
                           type="button"
                         >
                           <div className="flex items-center">
-                            <CircleDot className={`mr-2 h-4 w-4 ${
-                              field.value === 1 ? "text-green-500" :
-                              field.value === 2 ? "text-blue-500" :
-                              field.value === 3 ? "text-yellow-500" :
-                              field.value === 4 ? "text-orange-500" :
-                              field.value === 5 ? "text-red-500" :
-                              "text-muted-foreground"
-                            }`} />
-                            <span>{field.value} - {
-                              field.value === 1 ? t("veryEasy") || "Muito fácil" :
-                              field.value === 2 ? t("easy") || "Fácil" :
-                              field.value === 3 ? t("medium") || "Médio" :
-                              field.value === 4 ? t("hard") || "Difícil" :
-                              field.value === 5 ? t("veryHard") || "Muito difícil" :
-                              t("Select points") || "Selecione os pontos"
-                            }</span>
+                            <CircleDot
+                              className={`mr-2 h-4 w-4 ${
+                                field.value === 1
+                                  ? "text-green-500"
+                                  : field.value === 2
+                                    ? "text-blue-500"
+                                    : field.value === 3
+                                      ? "text-yellow-500"
+                                      : field.value === 4
+                                        ? "text-orange-500"
+                                        : field.value === 5
+                                          ? "text-red-500"
+                                          : "text-muted-foreground"
+                              }`}
+                            />
+                            <span>
+                              {field.value} -{" "}
+                              {field.value === 1
+                                ? t("veryEasy") || "Muito fácil"
+                                : field.value === 2
+                                  ? t("easy") || "Fácil"
+                                  : field.value === 3
+                                    ? t("medium") || "Médio"
+                                    : field.value === 4
+                                      ? t("hard") || "Difícil"
+                                      : field.value === 5
+                                        ? t("veryHard") || "Muito difícil"
+                                        : t("Select points") ||
+                                          "Selecione os pontos"}
+                            </span>
                           </div>
                           <ChevronDown className="h-4 w-4 opacity-50" />
                         </Button>
@@ -708,22 +851,33 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                                 </span>
                               )}
                               <div className="flex items-center">
-                                <CircleDot className={`mr-2 h-4 w-4 ${
-                                  value === 1 ? "text-green-500" :
-                                  value === 2 ? "text-blue-500" :
-                                  value === 3 ? "text-yellow-500" :
-                                  value === 4 ? "text-orange-500" :
-                                  value === 5 ? "text-red-500" :
-                                  "text-muted-foreground"
-                                }`} />
-                                {value} - {
-                                  value === 1 ? t("veryEasy") || "Muito fácil" :
-                                  value === 2 ? t("easy") || "Fácil" :
-                                  value === 3 ? t("medium") || "Médio" :
-                                  value === 4 ? t("hard") || "Difícil" :
-                                  value === 5 ? t("veryHard") || "Muito difícil" :
-                                  ""
-                                }
+                                <CircleDot
+                                  className={`mr-2 h-4 w-4 ${
+                                    value === 1
+                                      ? "text-green-500"
+                                      : value === 2
+                                        ? "text-blue-500"
+                                        : value === 3
+                                          ? "text-yellow-500"
+                                          : value === 4
+                                            ? "text-orange-500"
+                                            : value === 5
+                                              ? "text-red-500"
+                                              : "text-muted-foreground"
+                                  }`}
+                                />
+                                {value} -{" "}
+                                {value === 1
+                                  ? t("veryEasy") || "Muito fácil"
+                                  : value === 2
+                                    ? t("easy") || "Fácil"
+                                    : value === 3
+                                      ? t("medium") || "Médio"
+                                      : value === 4
+                                        ? t("hard") || "Difícil"
+                                        : value === 5
+                                          ? t("veryHard") || "Muito difícil"
+                                          : ""}
                               </div>
                             </div>
                           ))}
@@ -734,7 +888,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                   </FormItem>
                 )}
               />
-              
+
               {/* Estimated Time Field */}
               <div className="flex items-end space-x-2">
                 <div className="flex-1">
@@ -756,7 +910,13 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                             placeholder={t("task.timeValue")}
                             {...field}
                             value={field.value === null ? "" : field.value}
-                            onChange={(e) => field.onChange(e.target.value === "" ? null : Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? null
+                                  : Number(e.target.value),
+                              )
+                            }
                           />
                         </FormControl>
                       </FormItem>
@@ -777,9 +937,15 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                             <SelectValue placeholder={t("task.timeUnit")} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="min">{t("timeUnit.minutes")}</SelectItem>
-                            <SelectItem value="h">{t("timeUnit.hours")}</SelectItem>
-                            <SelectItem value="d">{t("timeUnit.days")}</SelectItem>
+                            <SelectItem value="min">
+                              {t("timeUnit.minutes")}
+                            </SelectItem>
+                            <SelectItem value="h">
+                              {t("timeUnit.hours")}
+                            </SelectItem>
+                            <SelectItem value="d">
+                              {t("timeUnit.days")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </FormItem>
@@ -800,9 +966,18 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                         <div className="flex items-center">
                           <div
                             className={`w-4 h-4 rounded-full mr-2`}
-                            style={{ backgroundColor: projects.find(p => p.id.toString() === field.value)?.color || "#ccc" }}
+                            style={{
+                              backgroundColor:
+                                projects.find(
+                                  (p) => p.id.toString() === field.value,
+                                )?.color || "#ccc",
+                            }}
                           />
-                          <span>{projects.find(p => p.id.toString() === field.value)?.name || t("Unknown project")}</span>
+                          <span>
+                            {projects.find(
+                              (p) => p.id.toString() === field.value,
+                            )?.name || t("Unknown project")}
+                          </span>
                         </div>
                         <Button
                           type="button"
@@ -816,9 +991,14 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                         </Button>
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground p-2">{t("noProject")}</p>
+                      <p className="text-sm text-muted-foreground p-2">
+                        {t("noProject")}
+                      </p>
                     )}
-                    <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
+                    <Dialog
+                      open={showAddProject}
+                      onOpenChange={setShowAddProject}
+                    >
                       <DialogTrigger asChild>
                         <Button
                           type="button"
@@ -830,20 +1010,27 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                           {t("Add Project")}
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="z-[60]" onClick={(e) => e.stopPropagation()}>
+                      <DialogContent
+                        className="z-[60]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <DialogHeader>
                           <DialogTitle>{t("Add Project")}</DialogTitle>
-                          <DialogDescription>{t("Select a project or create a new one.")}</DialogDescription>
+                          <DialogDescription>
+                            {t("Select a project or create a new one.")}
+                          </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-2 py-4">
-                      {isLoadingProjects ? (
+                          {isLoadingProjects ? (
                             <div className="flex items-center justify-center p-4">
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                             </div>
                           ) : projects.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">{t("No projects found.")}</p>
-                      ) : (
-                        projects.map((project) => (
+                            <p className="text-sm text-muted-foreground">
+                              {t("No projects found.")}
+                            </p>
+                          ) : (
+                            projects.map((project) => (
                               <button
                                 key={project.id}
                                 type="button"
@@ -853,38 +1040,55 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                                   setShowAddProject(false);
                                 }}
                               >
-                            <div className="flex items-center">
+                                <div className="flex items-center">
                                   <div
                                     className="w-4 h-4 rounded-full mr-2"
                                     style={{ backgroundColor: project.color }}
                                   />
                                   <span>{project.name}</span>
-                            </div>
+                                </div>
                               </button>
                             ))
                           )}
                         </div>
                         <div className="mt-4 border-t pt-4 flex justify-between">
-                          <Button variant="outline" onClick={() => setShowAddProject(false)}>
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowAddProject(false)}
+                          >
                             {t("Cancel")}
                           </Button>
-                          <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
+                          <Dialog
+                            open={showCreateProject}
+                            onOpenChange={setShowCreateProject}
+                          >
                             <DialogTrigger asChild>
-                              <Button onClick={(e) => {
-                                e.stopPropagation();
-                                setShowCreateProject(true);
-                              }}>
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowCreateProject(true);
+                                }}
+                              >
                                 {t("Create New Project")}
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="z-[70]" onClick={(e) => e.stopPropagation()}>
+                            <DialogContent
+                              className="z-[70]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <DialogHeader>
-                                <DialogTitle>{t("Create New Project")}</DialogTitle>
+                                <DialogTitle>
+                                  {t("Create New Project")}
+                                </DialogTitle>
                                 <DialogDescription>
-                                  {t("Fill in the details to create a new project.")}
+                                  {t(
+                                    "Fill in the details to create a new project.",
+                                  )}
                                 </DialogDescription>
                               </DialogHeader>
-                              <ProjectForm onSuccess={handleCreateProjectSuccess} />
+                              <ProjectForm
+                                onSuccess={handleCreateProjectSuccess}
+                              />
                             </DialogContent>
                           </Dialog>
                         </div>
@@ -905,17 +1109,20 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                   <div className="space-y-2">
                     <div className="flex flex-wrap gap-2 min-h-[36px] p-1">
                       {selectedLabels.map((label, index) => (
-                        <div key={label.id} className="flex items-center mt-1 space-x-2">
+                        <div
+                          key={label.id}
+                          className="flex items-center mt-1 space-x-2"
+                        >
                           <div
                             className="flex items-center justify-between px-3 py-1 rounded-md"
                             style={{
                               backgroundColor: label.color,
-                              color: "#ffffff"
+                              color: "#ffffff",
                             }}
                           >
                             <Tag className="h-3 w-3" />
                             {label.name}
-                            <button 
+                            <button
                               type="button"
                               onClick={() => removeLabel(label.id)}
                               className="ml-1 hover:bg-black/10 rounded-full p-0.5"
@@ -927,20 +1134,32 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                         </div>
                       ))}
                       {selectedLabels.length === 0 && (
-                        <span className="text-sm text-muted-foreground">{t("No labels selected")}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {t("No labels selected")}
+                        </span>
                       )}
                     </div>
                     <Dialog open={showAddLabel} onOpenChange={setShowAddLabel}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="mt-2" id="addLabelBtn">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          id="addLabelBtn"
+                        >
                           <Plus className="mr-1 h-3 w-3" />
                           {t("Add Label")}
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="z-[60]" onClick={(e) => e.stopPropagation()}>
+                      <DialogContent
+                        className="z-[60]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <DialogHeader>
                           <DialogTitle>{t("Add Label")}</DialogTitle>
-                          <DialogDescription>{t("Select a label to add to this task.")}</DialogDescription>
+                          <DialogDescription>
+                            {t("Select a label to add to this task.")}
+                          </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-2 py-4">
                           {isLoadingLabels ? (
@@ -948,10 +1167,17 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                             </div>
                           ) : labels.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">{t("No labels found.")}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {t("No labels found.")}
+                            </p>
                           ) : (
                             labels
-                              .filter((label) => !selectedLabels.some((l) => l.id === label.id))
+                              .filter(
+                                (label) =>
+                                  !selectedLabels.some(
+                                    (l) => l.id === label.id,
+                                  ),
+                              )
                               .map((label) => (
                                 <button
                                   key={label.id}
@@ -974,23 +1200,38 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                           )}
                         </div>
                         <div className="mt-4 border-t pt-4 flex justify-between">
-                          <Button variant="outline" onClick={() => setShowAddLabel(false)}>
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowAddLabel(false)}
+                          >
                             {t("Cancel")}
                           </Button>
-                          <Dialog open={showCreateLabel} onOpenChange={setShowCreateLabel}>
+                          <Dialog
+                            open={showCreateLabel}
+                            onOpenChange={setShowCreateLabel}
+                          >
                             <DialogTrigger asChild>
-                              <Button onClick={(e) => {
-                                e.stopPropagation();
-                                setShowCreateLabel(true);
-                              }}>
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowCreateLabel(true);
+                                }}
+                              >
                                 {t("Create New Label")}
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="z-[70]" onClick={(e) => e.stopPropagation()}>
+                            <DialogContent
+                              className="z-[70]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <DialogHeader>
-                                <DialogTitle>{t("Create New Label")}</DialogTitle>
+                                <DialogTitle>
+                                  {t("Create New Label")}
+                                </DialogTitle>
                                 <DialogDescription>
-                                  {t("Fill in the details to create a new label.")}
+                                  {t(
+                                    "Fill in the details to create a new label.",
+                                  )}
                                 </DialogDescription>
                               </DialogHeader>
                               <LabelForm onSuccess={handleCreateLabelSuccess} />
@@ -1013,16 +1254,25 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                   <span>{t("attachment.list")}</span>
                 </div>
               </FormLabel>
-              
+
               {/* List of attachments */}
               {attachments.length > 0 && (
                 <div className="space-y-2 mb-2">
                   {attachments.map((attachment, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-secondary/50 rounded-md">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 bg-secondary/50 rounded-md"
+                    >
                       <div className="flex items-center space-x-2 truncate">
-                        {attachment.type === "link" && <Link className="h-4 w-4" />}
-                        {attachment.type === "image" && <Image className="h-4 w-4" />}
-                        {attachment.type === "file" && <FileText className="h-4 w-4" />}
+                        {attachment.type === "link" && (
+                          <Link className="h-4 w-4" />
+                        )}
+                        {attachment.type === "image" && (
+                          <Image className="h-4 w-4" />
+                        )}
+                        {attachment.type === "file" && (
+                          <FileText className="h-4 w-4" />
+                        )}
                         <span className="truncate">{attachment.name}</span>
                       </div>
                       <Button
@@ -1037,14 +1287,16 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                   ))}
                 </div>
               )}
-              
+
               {/* Add attachment interface */}
               {showAddAttachment ? (
                 <div className="space-y-2 border rounded-md p-2">
                   <div className="grid grid-cols-3 gap-2">
                     <Button
                       type="button"
-                      variant={attachmentType === "link" ? "default" : "outline"}
+                      variant={
+                        attachmentType === "link" ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setAttachmentType("link")}
                       className="w-full"
@@ -1053,7 +1305,9 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                     </Button>
                     <Button
                       type="button"
-                      variant={attachmentType === "image" ? "default" : "outline"}
+                      variant={
+                        attachmentType === "image" ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setAttachmentType("image")}
                       className="w-full"
@@ -1062,7 +1316,9 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                     </Button>
                     <Button
                       type="button"
-                      variant={attachmentType === "file" ? "default" : "outline"}
+                      variant={
+                        attachmentType === "file" ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setAttachmentType("file")}
                       className="w-full"
@@ -1070,7 +1326,7 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                       Arquivo
                     </Button>
                   </div>
-                  
+
                   {attachmentType === "link" ? (
                     <>
                       <Input
@@ -1078,13 +1334,13 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                         value={attachmentUrl}
                         onChange={(e) => setAttachmentUrl(e.target.value)}
                       />
-                      
+
                       <Input
                         placeholder="Nome (opcional)"
                         value={attachmentName}
                         onChange={(e) => setAttachmentName(e.target.value)}
                       />
-                      
+
                       <div className="flex space-x-2">
                         <Button
                           type="button"
@@ -1099,9 +1355,9 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setShowAddAttachment(false)
-                            setAttachmentUrl("")
-                            setAttachmentName("")
+                            setShowAddAttachment(false);
+                            setAttachmentUrl("");
+                            setAttachmentName("");
                           }}
                         >
                           Cancelar
@@ -1110,14 +1366,26 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                     </>
                   ) : (
                     <>
-                      <input 
-                        type="file" 
-                        accept={attachmentType === "image" ? "image/*" : "*/*"} 
+                      <input
+                        type="file"
+                        accept={attachmentType === "image" ? "image/*" : "*/*"}
                         className="hidden"
                         onChange={handleFileUpload}
-                        ref={node => attachmentType === "image" ? setImageUploadRef(node) : setFileUploadRef(node)}
-                        aria-label={attachmentType === "image" ? "Upload de imagem" : "Upload de arquivo"}
-                        title={attachmentType === "image" ? "Upload de imagem" : "Upload de arquivo"}
+                        ref={
+                          attachmentType === "image"
+                            ? imageUploadRef
+                            : fileUploadRef
+                        }
+                        aria-label={
+                          attachmentType === "image"
+                            ? "Upload de imagem"
+                            : "Upload de arquivo"
+                        }
+                        title={
+                          attachmentType === "image"
+                            ? "Upload de imagem"
+                            : "Upload de arquivo"
+                        }
                       />
                       <Button
                         type="button"
@@ -1125,7 +1393,9 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
                         className="w-full"
                         size="sm"
                       >
-                        {attachmentType === "image" ? "Selecionar Imagem" : "Selecionar Arquivo"}
+                        {attachmentType === "image"
+                          ? "Selecionar Imagem"
+                          : "Selecionar Arquivo"}
                       </Button>
                       <Button
                         type="button"
@@ -1162,6 +1432,5 @@ export function AddTaskDialog({ children, initialProjectId, initialLanguage, ini
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

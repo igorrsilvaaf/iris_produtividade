@@ -2,7 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { TodoList } from '@/components/todo-list';
 import '@testing-library/jest-dom';
 
-// Mock do useRouter
 const mockRefresh = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -10,7 +9,6 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
-// Mock do useToast
 const mockToast = jest.fn();
 jest.mock('@/components/ui/use-toast', () => ({
   useToast: () => ({
@@ -18,11 +16,9 @@ jest.mock('@/components/ui/use-toast', () => ({
   }),
 }));
 
-// Mock de useTranslation
 jest.mock('@/lib/i18n', () => ({
   useTranslation: () => ({
     t: (key: string) => {
-      // Simples tradução para os testes
       const translations: Record<string, string> = {
         'allCaughtUp': 'Tudo em dia',
         'noTasksMessage': 'Não há tarefas pendentes',
@@ -46,7 +42,6 @@ jest.mock('@/lib/i18n', () => ({
   }),
 }));
 
-// Mock para fetch global
 global.fetch = jest.fn(() => 
   Promise.resolve({
     ok: true,
@@ -98,15 +93,12 @@ describe('Componente TodoList', () => {
   test('deve renderizar lista de tarefas corretamente', () => {
     render(<TodoList tasks={mockTasks} />);
 
-    // Verificar se os títulos das tarefas estão presentes
     expect(screen.getByText('Tarefa 1')).toBeInTheDocument();
     expect(screen.getByText('Tarefa 2')).toBeInTheDocument();
 
-    // Verificar se os nomes dos projetos estão presentes
     expect(screen.getByText('Projeto A')).toBeInTheDocument();
     expect(screen.getByText('Projeto B')).toBeInTheDocument();
 
-    // Verificar elementos relacionados à prioridade
     expect(screen.getByText('P1')).toBeInTheDocument();
     expect(screen.getByText('P2')).toBeInTheDocument();
   });
@@ -114,11 +106,9 @@ describe('Componente TodoList', () => {
   test('deve chamar API para marcar tarefa como concluída quando checkbox é clicado', async () => {
     render(<TodoList tasks={mockTasks} />);
 
-    // Encontrar o primeiro checkbox (da Tarefa 1)
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[0]);
 
-    // Verificar se a API foi chamada com os parâmetros corretos
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
         '/api/tasks/1/toggle',
@@ -130,12 +120,9 @@ describe('Componente TodoList', () => {
   test('deve chamar API para excluir tarefa quando botão de excluir é clicado', async () => {
     render(<TodoList tasks={mockTasks} />);
 
-    // Encontrar o botão de excluir para a primeira tarefa
     const deleteButtons = screen.getAllByRole('button');
-    // O último botão é o de excluir (há outros botões na interface, como o de ordenação)
     fireEvent.click(deleteButtons[deleteButtons.length - 2]); // Botão de excluir da primeira tarefa
 
-    // Verificar se a API foi chamada com os parâmetros corretos
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
         '/api/tasks/1',
@@ -147,25 +134,20 @@ describe('Componente TodoList', () => {
   test('deve alterar a ordenação das tarefas quando o select é alterado', () => {
     render(<TodoList tasks={mockTasks} />);
 
-    // Encontrar e clicar no select de ordenação
     const selectTrigger = screen.getByRole('combobox');
     fireEvent.click(selectTrigger);
 
-    // Escolher ordenar por título
     const titleOption = screen.getByText('Título');
     fireEvent.click(titleOption);
 
-    // Verificar se as tarefas foram reordenadas (a tarefa 1 deveria vir antes da tarefa 2)
     const listItems = screen.getAllByRole('listitem');
     expect(listItems[0]).toHaveTextContent('Tarefa 1');
     expect(listItems[1]).toHaveTextContent('Tarefa 2');
 
-    // Agora testar ordenação por prioridade
     fireEvent.click(selectTrigger);
     const priorityOption = screen.getByText('Prioridade');
     fireEvent.click(priorityOption);
 
-    // Como a Tarefa 1 tem prioridade 1 (maior), ela deve vir primeiro
     const listItemsAfterReorder = screen.getAllByRole('listitem');
     expect(listItemsAfterReorder[0]).toHaveTextContent('Tarefa 1');
     expect(listItemsAfterReorder[1]).toHaveTextContent('Tarefa 2');
@@ -187,7 +169,6 @@ describe('Componente TodoList', () => {
   });
 
   test('deve exibir toast de erro quando falhar ao marcar tarefa como concluída', async () => {
-    // Configurar fetch para falhar
     (global.fetch as jest.Mock).mockImplementationOnce(() => {
       throw new Error('API Error');
     });
@@ -207,7 +188,6 @@ describe('Componente TodoList', () => {
   });
 
   test('deve exibir toast de erro quando falhar ao excluir tarefa', async () => {
-    // Configurar fetch para falhar
     (global.fetch as jest.Mock).mockImplementationOnce(() => {
       throw new Error('API Error');
     });
@@ -227,7 +207,6 @@ describe('Componente TodoList', () => {
   });
 
   test('deve ordenar tarefas por data de vencimento', () => {
-    // Criar tarefas com datas diferentes
     const tasksWithDifferentDates = [
       {
         ...mockTasks[0], 
@@ -245,20 +224,17 @@ describe('Componente TodoList', () => {
 
     render(<TodoList tasks={tasksWithDifferentDates} />);
 
-    // Selecionar ordenação por data
     const selectTrigger = screen.getByRole('combobox');
     fireEvent.click(selectTrigger);
     const dateOption = screen.getByText('Data de Vencimento');
     fireEvent.click(dateOption);
 
-    // Verificar ordem: a tarefa com data mais próxima deve vir primeiro
     const listItems = screen.getAllByRole('listitem');
     expect(listItems[0]).toHaveTextContent('Tarefa Próxima');
     expect(listItems[1]).toHaveTextContent('Tarefa Futura');
   });
 
   test('deve ordenar tarefas por data de criação', () => {
-    // Criar tarefas com datas de criação diferentes
     const tasksWithDifferentCreationDates = [
       {
         ...mockTasks[0], 
@@ -276,13 +252,11 @@ describe('Componente TodoList', () => {
 
     render(<TodoList tasks={tasksWithDifferentCreationDates} />);
 
-    // Selecionar ordenação por data de criação
     const selectTrigger = screen.getByRole('combobox');
     fireEvent.click(selectTrigger);
     const dateOption = screen.getByText('Data de Criação');
     fireEvent.click(dateOption);
 
-    // Verificar ordem: a tarefa mais recente deve vir primeiro
     const listItems = screen.getAllByRole('listitem');
     expect(listItems[0]).toHaveTextContent('Tarefa Nova');
     expect(listItems[1]).toHaveTextContent('Tarefa Antiga');
@@ -298,7 +272,6 @@ describe('Componente TodoList', () => {
 
     render(<TodoList tasks={tasksWithDifferentPriorities} />);
 
-    // Verificar se todas as tarefas são exibidas
     expect(screen.getByText('Prioridade Alta')).toBeInTheDocument();
     expect(screen.getByText('Prioridade Média')).toBeInTheDocument();
     expect(screen.getByText('Prioridade Baixa')).toBeInTheDocument();
@@ -316,14 +289,12 @@ describe('Componente TodoList', () => {
 
     render(<TodoList tasks={tasksWithDifferentPoints} />);
 
-    // Verificar se todas as tarefas são exibidas
     expect(screen.getByText('Muito Fácil')).toBeInTheDocument();
     expect(screen.getByText('Fácil')).toBeInTheDocument();
     expect(screen.getByText('Médio')).toBeInTheDocument();
     expect(screen.getByText('Difícil')).toBeInTheDocument();
     expect(screen.getByText('Muito Difícil')).toBeInTheDocument();
 
-    // Verificar pontuações
     expect(screen.getAllByText('1 pts')).toHaveLength(1);
     expect(screen.getAllByText('2 pts')).toHaveLength(1);
     expect(screen.getAllByText('3 pts')).toHaveLength(1);
@@ -338,13 +309,11 @@ describe('Componente TodoList', () => {
 
     render(<TodoList tasks={taskWithoutDueDate} />);
     expect(screen.getByText('Sem Data')).toBeInTheDocument();
-    // Não deve exibir nenhum elemento de data para essa tarefa
     const taskItem = screen.getByRole('listitem');
     expect(taskItem).not.toHaveTextContent('Hoje');
     expect(taskItem).not.toHaveTextContent('Amanhã');
   });
 
-  // Novos testes para melhorar a cobertura
   test('deve renderizar tarefas sem project_name corretamente', () => {
     const taskWithoutProject = [
       { ...mockTasks[0], id: 17, project_name: null, project_color: null, title: 'Sem Projeto' }
@@ -352,7 +321,6 @@ describe('Componente TodoList', () => {
 
     render(<TodoList tasks={taskWithoutProject} />);
     expect(screen.getByText('Sem Projeto')).toBeInTheDocument();
-    // Não deve exibir nenhum elemento de projeto para essa tarefa
     const taskItem = screen.getByRole('listitem');
     expect(taskItem).not.toHaveTextContent('Projeto A');
   });
@@ -364,13 +332,11 @@ describe('Componente TodoList', () => {
 
     render(<TodoList tasks={taskWithoutPoints} />);
     expect(screen.getByText('Sem Pontuação')).toBeInTheDocument();
-    // Não deve exibir nenhum elemento de pontuação para essa tarefa
     const taskItem = screen.getByRole('listitem');
     expect(taskItem).not.toHaveTextContent('pts');
   });
 
   test('deve formatar datas específicas corretamente', () => {
-    // Configurar data fixa para hoje
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
@@ -401,18 +367,14 @@ describe('Componente TodoList', () => {
 
     render(<TodoList tasks={tasksWithSpecificDates} />);
     
-    // Verificar se as datas formatadas estão exibidas corretamente
     expect(screen.getByText('Hoje')).toBeInTheDocument();
     expect(screen.getByText('Amanhã')).toBeInTheDocument();
     
-    // A terceira data deve estar no formato dd/MM/yyyy
     const formattedDate = new Intl.DateTimeFormat('pt-BR').format(thirdDay).split(' ')[0];
     
-    // Verifica que a terceira tarefa existe e que temos a data formatada visível em algum lugar
     const thirdTaskItem = screen.getByText('Tarefa Depois de Amanhã').closest('li');
     expect(thirdTaskItem).toBeInTheDocument();
     
-    // Verificamos o formato da data ao invés de verificar a ausência de strings específicas
     const dateRegex = /\d{2}\/\d{2}\/\d{4}/; // Formato dd/MM/yyyy
     expect(thirdTaskItem?.textContent).toMatch(dateRegex);
   });
@@ -437,7 +399,6 @@ describe('Componente TodoList', () => {
       { ...mockTasks[0], id: 28, points: 999, title: 'Desconhecido' }
     ]} />);
 
-    // Verificamos apenas que todas as tarefas estão sendo renderizadas
     expect(screen.getByText('Verde')).toBeInTheDocument();
     expect(screen.getByText('Azul')).toBeInTheDocument();
     expect(screen.getByText('Amarelo')).toBeInTheDocument();

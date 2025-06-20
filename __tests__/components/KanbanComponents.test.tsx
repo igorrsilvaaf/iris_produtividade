@@ -5,7 +5,6 @@ import { CSS } from '@dnd-kit/utilities';
 
 import * as i18n from '@/lib/i18n';
 
-// Mock necessário para os componentes que usam useSortable
 jest.mock('@dnd-kit/sortable', () => ({
   ...jest.requireActual('@dnd-kit/sortable'),
   useSortable: jest.fn(() => ({
@@ -18,7 +17,6 @@ jest.mock('@dnd-kit/sortable', () => ({
   }))
 }));
 
-// Mock do módulo de tradução
 jest.mock('@/lib/i18n', () => ({
   useTranslation: () => ({
     t: (key: string) => key, // Retorna a própria chave para simplificar o teste
@@ -26,12 +24,7 @@ jest.mock('@/lib/i18n', () => ({
   }),
 }));
 
-// Componentes a serem testados (importar diretamente do arquivo kanban-board.tsx)
-// Como esses componentes não são exportados, precisamos extraí-los para testar
-// Normalmente, você exportaria esses componentes ou criaria testes para componentes exportados
-// Mas para fins de demonstração, criaremos versões simplificadas aqui
 
-// SortableCard simplificado para testes
 const SortableCard = ({ card, onDelete, onEdit }) => {
   const { t } = i18n.useTranslation();
   const { attributes, listeners, setNodeRef, transform, transition } = dndKit.useSortable({
@@ -96,7 +89,6 @@ const SortableCard = ({ card, onDelete, onEdit }) => {
   );
 };
 
-// DroppableColumn simplificado para testes
 const DroppableColumn = ({ 
   title, 
   columnKey, 

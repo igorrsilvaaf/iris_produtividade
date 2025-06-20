@@ -3,16 +3,7 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import * as bcrypt from "bcryptjs"
 import crypto from "crypto"
-import { NextAuthOptions } from "next-auth"
-
 const sql = neon(process.env.DATABASE_URL!)
-
-export const authOptions: NextAuthOptions = {
-  pages: {
-    signIn: "/login"
-  },
-  secret: process.env.NEXTAUTH_SECRET,
-}
 
 export type User = {
   id: number

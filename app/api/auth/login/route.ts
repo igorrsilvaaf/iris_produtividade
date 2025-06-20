@@ -12,14 +12,11 @@ export async function POST(request: NextRequest) {
 
     const user = await login(email, password)
     
-    console.log(`Login: Usuário ${user.id} (${user.email}) - Lembrar de mim: ${rememberMe === true ? 'Ativado' : 'Desativado'}`)
-    
     await createSession(user.id, rememberMe === true)
 
     if (preferredLanguage && (preferredLanguage === "en" || preferredLanguage === "pt")) {
       try {
         await updateUserSettings(user.id, { language: preferredLanguage })
-        console.log(`Login: Idioma do usuário ${user.id} atualizado para ${preferredLanguage}`)
       } catch (settingsError) {
         console.error("Erro ao atualizar o idioma do usuário:", settingsError)
       }
