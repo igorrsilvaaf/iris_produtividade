@@ -8,7 +8,6 @@ const sql = neon(process.env.DATABASE_URL!)
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 export async function POST(request: NextRequest) {
-  console.log(`[ForgotPassword] Iniciando POST. NODE_ENV: ${process.env.NODE_ENV}, isDevelopment: ${isDevelopment}`);
   try {
     const data = await request.json()
     const { email } = data
@@ -42,11 +41,6 @@ export async function POST(request: NextRequest) {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
         const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
         
-        if (isDevelopment) {
-          console.log('Token:', resetToken);
-          console.log('URL de recuperação:', resetUrl);
-        }
-        
         if (emailConfigComplete) {
           try {
             const emailHtml = createPasswordResetEmailHtml(resetUrl, userName);
@@ -56,12 +50,7 @@ export async function POST(request: NextRequest) {
               subject: 'Redefinição de Senha - Íris',
               html: emailHtml,
             });
-            
-            if (emailResult.success) {
-              console.log(`[Recuperação de senha] Email enviado com sucesso para: ${email}`);
-            }
           } catch (emailError) {
-            console.error(`[Recuperação de senha] Erro ao enviar email:`, emailError);
             if (!isDevelopment) {
               throw emailError;
             }
@@ -77,8 +66,6 @@ export async function POST(request: NextRequest) {
           { status: 200 }
         )
       } else {
-        console.log(`[Recuperação de senha] Email não encontrado no banco de dados: ${email}`);
-        
         return NextResponse.json(
           { 
             success: false, 
@@ -89,14 +76,12 @@ export async function POST(request: NextRequest) {
         )
       }
     } catch (tokenError) {
-      console.error("[ForgotPassword] Erro ao criar token ou enviar email:", tokenError);
       return NextResponse.json(
         { message: "Falha ao processar a solicitação de redefinição de senha" },
         { status: 500 }
       )
     }
   } catch (error) {
-    console.error("[ForgotPassword] Erro na solicitação:", error);
     return NextResponse.json(
       { message: "Falha ao processar a solicitação de redefinição de senha" },
       { status: 500 }

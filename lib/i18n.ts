@@ -653,45 +653,13 @@ export const translations: Translations = {
     en: "You don't have any tasks for today. Add a new task to get started.",
     pt: "Você não tem tarefas para hoje. Adicione uma nova tarefa para começar.",
   },
-  soundNotifications: {
-    en: "Sound Notifications",
-    pt: "Notificações Sonoras",
-  },
-  notificationSound: {
-    en: "Notification Sound",
-    pt: "Som de Notificação",
-  },
   desktopNotifications: {
     en: "Desktop Notifications",
     pt: "Notificações de Desktop",
   },
-  soundDescription: {
-    en: "Play a sound when a Pomodoro timer completes.",
-    pt: "Tocar um som quando um temporizador Pomodoro terminar.",
-  },
   desktopNotificationsDescription: {
     en: "Show desktop notifications when a timer completes.",
     pt: "Mostrar notificações de desktop quando um temporizador terminar.",
-  },
-  chooseSound: {
-    en: "Choose the sound to play when a timer completes.",
-    pt: "Escolha o som a ser reproduzido quando um temporizador terminar.",
-  },
-  defaultSound: {
-    en: "Default",
-    pt: "Padrão",
-  },
-  bell: {
-    en: "Bell",
-    pt: "Sino",
-  },
-  chime: {
-    en: "Chime",
-    pt: "Carrilhão",
-  },
-  digital: {
-    en: "Digital",
-    pt: "Digital",
   },
   workSessionCompleted: {
     en: "Work session completed!",
@@ -1382,10 +1350,6 @@ export const translations: Translations = {
     en: "Forgot Password",
     pt: "Esqueci a Senha",
   },
-  "Forgot password?": {
-    en: "Forgot password?",
-    pt: "Esqueceu a senha?",
-  },
   "Forgot your password?": {
     en: "Forgot your password?",
     pt: "Esqueceu sua senha?",
@@ -1426,10 +1390,6 @@ export const translations: Translations = {
     en: "Email is required",
     pt: "O email é obrigatório",
   },
-  "Please enter a valid email address": {
-    en: "Please enter a valid email address",
-    pt: "Por favor, insira um endereço de email válido",
-  },
   
   // Reset de senha
   "Reset Password": {
@@ -1451,10 +1411,6 @@ export const translations: Translations = {
   "Confirm Password": {
     en: "Confirm Password",
     pt: "Confirmar Senha",
-  },
-  "Passwords do not match": {
-    en: "Passwords do not match",
-    pt: "As senhas não coincidem",
   },
   "Please confirm your password": {
     en: "Please confirm your password",
@@ -1719,14 +1675,6 @@ export const translations: Translations = {
     en: "Select Sound",
     pt: "Selecionar Som",
   },
-  notification: {
-    en: "Notification",
-    pt: "Notificação",
-  },
-  ding: {
-    en: "Ding",
-    pt: "Campainha",
-  },
   "Notifications not supported": {
     en: "Notifications not supported",
     pt: "Notificações não suportadas",
@@ -1746,10 +1694,6 @@ export const translations: Translations = {
   "You will now receive desktop notifications when timers complete.": {
     en: "You will now receive desktop notifications when timers complete.",
     pt: "Agora você receberá notificações de desktop quando os temporizadores terminarem.",
-  },
-  "Desktop notifications will not be shown.": {
-    en: "Desktop notifications will not be shown.",
-    pt: "Notificações de desktop não serão exibidas.",
   },
   "Failed to request notification permissions.": {
     en: "Failed to request notification permissions.",
@@ -2010,10 +1954,6 @@ export const translations: Translations = {
     en: "Your report has been generated and is downloading",
     pt: "Seu relatório foi gerado e está sendo baixado",
   },
-  "Export failed": {
-    en: "Export failed",
-    pt: "Falha na exportação",
-  },
   "There was an error exporting your report": {
     en: "There was an error exporting your report",
     pt: "Ocorreu um erro ao exportar seu relatório",
@@ -2184,6 +2124,440 @@ export const translations: Translations = {
   "task.update": {
     en: "Update",
     pt: "Atualizar"
+  },
+  
+  "Error": {
+    en: "Error",
+    pt: "Erro",
+  },
+  "Title is required": {
+    en: "Title is required",
+    pt: "O título é obrigatório",
+  },
+  "Task created": {
+    en: "Task created",
+    pt: "Tarefa criada",
+  },
+  "Your task has been added successfully": {
+    en: "Your task has been added successfully",
+    pt: "Sua tarefa foi adicionada com sucesso",
+  },
+  "Failed to create task": {
+    en: "Failed to create task",
+    pt: "Falha ao criar tarefa",
+  },
+  "Add a new task...": {
+    en: "Add a new task...",
+    pt: "Adicionar nova tarefa...",
+  },
+  "Adding...": {
+    en: "Adding...",
+    pt: "Adicionando...",
+  },
+  "Add": {
+    en: "Add",
+    pt: "Adicionar",
+  },
+  "Failed to load data": {
+    en: "Failed to load data",
+    pt: "Falha ao carregar dados",
+  },
+  "Please refresh the page to try again": {
+    en: "Please refresh the page to try again",
+    pt: "Por favor, atualize a página para tentar novamente",
+  },
+  "No projects found": {
+    en: "No projects found",
+    pt: "Nenhum projeto encontrado",
+  },
+
+  "Failed to process request": {
+    en: "Failed to process request",
+    pt: "Falha ao processar solicitação",
+  },
+  "Your task has been updated successfully.": {
+    en: "Your task has been updated successfully.",
+    pt: "Sua tarefa foi atualizada com sucesso.",
+  },
+  "Task deleted": {
+    en: "Task deleted",
+    pt: "Tarefa excluída",
+  },
+  "Your task has been deleted successfully.": {
+    en: "Your task has been deleted successfully.",
+    pt: "Sua tarefa foi excluída com sucesso.",
+  },
+  "Failed to delete task": {
+    en: "Failed to delete task",
+    pt: "Falha ao excluir tarefa",
+  },
+  "No description": {
+    en: "No description",
+    pt: "Sem descrição",
+  },
+  "Checklist item has been updated.": {
+    en: "Checklist item has been updated.",
+    pt: "Item da lista de verificação foi atualizado.",
+  },
+  "Select file": {
+    en: "Select file",
+    pt: "Selecionar arquivo",
+  },
+  "Select image": {
+    en: "Select image",
+    pt: "Selecionar imagem",
+  },
+  "Select File": {
+    en: "Select File",
+    pt: "Selecionar Arquivo",
+  },
+  "Select Image": {
+    en: "Select Image",
+    pt: "Selecionar Imagem",
+  },
+  "Link URL": {
+    en: "Link URL",
+    pt: "URL do Link",
+  },
+  "File name": {
+    en: "File name",
+    pt: "Nome do arquivo",
+  },
+  "Open in new tab": {
+    en: "Open in new tab",
+    pt: "Abrir em nova aba",
+  },
+  "Remove attachment": {
+    en: "Remove attachment",
+    pt: "Remover anexo",
+  },
+  "minutes": {
+    en: "minutes",
+    pt: "minutos",
+  },
+  "hours": {
+    en: "hours",
+    pt: "horas",
+  },
+  "days": {
+    en: "days",
+    pt: "dias",
+  },
+  "Save changes": {
+    en: "Save changes",
+    pt: "Salvar alterações",
+  },
+  "Start Pomodoro": {
+    en: "Start Pomodoro",
+    pt: "Iniciar Pomodoro",
+  },
+  "Complete task": {
+    en: "Complete task",
+    pt: "Concluir tarefa",
+  },
+  "Reopen task": {
+    en: "Reopen task",
+    pt: "Reabrir tarefa",
+  },
+  "Deleting...": {
+    en: "Deleting...",
+    pt: "Excluindo...",
+  },
+  "Task updated": {
+    en: "Task updated",
+    pt: "Tarefa atualizada",
+  },
+  "Failed to reset password": {
+    en: "Failed to reset password",
+    pt: "Falha ao redefinir senha",
+  },
+  "Invalid file type": {
+    en: "Invalid file type",
+    pt: "Tipo de arquivo inválido",
+  },
+  "Please upload an image file.": {
+    en: "Please upload an image file.",
+    pt: "Por favor, envie um arquivo de imagem.",
+  },
+  "Please upload an image smaller than 5MB.": {
+    en: "Please upload an image smaller than 5MB.",
+    pt: "Por favor, envie uma imagem menor que 5MB.",
+  },
+  "Failed to process image": {
+    en: "Failed to process image",
+    pt: "Falha ao processar imagem",
+  },
+  "Please try again with another image.": {
+    en: "Please try again with another image.",
+    pt: "Por favor, tente novamente com outra imagem.",
+  },
+  "Processing...": {
+    en: "Processing...",
+    pt: "Processando...",
+  },
+  "Upload Photo": {
+    en: "Upload Photo",
+    pt: "Enviar Foto",
+  },
+  "Failed to mark notification as read": {
+    en: "Failed to mark notification as read",
+    pt: "Falha ao marcar notificação como lida",
+  },
+  "Failed to delete notification": {
+    en: "Failed to delete notification",
+    pt: "Falha ao excluir notificação",
+  },
+  "Failed to update some tasks": {
+    en: "Failed to update some tasks",
+    pt: "Falha ao atualizar algumas tarefas",
+  },
+  "Please try refreshing": {
+    en: "Please try refreshing",
+    pt: "Por favor, tente atualizar",
+  },
+  "Failed to update tasks on server": {
+    en: "Failed to update tasks on server",
+    pt: "Falha ao atualizar tarefas no servidor",
+  },
+  "Failed to update tasks": {
+    en: "Failed to update tasks",
+    pt: "Falha ao atualizar tarefas",
+  },
+  "Try again": {
+    en: "Try again",
+    pt: "Tentar novamente",
+  },
+  "flip_clock_size": {
+    en: "Flip Clock Size",
+    pt: "Tamanho do Relógio",
+  },
+  "Small": {
+    en: "Small",
+    pt: "Pequeno",
+  },
+  "Medium": {
+    en: "Medium",
+    pt: "Médio",
+  },
+  "Large": {
+    en: "Large",
+    pt: "Grande",
+  },
+  "Attachments": {
+    en: "Attachments",
+    pt: "Anexos",
+  },
+  "Add attachment": {
+    en: "Add attachment",
+    pt: "Adicionar anexo",
+  },
+  "Estimated time": {
+    en: "Estimated time",
+    pt: "Tempo estimado",
+  },
+  "Unit": {
+    en: "Unit",
+    pt: "Unidade",
+  },
+  "min": {
+    en: "min",
+    pt: "min",
+  },
+  "hr": {
+    en: "hr",
+    pt: "h",
+  },
+  "hrs": {
+    en: "hrs",
+    pt: "h",
+  },
+  "day": {
+    en: "day",
+    pt: "dia",
+  },
+  "No projects": {
+    en: "No projects",
+    pt: "Sem projetos",
+  },
+  "No labels": {
+    en: "No labels",
+    pt: "Sem etiquetas",
+  },
+  "Favorite": {
+    en: "Favorite",
+    pt: "Favorito",
+  },
+  "Unfavorite": {
+    en: "Unfavorite",
+    pt: "Remover dos favoritos",
+  },
+  "Favorited": {
+    en: "Favorited",
+    pt: "Favoritado",
+  },
+  "Failed to update favorite status": {
+    en: "Failed to update favorite status",
+    pt: "Falha ao atualizar status de favorito",
+  },
+  "Project favorited": {
+    en: "Project favorited",
+    pt: "Projeto favoritado",
+  },
+  "Project unfavorited": {
+    en: "Project unfavorited",
+    pt: "Projeto removido dos favoritos",
+  },
+  "Enter link URL": {
+    en: "Enter link URL",
+    pt: "Digite a URL do link",
+  },
+  "Enter file name": {
+    en: "Enter file name",
+    pt: "Digite o nome do arquivo",
+  },
+  "Link": {
+    en: "Link",
+    pt: "Link",
+  },
+  "File": {
+    en: "File",
+    pt: "Arquivo",
+  },
+  "Image": {
+    en: "Image",
+    pt: "Imagem",
+  },
+  "Add Link": {
+    en: "Add Link",
+    pt: "Adicionar Link",
+  },
+  "Upload File": {
+    en: "Upload File",
+    pt: "Enviar Arquivo",
+  },
+  "Upload Image": {
+    en: "Upload Image",
+    pt: "Enviar Imagem",
+  },
+  "Attachment URL": {
+    en: "Attachment URL",
+    pt: "URL do Anexo",
+  },
+  "Attachment Name": {
+    en: "Attachment Name",
+    pt: "Nome do Anexo",
+  },
+  "Are you sure you want to remove this attachment?": {
+    en: "Are you sure you want to remove this attachment?",
+    pt: "Tem certeza que deseja remover este anexo?",
+  },
+  "This action cannot be undone.": {
+    en: "This action cannot be undone.",
+    pt: "Esta ação não pode ser desfeita.",
+  },
+  "Remove": {
+    en: "Remove",
+    pt: "Remover",
+  },
+  "Keep": {
+    en: "Keep",
+    pt: "Manter",
+  },
+  "No attachments": {
+    en: "No attachments",
+    pt: "Sem anexos",
+  },
+  "Click to add an attachment": {
+    en: "Click to add an attachment",
+    pt: "Clique para adicionar um anexo",
+  },
+  "Drag and drop files here": {
+    en: "Drag and drop files here",
+    pt: "Arraste e solte arquivos aqui",
+  },
+  "or click to browse": {
+    en: "or click to browse",
+    pt: "ou clique para procurar",
+  },
+  "Uploading...": {
+    en: "Uploading...",
+    pt: "Enviando...",
+  },
+  "Upload failed": {
+    en: "Upload failed",
+    pt: "Falha no envio",
+  },
+  "File too large": {
+    en: "File too large",
+    pt: "Arquivo muito grande",
+  },
+  "Failed to upload file": {
+    en: "Failed to upload file",
+    pt: "Falha ao enviar arquivo",
+  },
+  "File uploaded successfully": {
+    en: "File uploaded successfully",
+    pt: "Arquivo enviado com sucesso",
+  },
+  "Image uploaded successfully": {
+    en: "Image uploaded successfully",
+    pt: "Imagem enviada com sucesso",
+  },
+  "Link added successfully": {
+    en: "Link added successfully",
+    pt: "Link adicionado com sucesso",
+  },
+  "Attachment removed successfully": {
+    en: "Attachment removed successfully",
+    pt: "Anexo removido com sucesso",
+  },
+  "Failed to add attachment": {
+    en: "Failed to add attachment",
+    pt: "Falha ao adicionar anexo",
+  },
+  "Failed to remove attachment": {
+    en: "Failed to remove attachment",
+    pt: "Falha ao remover anexo",
+  },
+  "Please enter a valid URL": {
+    en: "Please enter a valid URL",
+    pt: "Por favor, digite uma URL válida",
+  },
+  "Please enter a file name": {
+    en: "Please enter a file name",
+    pt: "Por favor, digite um nome para o arquivo",
+  },
+  "Maximum file size is 10MB": {
+    en: "Maximum file size is 10MB",
+    pt: "O tamanho máximo do arquivo é 10MB",
+  },
+  "Allowed file types": {
+    en: "Allowed file types",
+    pt: "Tipos de arquivo permitidos",
+  },
+  "Images": {
+    en: "Images",
+    pt: "Imagens",
+  },
+  "Documents": {
+    en: "Documents",
+    pt: "Documentos",
+  },
+  "Spreadsheets": {
+    en: "Spreadsheets",
+    pt: "Planilhas",
+  },
+  "Text files": {
+    en: "Text files",
+    pt: "Arquivos de texto",
+  },
+  "PDFs": {
+    en: "PDFs",
+    pt: "PDFs",
+  },
+  "Archives": {
+    en: "Archives",
+    pt: "Arquivos compactados",
   },
   // Novas traduções para a funcionalidade de recuperação de senha
   "Important": {

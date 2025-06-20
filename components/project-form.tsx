@@ -20,13 +20,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import type { Project } from "@/lib/projects";
 
-const formSchema = z.object({
-  name: z.string().min(1, { message: "Project name is required" }),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i, {
-    message: "Color must be a valid hex code",
-  }),
-  is_favorite: z.boolean().default(false),
-});
+const formSchema = z
+  .object({
+    name: z.string().min(1, { message: "Project name is required" }),
+    color: z.string().regex(/^#[0-9A-F]{6}$/i, {
+      message: "Color must be a valid hex code",
+    }),
+    is_favorite: z.boolean(),
+  })
+  .required();
+
+type FormValues = {
+  name: string;
+  color: string;
+  is_favorite: boolean;
+};
 
 interface ProjectFormProps {
   project?: Project;
@@ -38,7 +46,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
   const router = useRouter();
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: project?.name || "",
@@ -47,7 +55,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit = form.handleSubmit(async (values: FormValues) => {
     setIsLoading(true);
 
     try {
@@ -88,19 +96,25 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
     } finally {
       setIsLoading(false);
     }
-  }
+  });
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={onSubmit} className="space-y-6">
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel htmlFor="project-name">Name</FormLabel>
               <FormControl>
-                <Input placeholder="Project name" {...field} />
+                <Input
+                  placeholder="Project name"
+                  {...field}
+                  id="project-name"
+                  name="name"
+                  aria-label="Project name"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -111,19 +125,33 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
           name="color"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Color</FormLabel>
+              <FormLabel htmlFor="color-text">Color</FormLabel>
               <FormControl>
-                <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-2"
+                  role="group"
+                  aria-label="Color picker"
+                >
                   <div
                     className="h-6 w-6 rounded-full border"
                     style={{ backgroundColor: field.value }}
+                    aria-hidden="true"
                   />
-                  <Input type="color" {...field} className="w-12 p-1" />
+                  <Input
+                    type="color"
+                    {...field}
+                    className="w-12 p-1"
+                    id="color-picker"
+                    aria-label="Select color"
+                  />
                   <Input
                     type="text"
                     value={field.value}
                     onChange={field.onChange}
                     className="flex-1"
+                    id="color-text"
+                    name="color"
+                    aria-label="Color value"
                   />
                 </div>
               </FormControl>
@@ -140,10 +168,15 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  id="project-favorite"
+                  name="is_favorite"
+                  aria-label="Mark as favorite"
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel>Mark as favorite</FormLabel>
+                <FormLabel htmlFor="project-favorite">
+                  Mark as favorite
+                </FormLabel>
               </div>
             </FormItem>
           )}
