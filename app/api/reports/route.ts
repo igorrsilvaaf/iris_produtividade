@@ -49,7 +49,6 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error("Error generating report:", error)
     return NextResponse.json(
       { error: "Failed to generate report" },
       { status: 500 }
@@ -78,15 +77,6 @@ export async function GET(request: NextRequest) {
     const labelIds = labelIdsParam ? labelIdsParam.split(',').filter(Boolean) : []
     const priorities = prioritiesParam ? prioritiesParam.split(',').filter(Boolean) : []
     
-    console.log("Filtros recebidos:", { 
-      type, 
-      startDate, 
-      endDate, 
-      projectIds, 
-      labelIds, 
-      priorities 
-    })
-
     if (!startDate || !endDate) {
       return NextResponse.json(
         { error: "Missing date range parameters" },
@@ -126,8 +116,6 @@ export async function GET(request: NextRequest) {
       });
       
       query += `)`;
-      
-      console.log(`Aplicando filtro de projetos: ${projectIds.join(', ')}`);
     } else {
       query += `
       LEFT JOIN 
@@ -160,11 +148,7 @@ export async function GET(request: NextRequest) {
 
     query += ` ORDER BY t.due_date ASC, t.priority ASC`;
 
-    console.log("Executando consulta SQL:", query);
-    console.log("Com parâmetros:", params);
-
     let tasks = await sql.query(query, params);
-    console.log(`Consulta retornou ${tasks.length} tarefas`);
 
     if (labelIds.length > 0) {
       const hasProjectFilters = projectIds.length > 0;
@@ -179,7 +163,6 @@ export async function GET(request: NextRequest) {
         `;
         
         const allLabels = await sql.query(labelQuery, [taskIds]);
-        console.log(`Consulta de etiquetas retornou ${allLabels.length} registros`);
         
         const labelsByTaskId: Record<number, any[]> = {};
         
@@ -210,7 +193,6 @@ export async function GET(request: NextRequest) {
           if (!task.labels || task.labels.length === 0) return false;
           return task.labels.some((label: {id: number | string}) => labelIds.includes(label.id.toString()));
         });
-        console.log(`Após filtro de etiquetas, restam ${tasks.length} tarefas`);
       } else {
         tasks = [];
       }
@@ -265,10 +247,9 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error("Error fetching report data:", error);
     return NextResponse.json(
       { error: "Failed to fetch report data" },
       { status: 500 }
     );
   }
-} 
+}

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       try {
         await updateUserSettings(user.id, { language: preferredLanguage })
       } catch (settingsError) {
-        console.error("Erro ao atualizar o idioma do usuário:", settingsError)
+        ("Erro ao atualizar o idioma do usuário:", settingsError)
       }
     }
 
@@ -28,4 +28,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: errorMessage }, { status: 401 })
   }
 }
-

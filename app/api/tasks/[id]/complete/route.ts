@@ -16,12 +16,11 @@ export async function PATCH(_request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ message: "Invalid task ID" }, { status: 400 })
     }
 
-    // Marcar a tarefa como concluída
+
     const updatedTask = await toggleTaskCompletion(taskId, session.user.id)
 
     return NextResponse.json({ task: updatedTask })
   } catch (error: any) {
-    console.error("Error completing task:", error)
     return NextResponse.json({ message: error.message || "Failed to complete task" }, { status: 500 })
   }
-} 
+}

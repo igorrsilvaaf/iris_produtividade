@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error("Error verifying reset token:", error)
     return NextResponse.json(
       { valid: false, message: "Failed to verify token" },
       { status: 500 }
@@ -69,10 +68,9 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error("Error resetting password:", error)
     return NextResponse.json(
       { message: "Failed to reset password" },
       { status: 500 }
     )
   }
-} 
+}

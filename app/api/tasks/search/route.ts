@@ -38,10 +38,6 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      if (tasks.length > 0) {
-        console.log("Exemplo do primeiro resultado:", JSON.stringify(tasks[0]));
-      }
-
       const response = NextResponse.json(
         { tasks },
         {
@@ -57,12 +53,9 @@ export async function GET(request: NextRequest) {
 
       return response;
     } catch (searchError) {
-      console.error("Erro na função searchTasks:", searchError);
       throw searchError;
     }
   } catch (error: unknown) {
-    console.error("Erro na API de busca:", error);
-
     const errorMessage =
       error instanceof Error ? error.message : "Failed to search tasks";
 
