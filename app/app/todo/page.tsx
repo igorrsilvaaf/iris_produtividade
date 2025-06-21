@@ -3,12 +3,12 @@ import { Todo } from "@/components/Todo"
 import { QuickAddTodo } from "@/components/quick-add-todo"
 import { getInboxTasks } from "@/lib/todos"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { auth } from "@/lib/auth"
+import { requireAuth } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
 export default async function TodoPage() {
-  const session = await auth()
+  const session = await requireAuth()
   const userId = Number(session?.user?.id)
   
   const tasks = await getInboxTasks(userId)
