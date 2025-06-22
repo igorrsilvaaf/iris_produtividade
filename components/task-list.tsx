@@ -365,8 +365,8 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenuItem 
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onSelect={(e) => {
+                        e.preventDefault();
                         openTaskDetailInEditMode(task);
                       }}
                       className="hover:bg-primary/10 cursor-pointer"

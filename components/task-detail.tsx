@@ -1,25 +1,55 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import { 
-  CalendarIcon, Flag, Tag, X, FilePlus, Trash, MoreHorizontal, Clock, 
-  TimerOff, Timer, Check, Plus, Save, Edit, CheckSquare, Square, Link, ArrowLeft, CircleDot, ChevronDown,
-  Star, EllipsisVertical, Edit2, Trash2, CalendarRange, Folders, CheckCheck, Copy, ArrowUp, ArrowDown,
-  Paperclip, ExternalLink, Image, FileText
-} from "lucide-react"
-import type { Todo } from "@/lib/todos"
-import type { Project } from "@/lib/projects"
-import { useTranslation } from "@/lib/i18n"
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { cn } from "@/lib/utils"
-import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  CalendarIcon,
+  Flag,
+  Tag,
+  X,
+  FilePlus,
+  Trash,
+  MoreHorizontal,
+  Clock,
+  TimerOff,
+  Timer,
+  Check,
+  Plus,
+  Save,
+  Edit,
+  CheckSquare,
+  Square,
+  Link,
+  ArrowLeft,
+  CircleDot,
+  ChevronDown,
+  Star,
+  EllipsisVertical,
+  Edit2,
+  Trash2,
+  CalendarRange,
+  Folders,
+  CheckCheck,
+  Copy,
+  ArrowUp,
+  ArrowDown,
+  Paperclip,
+  ExternalLink,
+  Image,
+  FileText,
+} from "lucide-react";
+import type { Todo } from "@/lib/todos";
+import type { Project } from "@/lib/projects";
+import { useTranslation } from "@/lib/i18n";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { cn } from "@/lib/utils";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
-import { Button } from "@/components/ui/button"
-import { BackButton } from "@/components/ui/back-button"
+import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 import {
   Dialog,
   DialogContent,
@@ -28,25 +58,35 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/components/ui/use-toast"
-import { TaskLabels } from "@/components/task-labels"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ProjectForm } from "@/components/project-form"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+import { TaskLabels } from "@/components/task-labels";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ProjectForm } from "@/components/project-form";
 
 export type TodoWithEditMode = Todo & {
   isEditMode?: boolean;
-}
+};
 
 interface TaskDetailProps {
-  task: TodoWithEditMode
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  task: TodoWithEditMode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 function isAllDayDate(dateString: string | null): boolean {
@@ -63,7 +103,6 @@ function getTimeFromDate(dateString: string | null): string {
   if (!dateString) return "00:00";
   try {
     const date = new Date(dateString);
-    // Preservar a hora real, incluindo 00:00
     return date.toTimeString().slice(0, 5);
   } catch (e) {
     return "00:00";
@@ -71,52 +110,60 @@ function getTimeFromDate(dateString: string | null): string {
 }
 
 export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
-  const [title, setTitle] = useState(task.title)
-  const [description, setDescription] = useState(task.description || "")
-  const [dueDate, setDueDate] = useState<Date | undefined>(task.due_date ? new Date(task.due_date) : undefined)
+  const [title, setTitle] = useState(task.title);
+  const [description, setDescription] = useState(task.description || "");
+  const [dueDate, setDueDate] = useState<Date | undefined>(
+    task.due_date ? new Date(task.due_date) : undefined
+  );
   const [dueTime, setDueTime] = useState<string | undefined>(
-    task.due_date
-      ? new Date(task.due_date).toTimeString().slice(0, 5)
-      : "00:00"
-  )
-  const [dueTimeUpdate, setDueTimeUpdate] = useState(false)
+    task.due_date ? new Date(task.due_date).toTimeString().slice(0, 5) : "00:00"
+  );
+  const [dueTimeUpdate, setDueTimeUpdate] = useState(false);
   const [isAllDay, setIsAllDay] = useState(
     task.due_date
-      ? new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
+      ? new Date(task.due_date).getHours() === 0 &&
+          new Date(task.due_date).getMinutes() === 0
       : true
-  )
-  const [priority, setPriority] = useState(task.priority.toString())
-  const [points, setPoints] = useState(task.points || 3)
-  const [projectId, setProjectId] = useState<string | null>(null)
-  const [projectName, setProjectName] = useState<string>("")
-  const [datePickerOpen, setDatePickerOpen] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [taskLabelsKey, setTaskLabelsKey] = useState(0)
-  const [projects, setProjects] = useState<Project[]>([])
-  const [showAddProject, setShowAddProject] = useState(false)
-  const [showCreateProject, setShowCreateProject] = useState(false)
-  const [isLoadingProjects, setIsLoadingProjects] = useState(false)
-  const [attachments, setAttachments] = useState<Array<{ type: string; url: string; name: string }>>(task.attachments || [])
-  const [attachmentUrl, setAttachmentUrl] = useState("")
-  const [attachmentName, setAttachmentName] = useState("")
-  const [attachmentType, setAttachmentType] = useState("link")
-  const [showAddAttachment, setShowAddAttachment] = useState(false)
-  const [fileUploadRef, setFileUploadRef] = useState<HTMLInputElement | null>(null)
-  const [imageUploadRef, setImageUploadRef] = useState<HTMLInputElement | null>(null)
-  const [estimatedTime, setEstimatedTime] = useState<number | null>(task.estimated_time || null)
-  const [estimatedTimeUnit, setEstimatedTimeUnit] = useState<string>("min")
-  const router = useRouter()
-  const { toast } = useToast()
-  const { t } = useTranslation()
+  );
+  const [priority, setPriority] = useState(task.priority.toString());
+  const [points, setPoints] = useState(task.points || 3);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState<string>("");
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [taskLabelsKey, setTaskLabelsKey] = useState(0);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [showAddProject, setShowAddProject] = useState(false);
+  const [showCreateProject, setShowCreateProject] = useState(false);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+  const [attachments, setAttachments] = useState<
+    Array<{ type: string; url: string; name: string }>
+  >(task.attachments || []);
+  const [attachmentUrl, setAttachmentUrl] = useState("");
+  const [attachmentName, setAttachmentName] = useState("");
+  const [attachmentType, setAttachmentType] = useState("link");
+  const [showAddAttachment, setShowAddAttachment] = useState(false);
+  const [fileUploadRef, setFileUploadRef] = useState<HTMLInputElement | null>(
+    null
+  );
+  const [imageUploadRef, setImageUploadRef] = useState<HTMLInputElement | null>(
+    null
+  );
+  const [estimatedTime, setEstimatedTime] = useState<number | null>(
+    task.estimated_time || null
+  );
+  const [estimatedTimeUnit, setEstimatedTimeUnit] = useState<string>("min");
+  const router = useRouter();
+  const { toast } = useToast();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchTaskProject = async () => {
       if (!open || task.id === undefined) return;
-      
-      try {
 
+      try {
         const response = await fetch(`/api/tasks/${task.id}/project`);
         if (response.ok) {
           const data = await response.json();
@@ -136,57 +183,57 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
   useEffect(() => {
     if (open) {
-      setTaskLabelsKey(prev => prev + 1)
-    }
-  }, [open])
+      setTaskLabelsKey((prev) => prev + 1);
+      if (task.isEditMode) {
+        setIsEditMode(true);
+      } else {
+        setIsEditMode(false);
+      }
 
-  useEffect(() => {
-    if (open) {
-      setIsEditMode(false)
-      setTitle(task.title)
-      setDescription(task.description || "")
-      setPoints(task.points || 3)
-      
+      setTitle(task.title);
+      setDescription(task.description || "");
+      setPoints(task.points || 3);
+
       if (task.due_date) {
-
         try {
-          const dueDate = new Date(task.due_date)
-          setDueDate(dueDate)
+          const dueDate = new Date(task.due_date);
+          setDueDate(dueDate);
 
           const hours = dueDate.getHours();
           const minutes = dueDate.getMinutes();
-          const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-          setDueTime(timeString)
+          const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+            .toString()
+            .padStart(2, "0")}`;
+          setDueTime(timeString);
 
           const isAllDayTime = hours === 0 && minutes === 0;
-          setIsAllDay(isAllDayTime)
-          
-
+          setIsAllDay(isAllDayTime);
         } catch (error) {
-          console.error(`[TaskDetail] Erro ao processar data: ${error}`)
-          setDueDate(undefined)
-          setDueTime("00:00")
-          setIsAllDay(true)
+          console.error(`[TaskDetail] Erro ao processar data: ${error}`);
+          setDueDate(undefined);
+          setDueTime("00:00");
+          setIsAllDay(true);
         }
       } else {
-        setDueDate(undefined)
-        setDueTime("00:00")
-        setIsAllDay(true)
+        setDueDate(undefined);
+        setDueTime("00:00");
+        setIsAllDay(true);
       }
-      
-      setPriority(task.priority.toString())
-      
-      // Normalizar anexos para garantir que sempre seja um array válido
+
+      setPriority(task.priority.toString());
+
       try {
         let normalizedAttachments = [];
         if (task.attachments) {
           if (Array.isArray(task.attachments)) {
             normalizedAttachments = task.attachments;
-          } else if (typeof task.attachments === 'string') {
+          } else if (typeof task.attachments === "string") {
             try {
               normalizedAttachments = JSON.parse(task.attachments);
             } catch (e) {
-              console.error(`[TaskDetail] Erro ao parsear anexos como string: ${e}`);
+              console.error(
+                `[TaskDetail] Erro ao parsear anexos como string: ${e}`
+              );
               normalizedAttachments = [];
             }
           }
@@ -198,7 +245,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         setAttachments([]);
       }
     }
-  }, [open, task])
+  }, [open, task]);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -208,9 +255,11 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         if (response.ok) {
           const data = await response.json();
           setProjects(data.projects);
-          
+
           if (projectId) {
-            const project = data.projects.find((p: Project) => p.id.toString() === projectId);
+            const project = data.projects.find(
+              (p: Project) => p.id.toString() === projectId
+            );
             if (project) {
               setProjectName(project.name);
             }
@@ -237,23 +286,24 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           setProjectId(newProject.id.toString());
           setProjectName(newProject.name);
           setShowAddProject(false);
-          
+
           fetch(`/api/tasks/${task.id}/project`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               projectId: newProject.id,
             }),
-          }).then((response) => {
-            if (response.ok) {
-
-              setTimeout(() => {
-                router.refresh();
-              }, 100);
-            }
-          }).catch((error) => {
-            console.error("Falha ao associar o projeto à tarefa:", error);
-          });
+          })
+            .then((response) => {
+              if (response.ok) {
+                setTimeout(() => {
+                  router.refresh();
+                }, 100);
+              }
+            })
+            .catch((error) => {
+              console.error("Falha ao associar o projeto à tarefa:", error);
+            });
         }
       })
       .catch((error) => {
@@ -265,25 +315,25 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
     try {
       setIsSaving(true);
 
-      
       let dueDateWithTime = null;
-      
+
       if (dueDate) {
         if (isAllDay) {
           const date = new Date(dueDate);
           date.setHours(0, 0, 0, 0);
           dueDateWithTime = date.toISOString();
-
         } else if (dueTime) {
           const date = new Date(dueDate);
-          const [hours, minutes] = dueTime.split(':').map(Number);
+          const [hours, minutes] = dueTime.split(":").map(Number);
           date.setHours(hours, minutes, 0, 0);
           dueDateWithTime = date.toISOString();
-
         }
       }
 
-      const estimatedTimeInMinutes = convertTimeToMinutes(estimatedTime, estimatedTimeUnit)
+      const estimatedTimeInMinutes = convertTimeToMinutes(
+        estimatedTime,
+        estimatedTimeUnit
+      );
 
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
@@ -335,9 +385,10 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       });
 
       onOpenChange(false);
+      setIsEditMode(false);
       router.refresh();
     } catch (error) {
-      console.error('[TaskDetail] Erro ao salvar tarefa:', error);
+      console.error("[TaskDetail] Erro ao salvar tarefa:", error);
       toast({
         variant: "destructive",
         title: t("Failed to update task"),
@@ -350,26 +401,26 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
   const handleDelete = async () => {
     if (!task.id) return;
-    
+
     setIsDeleting(true);
-    
+
     try {
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: "DELETE",
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to delete task");
       }
-      
+
       onOpenChange(false);
-      
+
       toast({
         title: t("Task deleted"),
         description: t("Your task has been deleted successfully."),
         variant: "success",
       });
-      
+
       setTimeout(() => {
         router.refresh();
       }, 300);
@@ -388,66 +439,64 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const getPriorityColor = (p: string) => {
     switch (p) {
       case "1":
-        return "text-red-500"
+        return "text-red-500";
       case "2":
-        return "text-orange-500"
+        return "text-orange-500";
       case "3":
-        return "text-blue-500"
+        return "text-blue-500";
       default:
-        return "text-gray-400"
+        return "text-gray-400";
     }
-  }
+  };
 
   const getPriorityName = (p: string) => {
     switch (p) {
       case "1":
-        return t("priority1")
+        return t("priority1");
       case "2":
-        return t("priority2")
+        return t("priority2");
       case "3":
-        return t("priority3")
+        return t("priority3");
       case "4":
-        return t("priority4")
+        return t("priority4");
       default:
-        return t("priority4")
+        return t("priority4");
     }
-  }
+  };
 
   const toggleCheckboxInDescription = (index: number) => {
     if (isEditMode) return;
-    
+
     const regex = /\[([x ])\]/g;
     let match;
     const checkboxPositions = [];
-    
+
     while ((match = regex.exec(description)) !== null) {
       checkboxPositions.push({
         position: match.index,
-        checked: match[1] === 'x'
+        checked: match[1] === "x",
       });
     }
-    
+
     if (index >= checkboxPositions.length) {
       return;
     }
-    
+
     const position = checkboxPositions[index];
-    const newDescription = description.substring(0, position.position + 1) + 
-      (position.checked ? ' ' : 'x') + 
+    const newDescription =
+      description.substring(0, position.position + 1) +
+      (position.checked ? " " : "x") +
       description.substring(position.position + 2);
-    
+
     setDescription(newDescription);
-    
+
     setTimeout(() => {
       updateTaskDescription(newDescription);
     }, 100);
   };
-  
+
   const updateTaskDescription = async (newDescription: string) => {
     try {
-
-
-      
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -455,21 +504,20 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           description: newDescription,
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         console.error(`[TaskDetail] Erro ao atualizar descrição:`, errorData);
         throw new Error("Failed to update task description");
       }
-      
+
       const updatedData = await response.json();
 
-      
       toast({
         title: t("Task updated"),
         description: t("Checklist item has been updated."),
       });
-      
+
       router.refresh();
     } catch (error) {
       console.error(`[TaskDetail] Erro ao atualizar descrição:`, error);
@@ -480,36 +528,39 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       });
     }
   };
-  
+
   const renderDescription = () => {
-    if (!description) return <p className="text-muted-foreground">{t("No description")}</p>;
-    
+    if (!description)
+      return <p className="text-muted-foreground">{t("No description")}</p>;
+
     const allCheckboxes = [];
     const checkboxRegex = /\[([ x]?)\]/g;
     let match;
     let tempDescription = description;
-    
-    while((match = checkboxRegex.exec(tempDescription)) !== null) {
+
+    while ((match = checkboxRegex.exec(tempDescription)) !== null) {
       allCheckboxes.push({
         index: match.index,
-        checked: match[1] === 'x' || match[1] === 'X'
+        checked: match[1] === "x" || match[1] === "X",
       });
     }
-    
 
-    
     let globalCheckboxIndex = 0;
-    return description.split('\n').map((line, lineIndex) => {
-      if (line.trim() === '') {
+    return description.split("\n").map((line, lineIndex) => {
+      if (line.trim() === "") {
         return <br key={`empty-line-${lineIndex}`} />;
       }
-      
+
       const isBullet = line.trim().match(/^-\s(.+)$/);
       if (isBullet) {
         const bulletContent = isBullet[1];
-        const processedContent = processBulletContent(bulletContent, lineIndex, globalCheckboxIndex);
+        const processedContent = processBulletContent(
+          bulletContent,
+          lineIndex,
+          globalCheckboxIndex
+        );
         globalCheckboxIndex += processedContent.checkboxCount;
-        
+
         return (
           <p key={`bullet-line-${lineIndex}`} className="mb-2 flex">
             <span className="mr-2">•</span>
@@ -517,10 +568,14 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           </p>
         );
       }
-      
-      const processedLine = processLineContent(line, lineIndex, globalCheckboxIndex);
+
+      const processedLine = processLineContent(
+        line,
+        lineIndex,
+        globalCheckboxIndex
+      );
       globalCheckboxIndex += processedLine.checkboxCount;
-      
+
       return (
         <p key={`regular-line-${lineIndex}`} className="mb-2">
           {processedLine.content}
@@ -528,27 +583,35 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       );
     });
   };
-  
-  const processBulletContent = (content: string, lineIndex: number, startCheckboxIndex: number) => {
+
+  const processBulletContent = (
+    content: string,
+    lineIndex: number,
+    startCheckboxIndex: number
+  ) => {
     return processLineContent(content, lineIndex, startCheckboxIndex);
   };
-  
-  const processLineContent = (line: string, lineIndex: number, startCheckboxIndex: number) => {
+
+  const processLineContent = (
+    line: string,
+    lineIndex: number,
+    startCheckboxIndex: number
+  ) => {
     let segments = [];
     let lastIndex = 0;
     let checkboxCount = 0;
     let segmentIndex = 0;
-    
+
     const combinedRegex = /(\[([ x]?)\]|https?:\/\/[^\s]+)/g;
     let match;
     let lastCheckbox = null;
-    
+
     while ((match = combinedRegex.exec(line)) !== null) {
       if (match.index > lastIndex) {
         const textSegment = line.substring(lastIndex, match.index);
         if (lastCheckbox && lastCheckbox.isChecked) {
           segments.push(
-            <span 
+            <span
               key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}
               className="line-through text-muted-foreground"
             >
@@ -556,17 +619,24 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             </span>
           );
         } else {
-          segments.push(<span key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}>{textSegment}</span>);
+          segments.push(
+            <span key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}>
+              {textSegment}
+            </span>
+          );
         }
         lastCheckbox = null;
       }
-      
-      if (match[0].startsWith('[')) {
-        const isChecked = match[2] === 'x' || match[2] === 'X';
+
+      if (match[0].startsWith("[")) {
+        const isChecked = match[2] === "x" || match[2] === "X";
         const currentCheckboxIndex = startCheckboxIndex + checkboxCount;
-        
+
         segments.push(
-          <span key={`checkbox-${lineIndex}-${match.index}-${segmentIndex++}`} className="inline-flex items-center align-middle">
+          <span
+            key={`checkbox-${lineIndex}-${match.index}-${segmentIndex++}`}
+            className="inline-flex items-center align-middle"
+          >
             <button
               type="button"
               onClick={(e) => {
@@ -585,32 +655,33 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             </button>
           </span>
         );
-        
+
         lastCheckbox = { isChecked };
         checkboxCount++;
-      } 
-      else if (match[0].match(/https?:\/\//)) {
+      } else if (match[0].match(/https?:\/\//)) {
         segments.push(
-          <a 
+          <a
             key={`url-${lineIndex}-${match.index}-${segmentIndex++}`}
             href={match[0]}
             target="_blank"
             rel="noopener noreferrer"
-            className={`text-blue-500 hover:underline inline-flex items-center ${lastCheckbox && lastCheckbox.isChecked ? "line-through" : ""}`}
+            className={`text-blue-500 hover:underline inline-flex items-center ${
+              lastCheckbox && lastCheckbox.isChecked ? "line-through" : ""
+            }`}
           >
             {match[0]}
           </a>
         );
       }
-      
+
       lastIndex = match.index + match[0].length;
     }
-    
+
     if (lastIndex < line.length) {
       const restText = line.substring(lastIndex);
       if (lastCheckbox && lastCheckbox.isChecked) {
         segments.push(
-          <span 
+          <span
             key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}
             className="line-through text-muted-foreground"
           >
@@ -618,13 +689,17 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           </span>
         );
       } else {
-        segments.push(<span key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}>{restText}</span>);
+        segments.push(
+          <span key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}>
+            {restText}
+          </span>
+        );
       }
     }
-    
+
     return {
       content: segments.length > 0 ? segments : line,
-      checkboxCount
+      checkboxCount,
     };
   };
 
@@ -636,9 +711,10 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
   useEffect(() => {
     if (open && task.due_date) {
-
       if (dueDate === undefined) {
-        console.warn("[TaskDetail] Data indefinida detectada, tentando reparar");
+        console.warn(
+          "[TaskDetail] Data indefinida detectada, tentando reparar"
+        );
         try {
           setDueDate(new Date(task.due_date));
         } catch (error) {
@@ -651,7 +727,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const startPomodoro = () => {
     router.push(`/app/pomodoro?taskId=${task.id}`);
     onOpenChange(false);
-  }
+  };
 
   const toggleCompletion = async () => {
     try {
@@ -666,15 +742,20 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       if (!response.ok) {
         throw new Error("Failed to update task completion status");
       }
-      
+
       router.refresh();
-      
+
       toast({
-        title: task.completed ? t("Task marked as incomplete") : t("Task marked as complete"),
+        title: task.completed
+          ? t("Task marked as incomplete")
+          : t("Task marked as complete"),
         variant: "success",
       });
     } catch (error) {
-      console.error(`[TaskDetail] Erro ao atualizar status de conclusão:`, error);
+      console.error(
+        `[TaskDetail] Erro ao atualizar status de conclusão:`,
+        error
+      );
       toast({
         variant: "destructive",
         title: t("Failed to update task"),
@@ -688,7 +769,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       setIsEditMode(false);
       setTitle(task.title);
       setDescription(task.description || "");
-      
+
       if (task.due_date) {
         const dueDate = new Date(task.due_date);
         setDueDate(dueDate);
@@ -699,7 +780,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         setDueTime("00:00");
         setIsAllDay(true);
       }
-      
+
       setPriority(task.priority.toString());
     }
   }, [isEditMode, task]);
@@ -707,339 +788,345 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const getPointsColor = (points: number) => {
     switch (points) {
       case 1:
-        return "text-green-500"
+        return "text-green-500";
       case 2:
-        return "text-blue-500"
+        return "text-blue-500";
       case 3:
-        return "text-yellow-500"
+        return "text-yellow-500";
       case 4:
-        return "text-orange-500"
+        return "text-orange-500";
       case 5:
-        return "text-red-500"
+        return "text-red-500";
       default:
-        return "text-gray-400"
+        return "text-gray-400";
     }
-  }
-  
+  };
+
   const getPointsLabel = (points: number) => {
     switch (points) {
       case 1:
-        return t("Muito Fácil")
+        return t("Muito Fácil");
       case 2:
-        return t("Fácil")
+        return t("Fácil");
       case 3:
-        return t("Médio")
+        return t("Médio");
       case 4:
-        return t("Difícil")
+        return t("Difícil");
       case 5:
-        return t("Muito Difícil")
+        return t("Muito Difícil");
       default:
-        return t("Médio")
+        return t("Médio");
     }
-  }
-  
+  };
+
   const PointsDisplay = () => {
     return (
       <div className="flex items-center">
         <CircleDot className={`mr-2 h-4 w-4 ${getPointsColor(points)}`} />
-        <span>{points} - {getPointsLabel(points)}</span>
+        <span>
+          {points} - {getPointsLabel(points)}
+        </span>
       </div>
     );
   };
 
   const formatEstimatedTime = (minutes: number | null | undefined) => {
-    if (!minutes) return null
-    
-    const days = Math.floor(minutes / (60 * 8))
-    const remainingHours = Math.floor((minutes % (60 * 8)) / 60)
-    const remainingMinutes = minutes % 60
-    
+    if (!minutes) return null;
+
+    const days = Math.floor(minutes / (60 * 8));
+    const remainingHours = Math.floor((minutes % (60 * 8)) / 60);
+    const remainingMinutes = minutes % 60;
+
     if (days > 0) {
       if (remainingHours > 0 || remainingMinutes > 0) {
-        return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ''} ${remainingMinutes > 0 ? `${remainingMinutes}min` : ''}`.trim()
+        return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ""} ${
+          remainingMinutes > 0 ? `${remainingMinutes}min` : ""
+        }`.trim();
       }
-      return `${days}d`
+      return `${days}d`;
     } else if (remainingHours > 0) {
       if (remainingMinutes > 0) {
-        return `${remainingHours}h ${remainingMinutes}min`
+        return `${remainingHours}h ${remainingMinutes}min`;
       }
-      return `${remainingHours}h`
+      return `${remainingHours}h`;
     } else {
-      return `${remainingMinutes}min`
+      return `${remainingMinutes}min`;
     }
-  }
+  };
 
   useEffect(() => {
     if (task.attachments) {
-      setAttachments(task.attachments)
+      setAttachments(task.attachments);
     }
-  }, [task.attachments])
+  }, [task.attachments]);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('taskId', task.id.toString())
-      
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-      
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("taskId", task.id.toString());
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to upload file')
+        throw new Error("Failed to upload file");
       }
-      
-      const data = await response.json()
+
+      const data = await response.json();
       const newAttachment = {
         id: data.id,
         type: data.type,
         url: data.url,
-        name: data.name
-      }
+        name: data.name,
+      };
 
-      // Buscar a tarefa atualizada para ter certeza que os anexos estão corretos
-      const taskDetailResponse = await fetch(`/api/tasks/${task.id}`)
-      
+      const taskDetailResponse = await fetch(`/api/tasks/${task.id}`);
+
       if (!taskDetailResponse.ok) {
-        throw new Error("Failed to fetch updated task")
+        throw new Error("Failed to fetch updated task");
       }
-      
-      const updatedTaskData = await taskDetailResponse.json()
-      
-      // Atualizar os anexos da tarefa atual com os dados mais recentes do servidor
+
+      const updatedTaskData = await taskDetailResponse.json();
+
       if (updatedTaskData && updatedTaskData.attachments) {
-
-        task.attachments = updatedTaskData.attachments
-        setAttachments(updatedTaskData.attachments)
+        task.attachments = updatedTaskData.attachments;
+        setAttachments(updatedTaskData.attachments);
       } else {
+        const currentAttachments = Array.isArray(task.attachments)
+          ? [...task.attachments]
+          : [];
+        const updatedAttachments = [...currentAttachments, newAttachment];
+        task.attachments = updatedAttachments;
+        setAttachments(updatedAttachments);
+      }
 
-        // Se não recebemos dados da tarefa, mantenha o novo anexo
-        const currentAttachments = Array.isArray(task.attachments) ? [...task.attachments] : []
-        const updatedAttachments = [...currentAttachments, newAttachment]
-        task.attachments = updatedAttachments
-        setAttachments(updatedAttachments)
-      }
-      
-      setShowAddAttachment(false)
-      
+      setShowAddAttachment(false);
+
       if (event.target) {
-        event.target.value = ""
+        event.target.value = "";
       }
-      
+
       toast({
         title: t("Attachment added"),
         description: t("Your attachment has been added successfully."),
-      })
+      });
 
-      router.refresh()
+      router.refresh();
     } catch (error) {
-      console.error('Error uploading file:', error)
+      console.error("Error uploading file:", error);
       toast({
         variant: "destructive",
         title: t("Failed to upload file"),
         description: t("Please try again."),
-      })
+      });
     }
-  }
+  };
 
   const addAttachment = async () => {
-    if (!attachmentUrl.trim()) return
+    if (!attachmentUrl.trim()) return;
 
     try {
       const newAttachment = {
         type: attachmentType,
         url: attachmentUrl.trim(),
-        name: attachmentName.trim() || attachmentUrl.trim()
-      }
+        name: attachmentName.trim() || attachmentUrl.trim(),
+      };
 
-      // Garantir que estamos trabalhando com um array válido de anexos
       let currentAttachments = [];
       if (task.attachments) {
         if (Array.isArray(task.attachments)) {
           currentAttachments = [...task.attachments];
-        } else if (typeof task.attachments === 'string') {
+        } else if (typeof task.attachments === "string") {
           try {
             currentAttachments = JSON.parse(task.attachments);
           } catch (e) {
-            console.error(`[addAttachment] Erro ao parsear anexos existentes: ${e}`);
+            console.error(
+              `[addAttachment] Erro ao parsear anexos existentes: ${e}`
+            );
             currentAttachments = [];
           }
         }
       }
-      
 
       const updatedAttachments = [...currentAttachments, newAttachment];
-
 
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          attachments: updatedAttachments
+          attachments: updatedAttachments,
         }),
-      })
+      });
 
       if (!taskResponse.ok) {
-        throw new Error("Failed to update task attachments")
+        throw new Error("Failed to update task attachments");
       }
 
-      const updatedTask = await taskResponse.json()
-      task.attachments = updatedTask.attachments
-      
-      setAttachmentUrl("")
-      setAttachmentName("")
-      setShowAddAttachment(false)
-      
+      const updatedTask = await taskResponse.json();
+      task.attachments = updatedTask.attachments;
+
+      setAttachmentUrl("");
+      setAttachmentName("");
+      setShowAddAttachment(false);
+
       toast({
         title: t("Attachment added"),
         description: t("Your attachment has been added successfully."),
-      })
+      });
 
-      router.refresh()
+      router.refresh();
     } catch (error) {
-      console.error('Error adding attachment:', error)
+      console.error("Error adding attachment:", error);
       toast({
         variant: "destructive",
         title: t("Failed to add attachment"),
         description: t("Please try again."),
-      })
+      });
     }
-  }
+  };
 
   const removeAttachment = async (index: number) => {
     try {
-      // Garantir que estamos trabalhando com um array válido de anexos
       let currentAttachments = [];
       if (task.attachments) {
         if (Array.isArray(task.attachments)) {
           currentAttachments = [...task.attachments];
-        } else if (typeof task.attachments === 'string') {
+        } else if (typeof task.attachments === "string") {
           try {
             currentAttachments = JSON.parse(task.attachments);
           } catch (e) {
-            console.error(`[removeAttachment] Erro ao parsear anexos existentes: ${e}`);
+            console.error(
+              `[removeAttachment] Erro ao parsear anexos existentes: ${e}`
+            );
             currentAttachments = [];
           }
         }
       }
-      
 
-      
-      // Verificar se o índice é válido
       if (index < 0 || index >= currentAttachments.length) {
-        console.error(`[removeAttachment] Índice inválido: ${index}, total de anexos: ${currentAttachments.length}`);
+        console.error(
+          `[removeAttachment] Índice inválido: ${index}, total de anexos: ${currentAttachments.length}`
+        );
         throw new Error("Invalid attachment index");
       }
-      
+
       const updatedAttachments = [...currentAttachments];
       updatedAttachments.splice(index, 1);
 
-      
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          attachments: updatedAttachments
+          attachments: updatedAttachments,
         }),
-      })
+      });
 
       if (!taskResponse.ok) {
-        throw new Error("Failed to update task attachments")
+        throw new Error("Failed to update task attachments");
       }
 
-      const updatedTask = await taskResponse.json()
-      task.attachments = updatedTask.attachments
-      
+      const updatedTask = await taskResponse.json();
+      task.attachments = updatedTask.attachments;
+
       toast({
         title: t("Attachment removed"),
         description: t("Your attachment has been removed successfully."),
-      })
+      });
 
-      router.refresh()
+      router.refresh();
     } catch (error) {
-      console.error('Error removing attachment:', error)
+      console.error("Error removing attachment:", error);
       toast({
         variant: "destructive",
         title: t("Failed to remove attachment"),
         description: t("Please try again."),
-      })
+      });
     }
-  }
+  };
 
   const triggerFileUpload = () => {
     if (attachmentType === "image") {
-      imageUploadRef?.click()
+      imageUploadRef?.click();
     } else if (attachmentType === "file") {
-      fileUploadRef?.click()
+      fileUploadRef?.click();
     }
-  }
+  };
 
-  const getTimeUnitAndValue = (minutes: number | null): { value: number | null, unit: string } => {
-    if (minutes === null) return { value: null, unit: "min" }
-    
+  const getTimeUnitAndValue = (
+    minutes: number | null
+  ): { value: number | null; unit: string } => {
+    if (minutes === null) return { value: null, unit: "min" };
+
     if (minutes % (60 * 8) === 0 && minutes >= 60 * 8) {
-      return { value: minutes / (60 * 8), unit: "d" }
+      return { value: minutes / (60 * 8), unit: "d" };
     } else if (minutes % 60 === 0 && minutes >= 60) {
-      return { value: minutes / 60, unit: "h" }
+      return { value: minutes / 60, unit: "h" };
     } else {
-      return { value: minutes, unit: "min" }
+      return { value: minutes, unit: "min" };
     }
-  }
+  };
 
-  const convertTimeToMinutes = (timeValue: number | null, unit: string): number | null => {
-    if (timeValue === null) return null
-    
+  const convertTimeToMinutes = (
+    timeValue: number | null,
+    unit: string
+  ): number | null => {
+    if (timeValue === null) return null;
+
     switch (unit) {
       case "h":
-        return timeValue * 60
+        return timeValue * 60;
       case "d":
-        return timeValue * 60 * 8
+        return timeValue * 60 * 8;
       default:
-        return timeValue
+        return timeValue;
     }
-  }
+  };
 
   useEffect(() => {
     if (task.estimated_time !== undefined && task.estimated_time !== null) {
-      const { value, unit } = getTimeUnitAndValue(task.estimated_time)
-      setEstimatedTime(value)
-      setEstimatedTimeUnit(unit)
+      const { value, unit } = getTimeUnitAndValue(task.estimated_time);
+      setEstimatedTime(value);
+      setEstimatedTimeUnit(unit);
     }
-  }, [task.estimated_time])
+  }, [task.estimated_time]);
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onOpenChange={(newOpen) => {
         if (!newOpen && isEditMode) {
-          setIsEditMode(false)
+          setIsEditMode(false);
         }
-        onOpenChange(newOpen)
+        onOpenChange(newOpen);
       }}
     >
       <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-auto">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? t("Editar Tarefa") : t("Detalhes da Tarefa")}</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? t("Editar Tarefa") : t("Detalhes da Tarefa")}
+          </DialogTitle>
           <DialogDescription>
-            {isEditMode 
-              ? t("Edite os detalhes da sua tarefa.") 
+            {isEditMode
+              ? t("Edite os detalhes da sua tarefa.")
               : t("Visualize os detalhes da sua tarefa.")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              {t("title")}
-            </label>
-            <Textarea 
-              id="title" 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
+            <label className="text-sm font-medium">{t("title")}</label>
+            <Textarea
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder={t("Task title")}
               className="min-h-[80px] text-base"
               rows={3}
@@ -1049,9 +1136,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              {t("description")}
-            </label>
+            <label className="text-sm font-medium">{t("description")}</label>
             {isEditMode ? (
               <Textarea
                 id="description"
@@ -1074,11 +1159,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("dueDate")}
-              </label>
+              <label className="text-sm font-medium">{t("dueDate")}</label>
               <div className="flex flex-col space-y-2">
-                <Popover open={isEditMode ? datePickerOpen : false} onOpenChange={isEditMode ? setDatePickerOpen : undefined}>
+                <Popover
+                  open={isEditMode ? datePickerOpen : false}
+                  onOpenChange={isEditMode ? setDatePickerOpen : undefined}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -1091,10 +1177,14 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dueDate ? (
-                        isAllDay ? 
-                          format(dueDate, "PPP") :
+                        isAllDay ? (
+                          format(dueDate, "PPP")
+                        ) : (
                           `${format(dueDate, "PPP")} ${dueTime}`
-                      ) : <span>{t("Pick a date")}</span>}
+                        )
+                      ) : (
+                        <span>{t("Pick a date")}</span>
+                      )}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -1113,16 +1203,18 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                           <span className="sr-only">{t("close")}</span>
                         </Button>
                       </div>
-                      <Calendar 
-                        mode="single" 
-                        selected={dueDate} 
+                      <Calendar
+                        mode="single"
+                        selected={dueDate}
                         onSelect={(date) => {
                           if (date) {
                             setDueDate(date);
                             setTimeout(() => setDatePickerOpen(false), 100);
                           }
                         }}
-                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        disabled={(date) =>
+                          date < new Date(new Date().setHours(0, 0, 0, 0))
+                        }
                       />
                       <div className="pt-3 pb-2 border-t mt-3">
                         <div className="flex flex-row items-center space-x-3 space-y-0 h-9">
@@ -1136,14 +1228,17 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                               } else {
                                 setDueTime("00:00");
                               }
-                              if (typeof window !== 'undefined') {
+                              if (typeof window !== "undefined") {
                                 setTimeout(() => {
                                   setDueTimeUpdate(!dueTimeUpdate);
                                 }, 0);
                               }
                             }}
                           />
-                          <label className="text-sm font-normal cursor-pointer" htmlFor="taskDetailAllDay">
+                          <label
+                            className="text-sm font-normal cursor-pointer"
+                            htmlFor="taskDetailAllDay"
+                          >
                             {t("allDay")}
                           </label>
                         </div>
@@ -1151,8 +1246,8 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                       <div className={`mt-2 ${isAllDay ? "hidden" : ""}`}>
                         <div className="flex items-center">
                           <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <Input 
-                            type="time" 
+                          <Input
+                            type="time"
                             value={dueTime}
                             onChange={(e) => {
                               setDueTime(e.target.value || "00:00");
@@ -1165,7 +1260,10 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                             onClick={(e) => {
                               const target = e.target as HTMLInputElement;
                               target.focus();
-                              if (typeof window !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                              if (
+                                typeof window !== "undefined" &&
+                                /iPhone|iPad|iPod/.test(navigator.userAgent)
+                              ) {
                                 setTimeout(() => {
                                   target.click();
                                 }, 100);
@@ -1181,35 +1279,47 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("priority")}
-              </label>
-              <Select value={priority} onValueChange={setPriority} disabled={!isEditMode}>
-                <SelectTrigger className={!isEditMode ? "cursor-not-allowed" : ""}>
+              <label className="text-sm font-medium">{t("priority")}</label>
+              <Select
+                value={priority}
+                onValueChange={setPriority}
+                disabled={!isEditMode}
+              >
+                <SelectTrigger
+                  className={!isEditMode ? "cursor-not-allowed" : ""}
+                >
                   <SelectValue placeholder={t("Select priority")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1">
                     <div className="flex items-center">
-                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("1")}`} />
+                      <Flag
+                        className={`mr-2 h-4 w-4 ${getPriorityColor("1")}`}
+                      />
                       {t("Grave")}
                     </div>
                   </SelectItem>
                   <SelectItem value="2">
                     <div className="flex items-center">
-                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("2")}`} />
+                      <Flag
+                        className={`mr-2 h-4 w-4 ${getPriorityColor("2")}`}
+                      />
                       {t("Alta")}
                     </div>
                   </SelectItem>
                   <SelectItem value="3">
                     <div className="flex items-center">
-                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("3")}`} />
+                      <Flag
+                        className={`mr-2 h-4 w-4 ${getPriorityColor("3")}`}
+                      />
                       {t("Média")}
                     </div>
                   </SelectItem>
                   <SelectItem value="4">
                     <div className="flex items-center">
-                      <Flag className={`mr-2 h-4 w-4 ${getPriorityColor("4")}`} />
+                      <Flag
+                        className={`mr-2 h-4 w-4 ${getPriorityColor("4")}`}
+                      />
                       {t("Baixa")}
                     </div>
                   </SelectItem>
@@ -1225,14 +1335,20 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
               </label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className={`w-full justify-between text-left font-normal ${!isEditMode ? "cursor-not-allowed" : ""}`}
+                  <Button
+                    variant="outline"
+                    className={`w-full justify-between text-left font-normal ${
+                      !isEditMode ? "cursor-not-allowed" : ""
+                    }`}
                     disabled={!isEditMode}
                   >
                     <div className="flex items-center">
-                      <CircleDot className={`mr-2 h-4 w-4 ${getPointsColor(points)}`} />
-                      <span>{points} - {getPointsLabel(points)}</span>
+                      <CircleDot
+                        className={`mr-2 h-4 w-4 ${getPointsColor(points)}`}
+                      />
+                      <span>
+                        {points} - {getPointsLabel(points)}
+                      </span>
                     </div>
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
@@ -1244,7 +1360,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                       { value: 2, label: t("Fácil") },
                       { value: 3, label: t("Médio") },
                       { value: 4, label: t("Difícil") },
-                      { value: 5, label: t("Muito Difícil") }
+                      { value: 5, label: t("Muito Difícil") },
                     ].map(({ value, label }) => (
                       <Button
                         key={value}
@@ -1254,8 +1370,12 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                           setPoints(value);
                         }}
                       >
-                        <CircleDot className={`mr-2 h-4 w-4 ${getPointsColor(value)}`} />
-                        <span>{value} - {label}</span>
+                        <CircleDot
+                          className={`mr-2 h-4 w-4 ${getPointsColor(value)}`}
+                        />
+                        <span>
+                          {value} - {label}
+                        </span>
                       </Button>
                     ))}
                   </div>
@@ -1271,18 +1391,28 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                 <Input
                   type="number"
                   placeholder={t("Tempo")}
-                  className={`w-full ${!isEditMode ? "cursor-not-allowed" : ""}`}
+                  className={`w-full ${
+                    !isEditMode ? "cursor-not-allowed" : ""
+                  }`}
                   min="0"
                   disabled={!isEditMode}
                   value={estimatedTime === null ? "" : estimatedTime}
-                  onChange={(e) => setEstimatedTime(e.target.value === "" ? null : Number(e.target.value))}
+                  onChange={(e) =>
+                    setEstimatedTime(
+                      e.target.value === "" ? null : Number(e.target.value)
+                    )
+                  }
                 />
-                <Select 
-                  value={estimatedTimeUnit} 
-                  onValueChange={setEstimatedTimeUnit} 
+                <Select
+                  value={estimatedTimeUnit}
+                  onValueChange={setEstimatedTimeUnit}
                   disabled={!isEditMode}
                 >
-                  <SelectTrigger className={`w-[110px] ${!isEditMode ? "cursor-not-allowed" : ""}`}>
+                  <SelectTrigger
+                    className={`w-[110px] ${
+                      !isEditMode ? "cursor-not-allowed" : ""
+                    }`}
+                  >
                     <SelectValue placeholder={t("Unidade")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -1296,18 +1426,25 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              {t("project")}
-            </label>
-            <div className={`space-y-2 ${!isEditMode ? "cursor-not-allowed" : ""}`}>
+            <label className="text-sm font-medium">{t("project")}</label>
+            <div
+              className={`space-y-2 ${!isEditMode ? "cursor-not-allowed" : ""}`}
+            >
               {projectId ? (
                 <div className="flex items-center justify-between p-2 border rounded">
                   <div className="flex items-center">
                     <div
-                      style={{ backgroundColor: projects.find(p => p.id.toString() === projectId)?.color || "#ccc" }}
+                      style={{
+                        backgroundColor:
+                          projects.find((p) => p.id.toString() === projectId)
+                            ?.color || "#ccc",
+                      }}
                       className="w-4 h-4 rounded-full mr-2"
                     />
-                    <span>{projects.find(p => p.id.toString() === projectId)?.name || t("Unknown project")}</span>
+                    <span>
+                      {projects.find((p) => p.id.toString() === projectId)
+                        ?.name || t("Unknown project")}
+                    </span>
                   </div>
                   {isEditMode && (
                     <Button
@@ -1323,7 +1460,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground p-2">{t("noProject")}</p>
+                <p className="text-sm text-muted-foreground p-2">
+                  {t("noProject")}
+                </p>
               )}
               <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
                 <DialogTrigger asChild>
@@ -1338,10 +1477,15 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                     {t("Add Project")}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="z-[60]" onClick={(e) => e.stopPropagation()}>
+                <DialogContent
+                  className="z-[60]"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <DialogHeader>
                     <DialogTitle>{t("Add Project")}</DialogTitle>
-                    <DialogDescription>{t("Select a project or create a new one.")}</DialogDescription>
+                    <DialogDescription>
+                      {t("Select a project or create a new one.")}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-2 py-4">
                     {isLoadingProjects ? (
@@ -1349,7 +1493,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                       </div>
                     ) : projects.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">{t("No projects found.")}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t("No projects found.")}
+                      </p>
                     ) : (
                       projects.map((project) => (
                         <button
@@ -1373,19 +1519,30 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                     )}
                   </div>
                   <div className="mt-4 border-t pt-4 flex justify-between">
-                    <Button variant="outline" onClick={() => setShowAddProject(false)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAddProject(false)}
+                    >
                       {t("Cancel")}
                     </Button>
-                    <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
+                    <Dialog
+                      open={showCreateProject}
+                      onOpenChange={setShowCreateProject}
+                    >
                       <DialogTrigger asChild>
-                        <Button onClick={(e) => {
-                          e.stopPropagation();
-                          setShowCreateProject(true);
-                        }}>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowCreateProject(true);
+                          }}
+                        >
                           {t("Create New Project")}
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="z-[70]" onClick={(e) => e.stopPropagation()}>
+                      <DialogContent
+                        className="z-[70]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <DialogHeader>
                           <DialogTitle>{t("Create New Project")}</DialogTitle>
                           <DialogDescription>
@@ -1402,11 +1559,13 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">
-              {t("labels")}
-            </label>
+            <label className="text-sm font-medium">{t("labels")}</label>
             <div className={`${!isEditMode ? "cursor-not-allowed" : ""}`}>
-              <TaskLabels key={taskLabelsKey} taskId={task.id} readOnly={!isEditMode} />
+              <TaskLabels
+                key={taskLabelsKey}
+                taskId={task.id}
+                readOnly={!isEditMode}
+              />
             </div>
           </div>
 
@@ -1414,21 +1573,32 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
             <label className="text-sm font-medium">
               {t("attachment.list")}
             </label>
-            <div className={`space-y-2 ${!isEditMode ? "cursor-not-allowed" : ""}`}>
+            <div
+              className={`space-y-2 ${!isEditMode ? "cursor-not-allowed" : ""}`}
+            >
               {task.attachments && task.attachments.length > 0 && (
                 <div className="space-y-2">
                   {task.attachments.map((attachment, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-secondary/50 rounded-md">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 bg-secondary/50 rounded-md"
+                    >
                       <div className="flex items-center space-x-2 truncate">
-                        {attachment.type === "link" && <Link className="h-4 w-4" />}
-                        {attachment.type === "image" && <Image className="h-4 w-4" />}
-                        {attachment.type === "file" && <FileText className="h-4 w-4" />}
+                        {attachment.type === "link" && (
+                          <Link className="h-4 w-4" />
+                        )}
+                        {attachment.type === "image" && (
+                          <Image className="h-4 w-4" />
+                        )}
+                        {attachment.type === "file" && (
+                          <FileText className="h-4 w-4" />
+                        )}
                         <span className="truncate">{attachment.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <a 
-                          href={attachment.url} 
-                          target="_blank" 
+                        <a
+                          href={attachment.url}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="text-primary hover:text-primary/80 flex-shrink-0"
                         >
@@ -1449,14 +1619,16 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                   ))}
                 </div>
               )}
-              
+
               {isEditMode ? (
                 showAddAttachment ? (
                   <div className="space-y-2 border rounded-md p-2">
                     <div className="grid grid-cols-3 gap-2">
                       <Button
                         type="button"
-                        variant={attachmentType === "link" ? "default" : "outline"}
+                        variant={
+                          attachmentType === "link" ? "default" : "outline"
+                        }
                         size="sm"
                         onClick={() => setAttachmentType("link")}
                         className="w-full"
@@ -1465,7 +1637,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                       </Button>
                       <Button
                         type="button"
-                        variant={attachmentType === "image" ? "default" : "outline"}
+                        variant={
+                          attachmentType === "image" ? "default" : "outline"
+                        }
                         size="sm"
                         onClick={() => setAttachmentType("image")}
                         className="w-full"
@@ -1474,7 +1648,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                       </Button>
                       <Button
                         type="button"
-                        variant={attachmentType === "file" ? "default" : "outline"}
+                        variant={
+                          attachmentType === "file" ? "default" : "outline"
+                        }
                         size="sm"
                         onClick={() => setAttachmentType("file")}
                         className="w-full"
@@ -1482,7 +1658,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                         {t("File")}
                       </Button>
                     </div>
-                    
+
                     {attachmentType === "link" ? (
                       <>
                         <Input
@@ -1490,13 +1666,13 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                           value={attachmentUrl}
                           onChange={(e) => setAttachmentUrl(e.target.value)}
                         />
-                        
+
                         <Input
                           placeholder={t("Name (optional)")}
                           value={attachmentName}
                           onChange={(e) => setAttachmentName(e.target.value)}
                         />
-                        
+
                         <div className="flex space-x-2">
                           <Button
                             type="button"
@@ -1511,9 +1687,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              setShowAddAttachment(false)
-                              setAttachmentUrl("")
-                              setAttachmentName("")
+                              setShowAddAttachment(false);
+                              setAttachmentUrl("");
+                              setAttachmentName("");
                             }}
                           >
                             {t("Cancel")}
@@ -1522,12 +1698,18 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                       </>
                     ) : (
                       <>
-                        <input 
-                          type="file" 
-                          accept={attachmentType === "image" ? "image/*" : "*/*"} 
+                        <input
+                          type="file"
+                          accept={
+                            attachmentType === "image" ? "image/*" : "*/*"
+                          }
                           className="hidden"
                           onChange={handleFileUpload}
-                          ref={node => attachmentType === "image" ? setImageUploadRef(node) : setFileUploadRef(node)}
+                          ref={(node) =>
+                            attachmentType === "image"
+                              ? setImageUploadRef(node)
+                              : setFileUploadRef(node)
+                          }
                         />
                         <Button
                           type="button"
@@ -1535,7 +1717,9 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                           className="w-full"
                           size="sm"
                         >
-                          {attachmentType === "image" ? t("Select Image") : t("Select File")}
+                          {attachmentType === "image"
+                            ? t("Select Image")
+                            : t("Select File")}
                         </Button>
                         <Button
                           type="button"
@@ -1564,35 +1748,38 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
               ) : null}
             </div>
           </div>
-
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row justify-between items-center w-full gap-4 sm:gap-2">
-          <Button 
-            variant="secondary" 
-            size="sm" 
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => {
               if (isEditMode) {
-                setIsEditMode(false)
-                setTitle(task.title)
-                setDescription(task.description || "")
-                setPriority(task.priority.toString())
-                setPoints(task.points || 3)
+                setIsEditMode(false);
+                setTitle(task.title);
+                setDescription(task.description || "");
+                setPriority(task.priority.toString());
+                setPoints(task.points || 3);
                 if (task.due_date) {
-                  setDueDate(new Date(task.due_date))
+                  setDueDate(new Date(task.due_date));
                   setDueTime(
-                    new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0
+                    new Date(task.due_date).getHours() === 0 &&
+                      new Date(task.due_date).getMinutes() === 0
                       ? "00:00"
                       : new Date(task.due_date).toTimeString().slice(0, 5)
-                  )
-                  setIsAllDay(new Date(task.due_date).getHours() === 0 && new Date(task.due_date).getMinutes() === 0)
+                  );
+                  setIsAllDay(
+                    new Date(task.due_date).getHours() === 0 &&
+                      new Date(task.due_date).getMinutes() === 0
+                  );
                 } else {
-                  setDueDate(undefined)
-                  setDueTime("00:00")
-                  setIsAllDay(true)
+                  setDueDate(undefined);
+                  setDueTime("00:00");
+                  setIsAllDay(true);
                 }
               } else {
-                onOpenChange(false)
+                onOpenChange(false);
               }
             }}
             className="w-full sm:w-28"
@@ -1603,19 +1790,19 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-2 w-full sm:w-auto">
             {isEditMode ? (
               <>
-                <Button 
-                  variant="destructive" 
-                  size="sm" 
-                  onClick={handleDelete} 
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
                   disabled={isDeleting}
                   className="w-full sm:w-28"
                 >
                   <Trash className="mr-1 h-4 w-4" />
                   {isDeleting ? t("Deleting...") : t("delete")}
                 </Button>
-                <Button 
-                  size="sm" 
-                  onClick={handleSave} 
+                <Button
+                  size="sm"
+                  onClick={handleSave}
                   disabled={isSaving}
                   className="w-full sm:w-28"
                 >
@@ -1639,5 +1826,5 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
