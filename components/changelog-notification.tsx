@@ -198,18 +198,24 @@ export function ChangelogNotification() {
             <p className="text-sm text-muted-foreground">
               {latestChangelog === '2.8.1' ? (
                 <>
+                  <span className="font-medium text-primary">Relatórios Aprimorados com Pontos e Tempo Estimado</span>
+                  <br />
+                  Seus relatórios ficaram ainda mais poderosos! Agora você pode incluir análises de pontos 
+                  e tempo estimado em todos os formatos de relatório (Web, PDF e Excel), proporcionando 
+                  insights mais profundos sobre sua produtividade.
+                  <br /><br />
+                  <span className="font-medium">Novas funcionalidades:</span> Estatísticas de pontos totais, 
+                  média de dificuldade, tempo total estimado e tempo médio. Nos relatórios Web, você encontrará 
+                  um novo gráfico de distribuição de pontos para análise visual.
+                  <br /><br />
                   <span className="font-medium text-primary">Suporte a Markdown nas Tarefas</span>
                   <br />
-                  Agora suas tarefas ficaram ainda mais expressivas! Adicionamos suporte completo a markdown 
-                  nas descrições de tarefas, permitindo que você formate seu texto com negrito, itálico, 
-                  listas, títulos, links e blocos de código.
+                  Também adicionamos suporte completo a markdown nas descrições de tarefas! Formate seu texto 
+                  com negrito, itálico, listas, títulos, links e blocos de código usando a sintaxe markdown 
+                  como <code>**negrito**</code>, <code>*itálico*</code>, <code># título</code>, etc.
                   <br /><br />
-                  <span className="font-medium">Como usar:</span> Ao editar a descrição de uma tarefa, 
-                  você pode utilizar a sintaxe markdown como <code>**negrito**</code>, <code>*itálico*</code>, 
-                  <code># título</code>, <code>- item de lista</code>, <code>[link](url)</code> e muito mais.
-                  <br /><br />
-                  A formatação será aplicada automaticamente quando você visualizar os detalhes da tarefa, 
-                  tornando suas anotações mais organizadas e fáceis de ler.
+                  <span className="font-medium">Melhorias na usabilidade:</span> As tabelas dos relatórios Web 
+                  agora têm colunas redimensionáveis e tooltips para melhor visualização dos dados.
                 </>
               ) : latestChangelog === '2.8.0' ? (
                 <>

@@ -59,7 +59,7 @@ const formatEstimatedTime = (minutes: number | null | undefined): string => {
   if (hours > 0) parts.push(`${hours}h`);
   if (mins > 0) parts.push(`${mins}m`);
   
-  return parts.length > 0 ? parts.join(' ') : '-';s
+      return parts.length > 0 ? parts.join(' ') : '-';
 };
 
 export function generatePDF(data: ReportData): Buffer {

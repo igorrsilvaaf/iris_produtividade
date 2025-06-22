@@ -23,6 +23,41 @@ export const CHANGELOG_DATA: ChangelogData[] = [
     },
     entries: [
       {
+        id: 'reports-points-time-enhancement',
+        title: 'Aprimoramento dos Relatórios com Pontos e Tempo Estimado',
+        description: 'Adicionados campos de pontos e tempo estimado nos relatórios para melhor análise de produtividade',
+        items: [
+          {
+            type: 'feature',
+            content: 'Adicionadas colunas "Pontos" e "Tempo Estimado" nos relatórios Web, PDF e Excel'
+          },
+          {
+            type: 'feature',
+            content: 'Estatísticas de pontos totais, média de pontos, tempo total estimado e tempo médio nos relatórios'
+          },
+          {
+            type: 'feature',
+            content: 'Gráfico de distribuição de pontos nos relatórios Web para análise visual da dificuldade das tarefas'
+          },
+          {
+            type: 'improvement',
+            content: 'Formatação visual colorida dos pontos nos relatórios PDF (verde para fácil, vermelho para difícil)'
+          },
+          {
+            type: 'improvement',
+            content: 'Conversão automática de tempo estimado para formato legível (dias, horas, minutos)'
+          },
+          {
+            type: 'improvement',
+            content: 'Colunas redimensionáveis e tooltips nas tabelas dos relatórios Web para melhor usabilidade'
+          },
+          {
+            type: 'improvement',
+            content: 'Seleção personalizada de colunas permite incluir apenas os campos necessários'
+          }
+        ]
+      },
+      {
         id: 'markdown-task-support',
         title: 'Suporte a Markdown nas Tarefas',
         description: 'Adicionado suporte a formatação markdown nas descrições de tarefas',
