@@ -239,6 +239,8 @@ export async function POST(request: NextRequest) {
           priority: task.priority !== undefined ? task.priority : null,
           completed: task.completed !== undefined ? task.completed : false,
           kanban_column: task.kanban_column || '',
+          points: task.points || null,
+          estimated_time: task.estimated_time || null,
           created_at: task.created_at || new Date().toISOString(),
           updated_at: task.updated_at || new Date().toISOString(),
           project_name: task.project_name || '',

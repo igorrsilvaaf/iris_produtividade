@@ -95,6 +95,8 @@ export default function ReportsPage() {
     { id: "project", label: "Projeto" },
     { id: "labels", label: "Etiquetas" },
     { id: "kanban_column", label: "Coluna Kanban" },
+    { id: "points", label: "Pontos" },
+    { id: "estimated_time", label: "Tempo Estimado" },
     { id: "created_at", label: "Data de Criação" },
     { id: "updated_at", label: "Data de Atualização" },
   ];
