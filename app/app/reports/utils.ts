@@ -153,6 +153,8 @@ export function generateCSV(data: ReportData): string {
     "project": "Projeto",
     "labels": "Etiquetas",
     "kanban_column": "Coluna Kanban",
+    "points": "Pontos",
+    "estimated_time": "Tempo Estimado",
     "created_at": "Data de Criação",
     "updated_at": "Última Atualização"
   };
@@ -191,11 +193,49 @@ export function generateCSV(data: ReportData): string {
     "completed": "Concluído"
   };
   
+  // Função auxiliar para formatar pontos
+  const formatPoints = (points: number | null | undefined) => {
+    if (!points) return '';
+    const pointsLabels: Record<number, string> = {
+      1: "1 - Muito Fácil",
+      2: "2 - Fácil", 
+      3: "3 - Médio",
+      4: "4 - Difícil",
+      5: "5 - Muito Difícil"
+    };
+    return pointsLabels[points] || points.toString();
+  };
+  
+  // Função auxiliar para formatar tempo estimado
+  const formatEstimatedTime = (minutes: number | null | undefined) => {
+    if (!minutes) return '';
+    
+    const days = Math.floor(minutes / (60 * 8));
+    const remainingHours = Math.floor((minutes % (60 * 8)) / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (days > 0) {
+      if (remainingHours > 0 || remainingMinutes > 0) {
+        return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ''} ${remainingMinutes > 0 ? `${remainingMinutes}min` : ''}`.trim();
+      }
+      return `${days}d`;
+    } else if (remainingHours > 0) {
+      if (remainingMinutes > 0) {
+        return `${remainingHours}h ${remainingMinutes}min`;
+      }
+      return `${remainingHours}h`;
+    } else {
+      return `${remainingMinutes}min`;
+    }
+  };
+  
   data.items.forEach((task) => {
     const dueDate = task.due_date ? new Date(task.due_date).toLocaleDateString('pt-BR') : '';
     const priority = task.priority ? priorityLabels[task.priority] || task.priority.toString() : '';
     const completed = task.completed ? "Sim" : "Não";
     const kanban = task.kanban_column ? kanbanLabels[task.kanban_column as string] || task.kanban_column : '';
+    const points = formatPoints(task.points);
+    const estimatedTime = formatEstimatedTime(task.estimated_time);
     const createdAt = task.created_at ? new Date(task.created_at).toLocaleDateString('pt-BR') : '';
     const updatedAt = task.updated_at ? new Date(task.updated_at).toLocaleDateString('pt-BR') : '';
     
@@ -221,6 +261,8 @@ export function generateCSV(data: ReportData): string {
     if (includeAll || customColumns.includes('project')) row.push(safeProject);
     if (includeAll || customColumns.includes('labels')) row.push(safeLabels);
     if (includeAll || customColumns.includes('kanban_column')) row.push(kanban);
+    if (includeAll || customColumns.includes('points')) row.push(points);
+    if (includeAll || customColumns.includes('estimated_time')) row.push(estimatedTime);
     if (includeAll || customColumns.includes('created_at')) row.push(createdAt);
     if (includeAll || customColumns.includes('updated_at')) row.push(updatedAt);
     
@@ -367,6 +409,65 @@ export function generateHTML(data: ReportData): string {
       width: "120px"
     },
     {
+      id: "points", 
+      label: "Pontos", 
+      includeIf: includeAll || customColumns.includes('points'),
+      format: (task) => {
+        if (!task.points) return '-';
+        
+        const pointsLabels: Record<number, string> = {
+          1: "Muito Fácil",
+          2: "Fácil", 
+          3: "Médio",
+          4: "Difícil",
+          5: "Muito Difícil"
+        };
+        
+        const pointsColors: Record<number, string> = {
+          1: "#16a34a",
+          2: "#3b82f6", 
+          3: "#facc15",
+          4: "#f97316",
+          5: "#ef4444"
+        };
+        
+        const label = pointsLabels[task.points] || task.points.toString();
+        const color = pointsColors[task.points] || '#777';
+        const textColor = getContrastColor(color);
+        
+        return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:${textColor}; font-size:11px; font-weight:bold;">${task.points} - ${label}</span>`;
+      },
+      width: "100px"
+    },
+    {
+      id: "estimated_time", 
+      label: "Tempo Estimado", 
+      includeIf: includeAll || customColumns.includes('estimated_time'),
+      format: (task) => {
+        if (!task.estimated_time) return '-';
+        
+        const minutes = task.estimated_time;
+        const days = Math.floor(minutes / (60 * 8));
+        const remainingHours = Math.floor((minutes % (60 * 8)) / 60);
+        const remainingMinutes = minutes % 60;
+        
+        if (days > 0) {
+          if (remainingHours > 0 || remainingMinutes > 0) {
+            return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ''} ${remainingMinutes > 0 ? `${remainingMinutes}min` : ''}`.trim();
+          }
+          return `${days}d`;
+        } else if (remainingHours > 0) {
+          if (remainingMinutes > 0) {
+            return `${remainingHours}h ${remainingMinutes}min`;
+          }
+          return `${remainingHours}h`;
+        } else {
+          return `${remainingMinutes}min`;
+        }
+      },
+      width: "120px"
+    },
+    {
       id: "created_at", 
       label: "Criada em", 
       includeIf: includeAll || customColumns.includes('created_at'),
@@ -430,6 +531,62 @@ export function generateHTML(data: ReportData): string {
         projectsCount["Sem projeto"] = (projectsCount["Sem projeto"] || 0) + 1;
       }
     });
+    
+    // Calcular estatísticas de pontos
+    const pointsCounts: Record<string, number> = {};
+    let totalPoints = 0;
+    let tasksWithPoints = 0;
+    
+    data.items.forEach(task => {
+      if (task.points) {
+        const pointsLabels: Record<number, string> = {
+          1: "Muito Fácil (1)",
+          2: "Fácil (2)", 
+          3: "Médio (3)",
+          4: "Difícil (4)",
+          5: "Muito Difícil (5)"
+        };
+        const pointsLabel = pointsLabels[task.points] || task.points.toString();
+        pointsCounts[pointsLabel] = (pointsCounts[pointsLabel] || 0) + 1;
+        totalPoints += task.points;
+        tasksWithPoints++;
+      }
+    });
+    
+    const averagePoints = tasksWithPoints > 0 ? (totalPoints / tasksWithPoints).toFixed(1) : 0;
+    
+    // Calcular estatísticas de tempo estimado
+    let totalEstimatedTime = 0;
+    let tasksWithTime = 0;
+    
+    data.items.forEach(task => {
+      if (task.estimated_time) {
+        totalEstimatedTime += task.estimated_time;
+        tasksWithTime++;
+      }
+    });
+    
+    const formatTotalTime = (minutes: number) => {
+      const days = Math.floor(minutes / (60 * 8));
+      const remainingHours = Math.floor((minutes % (60 * 8)) / 60);
+      const remainingMinutes = minutes % 60;
+      
+      if (days > 0) {
+        if (remainingHours > 0 || remainingMinutes > 0) {
+          return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ''} ${remainingMinutes > 0 ? `${remainingMinutes}min` : ''}`.trim();
+        }
+        return `${days}d`;
+      } else if (remainingHours > 0) {
+        if (remainingMinutes > 0) {
+          return `${remainingHours}h ${remainingMinutes}min`;
+        }
+        return `${remainingHours}h`;
+      } else {
+        return `${remainingMinutes}min`;
+      }
+    };
+    
+    const averageEstimatedTime = tasksWithTime > 0 ? Math.round(totalEstimatedTime / tasksWithTime) : 0;
     
     const statusData = [
       { label: "Concluídas", value: completedTasks, color: "#16a34a" },
@@ -515,6 +672,26 @@ export function generateHTML(data: ReportData): string {
             <span class="stat-value">${Object.keys(projectsCount).length}</span>
             <span class="stat-label">Projetos</span>
           </div>
+          ${tasksWithPoints > 0 ? `
+          <div class="stat-box">
+            <span class="stat-value">${totalPoints}</span>
+            <span class="stat-label">Total de Pontos</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">${averagePoints}</span>
+            <span class="stat-label">Média de Pontos</span>
+          </div>
+          ` : ''}
+          ${tasksWithTime > 0 ? `
+          <div class="stat-box">
+            <span class="stat-value">${formatTotalTime(totalEstimatedTime)}</span>
+            <span class="stat-label">Tempo Total Estimado</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value">${formatTotalTime(averageEstimatedTime)}</span>
+            <span class="stat-label">Tempo Médio por Tarefa</span>
+          </div>
+          ` : ''}
         </div>
         
         <div class="stats-detail">
@@ -550,6 +727,31 @@ export function generateHTML(data: ReportData): string {
               </ul>
             </div>
           ` : ''}
+          
+          ${Object.keys(pointsCounts).length > 0 ? `
+            <div class="stats-points">
+              <h4>Distribuição por Pontos</h4>
+              <ul class="stats-list">
+                ${Object.entries(pointsCounts).map(([points, count]) => {
+                  const pointsColors: Record<string, string> = {
+                    "Muito Fácil (1)": "#16a34a",
+                    "Fácil (2)": "#3b82f6", 
+                    "Médio (3)": "#facc15",
+                    "Difícil (4)": "#f97316",
+                    "Muito Difícil (5)": "#ef4444"
+                  };
+                  const color = pointsColors[points] || '#777';
+                  
+                  return `
+                    <li>
+                      <span class="color-dot" style="background-color: ${color}"></span>
+                      <span>${points}: ${count}</span>
+                    </li>
+                  `;
+                }).join('')}
+              </ul>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
@@ -572,6 +774,15 @@ export function generateHTML(data: ReportData): string {
               <canvas id="statusChart"></canvas>
             </div>
           </div>
+          
+          ${Object.keys(pointsCounts).length > 0 ? `
+          <div class="chart-container">
+            <h4>Distribuição por Pontos</h4>
+            <div class="chart-wrapper">
+              <canvas id="pointsChart"></canvas>
+            </div>
+          </div>
+          ` : ''}
           
           ${Object.keys(projectsCount).length > 3 ? `
             <div class="chart-container chart-full-width">
@@ -660,6 +871,55 @@ export function generateHTML(data: ReportData): string {
               }
             }
           );
+          
+          ${Object.keys(pointsCounts).length > 0 ? `
+          new Chart(
+            document.getElementById('pointsChart'),
+            {
+              type: 'doughnut',
+              data: {
+                labels: ${JSON.stringify(Object.keys(pointsCounts))},
+                datasets: [{
+                  data: ${JSON.stringify(Object.values(pointsCounts))},
+                  backgroundColor: ${JSON.stringify(Object.keys(pointsCounts).map(points => {
+                    const pointsColors: Record<string, string> = {
+                      "Muito Fácil (1)": "#16a34a",
+                      "Fácil (2)": "#3b82f6", 
+                      "Médio (3)": "#facc15",
+                      "Difícil (4)": "#f97316",
+                      "Muito Difícil (5)": "#ef4444"
+                    };
+                    return pointsColors[points] || '#777';
+                  }))},
+                  borderWidth: 0
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'right',
+                    labels: {
+                      usePointStyle: true,
+                      boxWidth: 10
+                    }
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const value = context.raw;
+                        const percentage = Math.round((value / total) * 100);
+                        return \`\${context.label}: \${value} (\${percentage}%)\`;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          );
+          ` : ''}
           
           ${Object.keys(projectsCount).length > 3 ? `
             new Chart(
