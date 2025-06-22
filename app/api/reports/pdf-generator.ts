@@ -31,6 +31,37 @@ const formatDate = (dateString: string): string => {
   }
 };
 
+// Função para formatar pontos
+const formatPoints = (points: number | null | undefined): string => {
+  if (!points) return '-';
+  
+  const pointsMap: Record<number, string> = {
+    1: '1 (Muito Fácil)',
+    2: '2 (Fácil)', 
+    3: '3 (Médio)',
+    4: '4 (Difícil)',
+    5: '5 (Muito Difícil)'
+  };
+  
+  return pointsMap[points] || points.toString();
+};
+
+// Função para formatar tempo estimado
+const formatEstimatedTime = (minutes: number | null | undefined): string => {
+  if (!minutes || minutes <= 0) return '-';
+  
+  const days = Math.floor(minutes / (24 * 60));
+  const hours = Math.floor((minutes % (24 * 60)) / 60);
+  const mins = minutes % 60;
+  
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (mins > 0) parts.push(`${mins}m`);
+  
+  return parts.length > 0 ? parts.join(' ') : '-';s
+};
+
 export function generatePDF(data: ReportData): Buffer {
   try {
     
@@ -138,6 +169,16 @@ export function generatePDF(data: ReportData): Buffer {
         }
       });
       
+      // Estatísticas de pontos
+      const tasksWithPoints = data.items.filter(task => task.points && task.points > 0);
+      const totalPoints = tasksWithPoints.reduce((sum, task) => sum + (task.points || 0), 0);
+      const avgPoints = tasksWithPoints.length > 0 ? Math.round((totalPoints / tasksWithPoints.length) * 10) / 10 : 0;
+      
+      // Estatísticas de tempo estimado
+      const tasksWithTime = data.items.filter(task => task.estimated_time && task.estimated_time > 0);
+      const totalEstimatedTime = tasksWithTime.reduce((sum, task) => sum + (task.estimated_time || 0), 0);
+      const avgEstimatedTime = tasksWithTime.length > 0 ? Math.round(totalEstimatedTime / tasksWithTime.length) : 0;
+      
       // Desenhar a seção de estatísticas
       doc.setFillColor(colors.lightGray);
       doc.rect(14, 32, doc.internal.pageSize.width - 28, 25, 'F');
@@ -179,8 +220,32 @@ export function generatePDF(data: ReportData): Buffer {
       doc.setTextColor(colors.text);
       doc.text('Taxa de Conclusão', 124, 51, { align: 'center' });
       
+      // Total de Pontos
+      if (totalPoints > 0) {
+        doc.setFillColor('#FFFFFF');
+        doc.roundedRect(148, 41, 40, 12, 1, 1, 'F');
+        doc.setFontSize(14);
+        doc.setTextColor(colors.primary);
+        doc.text(String(totalPoints), 168, 47, { align: 'center' });
+        doc.setFontSize(8);
+        doc.setTextColor(colors.text);
+        doc.text('Total de Pontos', 168, 51, { align: 'center' });
+      }
+      
+      // Tempo Total Estimado
+      if (totalEstimatedTime > 0) {
+        doc.setFillColor('#FFFFFF');
+        doc.roundedRect(192, 41, 40, 12, 1, 1, 'F');
+        doc.setFontSize(12);
+        doc.setTextColor(colors.primary);
+        doc.text(formatEstimatedTime(totalEstimatedTime), 212, 47, { align: 'center' });
+        doc.setFontSize(8);
+        doc.setTextColor(colors.text);
+        doc.text('Tempo Total Est.', 212, 51, { align: 'center' });
+      }
+      
       // Distribuição por prioridade
-      let xPosition = 160;
+      let xPosition = totalEstimatedTime > 0 ? 236 : (totalPoints > 0 ? 192 : 160);
       
       // Título da distribuição
       doc.setFontSize(10);
@@ -310,6 +375,8 @@ export function generatePDF(data: ReportData): Buffer {
       { id: 'project', header: 'Projeto', dataKey: 'project_name' },
       { id: 'labels', header: 'Etiquetas', dataKey: 'labels' },
       { id: 'kanban_column', header: 'Coluna', dataKey: 'kanban_column' },
+      { id: 'points', header: 'Pontos', dataKey: 'points' },
+      { id: 'estimated_time', header: 'Tempo Est.', dataKey: 'estimated_time' },
       { id: 'created_at', header: 'Criada em', dataKey: 'created_at' },
       { id: 'updated_at', header: 'Atualizada em', dataKey: 'updated_at' }
     ];
@@ -340,6 +407,8 @@ export function generatePDF(data: ReportData): Buffer {
         project_name: taskWithExtras.project_name || '-',
         labels: taskWithExtras.labels ? taskWithExtras.labels.map(label => label.name).join(', ') : '-',
         kanban_column: task.kanban_column ? kanbanLabels[task.kanban_column as string] || task.kanban_column : '-',
+        points: formatPoints(task.points),
+        estimated_time: formatEstimatedTime(task.estimated_time),
         created_at: task.created_at ? new Date(task.created_at).toLocaleDateString('pt-BR') : '-',
         updated_at: task.updated_at ? new Date(task.updated_at).toLocaleDateString('pt-BR') : '-',
       };
@@ -367,7 +436,7 @@ export function generatePDF(data: ReportData): Buffer {
           );
         }
       } catch (err) {
-        ("Erro ao adicionar numeração de página:", err);
+        console.error("Erro ao adicionar numeração de página:", err);
         // Continuar sem a numeração em caso de erro
       }
     };
@@ -457,8 +526,25 @@ export function generatePDF(data: ReportData): Buffer {
                 data.cell.styles.textColor = colors.urgent;
               }
             }
+            
+            // Destacar células de pontos
+            if (colKey === 'points' && rowData.points && rowData.points !== '-') {
+              const pointsText = rowData.points;
+              if (pointsText.includes('1 (Muito Fácil)')) {
+                data.cell.styles.textColor = colors.low;
+              } else if (pointsText.includes('2 (Fácil)')) {
+                data.cell.styles.textColor = colors.veryLow;
+              } else if (pointsText.includes('3 (Médio)')) {
+                data.cell.styles.textColor = colors.medium;
+              } else if (pointsText.includes('4 (Difícil)')) {
+                data.cell.styles.textColor = colors.high;
+              } else if (pointsText.includes('5 (Muito Difícil)')) {
+                data.cell.styles.textColor = colors.urgent;
+                data.cell.styles.fontStyle = 'bold';
+              }
+            }
           } catch (error) {
-            ('Erro na formatação condicional de células:', error);
+            console.error('Erro na formatação condicional de células:', error);
             // Continuar sem a formatação em caso de erro
           }
         }
@@ -486,22 +572,22 @@ export function generatePDF(data: ReportData): Buffer {
         doc.text('Relatório gerado automaticamente pelo sistema', doc.internal.pageSize.width / 2, pageHeight - 5, { align: 'center' });
       }
     } catch (err) {
-      ("Erro ao adicionar rodapé:", err);
+      console.error("Erro ao adicionar rodapé:", err);
       // Continuar sem o rodapé se houver erro
     }
     
-    ("Geração de PDF concluída, convertendo para buffer...");
+    console.log("Geração de PDF concluída, convertendo para buffer...");
     
     // Converter para buffer com tratamento de erro
     try {
       const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
       return pdfBuffer;
     } catch (err) {
-      ("Erro ao converter PDF para buffer:", err);
+      console.error("Erro ao converter PDF para buffer:", err);
       throw new Error("Falha ao converter o PDF para download: " + (err instanceof Error ? err.message : String(err)));
     }
   } catch (error) {
-    ('Erro ao gerar PDF:', error);
+    console.error('Erro ao gerar PDF:', error);
     throw new Error('Falha ao gerar o PDF: ' + (error instanceof Error ? error.message : String(error)));
   }
 } 
