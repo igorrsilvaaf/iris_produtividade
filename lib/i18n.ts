@@ -2702,6 +2702,30 @@ export const translations: Translations = {
     en: "The project and all its tasks will be permanently deleted.",
     pt: "O projeto e todas as suas tarefas serão excluídos permanentemente.",
   },
+  "Total Points": {
+    en: "Total Points",
+    pt: "Total de Pontos"
+  },
+  "Average Points": {
+    en: "Average Points", 
+    pt: "Média de Pontos"
+  },
+  "Total Estimated Time": {
+    en: "Total Estimated Time",
+    pt: "Tempo Total Estimado"
+  },
+  "Average Time per Task": {
+    en: "Average Time per Task",
+    pt: "Tempo Médio por Tarefa"
+  },
+  "Points Distribution": {
+    en: "Points Distribution",
+    pt: "Distribuição por Pontos"
+  },
+  "Estimated Time": {
+    en: "Estimated Time",
+    pt: "Tempo Estimado"
+  },
 }
 
 type LanguageState = {
