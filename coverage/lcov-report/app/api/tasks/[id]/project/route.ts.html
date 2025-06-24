@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/29</span>
+                <span class='fraction'>0/27</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/29</span>
+                <span class='fraction'>0/27</span>
             </div>
         
             
@@ -126,11 +126,7 @@
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
 <a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a>
-<a name='L65'></a><a href='#L65'>65</a>
-<a name='L66'></a><a href='#L66'>66</a>
-<a name='L67'></a><a href='#L67'>67</a>
-<a name='L68'></a><a href='#L68'>68</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -145,10 +141,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -171,8 +167,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -180,8 +174,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -190,8 +184,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -209,13 +201,13 @@ export async function <span class="fstat-no" title="function not covered" >GET(<
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ message: "Unauthorized" }, { status: 401 })</span>
     }
 &nbsp;
+    const userId = <span class="cstat-no" title="statement not covered" >session.user.id</span>
     const resolvedParams = <span class="cstat-no" title="statement not covered" >await params</span>
     const taskId = <span class="cstat-no" title="statement not covered" >Number.parseInt(resolvedParams.id)</span>
-    const projectId = <span class="cstat-no" title="statement not covered" >await getTaskProject(taskId)</span>
+    const projectId = <span class="cstat-no" title="statement not covered" >await getTaskProject(taskId, userId)</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json({ projectId })</span>
   } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >    console.error("Error fetching task project:", error);</span>
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json({ message: error.message || "Failed to fetch task project" }, { status: 500 })</span>
   }
 }
@@ -238,32 +230,28 @@ export async function <span class="fstat-no" title="function not covered" >PUT(<
     const body = <span class="cstat-no" title="statement not covered" >await request.json()</span>
     const { projectId } = <span class="cstat-no" title="statement not covered" >body</span>
     
-<span class="cstat-no" title="statement not covered" >    console.log("Task project update request:", { taskId, projectId, body });</span>
 &nbsp;
-    // Verificar se o projectId é válido (null ou número)
 <span class="cstat-no" title="statement not covered" >    if (projectId !== null &amp;&amp; (isNaN(Number(projectId)) || Number(projectId) &lt;= 0)) {</span>
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ message: "Invalid project ID format" }, { status: 400 })</span>
     }
     
-    // Convertendo para number ou permanecendo null
+&nbsp;
     const projectIdValue = <span class="cstat-no" title="statement not covered" >projectId === null ? null : Number(projectId);</span>
+    const userId = <span class="cstat-no" title="statement not covered" >session.user.id;</span>
     
-<span class="cstat-no" title="statement not covered" >    console.log("Calling setTaskProject with:", { taskId, projectIdValue });</span>
-<span class="cstat-no" title="statement not covered" >    await setTaskProject(taskId, projectIdValue)</span>
+<span class="cstat-no" title="statement not covered" >    await setTaskProject(taskId, userId, projectIdValue)</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json({ </span>
       message: "Task project updated successfully", 
       data: { taskId, projectId: projectIdValue } 
     })
   } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >    console.error("Error updating task project:", error);</span>
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json({ </span>
       message: error.message || "Failed to update task project",
       error: error.toString()
     }, { status: 500 })
   }
 }
-&nbsp;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -271,7 +259,7 @@ export async function <span class="fstat-no" title="function not covered" >PUT(<
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-23T02:12:29.116Z
             </div>
         <script src="../../../../../prettify.js"></script>
         <script>

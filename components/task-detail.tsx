@@ -1,55 +1,84 @@
 "use client";
 
+// Bibliotecas externas do React
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+
+// Bibliotecas de terceiros
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+// Ícones (organizados por categoria/uso)
 import {
-  CalendarIcon,
-  Flag,
-  Tag,
-  X,
-  FilePlus,
-  Trash,
-  MoreHorizontal,
-  Clock,
-  TimerOff,
-  Timer,
-  Check,
+  // Ações principais
   Plus,
   Save,
   Edit,
-  CheckSquare,
-  Square,
-  Link,
-  ArrowLeft,
-  CircleDot,
-  ChevronDown,
-  Star,
-  EllipsisVertical,
   Edit2,
-  Trash2,
-  CalendarRange,
-  Folders,
+  Check,
   CheckCheck,
   Copy,
+
+  // Navegação
+  ArrowLeft,
   ArrowUp,
   ArrowDown,
-  Paperclip,
+  ChevronDown,
   ExternalLink,
-  Image,
+
+  // Interface
+  X,
+  MoreHorizontal,
+  EllipsisVertical,
+  CircleDot,
+  Star,
+
+  // Arquivos e documentos
+  FilePlus,
   FileText,
+  Image,
+  Paperclip,
+  Download,
+
+  // Tempo e calendário
+  CalendarIcon,
+  CalendarRange,
+  Clock,
+  Timer,
+  TimerOff,
+
+  // Organização
+  Flag,
+  Tag,
+  Folders,
+  Square,
+  CheckSquare,
+  Link,
+
+  // Ações destrutivas
+  Trash,
+  Trash2,
 } from "lucide-react";
+
+// Types
 import type { Todo } from "@/lib/todos";
 import type { Project } from "@/lib/projects";
-import { useTranslation } from "@/lib/i18n";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { cn } from "@/lib/utils";
-import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
+// Hooks e utils locais
+import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+
+// 6. Componentes UI (agrupados por funcionalidade)
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/components/ui/use-toast";
+
+// Componentes de overlay/modal
 import {
   Dialog,
   DialogContent,
@@ -59,8 +88,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+// Componentes de formulário
 import {
   Select,
   SelectContent,
@@ -68,15 +103,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
-import { TaskLabels } from "@/components/task-labels";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import { Calendar } from "@/components/ui/calendar";
-import { Checkbox } from "@/components/ui/checkbox";
+
+// Componentes específicos do domínio
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
+import { TaskLabels } from "@/components/task-labels";
 import { ProjectForm } from "@/components/project-form";
 
 export type TodoWithEditMode = Todo & {
@@ -87,26 +119,6 @@ interface TaskDetailProps {
   task: TodoWithEditMode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-function isAllDayDate(dateString: string | null): boolean {
-  if (!dateString) return true;
-  try {
-    const date = new Date(dateString);
-    return date.getHours() === 0 && date.getMinutes() === 0;
-  } catch (e) {
-    return true;
-  }
-}
-
-function getTimeFromDate(dateString: string | null): string {
-  if (!dateString) return "00:00";
-  try {
-    const date = new Date(dateString);
-    return date.toTimeString().slice(0, 5);
-  } catch (e) {
-    return "00:00";
-  }
 }
 
 export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
@@ -128,7 +140,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const [priority, setPriority] = useState(task.priority.toString());
   const [points, setPoints] = useState(task.points || 3);
   const [projectId, setProjectId] = useState<string | null>(null);
-  const [projectName, setProjectName] = useState<string>("");
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -1596,14 +1607,28 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                         <span className="truncate">{attachment.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <a
-                          href={attachment.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80 flex-shrink-0"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
+                        {attachment.type === "link" ? (
+                          <a
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:text-primary/80 flex-shrink-0"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        ) : (
+                          <a
+                            href={`/api/attachments/download/${attachment.id}`}
+                            download
+                            className="text-primary hover:text-primary/80 flex-shrink-0"
+                            onClick={(e) => {
+                              // Impede que o clique no link feche o modal
+                              e.stopPropagation();
+                            }}
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                        )}
                         {isEditMode && (
                           <Button
                             type="button"

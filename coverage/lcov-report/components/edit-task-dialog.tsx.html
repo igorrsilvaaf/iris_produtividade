@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/215</span>
+                <span class='fraction'>0/211</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/227</span>
+                <span class='fraction'>0/223</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/209</span>
+                <span class='fraction'>0/205</span>
             </div>
         
             
@@ -1044,14 +1044,7 @@
 <a name='L979'></a><a href='#L979'>979</a>
 <a name='L980'></a><a href='#L980'>980</a>
 <a name='L981'></a><a href='#L981'>981</a>
-<a name='L982'></a><a href='#L982'>982</a>
-<a name='L983'></a><a href='#L983'>983</a>
-<a name='L984'></a><a href='#L984'>984</a>
-<a name='L985'></a><a href='#L985'>985</a>
-<a name='L986'></a><a href='#L986'>986</a>
-<a name='L987'></a><a href='#L987'>987</a>
-<a name='L988'></a><a href='#L988'>988</a>
-<a name='L989'></a><a href='#L989'>989</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L982'></a><a href='#L982'>982</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1150,16 +1143,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1181,9 +1164,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1334,18 +1317,18 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1442,6 +1425,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2130,16 +2116,6 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
   
   const { value: estimatedTimeValue, unit: estimatedTimeUnit } = <span class="cstat-no" title="statement not covered" >getTimeUnitAndValue(task.estimated_time || null)</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  console.log("[EditTaskDialog] Task data:", {</span>
-    id: task.id,
-    title: task.title,
-    has_attachments: !!task.attachments &amp;&amp; task.attachments.length &gt; 0,
-    attachments_count: task.attachments?.length || 0,
-    estimated_time: task.estimated_time,
-    calculated_value: estimatedTimeValue,
-    calculated_unit: estimatedTimeUnit
-  });
-&nbsp;
   const form = <span class="cstat-no" title="statement not covered" >useForm&lt;z.infer&lt;typeof formSchema&gt;&gt;({</span>
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -2171,7 +2147,7 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    if (open) {</span>
-<span class="cstat-no" title="statement not covered" >      console.log("[EditTaskDialog] Setting attachments from task:", task.attachments);</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >      setAttachments(task.attachments || []);</span>
     }
   }, [open, task.attachments]);
@@ -2327,13 +2303,13 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
           const date = <span class="cstat-no" title="statement not covered" >new Date(values.dueDate);</span>
 <span class="cstat-no" title="statement not covered" >          date.setHours(0, 0, 0, 0);</span>
 <span class="cstat-no" title="statement not covered" >          dueDateWithTime = date.toISOString();</span>
-<span class="cstat-no" title="statement not covered" >          console.log('[EditTask] Data para dia todo:', dueDateWithTime);</span>
+&nbsp;
         } else <span class="cstat-no" title="statement not covered" >if (values.dueTime) {</span>
           const date = <span class="cstat-no" title="statement not covered" >new Date(values.dueDate);</span>
           const [hours, minutes] = <span class="cstat-no" title="statement not covered" >values.dueTime.split(':').map(Number);</span>
 <span class="cstat-no" title="statement not covered" >          date.setHours(hours, minutes, 0, 0);</span>
 <span class="cstat-no" title="statement not covered" >          dueDateWithTime = date.toISOString();</span>
-<span class="cstat-no" title="statement not covered" >          console.log('[EditTask] Data com hora específica:', dueDateWithTime);</span>
+&nbsp;
         }
       }
 &nbsp;
@@ -2434,6 +2410,9 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
                   &lt;FormControl&gt;
                     &lt;Textarea placeholder="Add details about your task" className="resize-none" {...field} /&gt;
                   &lt;/FormControl&gt;
+                  &lt;div className="text-xs text-muted-foreground mt-1"&gt;
+                    {t("Supports markdown formatting like **bold**, *italic*, lists, and [links](https://example.com)")}
+                  &lt;/div&gt;
                   &lt;FormMessage /&gt;
                 &lt;/FormItem&gt;
               )}
@@ -3034,7 +3013,7 @@ export function <span class="fstat-no" title="function not covered" >EditTaskDia
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-23T02:12:29.116Z
             </div>
         <script src="../prettify.js"></script>
         <script>

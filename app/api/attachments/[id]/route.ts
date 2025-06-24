@@ -13,7 +13,7 @@ export async function GET(
     }
 
     const attachment = await prisma.attachment.findUnique({
-      where: { id: params.id },
+      where: { id: Number(params.id) },
       include: { task: true },
     })
 
@@ -21,19 +21,26 @@ export async function GET(
       return NextResponse.json({ error: "Attachment not found" }, { status: 404 })
     }
 
-    // Verificar se o usuário tem acesso à task
-    if (attachment.task.userId !== session.user.id) {
+    if (attachment.task.user_id !== session.user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    
+    if (attachment.type === 'text/uri-list' || attachment.type === 'text/plain') {
+      const url = attachment.content;
+      return NextResponse.redirect(url);
+    }
 
-    // Converter o conteúdo base64 de volta para buffer
-    const buffer = Buffer.from(attachment.content!, 'base64')
+    if (attachment.type === 'text/uri-list' || attachment.type === 'text/plain') {
+      const url = attachment.content;
+      return NextResponse.redirect(url);
+    }
 
-    // Retornar o arquivo com o tipo MIME correto
+    const buffer = Buffer.from(attachment.content!, 'base64');
+
     return new NextResponse(buffer, {
       headers: {
-        'Content-Type': attachment.mimeType || 'application/octet-stream',
-        'Content-Disposition': `inline; filename="${attachment.name}"`,
+        'Content-Type': attachment.type || 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${attachment.name}"`,
       },
     })
   } catch (error) {
@@ -42,4 +49,4 @@ export async function GET(
       { status: 500 }
     )
   }
-} 
+}

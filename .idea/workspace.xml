@@ -6,7 +6,277 @@
   <component name="ChangeListManager">
     <list default="true" id="d745a5a9-4cf3-4b80-9eda-a009783d7e68" name="Changes" comment="modificado documentacao">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc.md" beforeDir="false" afterPath="$PROJECT_DIR$/doc.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/attachments/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/attachments/[id]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/tasks/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/tasks/[id]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/language-provider.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/language-provider.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/project-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/project-form.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/task-detail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/task-detail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/theme-provider.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/theme-provider.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/clover.xml" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/clover.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/coverage-final.json" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/coverage-final.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/attachments/[id]/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/attachments/[id]/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/attachments/[id]/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/attachments/[id]/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/check-email/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/check-email/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/check-email/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/check-email/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/forgot-password/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/forgot-password/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/forgot-password/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/forgot-password/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/login/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/login/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/login/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/login/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/logout/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/logout/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/logout/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/logout/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/me/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/me/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/me/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/me/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/register/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/register/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/register/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/register/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/reset-password/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/reset-password/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/reset-password/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/reset-password/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/session/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/session/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/session/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/session/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/verify-db/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/verify-db/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/verify-db/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/verify-db/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/verify-reset-token/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/verify-reset-token/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/verify-reset-token/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/auth/verify-reset-token/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/backup/export/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/backup/export/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/backup/export/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/backup/export/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/backup/import/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/backup/import/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/backup/import/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/backup/import/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/[id]/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/[id]/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/[id]/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/[id]/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/[id]/tasks/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/[id]/tasks/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/[id]/tasks/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/[id]/tasks/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/labels/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/[id]/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/[id]/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/[id]/read/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/[id]/read/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/[id]/read/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/[id]/read/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/[id]/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/[id]/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/tasks/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/tasks/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/tasks/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/notifications/tasks/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/profile/avatar/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/profile/avatar/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/profile/avatar/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/profile/avatar/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/profile/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/profile/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/profile/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/profile/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/favorite/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/favorite/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/favorite/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/favorite/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/tasks/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/tasks/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/tasks/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/[id]/tasks/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/projects/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/reports/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/reports/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/reports/pdf-generator.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/reports/pdf-generator.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/reports/pdf/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/reports/pdf/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/reports/pdf/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/reports/pdf/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/reports/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/reports/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/run-migration/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/run-migration/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/run-migration/points/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/run-migration/points/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/run-migration/points/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/run-migration/points/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/run-migration/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/run-migration/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/settings/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/settings/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/settings/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/settings/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/complete/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/complete/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/complete/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/complete/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/labels/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/labels/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/labels/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/labels/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/project/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/project/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/project/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/project/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/toggle/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/toggle/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/toggle/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/[id]/toggle/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/calendar/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/calendar/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/calendar/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/calendar/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/inbox/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/inbox/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/inbox/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/inbox/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/search/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/search/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/search/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/search/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/today/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/today/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/today/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/today/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/upcoming/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/upcoming/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/upcoming/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/tasks/upcoming/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/upload/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/upload/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/api/upload/route.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/api/upload/route.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/calendar/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/calendar/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/calendar/loading.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/calendar/loading.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/calendar/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/calendar/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/changelog/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/changelog/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/changelog/layout.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/changelog/layout.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/changelog/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/changelog/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/completed/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/completed/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/completed/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/completed/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/inbox/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/inbox/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/inbox/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/inbox/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/kanban/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/kanban/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/kanban/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/kanban/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/labels/[id]/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/labels/[id]/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/labels/[id]/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/labels/[id]/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/layout.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/layout.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/loading.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/loading.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/notifications/actions.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/notifications/actions.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/notifications/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/notifications/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/notifications/loading.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/notifications/loading.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/notifications/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/notifications/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/pomodoro/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/pomodoro/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/pomodoro/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/pomodoro/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/profile/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/profile/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/profile/loading.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/profile/loading.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/profile/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/profile/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/projects/[id]/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/projects/[id]/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/projects/[id]/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/projects/[id]/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/reports/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/reports/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/reports/layout.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/reports/layout.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/reports/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/reports/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/reports/utils.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/reports/utils.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/settings/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/settings/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/settings/loading.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/settings/loading.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/settings/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/settings/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/storage/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/storage/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/storage/loading.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/storage/loading.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/storage/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/storage/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/todo/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/todo/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/todo/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/todo/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/upcoming/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/upcoming/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/app/upcoming/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/app/upcoming/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/components/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/components/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/components/spotify-player-wrapper.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/components/spotify-player-wrapper.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/forgot-password/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/forgot-password/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/forgot-password/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/forgot-password/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/layout.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/layout.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/lib/auth.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/lib/auth.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/lib/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/lib/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/lib/prisma.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/lib/prisma.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/login/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/login/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/login/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/login/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/metadata.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/metadata.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/register/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/register/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/register/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/register/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/reset-password/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/reset-password/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/app/reset-password/page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/app/reset-password/page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/Todo.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/Todo.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/add-label-dialog.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/add-label-dialog.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/add-project-dialog.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/add-project-dialog.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/add-task-dialog.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/add-task-dialog.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/app-header.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/app-header.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/app-sidebar.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/app-sidebar.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/auth-footer.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/auth-footer.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/auth-header.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/auth-header.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/backup-restore.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/backup-restore.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/calendar-view.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/calendar-view.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/changelog-entry.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/changelog-entry.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/changelog-notification.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/changelog-notification.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/delete-label-dialog.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/delete-label-dialog.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/delete-project-dialog.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/delete-project-dialog.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/edit-label-dialog.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/edit-label-dialog.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/edit-project-dialog.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/edit-project-dialog.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/edit-task-dialog.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/edit-task-dialog.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/flip-clock.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/flip-clock.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/forgot-password-content.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/forgot-password-content.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/forgot-password-form.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/forgot-password-form.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/kanban-board.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/kanban-board.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/label-form.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/label-form.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/landing-page.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/landing-page.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/language-provider.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/language-provider.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/login-content.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/login-content.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/login-form.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/login-form.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/logo.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/logo.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/mode-toggle.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/mode-toggle.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/notifications-dropdown.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/notifications-dropdown.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/notifications-list.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/notifications-list.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/persistent-spotify-player.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/persistent-spotify-player.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/pomodoro-timer.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/pomodoro-timer.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/profile-form.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/profile-form.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/project-form.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/project-form.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/quick-add-todo.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/quick-add-todo.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/register-content.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/register-content.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/register-form.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/register-form.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/reset-password-content.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/reset-password-content.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/reset-password-form.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/reset-password-form.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/right-column.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/right-column.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/search-tasks.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/search-tasks.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/service-worker-registration.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/service-worker-registration.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/settings-form.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/settings-form.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/spotify-cleanup.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/spotify-cleanup.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/spotify-player.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/spotify-player.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/spotify-portal.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/spotify-portal.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/task-detail.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/task-detail.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/task-editor.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/task-editor.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/task-labels.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/task-labels.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/task-list.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/task-list.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/task-notifications-list.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/task-notifications-list.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/task-notifications-menu.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/task-notifications-menu.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/theme-provider.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/theme-provider.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/todo-list.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/todo-list.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/toggle-project-favorite.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/toggle-project-favorite.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/accordion.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/accordion.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/alert-dialog.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/alert-dialog.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/alert.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/alert.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/aspect-ratio.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/aspect-ratio.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/avatar.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/avatar.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/back-button.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/back-button.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/badge.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/badge.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/breadcrumb.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/breadcrumb.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/button.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/button.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/calendar.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/calendar.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/card.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/card.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/carousel.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/carousel.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/chart.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/chart.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/checkbox.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/checkbox.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/collapsible.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/collapsible.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/command.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/command.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/context-menu.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/context-menu.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/date-picker.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/date-picker.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/dialog.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/dialog.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/drawer.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/drawer.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/dropdown-menu.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/dropdown-menu.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/form.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/form.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/hover-card.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/hover-card.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/input-otp.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/input-otp.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/input.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/input.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/label.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/label.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/menubar.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/menubar.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/navigation-menu.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/navigation-menu.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/pagination.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/pagination.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/popover.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/popover.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/progress.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/progress.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/radio-group.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/radio-group.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/resizable.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/resizable.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/scroll-area.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/scroll-area.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/select.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/select.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/separator.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/separator.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/sheet.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/sheet.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/sidebar.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/sidebar.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/skeleton.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/skeleton.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/slider.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/slider.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/sonner.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/sonner.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/switch.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/switch.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/table.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/table.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/tabs.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/tabs.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/textarea.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/textarea.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/toast.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/toast.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/toaster.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/toaster.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/toggle-group.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/toggle-group.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/toggle.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/toggle.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/tooltip.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/tooltip.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/use-mobile.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/use-mobile.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/use-toast.ts.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/use-toast.ts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/components/ui/visually-hidden.tsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/components/ui/visually-hidden.tsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov-report/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov-report/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coverage/lcov.info" beforeDir="false" afterPath="$PROJECT_DIR$/coverage/lcov.info" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/i18n.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/i18n.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,13 +286,76 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "git-widget-placeholder": "release/2.8.1",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "ts.external.directory.path": "/media/igorqa/SSD128/Repositorios/to_do_list/node_modules/typescript/lib"
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "igorrsilvaaf"
   }
 }]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "git@github.com:igorrsilvaaf/iris_produtividade.git",
+    "accountId": "07d692fb-9eb4-4015-b350-00c0900cfc5f"
+  }
+}]]></component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 6
+}]]></component>
+  <component name="ProjectId" id="2yt6TtY6ugR69RJbqOIatGeTz0G" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "feature/edit-task",
+    "js.debugger.nextJs.config.created.client": "true",
+    "js.debugger.nextJs.config.created.server": "true",
+    "last_opened_file_path": "/media/igorqa/SSD128/Repositorios/iris_produtividade",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_interpreter_path": "/home/igorqa/.config/JetBrains/WebStorm2025.1/node/versions/22.15.1/bin/node",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "ts.external.directory.path": "/media/igorqa/SSD128/Repositorios/iris_produtividade/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="npm.Next.js: server-side">
+    <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
+      <method v="2" />
+    </configuration>
+    <configuration name="e2e" type="UUVRunConfiguration" factoryName="UUVRunConfiguration">
+      <option name="projectHomeDir" value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="open" type="UUVRunConfiguration" factoryName="UUVRunConfiguration">
+      <option name="projectHomeDir" value="$PROJECT_DIR$" />
+      <option name="targetScript" value="open" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Next.js: server-side" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-WS-251.25410.117" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="TaskManager">
     <task id="LOCAL-00001" summary="modificado documentacao">
       <option name="closed" value="true" />
@@ -32,8 +365,19 @@
       <option name="project" value="LOCAL" />
       <updated>1747528151954</updated>
     </task>
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d745a5a9-4cf3-4b80-9eda-a009783d7e68" name="Changes" comment="modificado documentacao" />
+      <created>1750641534276</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1750641534276</updated>
+      <workItem from="1750641536875" duration="6659000" />
+    </task>
     <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="modificado documentacao" />

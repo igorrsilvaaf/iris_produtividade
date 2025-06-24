@@ -98,6 +98,19 @@ model todo_projects {
   @@id([todo_id, project_id])
 }
 
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  name      String   @db.VarChar(255)
+  type      String   @db.VarChar(255)
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  task      todos    @relation("TodoAttachments", fields: [taskId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([taskId])
+}
+
 model todos {
   id             Int             @id @default(autoincrement())
   user_id        Int
@@ -110,7 +123,7 @@ model todos {
   updated_at     DateTime?       @db.Timestamptz(6)
   kanban_column  String?         @db.VarChar(20)
   points         Int?            @default(3)
-  attachments    Json?           @default("[]")
+  attachments    Attachment[]    @relation("TodoAttachments")
   estimated_time Int?
   kanban_order   Int?
   pomodoroLogs   pomodoroLog[]   @relation("PomodoroLogsForTask")

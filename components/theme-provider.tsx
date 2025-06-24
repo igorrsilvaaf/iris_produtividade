@@ -3,9 +3,34 @@
 import * as React from 'react'
 import {
   ThemeProvider as NextThemesProvider,
-  type ThemeProviderProps
+  type ThemeProviderProps,
+  useTheme
 } from 'next-themes'
 
+function ThemeDebug() {
+  const { theme, systemTheme, resolvedTheme } = useTheme()
+  
+  React.useEffect(() => {
+    console.log('Theme Debug:', {
+      theme,
+      systemTheme,
+      resolvedTheme,
+      time: new Date().toISOString()
+    })
+  }, [theme, systemTheme, resolvedTheme])
+  
+  return null
+}
+
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+  React.useEffect(() => {
+    console.log('ThemeProvider mounted with props:', props)
+  }, [props])
+  
+  return (
+    <NextThemesProvider {...props}>
+      <ThemeDebug />
+      {children}
+    </NextThemesProvider>
+  )
 }

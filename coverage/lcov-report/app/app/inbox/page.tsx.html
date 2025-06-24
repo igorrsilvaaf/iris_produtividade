@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
@@ -126,10 +126,7 @@
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
 <a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a>
-<a name='L65'></a><a href='#L65'>65</a>
-<a name='L66'></a><a href='#L66'>66</a>
-<a name='L67'></a><a href='#L67'>67</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -162,8 +159,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -172,11 +167,11 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -194,25 +189,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { requireAuth } from "@/lib/auth"
-import { getInboxTasks } from "@/lib/todos"
-import { TaskList } from "@/components/task-list"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
-import { AddTaskDialog } from "@/components/add-task-dialog"
-import { cookies } from "next/headers"
-import { getServerTranslation } from "@/lib/server-i18n"
-import { Metadata } from "next"
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { requireAuth } from "@/lib/auth";
+import { getInboxTasks } from "@/lib/todos";
+import { TaskList } from "@/components/task-list";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { AddTaskDialog } from "@/components/add-task-dialog";
+import { cookies } from "next/headers";
+import { getServerTranslation } from "@/lib/server-i18n";
+import { Metadata } from "next";
 &nbsp;
 // Define a metadata para forçar o idioma para esta página
 export async function <span class="fstat-no" title="function not covered" >generateMetadata(</span>): Promise&lt;Metadata&gt; {
-  const cookieStore = <span class="cstat-no" title="statement not covered" >await cookies()</span>
-  const languageCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("user-language")</span>
-  let lang = <span class="cstat-no" title="statement not covered" >"pt" </span>// Default to PT if no cookie
+  const cookieStore = <span class="cstat-no" title="statement not covered" >await cookies();</span>
+  const languageCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("user-language");</span>
+  let lang = <span class="cstat-no" title="statement not covered" >"pt";</span> // Default to PT if no cookie
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  if (languageCookie?.value === "en" || languageCookie?.value === "pt") {</span>
-<span class="cstat-no" title="statement not covered" >    lang = languageCookie.value</span>
+<span class="cstat-no" title="statement not covered" >    lang = languageCookie.value;</span>
   }
 &nbsp;
   // Usar a função getServerTranslation para traduzir o título
@@ -220,29 +214,27 @@ export async function <span class="fstat-no" title="function not covered" >gener
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return {</span>
     title,
-  }
+  };
 }
 &nbsp;
 export default async function <span class="fstat-no" title="function not covered" >InboxPage(</span>) {
-  const session = <span class="cstat-no" title="statement not covered" >await requireAuth()</span>
-  const tasks = <span class="cstat-no" title="statement not covered" >await getInboxTasks(session.user.id)</span>
+  const session = <span class="cstat-no" title="statement not covered" >await requireAuth();</span>
+  const tasks = <span class="cstat-no" title="statement not covered" >await getInboxTasks(session.user.id);</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  console.log("--- Inbox Page Server Component ---");</span>
-&nbsp;
-  const cookieStore = <span class="cstat-no" title="statement not covered" >await cookies()</span>
-  const languageCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("user-language")</span>
-  let initialLanguage = <span class="cstat-no" title="statement not covered" >"pt" </span>// Default to PT if no cookie
+  const cookieStore = <span class="cstat-no" title="statement not covered" >await cookies();</span>
+  const languageCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("user-language");</span>
+  let initialLanguage = <span class="cstat-no" title="statement not covered" >"pt";</span> // Default to PT if no cookie
 &nbsp;
   // Simplify the cookie value check
 <span class="cstat-no" title="statement not covered" >  if (languageCookie?.value === "en" || languageCookie?.value === "pt") {</span>
-<span class="cstat-no" title="statement not covered" >    initialLanguage = languageCookie.value</span>
+<span class="cstat-no" title="statement not covered" >    initialLanguage = languageCookie.value;</span>
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  console.log("[inbox.tsx] Idioma do cookie:", initialLanguage);</span>
-  
   // Obter a tradução diretamente usando getServerTranslation
-  const translatedTitle = <span class="cstat-no" title="statement not covered" >getServerTranslation("inbox", initialLanguage as "en" | "pt");</span>
-<span class="cstat-no" title="statement not covered" >  console.log("[inbox.tsx] Título traduzido:", translatedTitle);</span>
+  const translatedTitle = <span class="cstat-no" title="statement not covered" >getServerTranslation(</span>
+    "inbox",
+    initialLanguage as "en" | "pt",
+  );
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;div className="space-y-8"&gt;
@@ -258,9 +250,8 @@ export default async function <span class="fstat-no" title="function not covered
 &nbsp;
       &lt;TaskList tasks={tasks} /&gt;
     &lt;/div&gt;
-  )
+  );
 }
-&nbsp;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -268,7 +259,7 @@ export default async function <span class="fstat-no" title="function not covered
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-23T02:12:29.116Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
