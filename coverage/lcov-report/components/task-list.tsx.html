@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/120</span>
+                <span class='fraction'>0/118</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/91</span>
+                <span class='fraction'>0/93</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/113</span>
+                <span class='fraction'>0/111</span>
             </div>
         
             
@@ -493,7 +493,15 @@
 <a name='L428'></a><a href='#L428'>428</a>
 <a name='L429'></a><a href='#L429'>429</a>
 <a name='L430'></a><a href='#L430'>430</a>
-<a name='L431'></a><a href='#L431'>431</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L431'></a><a href='#L431'>431</a>
+<a name='L432'></a><a href='#L432'>432</a>
+<a name='L433'></a><a href='#L433'>433</a>
+<a name='L434'></a><a href='#L434'>434</a>
+<a name='L435'></a><a href='#L435'>435</a>
+<a name='L436'></a><a href='#L436'>436</a>
+<a name='L437'></a><a href='#L437'>437</a>
+<a name='L438'></a><a href='#L438'>438</a>
+<a name='L439'></a><a href='#L439'>439</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -519,16 +527,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -916,7 +933,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -946,20 +962,29 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select"
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 &nbsp;
 type SortOption = "priority" | "title" | "dueDate" | "createdAt"
 &nbsp;
 const processDescription = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(t</span>ext: string) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  if (!text) <span class="cstat-no" title="statement not covered" >return "";</span></span>
   
-  const checkboxText = <span class="cstat-no" title="statement not covered" >text.replace(/\[([ xX]?)\]/g, <span class="fstat-no" title="function not covered" >(m</span>atch, inside) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (inside === 'x' || inside === 'X') {</span>
-<span class="cstat-no" title="statement not covered" >      return '✓ ';</span>
-    }
-<span class="cstat-no" title="statement not covered" >    return '□ ';</span>
-  });
-  
-<span class="cstat-no" title="statement not covered" >  return checkboxText.replace(/^-\s(.+)$/gm, '• $1');</span>
+  const truncatedText = <span class="cstat-no" title="statement not covered" >text.length &gt; 100 </span>
+    ? text.substring(0, 100) + '...'
+    : text;
+    
+<span class="cstat-no" title="statement not covered" >  return truncatedText</span>
+    .replace(/#{1,6}\s/g, '') 
+    .replace(/\*\*(.+?)\*\*/g, '$1') 
+    .replace(/\*(.+?)\*/g, '$1') 
+    .replace(/~~(.+?)~~/g, '$1') 
+    .replace(/`(.+?)`/g, '$1') 
+    .replace(/\[(.+?)\]\(.+?\)/g, '$1') 
+    .replace(/!\[(.+?)\]\(.+?\)/g, '[Image: $1]') 
+    .replace(/```[\s\S]+?```/g, '[Code block]') 
+    .replace(/^&gt;\s(.+)$/gm, '$1') 
+    .replace(/^-\s(.+)$/gm, '• $1') 
+    .replace(/\[([ xX]?)\]/g, <span class="fstat-no" title="function not covered" >(m</span>atch, inside) =&gt; <span class="cstat-no" title="statement not covered" >inside === 'x' || inside === 'X' ? '✓ ' : '□ ')</span>;
 };
 &nbsp;
 export function <span class="fstat-no" title="function not covered" >TaskList(</span>{ tasks }: { tasks: Todo[] }) {
@@ -1281,8 +1306,8 @@ export function <span class="fstat-no" title="function not covered" >TaskList(</
                   &lt;/DropdownMenuTrigger&gt;
                   &lt;DropdownMenuContent align="end" onClick={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >e.stopPropagation()}</span>&gt;
                     &lt;DropdownMenuItem 
-                      onClick={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; {
-<span class="cstat-no" title="statement not covered" >                        e.stopPropagation();</span>
+                      onSelect={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; {
+<span class="cstat-no" title="statement not covered" >                        e.preventDefault();</span>
 <span class="cstat-no" title="statement not covered" >                        openTaskDetailInEditMode(task);</span>
                       }}
                       className="hover:bg-primary/10 cursor-pointer"
@@ -1332,7 +1357,7 @@ export function <span class="fstat-no" title="function not covered" >TaskList(</
                 className="mt-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-md"
                 onClick={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >e.stopPropagation()}</span>
               &gt;
-                {processDescription(task.description)}
+                &lt;MarkdownRenderer content={task.description} /&gt;
               &lt;/div&gt;
             )}
           &lt;/div&gt;
@@ -1352,7 +1377,6 @@ export function <span class="fstat-no" title="function not covered" >TaskList(</
     &lt;/div&gt;
   )
 }
-&nbsp;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -1360,7 +1384,7 @@ export function <span class="fstat-no" title="function not covered" >TaskList(</
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-23T02:12:29.116Z
             </div>
         <script src="../prettify.js"></script>
         <script>

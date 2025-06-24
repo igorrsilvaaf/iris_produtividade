@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/40</span>
+                <span class='fraction'>0/39</span>
             </div>
         
             
@@ -174,13 +174,7 @@
 <a name='L109'></a><a href='#L109'>109</a>
 <a name='L110'></a><a href='#L110'>110</a>
 <a name='L111'></a><a href='#L111'>111</a>
-<a name='L112'></a><a href='#L112'>112</a>
-<a name='L113'></a><a href='#L113'>113</a>
-<a name='L114'></a><a href='#L114'>114</a>
-<a name='L115'></a><a href='#L115'>115</a>
-<a name='L116'></a><a href='#L116'>116</a>
-<a name='L117'></a><a href='#L117'>117</a>
-<a name='L118'></a><a href='#L118'>118</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L112'></a><a href='#L112'>112</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -194,10 +188,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -243,8 +233,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -294,101 +285,95 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">'use client';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use client";
 &nbsp;
-import type React from "react"
-import { useRouter } from "next/navigation"
-import { AppSidebar } from "@/components/app-sidebar"
-import { AppHeader } from "@/components/app-header"
-import { LanguageProvider } from "@/components/language-provider"
-import { ChangelogNotification } from "@/components/changelog-notification"
-import dynamic from "next/dynamic"
-import { useEffect, useState } from "react"
+import type React from "react";
+import { useRouter } from "next/navigation";
+import { AppSidebar } from "@/components/app-sidebar";
+import { AppHeader } from "@/components/app-header";
+import { LanguageProvider } from "@/components/language-provider";
+import { ChangelogNotification } from "@/components/changelog-notification";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 &nbsp;
 // Importar dinamicamente o SpotifyPlayerWrapper para evitar problemas de SSR
 const SpotifyPlayerWrapper = <span class="cstat-no" title="statement not covered" >dynamic(</span>
 <span class="fstat-no" title="function not covered" >  ()</span> =&gt; <span class="cstat-no" title="statement not covered" >import("@/app/components/spotify-player-wrapper"),</span>
-  { ssr: false }
-)
+  { ssr: false },
+);
 &nbsp;
 // Componente que renderiza o layout após a verificação de autenticação
-export default function <span class="fstat-no" title="function not covered" >AppLayout(</span>{
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const router = <span class="cstat-no" title="statement not covered" >useRouter()</span>
-  const [session, setSession] = <span class="cstat-no" title="statement not covered" >useState&lt;any&gt;(null)</span>
-  const [settings, setSettings] = <span class="cstat-no" title="statement not covered" >useState&lt;any&gt;(null)</span>
-  const [initialLanguage, setInitialLanguage] = <span class="cstat-no" title="statement not covered" >useState&lt;"pt" | "en"&gt;("pt")</span>
-  const [loading, setLoading] = <span class="cstat-no" title="statement not covered" >useState(true)</span>
+export default function <span class="fstat-no" title="function not covered" >AppLayout(</span>{ children }: { children: React.ReactNode }) {
+  const router = <span class="cstat-no" title="statement not covered" >useRouter();</span>
+  const [session, setSession] = <span class="cstat-no" title="statement not covered" >useState&lt;any&gt;(null);</span>
+  const [settings, setSettings] = <span class="cstat-no" title="statement not covered" >useState&lt;any&gt;(null);</span>
+  const [initialLanguage, setInitialLanguage] = <span class="cstat-no" title="statement not covered" >useState&lt;"pt" | "en"&gt;("pt");</span>
+  const [loading, setLoading] = <span class="cstat-no" title="statement not covered" >useState(true);</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
     async function <span class="fstat-no" title="function not covered" >loadData(</span>) {
 <span class="cstat-no" title="statement not covered" >      try {</span>
         // Verificar autenticação e obter dados do usuário
-        const authResponse = <span class="cstat-no" title="statement not covered" >await fetch('/api/auth/session')</span>
-        
+        const authResponse = <span class="cstat-no" title="statement not covered" >await fetch("/api/auth/session");</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >        if (!authResponse.ok) {</span>
-<span class="cstat-no" title="statement not covered" >          router.push('/login')</span>
-<span class="cstat-no" title="statement not covered" >          return</span>
+<span class="cstat-no" title="statement not covered" >          router.push("/login");</span>
+<span class="cstat-no" title="statement not covered" >          return;</span>
         }
-        
-        const authData = <span class="cstat-no" title="statement not covered" >await authResponse.json()</span>
-        
+&nbsp;
+        const authData = <span class="cstat-no" title="statement not covered" >await authResponse.json();</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >        if (!authData || !authData.user) {</span>
-<span class="cstat-no" title="statement not covered" >          router.push('/login')</span>
-<span class="cstat-no" title="statement not covered" >          return</span>
+<span class="cstat-no" title="statement not covered" >          router.push("/login");</span>
+<span class="cstat-no" title="statement not covered" >          return;</span>
         }
-        
-<span class="cstat-no" title="statement not covered" >        setSession(authData)</span>
-        
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        setSession(authData);</span>
+&nbsp;
         // Obter configurações do usuário
-        const settingsResponse = <span class="cstat-no" title="statement not covered" >await fetch('/api/settings')</span>
+        const settingsResponse = <span class="cstat-no" title="statement not covered" >await fetch("/api/settings");</span>
 <span class="cstat-no" title="statement not covered" >        if (settingsResponse.ok) {</span>
-          const settingsData = <span class="cstat-no" title="statement not covered" >await settingsResponse.json()</span>
-          
+          const settingsData = <span class="cstat-no" title="statement not covered" >await settingsResponse.json();</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >          if (settingsData &amp;&amp; settingsData.settings) {</span>
-<span class="cstat-no" title="statement not covered" >            setSettings(settingsData.settings)</span>
-            
+<span class="cstat-no" title="statement not covered" >            setSettings(settingsData.settings);</span>
+&nbsp;
             // Definir o idioma inicial
-            let language = <span class="cstat-no" title="statement not covered" >settingsData.settings.language as "pt" | "en"</span>
-            
+            let language = <span class="cstat-no" title="statement not covered" >settingsData.settings.language as "pt" | "en";</span>
+&nbsp;
             // Verificar se há um cookie de idioma
-            const cookies = <span class="cstat-no" title="statement not covered" >document.cookie.split(';')</span>
-            const langCookie = <span class="cstat-no" title="statement not covered" >cookies.find(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >c.trim().startsWith('user-language='))</span></span>
-            
+            const cookies = <span class="cstat-no" title="statement not covered" >document.cookie.split(";");</span>
+            const langCookie = <span class="cstat-no" title="statement not covered" >cookies.find(<span class="fstat-no" title="function not covered" >(c</span>) =&gt;</span>
+<span class="cstat-no" title="statement not covered" >              c.trim().startsWith("user-language="),</span>
+            );
+&nbsp;
 <span class="cstat-no" title="statement not covered" >            if (langCookie) {</span>
-              const cookieValue = <span class="cstat-no" title="statement not covered" >langCookie.split('=')[1].trim()</span>
+              const cookieValue = <span class="cstat-no" title="statement not covered" >langCookie.split("=")[1].trim();</span>
 <span class="cstat-no" title="statement not covered" >              if (cookieValue === "en" || cookieValue === "pt") {</span>
-<span class="cstat-no" title="statement not covered" >                language = cookieValue</span>
-<span class="cstat-no" title="statement not covered" >                console.log("Usando idioma do cookie:", language)</span>
+<span class="cstat-no" title="statement not covered" >                language = cookieValue;</span>
               }
             }
-            
-<span class="cstat-no" title="statement not covered" >            setInitialLanguage(language)</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            setInitialLanguage(language);</span>
           }
         }
-        
-<span class="cstat-no" title="statement not covered" >        setLoading(false)</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        setLoading(false);</span>
       } catch (error) {
-<span class="cstat-no" title="statement not covered" >        console.error("Erro ao carregar dados:", error)</span>
-<span class="cstat-no" title="statement not covered" >        router.push('/login')</span>
+<span class="cstat-no" title="statement not covered" >        console.error("Erro ao carregar dados:", error);</span>
+<span class="cstat-no" title="statement not covered" >        router.push("/login");</span>
       }
     }
-    
-<span class="cstat-no" title="statement not covered" >    loadData()</span>
-  }, [router])
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    loadData();</span>
+  }, [router]);
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  if (loading) {</span>
 <span class="cstat-no" title="statement not covered" >    return (</span>
       &lt;div className="flex items-center justify-center min-h-screen bg-background"&gt;
         &lt;div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"&gt;&lt;/div&gt;
       &lt;/div&gt;
-    )
+    );
   }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
@@ -404,16 +389,13 @@ export default function <span class="fstat-no" title="function not covered" >App
             {children}
           &lt;/main&gt;
         &lt;/div&gt;
-        
+&nbsp;
         {/* Adicionar o player do Spotify aqui */}
-        {settings?.enable_spotify &amp;&amp; (
-          &lt;SpotifyPlayerWrapper /&gt;
-        )}
+        {settings?.enable_spotify &amp;&amp; &lt;SpotifyPlayerWrapper /&gt;}
       &lt;/div&gt;
     &lt;/LanguageProvider&gt;
-  )
+  );
 }
-&nbsp;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -421,7 +403,7 @@ export default function <span class="fstat-no" title="function not covered" >App
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-23T02:12:29.116Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

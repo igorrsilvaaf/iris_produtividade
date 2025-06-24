@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/21</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/21</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
@@ -126,16 +126,7 @@
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
 <a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a>
-<a name='L65'></a><a href='#L65'>65</a>
-<a name='L66'></a><a href='#L66'>66</a>
-<a name='L67'></a><a href='#L67'>67</a>
-<a name='L68'></a><a href='#L68'>68</a>
-<a name='L69'></a><a href='#L69'>69</a>
-<a name='L70'></a><a href='#L70'>70</a>
-<a name='L71'></a><a href='#L71'>71</a>
-<a name='L72'></a><a href='#L72'>72</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -158,15 +149,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -174,7 +158,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -191,8 +177,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -210,7 +194,6 @@ import { getSession } from "@/lib/auth"
 import { neon } from "@neondatabase/serverless"
 import { put } from '@vercel/blob'
 import { v4 as uuidv4 } from 'uuid'
-import type { Blob } from '@vercel/blob'
 &nbsp;
 const sql = <span class="cstat-no" title="statement not covered" >neon(process.env.DATABASE_URL!)</span>
 &nbsp;
@@ -229,27 +212,22 @@ export async function <span class="fstat-no" title="function not covered" >POST(
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ message: "No file provided" }, { status: 400 })</span>
     }
     
-    // Validar tipo de arquivo
 <span class="cstat-no" title="statement not covered" >    if (!file.type.startsWith('image/')) {</span>
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ message: "Invalid file type. Please upload an image." }, { status: 400 })</span>
     }
 &nbsp;
-    // Validar tamanho (máximo 5MB)
 <span class="cstat-no" title="statement not covered" >    if (file.size &gt; 5 * 1024 * 1024) {</span>
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ message: "File too large. Maximum size is 5MB." }, { status: 400 })</span>
     }
 &nbsp;
-    // Criar um nome de arquivo único usando UUID e a extensão original
     const fileExtension = <span class="cstat-no" title="statement not covered" >file.name.split('.').pop() || 'jpg'</span>
     const fileName = <span class="cstat-no" title="statement not covered" >`avatar-${session.user.id}-${uuidv4()}.${fileExtension}`</span>
 &nbsp;
-    // Fazer upload para o Vercel Blob Storage
     const upload = <span class="cstat-no" title="statement not covered" >await put(fileName, file, {</span>
       access: 'public',
       contentType: file.type,
     })
 &nbsp;
-    // Atualizar o avatar_url no banco de dados
 <span class="cstat-no" title="statement not covered" >    await sql`</span>
       UPDATE users
       SET avatar_url = ${upload.url}
@@ -261,7 +239,6 @@ export async function <span class="fstat-no" title="function not covered" >POST(
       avatar_url: upload.url 
     })
   } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >    console.error("Error uploading avatar:", error)</span>
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json(</span>
       { message: error.message || "Failed to upload avatar" }, 
       { status: 500 }
@@ -269,7 +246,6 @@ export async function <span class="fstat-no" title="function not covered" >POST(
   }
 }
 &nbsp;
-// Limitar o tamanho do upload para 5MB
 export const config = <span class="cstat-no" title="statement not covered" >{</span>
   api: {
     bodyParser: {
@@ -283,7 +259,7 @@ export const config = <span class="cstat-no" title="statement not covered" >{</s
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-23T02:12:29.116Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
