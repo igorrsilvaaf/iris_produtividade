@@ -73,10 +73,8 @@ export async function createSession(userId: number, rememberMe: boolean = false)
   
   if (rememberMe) {
     expires.setDate(expires.getDate() + 30)
-
   } else {
     expires.setHours(expires.getHours() + 24)
-
   }
 
   await sql`
@@ -85,13 +83,21 @@ export async function createSession(userId: number, rememberMe: boolean = false)
 `
 
   const cookieStore = await cookies()
-  cookieStore.set("session_token", sessionToken, {
+  
+  // Configurações mais permissivas para compatibilidade mobile
+  const cookieOptions = {
     httpOnly: true,
     expires,
     path: "/",
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-  })
+    sameSite: "lax" as const,
+    // Adicionar atributos para melhor suporte mobile
+    ...(process.env.NODE_ENV === "production" && {
+      domain: process.env.COOKIE_DOMAIN || undefined
+    })
+  }
+  
+  cookieStore.set("session_token", sessionToken, cookieOptions)
 
   return sessionToken
 }

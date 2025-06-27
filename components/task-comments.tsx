@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import type { User } from '@/lib/auth';
+import { useUser } from '@/hooks/use-user';
 
 interface Comment {
   id: number;
@@ -33,13 +34,16 @@ interface TaskCommentsProps {
   } | null;
 }
 
-export function TaskComments({ taskId, user }: TaskCommentsProps) {
+export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Usar o hook personalizado para gerenciar o usuário
+  const { user, loading: userLoading, error: userError, refetch: refetchUser } = useUser(userProp);
 
   useEffect(() => {
     if (taskId) {
@@ -49,10 +53,19 @@ export function TaskComments({ taskId, user }: TaskCommentsProps) {
 
   const fetchComments = async () => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}/comments`);
+      const response = await fetch(`/api/tasks/${taskId}/comments`, {
+        credentials: 'same-origin',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setComments(data);
+      } else if (response.status === 401) {
+        console.error('Sessão expirada ao buscar comentários');
+        refetchUser();
       }
     } catch (error) {
       console.error('Erro ao buscar comentários:', error);
@@ -71,6 +84,7 @@ export function TaskComments({ taskId, user }: TaskCommentsProps) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'same-origin',
         body: JSON.stringify({
           content: newComment,
         }),
@@ -80,6 +94,9 @@ export function TaskComments({ taskId, user }: TaskCommentsProps) {
         const newCommentData = await response.json();
         setComments([newCommentData, ...comments]);
         setNewComment('');
+      } else if (response.status === 401) {
+        console.error('Sessão expirada ao adicionar comentário');
+        refetchUser();
       }
     } catch (error) {
       console.error('Erro ao adicionar comentário:', error);
@@ -99,6 +116,7 @@ export function TaskComments({ taskId, user }: TaskCommentsProps) {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'same-origin',
           body: JSON.stringify({
             content: editingContent,
           }),
@@ -113,6 +131,9 @@ export function TaskComments({ taskId, user }: TaskCommentsProps) {
           )
         );
         setEditingCommentId(null);
+      } else if (response.status === 401) {
+        console.error('Sessão expirada ao atualizar comentário');
+        refetchUser();
       }
     } catch (error) {
       console.error('Erro ao atualizar comentário:', error);
@@ -127,11 +148,15 @@ export function TaskComments({ taskId, user }: TaskCommentsProps) {
         `/api/tasks/${taskId}/comments/${commentId}`,
         {
           method: 'DELETE',
+          credentials: 'same-origin',
         }
       );
 
       if (response.status === 204) {
         setComments(comments.filter((comment) => comment.id !== commentId));
+      } else if (response.status === 401) {
+        console.error('Sessão expirada ao excluir comentário');
+        refetchUser();
       }
     } catch (error) {
       console.error('Erro ao excluir comentário:', error);
@@ -148,12 +173,40 @@ export function TaskComments({ taskId, user }: TaskCommentsProps) {
     setEditingContent('');
   };
 
-  if (isLoading) {
+  if (isLoading || userLoading) {
     return <div className="p-4 text-muted-foreground">Carregando comentários...</div>;
   }
 
+  if (userError) {
+    return (
+      <div className="p-4 text-muted-foreground">
+        <p>Erro ao carregar dados do usuário: {userError}</p>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mt-2"
+          onClick={refetchUser}
+        >
+          Tentar Novamente
+        </Button>
+      </div>
+    );
+  }
+
   if (!user) {
-    return <div className="p-4 text-muted-foreground">Faça login para ver e adicionar comentários.</div>;
+    return (
+      <div className="p-4 text-muted-foreground">
+        <p>É necessário estar logado para ver e adicionar comentários.</p>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mt-2"
+          onClick={() => window.location.reload()}
+        >
+          Recarregar Página
+        </Button>
+      </div>
+    );
   }
 
   return (
