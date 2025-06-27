@@ -27,7 +27,8 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,  
     parallelServerCompiles: true,
-    optimizeCss: true,
+    // Desabilitando temporariamente para resolver problemas com critters
+    // optimizeCss: true,
     optimizeServerReact: true,
     turbo: {
       resolveAlias: {
