@@ -70,23 +70,11 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     AND t.due_date >= ${today.toISOString()}
     AND t.due_date < ${tomorrow.toISOString()}
     AND t.completed = false
+    AND t.due_date >= ${now.toISOString()}
     ORDER BY t.kanban_order ASC NULLS LAST, t.priority ASC, t.due_date ASC
   `;
 
-  // Filtrar tarefas que ainda não venceram hoje
-  // Uma tarefa só aparece no "Hoje" se:
-  // 1. É para hoje (mesmo dia)
-  // 2. O horário ainda não passou (não vencida)
-  // 3. Não está concluída (já verificado na query)
-  const currentTime = new Date();
-  
-  const validTasks = tasks.filter((task: any) => {
-    const taskDueDate = new Date(task.due_date);
-    // Só mostra tarefas cujo horário ainda não passou
-    return taskDueDate >= currentTime;
-  });
-
-  return validTasks as Todo[];
+  return tasks as Todo[];
 }
 
 export async function getInboxTasks(userId: number): Promise<Todo[]> {
@@ -145,21 +133,18 @@ export async function createTask({
 }): Promise<Todo> {
   const now = new Date().toISOString();
   let normalizedDueDate = dueDate;
+  
   if (dueDate) {
     try {
       const date = new Date(dueDate);
       if (!isNaN(date.getTime())) {
         normalizedDueDate = date.toISOString();
-      } else {
-        console.error(`[createTask] ERRO: Data inválida fornecida: ${dueDate}`);
       }
     } catch (error) {
-      console.error(`[createTask] Erro ao processar data: ${error}`);
+      normalizedDueDate = null;
     }
-  } else {
   }
 
-  // Garantir que os anexos sejam um array válido
   let normalizedAttachments = [];
   try {
     if (Array.isArray(attachments)) {
@@ -168,17 +153,10 @@ export async function createTask({
       try {
         normalizedAttachments = JSON.parse(attachments);
       } catch (e) {
-        console.error(`[createTask] Erro ao parsear anexos como string: ${e}`);
         normalizedAttachments = [];
       }
-    } else if (attachments) {
-      console.error(
-        `[createTask] Anexos não é um array: ${typeof attachments}`,
-      );
-      normalizedAttachments = [];
     }
   } catch (error) {
-    console.error(`[createTask] Erro ao normalizar anexos: ${error}`);
     normalizedAttachments = [];
   }
 
@@ -197,10 +175,7 @@ export async function createTask({
 
   const taskWithParsedAttachments = {
     ...task,
-    attachments:
-      typeof task.attachments === "string"
-        ? JSON.parse(task.attachments)
-        : task.attachments || [],
+    attachments: normalizedAttachments,
   };
 
   return taskWithParsedAttachments as Todo;

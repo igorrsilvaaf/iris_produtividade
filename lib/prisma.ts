@@ -7,7 +7,14 @@ declare global {
 
 // Exportando uma instância única do PrismaClient para evitar múltiplas conexões em desenvolvimento
 export const prisma = global.prisma || new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  log: process.env.NODE_ENV === 'development' 
+    ? ['error', 'warn'] 
+    : ['error'],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
 });
 
 // Adicionar export default para compatibilidade com importações existentes
