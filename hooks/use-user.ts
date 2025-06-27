@@ -62,7 +62,6 @@ export function useUser(initialUser?: User | null) {
     fetchUser();
   }, []);
 
-  // Atualizar quando initialUser mudar
   useEffect(() => {
     if (initialUser) {
       setUser(initialUser);

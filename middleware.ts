@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Verificar se está em produção
   if (process.env.NODE_ENV === 'production') {
     if (request.nextUrl.pathname === '/api/auth/forgot-password') {
       const requiredVars = [
@@ -28,15 +27,12 @@ export function middleware(request: NextRequest) {
   
   const response = NextResponse.next()
 
-  // Adicionar headers para melhor compatibilidade com mobile
   response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
   response.headers.set('Pragma', 'no-cache')
   response.headers.set('Expires', '0')
 
-  // Garantir que cookies sejam aceitos em contextos móveis
   const sessionToken = request.cookies.get('session_token')
   if (sessionToken) {
-    // Re-definir o cookie com configurações mais permissivas para mobile se necessário
     response.cookies.set('session_token', sessionToken.value, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
