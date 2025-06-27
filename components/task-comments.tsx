@@ -41,8 +41,6 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
   const [editingContent, setEditingContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Usar o hook personalizado para gerenciar o usuário
   const { user, loading: userLoading, error: userError, refetch: refetchUser } = useUser(userProp);
 
   useEffect(() => {
