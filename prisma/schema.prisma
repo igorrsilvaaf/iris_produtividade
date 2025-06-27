@@ -47,7 +47,6 @@ model pomodoroLog {
   mode        String
   startedAt   DateTime @default(now())
   completedAt DateTime @default(now())
-  task        todos?   @relation("PomodoroLogsForTask", fields: [taskId], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "fk_pomodorolog_task")
 
   @@index([taskId], map: "PomodoroLog_taskId_idx")
   @@index([userId], map: "PomodoroLog_userId_idx")
@@ -62,6 +61,8 @@ model projects {
   created_at    DateTime        @default(now()) @db.Timestamptz(6)
   users         users           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   todo_projects todo_projects[]
+
+  @@index([user_id], map: "idx_projects_user_id")
 }
 
 model sessions {
@@ -81,14 +82,14 @@ model task_notifications_read {
 }
 
 model task_comments {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   task_id    Int
   user_id    Int
-  content    String   @db.Text
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @default(now()) @db.Timestamptz(6)
-  task       todos    @relation("TaskComments", fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user       users    @relation("UserComments", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  content    String
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  task       todos     @relation("TaskComments", fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user       users     @relation("UserComments", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([task_id], map: "idx_task_comments_task_id")
   @@index([user_id], map: "idx_task_comments_user_id")
@@ -110,19 +111,7 @@ model todo_projects {
   todos      todos    @relation(fields: [todo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([todo_id, project_id])
-}
-
-model Attachment {
-  id        Int      @id @default(autoincrement())
-  taskId    Int
-  name      String   @db.VarChar(255)
-  type      String   @db.VarChar(255)
-  content   String   @db.Text
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-  task      todos    @relation("TodoAttachments", fields: [taskId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([taskId])
+  @@index([todo_id], map: "idx_todo_projects_todo_id")
 }
 
 model todos {
@@ -137,18 +126,18 @@ model todos {
   updated_at     DateTime?       @db.Timestamptz(6)
   kanban_column  String?         @db.VarChar(20)
   points         Int?            @default(3)
-  attachments    Attachment[]    @relation("TodoAttachments")
+  attachments    Json?           @default("[]")
   estimated_time Int?
   kanban_order   Int?
-  pomodoroLogs   pomodoroLog[]   @relation("PomodoroLogsForTask")
+  comments       task_comments[] @relation("TaskComments")
   todo_labels    todo_labels[]
   todo_projects  todo_projects[]
-  comments       task_comments[] @relation("TaskComments")
   users          users           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([estimated_time], map: "idx_todos_estimated_time")
   @@index([kanban_column], map: "idx_todos_kanban_column")
   @@index([points], map: "idx_todos_points")
+  @@index([user_id], map: "idx_todos_user_id")
 }
 
 model user_settings {
@@ -185,13 +174,37 @@ model users {
   created_at              DateTime                  @default(now()) @db.Timestamptz(6)
   updated_at              DateTime?                 @db.Timestamptz(6)
   avatar_url              String?
+  attachments             attachments[]
   labels                  labels[]
   notifications           notifications[]
   password_reset_tokens   password_reset_tokens[]
   projects                projects[]
   sessions                sessions[]
+  comments                task_comments[]           @relation("UserComments")
   task_notifications_read task_notifications_read[]
   todos                   todos[]
-  comments                task_comments[]           @relation("UserComments")
   user_settings           user_settings?
+}
+
+model attachments {
+  id            Int      @id @default(autoincrement())
+  user_id       Int
+  entity_type   String   @db.VarChar(20)
+  entity_id     Int
+  file_name     String   @db.VarChar(255)
+  original_name String   @db.VarChar(255)
+  file_path     String   @db.VarChar(500)
+  file_size     BigInt
+  mime_type     String   @db.VarChar(100)
+  alt_text      String?
+  description   String?
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+  users         users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_attachments_user")
+
+  @@index([created_at(sort: Desc)], map: "idx_attachments_created_at")
+  @@index([entity_type, entity_id], map: "idx_attachments_entity")
+  @@index([file_size], map: "idx_attachments_file_size")
+  @@index([mime_type], map: "idx_attachments_mime_type")
+  @@index([user_id], map: "idx_attachments_user_id")
 }
