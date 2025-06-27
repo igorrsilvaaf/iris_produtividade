@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as authLib from '@/lib/auth';
 import * as todosLib from '@/lib/todos';
-import { GET, PUT, PATCH, DELETE } from '@/app/api/tasks/[id]/route';
+import { GET, PUT, PATCH, DELETE } from '@/app/api/tasks/[taskId]/[id]/route';
 
 jest.mock('next/server', () => ({
   NextRequest: jest.fn(),

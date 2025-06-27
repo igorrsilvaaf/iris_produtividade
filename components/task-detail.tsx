@@ -4,6 +4,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
+// Componentes locais
+import { TaskComments } from "./task-comments";
+
 // Bibliotecas de terceiros
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -119,9 +122,15 @@ interface TaskDetailProps {
   task: TodoWithEditMode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url?: string | null;
+  } | null;
 }
 
-export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
+export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
   const [dueDate, setDueDate] = useState<Date | undefined>(
@@ -1773,9 +1782,15 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
               ) : null}
             </div>
           </div>
+
+          {/* Seção de Comentários */}
+          <div className="border-t pt-6 mt-6">
+            <h3 className="text-lg font-medium mb-4">Comentários</h3>
+            <TaskComments taskId={task.id} user={user} />
+          </div>
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row justify-between items-center w-full gap-4 sm:gap-2">
+        <DialogFooter className="flex flex-col sm:flex-row justify-between gap-2 pt-4">
           <Button
             variant="secondary"
             size="sm"
