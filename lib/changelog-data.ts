@@ -15,6 +15,142 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.8.4',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'rich-text-editor-toolbar',
+        title: 'Barra de Ferramentas Rica para Comentários - Estilo Trello Pro',
+        description: 'Sistema completo de formatação de texto com barra de ferramentas avançada e preview em tempo real',
+        items: [
+          {
+            type: 'feature',
+            content: 'Barra de ferramentas completa com formatação de texto: **negrito**, *itálico*, sublinhado'
+          },
+          {
+            type: 'feature',
+            content: 'Botões para listas com marcadores e listas numeradas com inserção inteligente'
+          },
+          {
+            type: 'feature',
+            content: 'Dialog de inserção de links com campos para texto e URL'
+          },
+          {
+            type: 'feature',
+            content: 'Sistema de anexos de arquivos com suporte a imagens, PDFs e documentos'
+          },
+          {
+            type: 'feature',
+            content: 'Menu dropdown com opções avançadas: código inline, citações e linha divisória'
+          },
+          {
+            type: 'feature',
+            content: 'Preview em tempo real com renderização Markdown completa'
+          },
+          {
+            type: 'feature',
+            content: 'Atalhos de teclado profissionais: Ctrl+B (negrito), Ctrl+I (itálico), Ctrl+U (sublinhado), Ctrl+K (link)'
+          },
+          {
+            type: 'feature',
+            content: 'Auto-resize da área de texto conforme o conteúdo digitado'
+          },
+          {
+            type: 'feature',
+            content: 'Tabs para alternar entre modo de edição e preview'
+          },
+          {
+            type: 'improvement',
+            content: 'Interface responsiva que se adapta perfeitamente a dispositivos móveis'
+          },
+          {
+            type: 'improvement',
+            content: 'Animações suaves na barra de ferramentas com efeitos hover elegantes'
+          },
+          {
+            type: 'improvement',
+            content: 'Estados visuais claros para botões ativos e desabilitados'
+          },
+          {
+            type: 'improvement',
+            content: 'Tooltips informativos em todos os botões da barra de ferramentas'
+          },
+          {
+            type: 'improvement',
+            content: 'Suporte completo a HTML e Markdown com renderização segura'
+          },
+          {
+            type: 'improvement',
+            content: 'Design consistente com o sistema de design do Trello'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    date: new Date(),
+    version: '2.8.3',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'comments-trello-style',
+        title: 'Melhorias no Sistema de Comentários - Estilo Trello',
+        description: 'Sistema de comentários aprimorado com interface mais elegante e funcionalidades avançadas',
+        items: [
+          {
+            type: 'improvement',
+            content: 'Interface de comentários redesenhada para ser mais similar ao Trello com design mais limpo e moderno'
+          },
+          {
+            type: 'feature',
+            content: 'Suporte completo a Markdown nos comentários: **negrito**, *itálico*, `código`, listas e links'
+          },
+          {
+            type: 'feature',
+            content: 'Sistema de curtidas nos comentários com animação suave e contador visual'
+          },
+          {
+            type: 'feature',
+            content: 'Campo de entrada expandível com dicas de formatação e atalhos de teclado (Ctrl+Enter)'
+          },
+          {
+            type: 'feature',
+            content: 'Formatação inteligente de datas com tooltips informativos mostrando data/hora completa'
+          },
+          {
+            type: 'improvement',
+            content: 'Animações suaves para interações: hover, likes, edição e transições'
+          },
+          {
+            type: 'improvement',
+            content: 'Melhor experiência em dispositivos móveis com botões otimizados para toque'
+          },
+          {
+            type: 'improvement',
+            content: 'Atalhos de teclado para produtividade: Ctrl+Enter para enviar, Esc para cancelar'
+          },
+          {
+            type: 'improvement',
+            content: 'Indicador visual de comentários editados com badge "editado"'
+          },
+          {
+            type: 'improvement',
+            content: 'Tooltips informativos em todos os botões de ação para melhor usabilidade'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    date: new Date(),
     version: '2.8.2',
     author: {
       name: 'Igor Silva',

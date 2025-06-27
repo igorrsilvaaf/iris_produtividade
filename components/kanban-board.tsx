@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, memo } from "react"
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, KeyboardSensor, TouchSensor, closestCorners } from "@dnd-kit/core"
 import { SortableContext, arrayMove, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -27,7 +27,7 @@ type KanbanCard = Todo & {
   kanban_order?: number
 }
 
-const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: (id: number) => void, onEdit: (id: number) => void }) => {
+const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: (id: number) => void, onEdit: (id: number) => void }) => {
   const { t, language } = useTranslation();
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: card.id,
@@ -44,14 +44,14 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
   
   const localeObj = language === 'pt' ? ptBR : enUS;
   
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button')) {
       return;
     }
     onEdit(card.id);
-  };
+  }, [card.id, onEdit]);
   
-  const getPointsBadgeColor = (points: number) => {
+  const getPointsBadgeColor = useCallback((points: number) => {
     switch(points) {
       case 1: return 'bg-green-100 text-green-800';
       case 2: return 'bg-blue-100 text-blue-800';
@@ -60,9 +60,9 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
       case 5: return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
-  };
+  }, []);
   
-  const getPointsLabel = (points: number) => {
+  const getPointsLabel = useCallback((points: number) => {
     switch(points) {
       case 1: return t("veryEasy") || "Muito fácil";
       case 2: return t("easy") || "Fácil";
@@ -71,28 +71,19 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
       case 5: return t("veryHard") || "Muito difícil";
       default: return "";
     }
-  };
+  }, [t]);
   
-  // Define a ordem das colunas para facilitar a navegação entre elas
   const columnOrder: KanbanColumn[] = ["backlog", "planning", "inProgress", "validation", "completed"];
-  
-  // Encontra o índice da coluna atual
   const currentColumnIndex = columnOrder.indexOf(card.column);
-  
-  // Determina se temos colunas anterior e próxima
   const hasPreviousColumn = currentColumnIndex > 0;
   const hasNextColumn = currentColumnIndex < columnOrder.length - 1;
-  
-  // Obtém as colunas anterior e próxima (se existirem)
   const previousColumn = hasPreviousColumn ? columnOrder[currentColumnIndex - 1] : null;
   const nextColumn = hasNextColumn ? columnOrder[currentColumnIndex + 1] : null;
   
-  // Função para mover card para a coluna anterior
-  const moveCardToPreviousColumn = (e: React.MouseEvent) => {
+  const moveCardToPreviousColumn = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     if (previousColumn) {
-      // Criar um evento sintético de arrastar para a coluna anterior
       const customEvent = {
         active: { id: card.id },
         over: { 
@@ -100,17 +91,14 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
           data: { current: { type: 'column', column: previousColumn } }
         }
       };
-      // Dispara evento personalizado para mover o card
       window.dispatchEvent(new CustomEvent('kanban-move-card', { detail: customEvent }));
     }
-  };
+  }, [previousColumn, card.id]);
   
-  // Função para mover card para a próxima coluna
-  const moveCardToNextColumn = (e: React.MouseEvent) => {
+  const moveCardToNextColumn = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     if (nextColumn) {
-      // Criar um evento sintético de arrastar para a próxima coluna
       const customEvent = {
         active: { id: card.id },
         over: { 
@@ -118,10 +106,9 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
           data: { current: { type: 'column', column: nextColumn } }
         }
       };
-      // Dispara evento personalizado para mover o card
       window.dispatchEvent(new CustomEvent('kanban-move-card', { detail: customEvent }));
     }
-  };
+  }, [nextColumn, card.id]);
   
   return (
     <Card 
@@ -206,36 +193,38 @@ const SortableCard = ({ card, onDelete, onEdit }: { card: KanbanCard, onDelete: 
             </Button>
           )}
         </div>
-        <div className="flex">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer" 
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              e.preventDefault();
               onEdit(card.id);
             }}
+            className="h-7 px-2 text-xs"
+            title={t("Edit")}
           >
-            <Edit className="h-4 w-4" />
+            <Edit className="h-3 w-3" />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-destructive cursor-pointer" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              e.preventDefault();
               onDelete(card.id);
             }}
+            className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
+            title={t("Delete")}
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3 w-3" />
           </Button>
         </div>
       </CardFooter>
     </Card>
-  );
-};
+  )
+});
+
+SortableCard.displayName = "SortableCard";
 
 const DroppableColumn = ({ 
   title, 

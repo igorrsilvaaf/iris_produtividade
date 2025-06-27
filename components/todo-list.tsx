@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useCallback, memo } from "react"
 import { useRouter } from "next/navigation"
 import { Flag, Clock, CircleDot, Check, Trash, Calendar, FileText, ArrowUpDown } from "lucide-react"
 import type { Todo } from "@/lib/todos"
@@ -21,7 +21,84 @@ import {
 
 type SortOption = "priority" | "title" | "dueDate" | "createdAt"
 
-export function TodoList({ tasks }: { tasks: Todo[] }) {
+const TaskItem = memo(({ 
+  task, 
+  onToggle, 
+  onDelete, 
+  formatDueDate, 
+  getPriorityColor, 
+  getPointsColor 
+}: {
+  task: Todo
+  onToggle: (id: number) => void
+  onDelete: (id: number) => void
+  formatDueDate: (date: string | null) => string | null
+  getPriorityColor: (priority: number) => string
+  getPointsColor: (points: number) => string
+}) => {
+  return (
+    <li 
+      className={cn(
+        "flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-all",
+        task.completed && "opacity-60"
+      )}
+    >
+      <div className="flex items-center space-x-3">
+        <Checkbox
+          checked={task.completed}
+          onCheckedChange={() => onToggle(task.id)}
+          className="h-5 w-5"
+        />
+        <div>
+          <div className={cn("font-medium", task.completed && "line-through")}>
+            {task.title}
+          </div>
+          <div className="mt-1 flex items-center gap-2 flex-wrap">
+            {task.due_date && (
+              <div className="flex items-center text-xs text-muted-foreground">
+                <Clock className="mr-1 h-3 w-3" />
+                <span>{formatDueDate(task.due_date)}</span>
+              </div>
+            )}
+            <div className="flex items-center text-xs">
+              <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(task.priority)}`} />
+              <span>P{task.priority}</span>
+            </div>
+            {task.points && (
+              <div className="flex items-center text-xs">
+                <CircleDot className={`mr-1 h-3 w-3 ${getPointsColor(task.points)}`} />
+                <span>{task.points} pts</span>
+              </div>
+            )}
+            {task.project_name && (
+              <div
+                className="flex items-center text-xs rounded-full px-2 py-0.5"
+                style={{ 
+                  backgroundColor: `${task.project_color}20`,
+                  color: task.project_color 
+                }}
+              >
+                <span>{task.project_name}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={() => onDelete(task.id)}
+        className="text-red-500 hover:text-red-700 p-1"
+        title="Excluir tarefa"
+        aria-label="Excluir tarefa"
+      >
+        <Trash className="h-4 w-4" />
+      </button>
+    </li>
+  )
+})
+
+TaskItem.displayName = "TaskItem"
+
+export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
   const [sortBy, setSortBy] = useState<SortOption>("priority")
   const router = useRouter()
   const { toast } = useToast()
@@ -50,7 +127,7 @@ export function TodoList({ tasks }: { tasks: Todo[] }) {
     }
   }, [tasks, sortBy]);
 
-  const toggleTaskCompletion = async (taskId: number) => {
+  const toggleTaskCompletion = useCallback(async (taskId: number) => {
     try {
       await fetch(`/api/tasks/${taskId}/toggle`, {
         method: "PATCH",
@@ -69,9 +146,9 @@ export function TodoList({ tasks }: { tasks: Todo[] }) {
         description: t("Please try again."),
       })
     }
-  }
+  }, [router, toast, t])
 
-  const deleteTask = async (taskId: number) => {
+  const deleteTask = useCallback(async (taskId: number) => {
     try {
       await fetch(`/api/tasks/${taskId}`, {
         method: "DELETE",
@@ -90,18 +167,18 @@ export function TodoList({ tasks }: { tasks: Todo[] }) {
         description: t("Please try again."),
       })
     }
-  }
+  }, [router, toast, t])
 
-  const getPriorityColor = (priority: number) => {
+  const getPriorityColor = useCallback((priority: number) => {
     switch (priority) {
       case 1: return "text-red-500"
       case 2: return "text-orange-500"
       case 3: return "text-blue-500"
       default: return "text-gray-400"
     }
-  }
+  }, [])
 
-  const getPointsColor = (points: number) => {
+  const getPointsColor = useCallback((points: number) => {
     switch (points) {
       case 1: return "text-green-500"
       case 2: return "text-blue-500"
@@ -110,9 +187,9 @@ export function TodoList({ tasks }: { tasks: Todo[] }) {
       case 5: return "text-red-500"
       default: return "text-gray-400"
     }
-  }
+  }, [])
 
-  const getPointsLabel = (points: number) => {
+  const getPointsLabel = useCallback((points: number) => {
     switch (points) {
       case 1: return t("veryEasy") || "Muito fácil"
       case 2: return t("easy") || "Fácil"
@@ -121,9 +198,9 @@ export function TodoList({ tasks }: { tasks: Todo[] }) {
       case 5: return t("veryHard") || "Muito difícil"
       default: return t("medium") || "Médio"
     }
-  }
+  }, [t])
 
-  const formatDueDate = (dueDate: string | null) => {
+  const formatDueDate = useCallback((dueDate: string | null) => {
     if (!dueDate) return null
 
     const date = new Date(dueDate)
@@ -144,7 +221,7 @@ export function TodoList({ tasks }: { tasks: Todo[] }) {
     } else {
       return format(date, "dd/MM/yyyy")
     }
-  }
+  }, [t])
 
   if (tasks.length === 0) {
     return (
@@ -203,65 +280,19 @@ export function TodoList({ tasks }: { tasks: Todo[] }) {
 
       <ul className="space-y-3">
         {sortedTasks.map((task) => (
-          <li 
+          <TaskItem
             key={task.id}
-            className={cn(
-              "flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-all",
-              task.completed && "opacity-60"
-            )}
-          >
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                checked={task.completed}
-                onCheckedChange={() => toggleTaskCompletion(task.id)}
-                className="h-5 w-5"
-              />
-              <div>
-                <div className={cn("font-medium", task.completed && "line-through")}>
-                  {task.title}
-                </div>
-                <div className="mt-1 flex items-center gap-2 flex-wrap">
-                  {task.due_date && (
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <Clock className="mr-1 h-3 w-3" />
-                      <span>{formatDueDate(task.due_date)}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center text-xs">
-                    <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(task.priority)}`} />
-                    <span>P{task.priority}</span>
-                  </div>
-                  {task.points && (
-                    <div className="flex items-center text-xs">
-                      <CircleDot className={`mr-1 h-3 w-3 ${getPointsColor(task.points)}`} />
-                      <span>{task.points} pts</span>
-                    </div>
-                  )}
-                  {task.project_name && (
-                    <div
-                      className="flex items-center text-xs rounded-full px-2 py-0.5"
-                      style={{ 
-                        backgroundColor: `${task.project_color}20`,
-                        color: task.project_color 
-                      }}
-                    >
-                      <span>{task.project_name}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => deleteTask(task.id)}
-              className="text-red-500 hover:text-red-700 p-1"
-            >
-              <Trash className="h-4 w-4" />
-            </button>
-          </li>
+            task={task}
+            onToggle={toggleTaskCompletion}
+            onDelete={deleteTask}
+            formatDueDate={formatDueDate}
+            getPriorityColor={getPriorityColor}
+            getPointsColor={getPointsColor}
+          />
         ))}
       </ul>
     </div>
   )
-}
+})
 
 export default TodoList 
