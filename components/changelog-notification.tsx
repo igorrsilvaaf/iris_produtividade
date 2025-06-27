@@ -73,17 +73,35 @@ export function ChangelogNotification() {
       const changelogData = getChangelogData()
       const newChanges = changelogData.filter(item => item.isNew)
       
+      console.log('ChangelogNotification Debug:', {
+        changelogData: changelogData.slice(0, 3),
+        newChanges,
+        isClient
+      })
+      
       if (newChanges.length === 0) return
       
       const latestNewVersion = newChanges[0].version
       const lastSeenVersion = localStorage.getItem('lastSeenChangelogVersion')
 
+      console.log('Version check:', {
+        latestNewVersion,
+        lastSeenVersion,
+        shouldShow: lastSeenVersion !== latestNewVersion
+      })
+
       if (lastSeenVersion !== latestNewVersion) {
         const dismissedVersions = localStorage.getItem('dismissedChangelogVersions')
         const dismissedArray = dismissedVersions ? JSON.parse(dismissedVersions) : []
         
+        console.log('Dismissed versions check:', {
+          dismissedVersions,
+          dismissedArray,
+          isLatestDismissed: dismissedArray.includes(latestNewVersion)
+        })
+        
         if (!dismissedArray.includes(latestNewVersion)) {
-
+          console.log('Opening modal for version:', latestNewVersion)
           setLatestChangelog(latestNewVersion)
           setOpen(true)
         }
@@ -196,7 +214,26 @@ export function ChangelogNotification() {
         <div className="p-5">
           <div className="border-l-4 border-primary/30 pl-3 py-2 mb-4 rounded-sm bg-primary/5">
             <p className="text-sm text-muted-foreground">
-              {latestChangelog === '2.8.1' ? (
+              {latestChangelog === '2.8.2' ? (
+                <>
+                  <span className="font-medium text-primary">Sistema de Comentários em Tarefas</span>
+                  <br />
+                  Agora você pode comentar em suas tarefas, assim como no Trello! Adicionamos um sistema completo 
+                  de comentários que permite interação e colaboração diretamente nas tarefas.
+                  <br /><br />
+                  <span className="font-medium">Novas funcionalidades:</span> Criar, visualizar, editar e deletar 
+                  comentários próprios. Interface intuitiva com avatar do usuário, nome e data. Ícone de lixeira 
+                  vermelho para deletar e menu dropdown para editar comentários.
+                  <br /><br />
+                  <span className="font-medium text-primary">Melhorias no Layout</span>
+                  <br />
+                  Também padronizamos o visual entre projetos e etiquetas com formato de chip/badge colorido, 
+                  e melhoramos os estados de carregamento em toda a aplicação para uma experiência mais consistente.
+                  <br /><br />
+                  <span className="font-medium">Como usar:</span> Abra qualquer tarefa e role até a seção de comentários 
+                  na parte inferior. Digite seu comentário e clique em "Adicionar Comentário" para participar da conversa!
+                </>
+              ) : latestChangelog === '2.8.1' ? (
                 <>
                   <span className="font-medium text-primary">Relatórios Aprimorados com Pontos e Tempo Estimado</span>
                   <br />

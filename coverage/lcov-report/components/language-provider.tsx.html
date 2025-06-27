@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/17</span>
+                <span class='fraction'>0/22</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
-            </div>
-        
-            
-            <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
-                <span class="quiet">Functions</span>
                 <span class='fraction'>0/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/7</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/19</span>
             </div>
         
             
@@ -109,7 +109,8 @@
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
 <a name='L46'></a><a href='#L46'>46</a>
-<a name='L47'></a><a href='#L47'>47</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -127,10 +128,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -139,17 +150,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -157,7 +159,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use client"
 &nbsp;
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useLanguageStore } from "@/lib/i18n"
 &nbsp;
@@ -172,32 +174,33 @@ interface LanguageProviderProps {
 &nbsp;
 export function <span class="fstat-no" title="function not covered" >LanguageProvider(</span>{ initialLanguage, children }: LanguageProviderProps) {
   const router = <span class="cstat-no" title="statement not covered" >useRouter()</span>
-  const { setLanguage } = <span class="cstat-no" title="statement not covered" >useLanguageStore()</span>
+  const { language: currentLanguage, setLanguage, isHydrated } = <span class="cstat-no" title="statement not covered" >useLanguageStore()</span>
+  const [isReady, setIsReady] = <span class="cstat-no" title="statement not covered" >useState(false)</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    console.log("[LanguageProvider] Setting initial language:", initialLanguage)</span>
-    
-    // Clear old cookie before setting new one
 <span class="cstat-no" title="statement not covered" >    document.cookie = `language-storage=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`</span>
     
-    // Set new cookie
 <span class="cstat-no" title="statement not covered" >    setCookie('user-language', initialLanguage)</span>
-    
-    // Update language in Zustand state
 <span class="cstat-no" title="statement not covered" >    setLanguage(initialLanguage)</span>
     
-    // Update HTML attributes
 <span class="cstat-no" title="statement not covered" >    document.documentElement.lang = initialLanguage === 'en' ? 'en' : 'pt-BR'</span>
 <span class="cstat-no" title="statement not covered" >    document.documentElement.setAttribute('data-language', initialLanguage)</span>
     
-    // Verify if cookie was set correctly
-<span class="cstat-no" title="statement not covered" >    setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+    const timer = <span class="cstat-no" title="statement not covered" >setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
       const cookies = <span class="cstat-no" title="statement not covered" >document.cookie.split(';').map(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >c.trim())</span></span>
       const langCookie = <span class="cstat-no" title="statement not covered" >cookies.find(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >c.startsWith('user-language='))</span></span>
-<span class="cstat-no" title="statement not covered" >      console.log("[LanguageProvider] Language cookie after setting:", langCookie)</span>
+      
+<span class="cstat-no" title="statement not covered" >      setIsReady(true)</span>
     }, 100)
-  }, [initialLanguage, setLanguage])
+    
+<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >clearTimeout(timer)</span></span>
+  }, [initialLanguage, setLanguage, currentLanguage])
 &nbsp;
+<span class="cstat-no" title="statement not covered" >  if (!isHydrated || !isReady) {</span>
+<span class="cstat-no" title="statement not covered" >    console.log('LanguageProvider - Waiting for hydration and language setup...');</span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
+  }
+  
 <span class="cstat-no" title="statement not covered" >  return &lt;&gt;{children}&lt;/&gt;</span>
 }
 &nbsp;
@@ -208,7 +211,7 @@ export function <span class="fstat-no" title="function not covered" >LanguagePro
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-27T03:15:04.810Z
             </div>
         <script src="../prettify.js"></script>
         <script>

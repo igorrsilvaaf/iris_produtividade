@@ -1,55 +1,87 @@
 "use client";
 
+// Bibliotecas externas do React
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+
+// Componentes locais
+import { TaskComments } from "./task-comments";
+
+// Bibliotecas de terceiros
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+// Ícones (organizados por categoria/uso)
 import {
-  CalendarIcon,
-  Flag,
-  Tag,
-  X,
-  FilePlus,
-  Trash,
-  MoreHorizontal,
-  Clock,
-  TimerOff,
-  Timer,
-  Check,
+  // Ações principais
   Plus,
   Save,
   Edit,
-  CheckSquare,
-  Square,
-  Link,
-  ArrowLeft,
-  CircleDot,
-  ChevronDown,
-  Star,
-  EllipsisVertical,
   Edit2,
-  Trash2,
-  CalendarRange,
-  Folders,
+  Check,
   CheckCheck,
   Copy,
+
+  // Navegação
+  ArrowLeft,
   ArrowUp,
   ArrowDown,
-  Paperclip,
+  ChevronDown,
   ExternalLink,
-  Image,
+
+  // Interface
+  X,
+  MoreHorizontal,
+  EllipsisVertical,
+  CircleDot,
+  Star,
+
+  // Arquivos e documentos
+  FilePlus,
   FileText,
+  Image,
+  Paperclip,
+  Download,
+
+  // Tempo e calendário
+  CalendarIcon,
+  CalendarRange,
+  Clock,
+  Timer,
+  TimerOff,
+
+  // Organização
+  Flag,
+  Tag,
+  Folders,
+  Square,
+  CheckSquare,
+  Link,
+
+  // Ações destrutivas
+  Trash,
+  Trash2,
 } from "lucide-react";
+
+// Types
 import type { Todo } from "@/lib/todos";
 import type { Project } from "@/lib/projects";
-import { useTranslation } from "@/lib/i18n";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { cn } from "@/lib/utils";
-import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
+// Hooks e utils locais
+import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+
+// 6. Componentes UI (agrupados por funcionalidade)
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/components/ui/use-toast";
+
+// Componentes de overlay/modal
 import {
   Dialog,
   DialogContent,
@@ -59,8 +91,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+// Componentes de formulário
 import {
   Select,
   SelectContent,
@@ -68,15 +106,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
-import { TaskLabels } from "@/components/task-labels";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import { Calendar } from "@/components/ui/calendar";
-import { Checkbox } from "@/components/ui/checkbox";
+
+// Componentes específicos do domínio
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
+import { TaskLabels } from "@/components/task-labels";
 import { ProjectForm } from "@/components/project-form";
 
 export type TodoWithEditMode = Todo & {
@@ -87,29 +122,15 @@ interface TaskDetailProps {
   task: TodoWithEditMode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url?: string | null;
+  } | null;
 }
 
-function isAllDayDate(dateString: string | null): boolean {
-  if (!dateString) return true;
-  try {
-    const date = new Date(dateString);
-    return date.getHours() === 0 && date.getMinutes() === 0;
-  } catch (e) {
-    return true;
-  }
-}
-
-function getTimeFromDate(dateString: string | null): string {
-  if (!dateString) return "00:00";
-  try {
-    const date = new Date(dateString);
-    return date.toTimeString().slice(0, 5);
-  } catch (e) {
-    return "00:00";
-  }
-}
-
-export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
+export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
   const [dueDate, setDueDate] = useState<Date | undefined>(
@@ -128,7 +149,6 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
   const [priority, setPriority] = useState(task.priority.toString());
   const [points, setPoints] = useState(task.points || 3);
   const [projectId, setProjectId] = useState<string | null>(null);
-  const [projectName, setProjectName] = useState<string>("");
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -164,14 +184,21 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       if (!open || task.id === undefined) return;
 
       try {
-        const response = await fetch(`/api/tasks/${task.id}/project`);
+        console.log(`[TaskDetail] Buscando projeto para task ID: ${task.id}`);
+        const response = await fetch(`/api/tasks/${task.id}/${task.id}/project`);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log(`[TaskDetail] Projeto encontrado:`, data);
           if (data.projectId) {
             setProjectId(data.projectId.toString());
           } else {
             setProjectId(null);
           }
+        } else {
+          console.error(`[TaskDetail] Erro ao buscar projeto - Status: ${response.status}`);
+          const errorData = await response.text();
+          console.error(`[TaskDetail] Detalhes do erro:`, errorData);
         }
       } catch (error) {
         console.error(`[TaskDetail] Erro ao buscar projeto da tarefa:`, error);
@@ -252,63 +279,96 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       setIsLoadingProjects(true);
       try {
         const response = await fetch("/api/projects");
+        
         if (response.ok) {
           const data = await response.json();
-          setProjects(data.projects);
+          setProjects(data.projects || []);
 
-          if (projectId) {
-            const project = data.projects.find(
-              (p: Project) => p.id.toString() === projectId
-            );
-            if (project) {
-              setProjectName(project.name);
-            }
+          // Não precisa do setProjectName aqui - o nome do projeto é obtido dinamicamente
+        } else {
+          console.error("Failed to fetch projects - Status:", response.status);
+          const errorData = await response.text();
+          console.error("Error details:", errorData);
+          
+          if (response.status === 401) {
+            console.error("Unauthorized - user may not be logged in");
           }
+          
+          setProjects([]);
         }
       } catch (error) {
         console.error("Failed to fetch projects:", error);
+        setProjects([]);
       } finally {
         setIsLoadingProjects(false);
       }
     };
 
-    fetchProjects();
+    if (open) {
+      // Debug: verificar se usuário está autenticado
+      fetch('/api/auth/session')
+        .then(res => res.json())
+        .then(session => {
+          console.log('Session debug:', session);
+          if (session?.user) {
+            console.log('User authenticated, fetching projects...');
+            fetchProjects();
+          } else {
+            console.error('User not authenticated - cannot fetch projects');
+            setProjects([]);
+            setIsLoadingProjects(false);
+          }
+        })
+        .catch(err => {
+          console.error('Session check failed:', err);
+          fetchProjects(); // Tenta buscar mesmo assim
+        });
+    }
   }, [projectId, open]);
 
-  const handleCreateProjectSuccess = () => {
+  const handleCreateProjectSuccess = async () => {
     setShowCreateProject(false);
-    fetch("/api/projects")
-      .then((response) => response.json())
-      .then((data) => {
-        setProjects(data.projects);
+    
+    try {
+      const response = await fetch("/api/projects");
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProjects(data.projects || []);
+        
         if (data.projects && data.projects.length > 0) {
           const newProject = data.projects[data.projects.length - 1];
           setProjectId(newProject.id.toString());
-          setProjectName(newProject.name);
           setShowAddProject(false);
 
-          fetch(`/api/tasks/${task.id}/project`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              projectId: newProject.id,
-            }),
-          })
-            .then((response) => {
-              if (response.ok) {
-                setTimeout(() => {
-                  router.refresh();
-                }, 100);
-              }
-            })
-            .catch((error) => {
-              console.error("Falha ao associar o projeto à tarefa:", error);
+          try {
+            const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                projectId: newProject.id,
+              }),
             });
+
+            if (projectResponse.ok) {
+              setTimeout(() => {
+                router.refresh();
+              }, 100);
+            } else {
+              console.error("Failed to associate project with task - Status:", projectResponse.status);
+            }
+          } catch (error) {
+            console.error("Falha ao associar o projeto à tarefa:", error);
+          }
         }
-      })
-      .catch((error) => {
-        console.error("Failed to refresh projects:", error);
-      });
+      } else {
+        console.error("Failed to refresh projects - Status:", response.status);
+        const errorData = await response.text();
+        console.error("Error details:", errorData);
+      }
+    } catch (error) {
+      console.error("Failed to refresh projects:", error);
+    }
   };
 
   const handleSave = async () => {
@@ -354,7 +414,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
       }
 
       if (projectId) {
-        const projectResponse = await fetch(`/api/tasks/${task.id}/project`, {
+        const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -366,7 +426,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
           throw new Error("Failed to update task project");
         }
       } else {
-        const projectResponse = await fetch(`/api/tasks/${task.id}/project`, {
+        const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1427,134 +1487,130 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">{t("project")}</label>
-            <div
-              className={`space-y-2 ${!isEditMode ? "cursor-not-allowed" : ""}`}
-            >
-              {projectId ? (
-                <div className="flex items-center justify-between p-2 border rounded">
-                  <div className="flex items-center">
-                    <div
-                      style={{
-                        backgroundColor:
-                          projects.find((p) => p.id.toString() === projectId)
-                            ?.color || "#ccc",
-                      }}
-                      className="w-4 h-4 rounded-full mr-2"
-                    />
-                    <span>
-                      {projects.find((p) => p.id.toString() === projectId)
-                        ?.name || t("Unknown project")}
-                    </span>
-                  </div>
-                  {isEditMode && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setProjectId(null)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <X className="h-4 w-4" />
-                      <span className="sr-only">{t("Remove project")}</span>
-                    </Button>
-                  )}
-                </div>
+            <div className={`${!isEditMode ? "cursor-not-allowed" : ""}`}>
+              {isLoadingProjects ? (
+                <div className="flex items-center justify-center p-4">{t("Loading projects...")}</div>
               ) : (
-                <p className="text-sm text-muted-foreground p-2">
-                  {t("noProject")}
-                </p>
-              )}
-              <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
-                <DialogTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-2"
-                    disabled={!isEditMode}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    {t("Add Project")}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent
-                  className="z-[60]"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <DialogHeader>
-                    <DialogTitle>{t("Add Project")}</DialogTitle>
-                    <DialogDescription>
-                      {t("Select a project or create a new one.")}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-2 py-4">
-                    {isLoadingProjects ? (
-                      <div className="flex items-center justify-center p-4">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                      </div>
-                    ) : projects.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">
-                        {t("No projects found.")}
-                      </p>
-                    ) : (
-                      projects.map((project) => (
-                        <button
-                          key={project.id}
-                          type="button"
-                          className="flex items-center justify-between p-2 border rounded hover:bg-accent"
-                          onClick={() => {
-                            setProjectId(project.id.toString());
-                            setShowAddProject(false);
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {projectId && projects.find((p) => p.id.toString() === projectId) ? (
+                      <div
+                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                        style={{
+                          backgroundColor: projects.find((p) => p.id.toString() === projectId)?.color || "#ccc",
+                          color: "#fff",
+                        }}
+                      >
+                        <div
+                          className="w-3 h-3 rounded-full mr-1"
+                          style={{
+                            backgroundColor: "rgba(255,255,255,0.3)",
                           }}
-                        >
-                          <div className="flex items-center">
-                            <div
-                              style={{ backgroundColor: project.color }}
-                              className="w-4 h-4 rounded-full mr-2"
-                            />
-                            <span>{project.name}</span>
-                          </div>
-                        </button>
-                      ))
+                        />
+                        <span>
+                          {projects.find((p) => p.id.toString() === projectId)?.name}
+                        </span>
+                        {isEditMode && (
+                          <button
+                            type="button"
+                            onClick={() => setProjectId(null)}
+                            className="ml-1 hover:bg-black/10 rounded-full p-0.5"
+                            aria-label={`Remove project`}
+                            title="Remove project"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t("noProject")}</p>
                     )}
                   </div>
-                  <div className="mt-4 border-t pt-4 flex justify-between">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowAddProject(false)}
-                    >
-                      {t("Cancel")}
-                    </Button>
-                    <Dialog
-                      open={showCreateProject}
-                      onOpenChange={setShowCreateProject}
-                    >
+                  
+                  {isEditMode && (
+                    <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
                       <DialogTrigger asChild>
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowCreateProject(true);
-                          }}
-                        >
-                          {t("Create New Project")}
+                        <Button variant="outline" size="sm" className="mt-2">
+                          <Plus className="mr-1 h-3 w-3" />
+                          {t("Add Project")}
                         </Button>
                       </DialogTrigger>
-                      <DialogContent
-                        className="z-[70]"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                      <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>{t("Create New Project")}</DialogTitle>
+                          <DialogTitle>{t("Add Project")}</DialogTitle>
                           <DialogDescription>
-                            {t("Fill in the details to create a new project.")}
+                            {t("Select a project or create a new one.")}
                           </DialogDescription>
                         </DialogHeader>
-                        <ProjectForm onSuccess={handleCreateProjectSuccess} />
+                        <div className="grid gap-2 py-4">
+                          {isLoadingProjects ? (
+                            <div className="flex items-center justify-center p-4">{t("Loading projects...")}</div>
+                          ) : projects.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                              {t("No projects found.")}
+                            </p>
+                          ) : (
+                            projects.map((project) => (
+                              <button
+                                key={project.id}
+                                type="button"
+                                className="flex items-center justify-between p-2 border rounded hover:bg-accent"
+                                onClick={() => {
+                                  setProjectId(project.id.toString());
+                                  setShowAddProject(false);
+                                }}
+                              >
+                                <div className="flex items-center">
+                                  <div
+                                    style={{ backgroundColor: project.color }}
+                                    className="w-4 h-4 rounded-full mr-2"
+                                  />
+                                  <span>{project.name}</span>
+                                </div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                        <div className="mt-4 border-t pt-4 flex justify-between">
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowAddProject(false)}
+                          >
+                            {t("Cancel")}
+                          </Button>
+                          <Dialog
+                            open={showCreateProject}
+                            onOpenChange={setShowCreateProject}
+                          >
+                            <DialogTrigger asChild>
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowCreateProject(true);
+                                }}
+                              >
+                                {t("Create New Project")}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent
+                              className="z-[70]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <DialogHeader>
+                                <DialogTitle>{t("Create New Project")}</DialogTitle>
+                                <DialogDescription>
+                                  {t("Fill in the details to create a new project.")}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <ProjectForm onSuccess={handleCreateProjectSuccess} />
+                            </DialogContent>
+                          </Dialog>
+                        </div>
                       </DialogContent>
                     </Dialog>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1596,14 +1652,28 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                         <span className="truncate">{attachment.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <a
-                          href={attachment.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80 flex-shrink-0"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
+                        {attachment.type === "link" ? (
+                          <a
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:text-primary/80 flex-shrink-0"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        ) : (
+                          <a
+                            href={`/api/attachments/download/${attachment.id}`}
+                            download
+                            className="text-primary hover:text-primary/80 flex-shrink-0"
+                            onClick={(e) => {
+                              // Impede que o clique no link feche o modal
+                              e.stopPropagation();
+                            }}
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                        )}
                         {isEditMode && (
                           <Button
                             type="button"
@@ -1710,6 +1780,7 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
                               ? setImageUploadRef(node)
                               : setFileUploadRef(node)
                           }
+                          title={attachmentType === "image" ? t("Select Image") : t("Select File")}
                         />
                         <Button
                           type="button"
@@ -1748,9 +1819,15 @@ export function TaskDetail({ task, open, onOpenChange }: TaskDetailProps) {
               ) : null}
             </div>
           </div>
+
+          {/* Seção de Comentários */}
+          <div className="border-t pt-6 mt-6">
+            <h3 className="text-lg font-medium mb-4">Comentários</h3>
+            <TaskComments taskId={task.id} user={user} />
+          </div>
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row justify-between items-center w-full gap-4 sm:gap-2">
+        <DialogFooter className="flex flex-col sm:flex-row justify-between gap-2 pt-4">
           <Button
             variant="secondary"
             size="sm"

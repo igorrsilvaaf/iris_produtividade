@@ -386,6 +386,12 @@ export function KanbanBoard() {
   const [highlightedColumn, setHighlightedColumn] = useState<KanbanColumn | null>(null);
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null)
   const [showTaskDetail, setShowTaskDetail] = useState(false)
+  const [user, setUser] = useState<{
+    id: number;
+    name: string;
+    email: string;
+    avatar_url?: string | null;
+  } | null>(null);
   
   const activeCard = activeCardId ? cards.find(card => card.id === activeCardId) : null;
   
@@ -408,6 +414,27 @@ export function KanbanBoard() {
   
   useEffect(() => {
     setIsClient(true);
+    
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/auth/session');
+        if (response.ok) {
+          const session = await response.json();
+          if (session?.user) {
+            setUser({
+              id: session.user.id,
+              name: session.user.name || '',
+              email: session.user.email || '',
+              avatar_url: session.user.avatar_url
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados do usuário:', error);
+      }
+    };
+
+    fetchUser();
   }, []);
   
   // Manipulador para o evento personalizado 'kanban-move-card'
@@ -1436,6 +1463,7 @@ export function KanbanBoard() {
           task={selectedTask} 
           open={showTaskDetail} 
           onOpenChange={setShowTaskDetail} 
+          user={user}
         />
       )}
     </>

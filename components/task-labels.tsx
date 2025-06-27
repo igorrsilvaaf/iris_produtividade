@@ -72,7 +72,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
       try {
 
         
-        const taskLabelsResponse = await fetch(`/api/tasks/${taskId}/labels`);
+        const taskLabelsResponse = await fetch(`/api/tasks/${taskId}/${taskId}/labels`);
         
         if (!taskLabelsResponse.ok) {
           const errorData = await taskLabelsResponse.json();

@@ -47,6 +47,12 @@ export function TaskNotificationsMenu() {
   const [completingTask, setCompletingTask] = useState<number | null>(null)
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null)
   const [showTaskDetail, setShowTaskDetail] = useState(false)
+  const [user, setUser] = useState<{
+    id: number;
+    name: string;
+    email: string;
+    avatar_url?: string | null;
+  } | null>(null);
   const [notifications, setNotifications] = useState<TaskNotification>({
     enabled: false,
     overdueCount: 0,
@@ -75,9 +81,11 @@ export function TaskNotificationsMenu() {
         }
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); 
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // Aumentado para 15 segundos
         const cacheKey = Date.now().toString();
         const url = `/api/notifications/tasks?_cache=${cacheKey}`;
+        
+        console.log(`[TaskNotificationsMenu] Iniciando busca de notificações (tentativa ${retryCount + 1}/${maxRetries})`);
 
         
         const response = await fetch(url, {
@@ -100,6 +108,15 @@ export function TaskNotificationsMenu() {
           
           const sessionResponse = await fetch('/api/auth/session');
           const sessionData = await sessionResponse.json();
+          
+          if (sessionData?.user && !user) {
+            setUser({
+              id: sessionData.user.id,
+              name: sessionData.user.name || '',
+              email: sessionData.user.email || '',
+              avatar_url: sessionData.user.avatar_url
+            });
+          }
           
           if (!sessionData || !sessionData.user || !sessionData.user.id) {
             console.error('[TaskNotificationsMenu] Não foi possível obter informações da sessão do usuário');
@@ -165,15 +182,22 @@ export function TaskNotificationsMenu() {
         }
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
-          console.error(`Timeout ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries})`);
+          console.error(`[TaskNotificationsMenu] Timeout ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries})`);
+        } else if (error instanceof Error) {
+          console.error(`[TaskNotificationsMenu] Erro ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries}):`, error.message);
+          if (error.stack) {
+            console.error('[TaskNotificationsMenu] Stack trace:', error.stack);
+          }
         } else {
-          console.error(`Erro ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries}):`, error);
+          console.error(`[TaskNotificationsMenu] Erro desconhecido ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries}):`, error);
         }
         
         retryCount++;
         
         if (retryCount < maxRetries) {
-          await new Promise(r => setTimeout(r, retryCount * 1000));
+          const delay = retryCount * 2000; // Aumenta o delay entre tentativas para 2s, 4s, 6s...
+          console.log(`[TaskNotificationsMenu] Tentando novamente em ${delay/1000} segundos...`);
+          await new Promise(r => setTimeout(r, delay));
         }
       }
     }
@@ -183,8 +207,15 @@ export function TaskNotificationsMenu() {
 
   useEffect(() => {
     if (open) {
+      console.log('[TaskNotificationsMenu] Menu de notificações aberto, buscando notificações...');
       fetchTaskNotifications()
       setViewed(true)
+      
+      // Limpa o estado de loading se o componente for desmontado
+      return () => {
+        console.log('[TaskNotificationsMenu] Menu de notificações fechado');
+        setLoading(false);
+      };
     }
   }, [open])
   
@@ -527,6 +558,7 @@ export function TaskNotificationsMenu() {
             setTimeout(() => setSelectedTask(null), 300);
           }
         }} 
+        user={user}
       />
     )}
     </>

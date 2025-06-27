@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import type { Project } from "@/lib/projects";
+import { useTranslation } from "@/lib/i18n";
 
 const formSchema = z
   .object({
@@ -42,6 +43,7 @@ interface ProjectFormProps {
 }
 
 export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -70,14 +72,14 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to ${project ? "update" : "create"} project`);
+        throw new Error(project ? t("Failed to update project") : t("Failed to create project"));
       }
 
       const responseData = await response.json();
 
       toast({
-        title: project ? "Project updated" : "Project created",
-        description: `Project has been ${project ? "updated" : "created"} successfully.`,
+        title: project ? t("Project updated") : t("Project created"),
+        description: project ? t("Project has been updated successfully.") : t("Project has been created successfully."),
       });
 
       if (onSuccess) {
@@ -88,10 +90,8 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: project
-          ? "Failed to update project"
-          : "Failed to create project",
-        description: error.message || "Please try again.",
+        title: project ? t("Failed to update project") : t("Failed to create project"),
+        description: error.message || t("Please try again."),
       });
     } finally {
       setIsLoading(false);
@@ -106,14 +106,14 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel htmlFor="project-name">Name</FormLabel>
+              <FormLabel htmlFor="project-name">{t("Name")}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Project name"
+                  placeholder={t("Project name")}
                   {...field}
                   id="project-name"
                   name="name"
-                  aria-label="Project name"
+                  aria-label={t("Project name")}
                 />
               </FormControl>
               <FormMessage />
@@ -125,12 +125,12 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
           name="color"
           render={({ field }) => (
             <FormItem>
-              <FormLabel htmlFor="color-text">Color</FormLabel>
+              <FormLabel htmlFor="color-text">{t("Project Color")}</FormLabel>
               <FormControl>
                 <div
                   className="flex items-center gap-2"
                   role="group"
-                  aria-label="Color picker"
+                  aria-label={t("Color picker")}
                 >
                   <div
                     className="h-6 w-6 rounded-full border"
@@ -142,7 +142,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                     {...field}
                     className="w-12 p-1"
                     id="color-picker"
-                    aria-label="Select color"
+                    aria-label={t("Select color")}
                   />
                   <Input
                     type="text"
@@ -151,7 +151,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                     className="flex-1"
                     id="color-text"
                     name="color"
-                    aria-label="Color value"
+                    aria-label={t("Color value")}
                   />
                 </div>
               </FormControl>
@@ -170,12 +170,12 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                   onCheckedChange={field.onChange}
                   id="project-favorite"
                   name="is_favorite"
-                  aria-label="Mark as favorite"
+                  aria-label={t("Mark as favorite")}
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel htmlFor="project-favorite">
-                  Mark as favorite
+                  {t("Mark as favorite")}
                 </FormLabel>
               </div>
             </FormItem>
@@ -183,10 +183,10 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
         />
         <Button type="submit" disabled={isLoading}>
           {isLoading
-            ? "Saving..."
+            ? t("Saving...")
             : project
-              ? "Update Project"
-              : "Create Project"}
+              ? t("Update Project")
+              : t("Create Project")}
         </Button>
       </form>
     </Form>

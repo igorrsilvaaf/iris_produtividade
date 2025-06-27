@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useLanguageStore } from "@/lib/i18n"
 
@@ -15,32 +15,33 @@ interface LanguageProviderProps {
 
 export function LanguageProvider({ initialLanguage, children }: LanguageProviderProps) {
   const router = useRouter()
-  const { setLanguage } = useLanguageStore()
+  const { language: currentLanguage, setLanguage, isHydrated } = useLanguageStore()
+  const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-
-    
-    // Clear old cookie before setting new one
     document.cookie = `language-storage=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
     
-    // Set new cookie
     setCookie('user-language', initialLanguage)
-    
-    // Update language in Zustand state
     setLanguage(initialLanguage)
     
-    // Update HTML attributes
     document.documentElement.lang = initialLanguage === 'en' ? 'en' : 'pt-BR'
     document.documentElement.setAttribute('data-language', initialLanguage)
     
-    // Verify if cookie was set correctly
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       const cookies = document.cookie.split(';').map(c => c.trim())
       const langCookie = cookies.find(c => c.startsWith('user-language='))
-
+      
+      setIsReady(true)
     }, 100)
-  }, [initialLanguage, setLanguage])
+    
+    return () => clearTimeout(timer)
+  }, [initialLanguage, setLanguage, currentLanguage])
 
+  if (!isHydrated || !isReady) {
+    console.log('LanguageProvider - Waiting for hydration and language setup...');
+    return null;
+  }
+  
   return <>{children}</>
 }
 

@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
@@ -134,15 +134,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -150,12 +141,21 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -181,11 +181,11 @@ export async function <span class="fstat-no" title="function not covered" >GET(<
     // Remover verificação de autenticação para permitir execução fácil da migração
     // (Em produção você provavelmente adicionaria alguma segurança aqui)
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    console.log("Iniciando migração da coluna kanban_column...");</span>
+<span class="cstat-no" title="statement not covered" >    ("Iniciando migração da coluna kanban_column...");</span>
 &nbsp;
     // Adiciona uma nova coluna 'kanban_column' à tabela 'todos'
 <span class="cstat-no" title="statement not covered" >    await sql`ALTER TABLE todos ADD COLUMN IF NOT EXISTS kanban_column VARCHAR(20);`</span>
-<span class="cstat-no" title="statement not covered" >    console.log("Coluna kanban_column adicionada ou já existente.");</span>
+    ("Coluna kanban_column adicionada ou já existente.");
     
     // Atualiza as tarefas existentes para usar 'backlog' como coluna padrão se não estiverem concluídas
     // e 'completed' se estiverem concluídas
@@ -198,22 +198,22 @@ export async function <span class="fstat-no" title="function not covered" >GET(<
         END
       WHERE kanban_column IS NULL;
     `
-<span class="cstat-no" title="statement not covered" >    console.log("Tarefas atualizadas com valores padrão para kanban_column.");</span>
+    ("Tarefas atualizadas com valores padrão para kanban_column.");
     
     // Cria um índice para otimizar consultas por kanban_column
 <span class="cstat-no" title="statement not covered" >    await sql`CREATE INDEX IF NOT EXISTS idx_todos_kanban_column ON todos(kanban_column);`</span>
-<span class="cstat-no" title="statement not covered" >    console.log("Índice para kanban_column criado ou já existente.");</span>
+    ("Índice para kanban_column criado ou já existente.");
 &nbsp;
     // Verificar dados após migração
     const taskCheck = <span class="cstat-no" title="statement not covered" >await sql`SELECT COUNT(*) as count, kanban_column FROM todos GROUP BY kanban_column;`</span>
-<span class="cstat-no" title="statement not covered" >    console.log("Verificação de tarefas após migração:", taskCheck);</span>
+    ("Verificação de tarefas após migração:", taskCheck);
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json({ </span>
       message: "Migration executed successfully",
       taskCheck
     })
   } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >    console.error("Erro ao executar migração:", error)</span>
+<span class="cstat-no" title="statement not covered" >    ("Erro ao executar migração:", error)</span>
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json({ message: error.message || "Failed to run migration" }, { status: 500 })</span>
   }
 } </pre></td></tr></table></pre>
@@ -223,7 +223,7 @@ export async function <span class="fstat-no" title="function not covered" >GET(<
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-27T03:15:04.810Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

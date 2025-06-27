@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/20</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/20</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
@@ -148,8 +148,7 @@
 <a name='L83'></a><a href='#L83'>83</a>
 <a name='L84'></a><a href='#L84'>84</a>
 <a name='L85'></a><a href='#L85'>85</a>
-<a name='L86'></a><a href='#L86'>86</a>
-<a name='L87'></a><a href='#L87'>87</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L86'></a><a href='#L86'>86</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -188,37 +187,11 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -235,23 +208,48 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Suspense } from "react"
-import { requireAuth } from "@/lib/auth"
-import { CalendarView } from "@/components/calendar-view"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent } from "@/components/ui/card"
-import { cookies } from "next/headers"
-import { getServerTranslation } from "@/lib/server-i18n"
-import { Metadata } from "next"
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Suspense } from "react";
+import { requireAuth } from "@/lib/auth";
+import { CalendarView } from "@/components/calendar-view";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { cookies } from "next/headers";
+import { getServerTranslation } from "@/lib/server-i18n";
+import { Metadata } from "next";
 &nbsp;
 // Define a metadata para forçar o idioma para esta página
 export async function <span class="fstat-no" title="function not covered" >generateMetadata(</span>): Promise&lt;Metadata&gt; {
-  const cookieStore = <span class="cstat-no" title="statement not covered" >await cookies()</span>
-  const languageCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("user-language")</span>
-  let lang = <span class="cstat-no" title="statement not covered" >"pt" </span>// Default to PT if no cookie
+  const cookieStore = <span class="cstat-no" title="statement not covered" >await cookies();</span>
+  const languageCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("user-language");</span>
+  let lang = <span class="cstat-no" title="statement not covered" >"pt";</span> // Default to PT if no cookie
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  if (languageCookie?.value === "en" || languageCookie?.value === "pt") {</span>
-<span class="cstat-no" title="statement not covered" >    lang = languageCookie.value</span>
+<span class="cstat-no" title="statement not covered" >    lang = languageCookie.value;</span>
   }
 &nbsp;
   // Usar a função getServerTranslation para traduzir o título
@@ -259,26 +257,26 @@ export async function <span class="fstat-no" title="function not covered" >gener
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return {</span>
     title,
-  }
+  };
 }
 &nbsp;
 export default async function <span class="fstat-no" title="function not covered" >CalendarPage(</span>) {
-  const session = <span class="cstat-no" title="statement not covered" >await requireAuth()</span>
-  
-  const cookieStore = <span class="cstat-no" title="statement not covered" >await cookies()</span>
-  const languageCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("user-language")</span>
-  let initialLanguage = <span class="cstat-no" title="statement not covered" >"pt" </span>// Default to PT if no cookie
+  const session = <span class="cstat-no" title="statement not covered" >await requireAuth();</span>
+&nbsp;
+  const cookieStore = <span class="cstat-no" title="statement not covered" >await cookies();</span>
+  const languageCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("user-language");</span>
+  let initialLanguage = <span class="cstat-no" title="statement not covered" >"pt";</span> // Default to PT if no cookie
 &nbsp;
   // Simplify the cookie value check
 <span class="cstat-no" title="statement not covered" >  if (languageCookie?.value === "en" || languageCookie?.value === "pt") {</span>
-<span class="cstat-no" title="statement not covered" >    initialLanguage = languageCookie.value</span>
+<span class="cstat-no" title="statement not covered" >    initialLanguage = languageCookie.value;</span>
   }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  console.log("[calendar.tsx] Idioma do cookie:", initialLanguage);</span>
-  
   // Obter a tradução diretamente usando getServerTranslation
-  const translatedTitle = <span class="cstat-no" title="statement not covered" >getServerTranslation("calendar", initialLanguage as "en" | "pt");</span>
-<span class="cstat-no" title="statement not covered" >  console.log("[calendar.tsx] Título traduzido:", translatedTitle);</span>
+  const translatedTitle = <span class="cstat-no" title="statement not covered" >getServerTranslation(</span>
+    "calendar",
+    initialLanguage as "en" | "pt",
+  );
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
     &lt;div className="space-y-8"&gt;
@@ -318,9 +316,8 @@ export default async function <span class="fstat-no" title="function not covered
         &lt;CalendarView userId={session.user.id} /&gt;
       &lt;/Suspense&gt;
     &lt;/div&gt;
-  )
+  );
 }
-&nbsp;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -328,7 +325,7 @@ export default async function <span class="fstat-no" title="function not covered
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-27T03:15:04.810Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

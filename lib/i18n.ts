@@ -48,6 +48,59 @@ export const translations: Translations = {
     en: "Navigation Menu",
     pt: "Menu de Navegação",
   },
+  // Project Form
+  "Name": {
+    en: "Name",
+    pt: "Nome"
+  },
+  "Project name": {
+    en: "Project name",
+    pt: "Nome do projeto"
+  },
+  "Project Color": {
+    en: "Color",
+    pt: "Cor do projeto"
+  },
+  "Color picker": {
+    en: "Color picker",
+    pt: "Seletor de cor"
+  },
+  "Select color": {
+    en: "Select color",
+    pt: "Selecionar cor"
+  },
+  "Color value": {
+    en: "Color value",
+    pt: "Valor da cor"
+  },
+  "Mark as favorite": {
+    en: "Mark as favorite",
+    pt: "Marcar como favorito"
+  },
+  "Project created": {
+    en: "Project created",
+    pt: "Projeto criado"
+  },
+  "Project updated": {
+    en: "Project updated",
+    pt: "Projeto atualizado"
+  },
+  "Project has been created successfully.": {
+    en: "Project has been created successfully.",
+    pt: "O projeto foi criado com sucesso."
+  },
+  "Project has been updated successfully.": {
+    en: "Project has been updated successfully.",
+    pt: "O projeto foi atualizado com sucesso."
+  },
+  "Failed to create project": {
+    en: "Failed to create project",
+    pt: "Falha ao criar o projeto"
+  },
+  "Failed to update project": {
+    en: "Failed to update project",
+    pt: "Falha ao atualizar o projeto"
+  },
   storage: {
     en: "Storage & Backup",
     pt: "Armazenamento & Backup",
@@ -184,6 +237,18 @@ export const translations: Translations = {
     en: "Create Project",
     pt: "Criar Projeto",
   },
+  "Update Project": {
+    en: "Update Project",
+    pt: "Atualizar Projeto"
+  },
+  "Create New Project": {
+    en: "Create New Project",
+    pt: "Criar Novo Projeto",
+  },
+  "Fill in the details to create a new project.": {
+    en: "Fill in the details to create a new project.",
+    pt: "Preencha os detalhes para criar um novo projeto.",
+  },
   creating: {
     en: "Creating...",
     pt: "Criando...",
@@ -231,6 +296,10 @@ export const translations: Translations = {
   loadingProject: {
     en: "Loading project...",
     pt: "Carregando projeto...",
+  },
+  "Loading projects...": {
+    en: "Loading projects...",
+    pt: "Carregando projetos...",
   },
   edit: {
     en: "Edit",
@@ -615,7 +684,7 @@ export const translations: Translations = {
   // Outros
   "Unknown project": {
     en: "Unknown project",
-    pt: "Carregando Projetos",
+    pt: "Projeto desconhecido",
   },
   noProject: {
     en: "No Project",
@@ -2737,28 +2806,84 @@ type LanguageState = {
 
 const DEFAULT_LANGUAGE: Language = "pt"
 
+// Função para obter o idioma inicial do navegador
+const getInitialLanguage = (): Language => {
+  if (typeof window === 'undefined') return 'pt';
+  
+  // Verificar se há um cookie de idioma
+  const cookies = document.cookie.split(';').map(c => c.trim());
+  const langCookie = cookies.find(c => c.startsWith('user-language='));
+  
+  if (langCookie) {
+    const lang = langCookie.split('=')[1];
+    if (lang === 'en' || lang === 'pt') return lang;
+  }
+  
+  // Verificar o idioma do navegador
+  const browserLang = navigator.language.split('-')[0];
+  return browserLang === 'pt' ? 'pt' : 'en';
+};
+
 export const useLanguageStore = create<LanguageState>()(
   persist(
-    (set) => ({
-      language: "en",
-      isHydrated: false,
-      setLanguage: (language) => {
-
-        set({ language })
-        setCookie('user-language', language)
-      },
-      setHydrated: (hydrated) => {
-
-        set({ isHydrated: hydrated })
-      },
-    }),
+    (set, get) => {
+      const initialLanguage = getInitialLanguage();
+      console.log('Initializing language store with language:', initialLanguage);
+      
+      // Definir o cookie se não estiver definido
+      if (typeof window !== 'undefined') {
+        const cookies = document.cookie.split(';').map(c => c.trim());
+        const langCookie = cookies.find(c => c.startsWith('user-language='));
+        
+        if (!langCookie) {
+          console.log('Setting initial language cookie:', initialLanguage);
+          setCookie('user-language', initialLanguage);
+        }
+      }
+      
+      return {
+        language: initialLanguage,
+        isHydrated: false,
+        setLanguage: (language) => {
+          console.log('Setting language to:', language, 'previous:', get().language);
+          set({ language });
+          setCookie('user-language', language);
+          console.log('Language set to:', language, 'new state:', get());
+        },
+        setHydrated: (hydrated) => {
+          console.log('Setting hydrated to:', hydrated, 'previous:', get().isHydrated);
+          set({ isHydrated: hydrated });
+          console.log('Hydrated set to:', hydrated, 'new state:', get());
+        },
+      };
+    },
     {
       name: 'language-storage',
-      onRehydrateStorage: () => (state) => {
-
-        if (state) {
-          state.setHydrated(true)
-        }
+      onRehydrateStorage: () => {
+        console.log('Starting rehydration of language store...');
+        return (state) => {
+          console.log('Language store rehydrated with state:', state);
+          if (state) {
+            console.log('Setting hydrated to true');
+            state.setHydrated(true);
+            
+            // Verificar se há um cookie de idioma e sincronizar
+            const cookies = document.cookie.split(';').map(c => c.trim());
+            const langCookie = cookies.find(c => c.startsWith('user-language='));
+            
+            if (langCookie) {
+              const cookieLang = langCookie.split('=')[1];
+              console.log('Found language cookie:', cookieLang);
+              
+              if ((cookieLang === 'en' || cookieLang === 'pt') && cookieLang !== state.language) {
+                console.log(`Updating language from cookie: ${cookieLang} (current: ${state.language})`);
+                state.setLanguage(cookieLang);
+              }
+            } else {
+              console.log('No language cookie found, using default language');
+            }
+          }
+        };
       },
     }
   )
@@ -2768,10 +2893,13 @@ export function useTranslation() {
   const { language, setLanguage, isHydrated } = useLanguageStore()
   
   useEffect(() => {
-    // Deixado em branco mas mantido para compatibilidade
-  }, [])
+    console.log('useTranslation - Current language:', language);
+    console.log('useTranslation - isHydrated:', isHydrated);
+  }, [language, isHydrated])
 
   const t = (key: string): string => {
+    console.log(`[t] Translating key: "${key}" for language: ${language}`);
+    
     if (!translations[key]) {
       console.warn(`[TRADUÇÃO FALTANDO] Key: "${key}" para o idioma: ${language}`)
       
@@ -2786,9 +2914,10 @@ export function useTranslation() {
     const translated = translations[key][language] || translations[key]['en'] || key
     
     if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
-
+      // Nada a fazer aqui, apenas mantendo a compatibilidade
     }
     
+    console.log(`[t] Translated "${key}" to "${translated}" (language: ${language})`);
     return translated
   }
 

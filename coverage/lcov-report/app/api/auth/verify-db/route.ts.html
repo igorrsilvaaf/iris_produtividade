@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
@@ -115,23 +115,13 @@
 <a name='L50'></a><a href='#L50'>50</a>
 <a name='L51'></a><a href='#L51'>51</a>
 <a name='L52'></a><a href='#L52'>52</a>
-<a name='L53'></a><a href='#L53'>53</a>
-<a name='L54'></a><a href='#L54'>54</a>
-<a name='L55'></a><a href='#L55'>55</a>
-<a name='L56'></a><a href='#L56'>56</a>
-<a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a>
-<a name='L59'></a><a href='#L59'>59</a>
-<a name='L60'></a><a href='#L60'>60</a>
-<a name='L61'></a><a href='#L61'>61</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L53'></a><a href='#L53'>53</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -141,8 +131,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -165,19 +153,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -190,8 +174,6 @@ const sql = <span class="cstat-no" title="statement not covered" >neon(process.e
 &nbsp;
 export async function <span class="fstat-no" title="function not covered" >GET(</span>request: NextRequest) {
 <span class="cstat-no" title="statement not covered" >  try {</span>
-<span class="cstat-no" title="statement not covered" >    console.log("[VerifyDB] Verificando tabela password_reset_tokens");</span>
-    
     // Verificar se a tabela password_reset_tokens existe
     const tableExists = <span class="cstat-no" title="statement not covered" >await sql`</span>
       SELECT EXISTS (
@@ -201,8 +183,6 @@ export async function <span class="fstat-no" title="function not covered" >GET(<
     `;
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    if (!tableExists[0].exists) {</span>
-<span class="cstat-no" title="statement not covered" >      console.log("[VerifyDB] Tabela password_reset_tokens não existe, criando...");</span>
-      
       // Criar a tabela
 <span class="cstat-no" title="statement not covered" >      await sql`</span>
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -223,21 +203,17 @@ export async function <span class="fstat-no" title="function not covered" >GET(<
         CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
       `;
       
-<span class="cstat-no" title="statement not covered" >      console.log("[VerifyDB] Tabela password_reset_tokens criada com sucesso");</span>
-      
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ </span>
         message: "Password reset tokens table created", 
         created: true 
       });
     }
     
-<span class="cstat-no" title="statement not covered" >    console.log("[VerifyDB] Tabela password_reset_tokens já existe");</span>
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json({ </span>
       message: "Password reset tokens table already exists", 
       created: false 
     });
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error("[VerifyDB] Erro ao verificar tabela:", error);</span>
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json(</span>
       { message: "Failed to verify database structure" },
       { status: 500 }
@@ -250,7 +226,7 @@ export async function <span class="fstat-no" title="function not covered" >GET(<
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-27T03:15:04.810Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

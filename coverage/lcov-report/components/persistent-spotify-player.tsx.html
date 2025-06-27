@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/133</span>
+                <span class='fraction'>0/126</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/127</span>
+                <span class='fraction'>0/120</span>
             </div>
         
             
@@ -416,8 +416,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -430,7 +430,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -438,9 +437,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -451,8 +451,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -618,19 +618,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -749,7 +749,7 @@ export default function <span class="fstat-no" title="function not covered" >Per
   const [isDragging, setIsDragging] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
   const [dragOffset, setDragOffset] = <span class="cstat-no" title="statement not covered" >useState({ x: 0, y: 0 });</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  console.log('[PersistentMusicPlayer] Renderizando. Playlist ID:', playlistId, 'Content Type:', contentType, 'Player Type:', playerType, 'Enabled:', isEnabled);</span>
+&nbsp;
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    setMounted(true);</span>
@@ -770,8 +770,8 @@ export default function <span class="fstat-no" title="function not covered" >Per
 <span class="cstat-no" title="statement not covered" >      if (response.ok) {</span>
         const data = <span class="cstat-no" title="statement not covered" >await response.json();</span>
 <span class="cstat-no" title="statement not covered" >        setSettings(data.settings);</span>
-<span class="cstat-no" title="statement not covered" >        console.log("PersistentPlayer: Settings carregadas:", data.settings);</span>
-<span class="cstat-no" title="statement not covered" >        console.log("PersistentPlayer: enable_spotify:", data.settings.enable_spotify);</span>
+&nbsp;
+&nbsp;
       }
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      console.error('PersistentPlayer: Erro ao carregar configurações do player de música:', error);</span>
@@ -785,7 +785,7 @@ export default function <span class="fstat-no" title="function not covered" >Per
 <span class="cstat-no" title="statement not covered" >      fetchSettings();</span>
       
       const handleSettingsUpdate = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        console.log("PersistentPlayer: Detectada atualização de configurações");</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >        fetchSettings();</span>
       };
       
@@ -951,19 +951,19 @@ export default function <span class="fstat-no" title="function not covered" >Per
   
   // Não mostrar se isEnabled for falso (toggled off)
 <span class="cstat-no" title="statement not covered" >  if (!isEnabled) {</span>
-<span class="cstat-no" title="statement not covered" >    console.log("PersistentPlayer: Player desativado pelo isEnabled");</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    return null;</span>
   }
   
   // Não mostrar se as configurações indicarem que o Spotify está desativado
 <span class="cstat-no" title="statement not covered" >  if (settings &amp;&amp; !settings.enable_spotify) {</span>
-<span class="cstat-no" title="statement not covered" >    console.log("PersistentPlayer: Música desativada nas configurações");</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    return null;</span>
   }
 &nbsp;
   // Adicionado: Se não tiver playlistId, não mostrar nada, pois a configuração é externa
 <span class="cstat-no" title="statement not covered" >  if (!playlistId) {</span>
-<span class="cstat-no" title="statement not covered" >    console.log("PersistentPlayer: No playlistId, not rendering iframe.");</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    return null;</span>
   }
 &nbsp;
@@ -1069,7 +1069,7 @@ export default function <span class="fstat-no" title="function not covered" >Per
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-27T03:15:04.810Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -30,9 +30,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">68.14% </span>
+                <span class="strong">69.02% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>77/113</span>
+                <span class='fraction'>78/113</span>
             </div>
         
             
@@ -350,13 +350,7 @@
 <a name='L285'></a><a href='#L285'>285</a>
 <a name='L286'></a><a href='#L286'>286</a>
 <a name='L287'></a><a href='#L287'>287</a>
-<a name='L288'></a><a href='#L288'>288</a>
-<a name='L289'></a><a href='#L289'>289</a>
-<a name='L290'></a><a href='#L290'>290</a>
-<a name='L291'></a><a href='#L291'>291</a>
-<a name='L292'></a><a href='#L292'>292</a>
-<a name='L293'></a><a href='#L293'>293</a>
-<a name='L294'></a><a href='#L294'>294</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L288'></a><a href='#L288'>288</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -470,7 +464,6 @@
 <span class="cline-any cline-yes">28x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -480,7 +473,6 @@
 <span class="cline-any cline-yes">14x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -498,7 +490,6 @@
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">29x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">29x</span>
@@ -510,7 +501,6 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -536,7 +526,6 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -564,7 +553,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -723,7 +711,7 @@ function formatDueDate(dueDate: string | null, t: any) {
   };
   
   // Verifica se o horário não é 00:00
-  const hasTime = date.getHours() !== 0 || <span class="branch-1 cbranch-no" title="branch not covered" >date.getMinutes() !== 0;</span>
+  const hasTime = date.getHours() !== 0 || date.getMinutes() !== 0;
   const timeString = hasTime ? ` ${format(date, "HH:mm")}` : <span class="branch-1 cbranch-no" title="branch not covered" >"";</span>
   
   if (isSameDate(date, today)) {
@@ -763,7 +751,6 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
     if (!isClient || initialLoadDone.current) return
     
     try {
-      // Se não temos todo via props, tentar carregar do localStorage
       if (!todo &amp;&amp; localStorage) {
         const saved = localStorage.getItem('todo-data')
         if (saved) {
@@ -775,8 +762,7 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
 <span class="cstat-no" title="statement not covered" >      console.error("Erro ao carregar do localStorage:", error)</span>
     }
   }, [isClient, todo])
-  
-  // Salvar dados no localStorage quando mudarem - usando useRef para evitar loop infinito
+&nbsp;
   useEffect(() =&gt; {
     if (!isClient || !todo) return
     
@@ -786,12 +772,11 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
       } catch (error) {
 <span class="cstat-no" title="statement not covered" >        console.error("Erro ao salvar no localStorage:", error)</span>
       }
-    }, 500) // Debounce para evitar muitas gravações
+    }, 500)
     
     return () =&gt; clearTimeout(timeoutId)
   }, [isClient, todo])
-  
-  // Usar dados das props ou do localStorage
+&nbsp;
   const todoData = todo || localData
   
   if (!todoData) {
@@ -803,7 +788,6 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
     if (onComplete) {
       onComplete(todoData.id)
     } else {
-      // Implementação padrão caso onComplete não seja fornecido
       try {
         fetch(`/api/tasks/${todoData.id}/toggle`, {
           method: "PATCH",
@@ -829,7 +813,6 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
     if (onDelete) {
       onDelete(todoData.id)
     } else {
-      // Implementação padrão caso onDelete não seja fornecido
       try {
         fetch(`/api/tasks/${todoData.id}`, {
           method: "DELETE",
@@ -941,7 +924,6 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
   )
 }
 &nbsp;
-// Also export as default for convenience
 export default Todo </pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -949,7 +931,7 @@ export default Todo </pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-27T03:15:04.810Z
             </div>
         <script src="../prettify.js"></script>
         <script>

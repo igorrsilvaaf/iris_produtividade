@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/13</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
@@ -108,7 +108,14 @@
 <a name='L43'></a><a href='#L43'>43</a>
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
-<a name='L46'></a><a href='#L46'>46</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -131,16 +138,23 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -148,7 +162,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -168,7 +182,7 @@ export async function <span class="fstat-no" title="function not covered" >GET(<
     }
 &nbsp;
     const attachment = <span class="cstat-no" title="statement not covered" >await prisma.attachment.findUnique({</span>
-      where: { id: params.id },
+      where: { id: Number(params.id) },
       include: { task: true },
     })
 &nbsp;
@@ -176,36 +190,43 @@ export async function <span class="fstat-no" title="function not covered" >GET(<
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ error: "Attachment not found" }, { status: 404 })</span>
     }
 &nbsp;
-    // Verificar se o usuário tem acesso à task
-<span class="cstat-no" title="statement not covered" >    if (attachment.task.userId !== session.user.id) {</span>
+<span class="cstat-no" title="statement not covered" >    if (attachment.task.user_id !== session.user.id) {</span>
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })</span>
     }
+    
+<span class="cstat-no" title="statement not covered" >    if (attachment.type === 'text/uri-list' || attachment.type === 'text/plain') {</span>
+      const url = <span class="cstat-no" title="statement not covered" >attachment.content;</span>
+<span class="cstat-no" title="statement not covered" >      return NextResponse.redirect(url);</span>
+    }
 &nbsp;
-    // Converter o conteúdo base64 de volta para buffer
-    const buffer = <span class="cstat-no" title="statement not covered" >Buffer.from(attachment.content!, 'base64')</span>
+<span class="cstat-no" title="statement not covered" >    if (attachment.type === 'text/uri-list' || attachment.type === 'text/plain') {</span>
+      const url = <span class="cstat-no" title="statement not covered" >attachment.content;</span>
+<span class="cstat-no" title="statement not covered" >      return NextResponse.redirect(url);</span>
+    }
 &nbsp;
-    // Retornar o arquivo com o tipo MIME correto
+    const buffer = <span class="cstat-no" title="statement not covered" >Buffer.from(attachment.content!, 'base64');</span>
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    return new NextResponse(buffer, {</span>
       headers: {
-        'Content-Type': attachment.mimeType || 'application/octet-stream',
-        'Content-Disposition': `inline; filename="${attachment.name}"`,
+        'Content-Type': attachment.type || 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${attachment.name}"`,
       },
     })
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error("Error serving attachment:", error)</span>
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json(</span>
       { error: "Failed to serve attachment" },
       { status: 500 }
     )
   }
-} </pre></td></tr></table></pre>
+}
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-27T03:15:04.810Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>

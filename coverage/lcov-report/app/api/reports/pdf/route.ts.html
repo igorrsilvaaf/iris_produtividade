@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/123</span>
+                <span class='fraction'>0/121</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/121</span>
+                <span class='fraction'>0/125</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/118</span>
+                <span class='fraction'>0/116</span>
             </div>
         
             
@@ -411,8 +411,7 @@
 <a name='L346'></a><a href='#L346'>346</a>
 <a name='L347'></a><a href='#L347'>347</a>
 <a name='L348'></a><a href='#L348'>348</a>
-<a name='L349'></a><a href='#L349'>349</a>
-<a name='L350'></a><a href='#L350'>350</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L349'></a><a href='#L349'>349</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -548,7 +547,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -559,13 +557,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -649,6 +645,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -773,12 +771,12 @@ const QUERY_TIMEOUT = <span class="cstat-no" title="statement not covered" >3000
 &nbsp;
 export async function <span class="fstat-no" title="function not covered" >POST(</span>request: NextRequest) {
 <span class="cstat-no" title="statement not covered" >  try {</span>
-<span class="cstat-no" title="statement not covered" >    console.log("Endpoint de PDF chamado");</span>
+<span class="cstat-no" title="statement not covered" >    ("Endpoint de PDF chamado");</span>
     
     // Get user session
     const session = <span class="cstat-no" title="statement not covered" >await getSession();</span>
 <span class="cstat-no" title="statement not covered" >    if (!session) {</span>
-<span class="cstat-no" title="statement not covered" >      console.log("Acesso não autorizado");</span>
+<span class="cstat-no" title="statement not covered" >      ("Acesso não autorizado");</span>
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json(</span>
         { error: "Unauthorized" },
         { status: 401 }
@@ -804,7 +802,7 @@ export async function <span class="fstat-no" title="function not covered" >POST(
     const filteredPriorities = <span class="cstat-no" title="statement not covered" >Array.isArray(priorities) ? priorities : [];</span>
     const filteredCustomColumns = <span class="cstat-no" title="statement not covered" >Array.isArray(customColumns) ? customColumns : [];</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    console.log("Parâmetros recebidos:", { </span>
+<span class="cstat-no" title="statement not covered" >    ("Parâmetros recebidos:", { </span>
       reportType, 
       startDate, 
       endDate, 
@@ -814,7 +812,7 @@ export async function <span class="fstat-no" title="function not covered" >POST(
     });
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    if (!reportType || !startDate || !endDate) {</span>
-<span class="cstat-no" title="statement not covered" >      console.log("Parâmetros obrigatórios faltando");</span>
+<span class="cstat-no" title="statement not covered" >      ("Parâmetros obrigatórios faltando");</span>
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json(</span>
         { error: "Missing required parameters" },
         { status: 400 }
@@ -857,7 +855,7 @@ export async function <span class="fstat-no" title="function not covered" >POST(
       
 <span class="cstat-no" title="statement not covered" >      query += `)`;</span>
       
-<span class="cstat-no" title="statement not covered" >      console.log(`Aplicando filtro de projetos PDF: ${filteredProjectIds.join(', ')}`);</span>
+<span class="cstat-no" title="statement not covered" >      (`Aplicando filtro de projetos PDF: ${filteredProjectIds.join(', ')}`);</span>
     } else {
       // Se não há filtros de projeto, usar LEFT JOIN para incluir todas as tarefas
 <span class="cstat-no" title="statement not covered" >      query += `</span>
@@ -894,10 +892,9 @@ export async function <span class="fstat-no" title="function not covered" >POST(
     // Adicionar ordenação e limite
 <span class="cstat-no" title="statement not covered" >    query += ` ORDER BY t.due_date ASC, t.priority ASC LIMIT 1000`;</span>
     
-<span class="cstat-no" title="statement not covered" >    console.log("Executando consulta SQL...");</span>
-<span class="cstat-no" title="statement not covered" >    console.log("Query:", query);</span>
-<span class="cstat-no" title="statement not covered" >    console.log("Params:", params);</span>
-&nbsp;
+<span class="cstat-no" title="statement not covered" >    ("Executando consulta SQL...");</span>
+<span class="cstat-no" title="statement not covered" >    ("Query:", query);</span>
+<span class="cstat-no" title="statement not covered" >    ("Params:", params);</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       // Executar a consulta com timeout
       const queryPromise = <span class="cstat-no" title="statement not covered" >sql.query(query, params);</span>
@@ -909,11 +906,9 @@ export async function <span class="fstat-no" title="function not covered" >POST(
       
       // Executar a consulta com timeout
       let tasks = <span class="cstat-no" title="statement not covered" >await Promise.race([queryPromise, timeoutPromise]) as any[];</span>
-<span class="cstat-no" title="statement not covered" >      console.log(`Consulta SQL retornou ${tasks.length} tarefas`);</span>
       
       // Verificar se a resposta da consulta é um array
 <span class="cstat-no" title="statement not covered" >      if (!Array.isArray(tasks)) {</span>
-<span class="cstat-no" title="statement not covered" >        console.error("Resposta da consulta não é um array:", tasks);</span>
 <span class="cstat-no" title="statement not covered" >        tasks = [];</span>
       }
       
@@ -931,7 +926,7 @@ export async function <span class="fstat-no" title="function not covered" >POST(
           `;
           
           const labelsResults = <span class="cstat-no" title="statement not covered" >await sql.query(labelsQuery, [taskIds]);</span>
-<span class="cstat-no" title="statement not covered" >          console.log(`Consulta de etiquetas retornou ${labelsResults.length} registros`);</span>
+<span class="cstat-no" title="statement not covered" >          (`Consulta de etiquetas retornou ${labelsResults.length} registros`);</span>
           
           // Agrupar etiquetas por ID de tarefa
           const labelsByTaskId: Record&lt;number, any[]&gt; = <span class="cstat-no" title="statement not covered" >{};</span>
@@ -962,7 +957,7 @@ export async function <span class="fstat-no" title="function not covered" >POST(
           
           // Se há filtros de etiquetas, aplicar o filtro apenas depois de ter carregado todas as etiquetas
 <span class="cstat-no" title="statement not covered" >          if (filteredLabelIds.length &gt; 0) {</span>
-<span class="cstat-no" title="statement not covered" >            console.log(`Aplicando filtro de etiquetas: ${filteredLabelIds.join(', ')}`);</span>
+<span class="cstat-no" title="statement not covered" >            (`Aplicando filtro de etiquetas: ${filteredLabelIds.join(', ')}`);</span>
             
             // Verificamos se há tarefas com etiquetas
 <span class="cstat-no" title="statement not covered" >            if (Array.isArray(tasks) &amp;&amp; tasks.length &gt; 0 &amp;&amp; tasks.some(<span class="fstat-no" title="function not covered" >t </span>=&gt; <span class="cstat-no" title="statement not covered" >t.labels &amp;&amp; t.labels.length &gt; 0)</span>) {</span>
@@ -977,18 +972,18 @@ export async function <span class="fstat-no" title="function not covered" >POST(
               // Só substituímos se tivermos tarefas filtradas
 <span class="cstat-no" title="statement not covered" >              if (filteredTasks.length &gt; 0) {</span>
 <span class="cstat-no" title="statement not covered" >                tasks = filteredTasks;</span>
-<span class="cstat-no" title="statement not covered" >                console.log(`Após filtro de etiquetas, restam ${tasks.length} tarefas`);</span>
+<span class="cstat-no" title="statement not covered" >                (`Após filtro de etiquetas, restam ${tasks.length} tarefas`);</span>
               } else {
                 // Se não encontramos nenhuma tarefa com as etiquetas solicitadas,
                 // é provavelmente um erro do usuário, então vamos manter as tarefas originais
-<span class="cstat-no" title="statement not covered" >                console.log(`Aviso: Filtro de etiquetas não encontrou resultados. Mantendo resultado original.`);</span>
+<span class="cstat-no" title="statement not covered" >                (`Aviso: Filtro de etiquetas não encontrou resultados. Mantendo resultado original.`);</span>
               }
             } else {
-<span class="cstat-no" title="statement not covered" >              console.log(`Aviso: Não há etiquetas nas tarefas para filtrar.`);</span>
+<span class="cstat-no" title="statement not covered" >              (`Aviso: Não há etiquetas nas tarefas para filtrar.`);</span>
             }
           }
         } catch (labelError) {
-<span class="cstat-no" title="statement not covered" >          console.error("Erro ao processar etiquetas:", labelError);</span>
+<span class="cstat-no" title="statement not covered" >          ("Erro ao processar etiquetas:", labelError);</span>
           // Continuar sem as etiquetas em caso de erro
         }
       }
@@ -1005,6 +1000,8 @@ export async function <span class="fstat-no" title="function not covered" >POST(
           priority: task.priority !== undefined ? task.priority : null,
           completed: task.completed !== undefined ? task.completed : false,
           kanban_column: task.kanban_column || '',
+          points: task.points || null,
+          estimated_time: task.estimated_time || null,
           created_at: task.created_at || new Date().toISOString(),
           updated_at: task.updated_at || new Date().toISOString(),
           project_name: task.project_name || '',
@@ -1027,7 +1024,7 @@ export async function <span class="fstat-no" title="function not covered" >POST(
 <span class="cstat-no" title="statement not covered" >              sanitizedTask.labels = [];</span>
             }
           } catch (e) {
-<span class="cstat-no" title="statement not covered" >            console.error('Erro ao processar etiquetas:', e);</span>
+<span class="cstat-no" title="statement not covered" >            ('Erro ao processar etiquetas:', e);</span>
 <span class="cstat-no" title="statement not covered" >            sanitizedTask.labels = [];</span>
           }
         }
@@ -1057,7 +1054,7 @@ export async function <span class="fstat-no" title="function not covered" >POST(
         }
       };
   
-<span class="cstat-no" title="statement not covered" >      console.log("Iniciando geração do PDF com os dados coletados");</span>
+<span class="cstat-no" title="statement not covered" >      ("Iniciando geração do PDF com os dados coletados");</span>
       
 <span class="cstat-no" title="statement not covered" >      try {</span>
         // Gerar o PDF
@@ -1067,7 +1064,7 @@ export async function <span class="fstat-no" title="function not covered" >POST(
         const date = <span class="cstat-no" title="statement not covered" >new Date().toISOString().split('T')[0];</span>
         const fileName = <span class="cstat-no" title="statement not covered" >`Relatorio_${reportType.charAt(0).toUpperCase() + reportType.slice(1)}_${date}.pdf`;</span>
         
-<span class="cstat-no" title="statement not covered" >        console.log("PDF gerado com sucesso, montando resposta");</span>
+<span class="cstat-no" title="statement not covered" >        ("PDF gerado com sucesso, montando resposta");</span>
         
         // Configurar os cabeçalhos da resposta
         const headers = <span class="cstat-no" title="statement not covered" >new Headers();</span>
@@ -1081,21 +1078,21 @@ export async function <span class="fstat-no" title="function not covered" >POST(
           headers
         });
       } catch (pdfError) {
-<span class="cstat-no" title="statement not covered" >        console.error("Erro específico ao gerar PDF:", pdfError);</span>
+<span class="cstat-no" title="statement not covered" >        ("Erro específico ao gerar PDF:", pdfError);</span>
 <span class="cstat-no" title="statement not covered" >        return NextResponse.json(</span>
           { error: "Erro ao gerar PDF: " + (pdfError instanceof Error ? pdfError.message : String(pdfError)) },
           { status: 500 }
         );
       }
     } catch (dbError) {
-<span class="cstat-no" title="statement not covered" >      console.error("Erro na consulta ao banco de dados:", dbError);</span>
+<span class="cstat-no" title="statement not covered" >      ("Erro na consulta ao banco de dados:", dbError);</span>
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json(</span>
         { error: "Erro ao consultar o banco de dados: " + (dbError instanceof Error ? dbError.message : String(dbError)) },
         { status: 500 }
       );
     }
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error("Erro geral na rota de PDF:", error);</span>
+<span class="cstat-no" title="statement not covered" >    ("Erro geral na rota de PDF:", error);</span>
     
     // Tratamento especial para timeout
 <span class="cstat-no" title="statement not covered" >    if (error instanceof Error &amp;&amp; error.message === "Query timeout") {</span>
@@ -1117,7 +1114,7 @@ export async function <span class="fstat-no" title="function not covered" >POST(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-16T18:01:41.572Z
+                at 2025-06-27T03:15:04.810Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
