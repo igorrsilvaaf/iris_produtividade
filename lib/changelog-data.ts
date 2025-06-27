@@ -15,6 +15,65 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.8.2',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'task-comments-system',
+        title: 'Sistema de Comentários em Tarefas',
+        description: 'Implementado sistema completo de comentários nas tarefas, similar ao Trello',
+        items: [
+          {
+            type: 'feature',
+            content: 'Adicionado sistema completo de comentários nas tarefas com autenticação de usuário'
+          },
+          {
+            type: 'feature',
+            content: 'CRUD completo de comentários: criar, visualizar, editar e deletar comentários próprios'
+          },
+          {
+            type: 'feature',
+            content: 'Interface intuitiva com avatar do usuário, nome e data de criação dos comentários'
+          },
+          {
+            type: 'feature',
+            content: 'Ícone de lixeira vermelho para deletar comentários com confirmação visual no hover'
+          },
+          {
+            type: 'feature',
+            content: 'Menu dropdown para editar comentários próprios com controle de permissões'
+          },
+          {
+            type: 'improvement',
+            content: 'Layout consistente entre projeto e etiquetas com formato de chip/badge colorido'
+          },
+          {
+            type: 'improvement',
+            content: 'Estados de carregamento padronizados com texto "Carregando..." em todas as seções'
+          },
+          {
+            type: 'improvement',
+            content: 'Correção das rotas da API para compatibilidade com Next.js moderno'
+          },
+          {
+            type: 'improvement',
+            content: 'Traduções completas em português para todas as funcionalidades de comentários'
+          },
+          {
+            type: 'bugfix',
+            content: 'Corrigido problema de tradução onde "Unknown project" mostrava "Carregando Projetos"'
+          }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date(),
     version: '2.8.1',
     author: {
       name: 'Igor Silva',
@@ -80,8 +139,7 @@ export const CHANGELOG_DATA: ChangelogData[] = [
           }
         ]
       }
-    ],
-    isNew: true
+    ]
   },
   {
     date: new Date(),
@@ -223,8 +281,7 @@ export const CHANGELOG_DATA: ChangelogData[] = [
           }
         ]
       }
-    ],
-    isNew: true
+    ]
   },
   {
     date: new Date(),
