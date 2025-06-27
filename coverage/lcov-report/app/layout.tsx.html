@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/23</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/29</span>
+                <span class='fraction'>0/24</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/23</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
@@ -171,7 +171,19 @@
 <a name='L106'></a><a href='#L106'>106</a>
 <a name='L107'></a><a href='#L107'>107</a>
 <a name='L108'></a><a href='#L108'>108</a>
-<a name='L109'></a><a href='#L109'>109</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -197,6 +209,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -206,6 +222,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -216,16 +236,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -238,6 +248,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -279,69 +290,87 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { cookies } from "next/headers"
-import { Inter } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
-import { LanguageProvider } from "@/components/language-provider"
-import { LanguageInitializer } from "@/components/language-initializer"
-import { SyncLanguage } from "@/components/sync-language"
-import { AppLoading } from "@/components/app-loading"
-import { TranslationsLoader } from "@/components/translations-loader"
-import { ThemeInitializer } from "@/components/theme-initializer"
-import { AppWrapper } from "@/components/app-wrapper"
-import { metadata, viewport } from "./metadata"
-import { PomodoroProvider } from "@/lib/pomodoro-context"
-import { getUserSettings } from "@/lib/settings"
-import { getSession } from "@/lib/auth"
-import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
-import { Analytics } from "@vercel/analytics/react"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { cookies } from "next/headers";
+import { Inter } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
+import { LanguageProvider } from "@/components/language-provider";
+import { LanguageInitializer } from "@/components/language-initializer";
+import { SyncLanguage } from "@/components/sync-language";
+import { AppLoading } from "@/components/app-loading";
+import { TranslationsLoader } from "@/components/translations-loader";
+import { ThemeInitializer } from "@/components/theme-initializer";
+import { AppWrapper } from "@/components/app-wrapper";
+import { metadata, viewport } from "./metadata";
+import { PomodoroProvider } from "@/lib/pomodoro-context";
+import { getUserSettings } from "@/lib/settings";
+import { getSession } from "@/lib/auth";
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 &nbsp;
-import "@/app/globals.css"
+import "@/app/globals.css";
 &nbsp;
-const inter = <span class="cstat-no" title="statement not covered" >Inter({ subsets: ["latin"] })</span>
+const inter = <span class="cstat-no" title="statement not covered" >Inter({ subsets: ["latin"] });</span>
 &nbsp;
-export { metadata, viewport }
+export { metadata, viewport };
 &nbsp;
-export default async function <span class="fstat-no" title="function not covered" >RootLayout(</span>{ children }: { children: React.ReactNode }) {
-  const cookieStore = <span class="cstat-no" title="statement not covered" >await cookies()</span>
-  const userLanguageCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("user-language")</span>
+export default async function <span class="fstat-no" title="function not covered" >RootLayout(</span>{
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const cookieStore = <span class="cstat-no" title="statement not covered" >await cookies();</span>
+  const userLanguageCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("user-language");</span>
 &nbsp;
-  let initialLanguage = <span class="cstat-no" title="statement not covered" >"pt" as "pt" | "en"</span>
+  let initialLanguage = <span class="cstat-no" title="statement not covered" >"pt" as "pt" | "en";</span>
 &nbsp;
-  const session = <span class="cstat-no" title="statement not covered" >await getSession()</span>
-  const settings = <span class="cstat-no" title="statement not covered" >session ? await getUserSettings(session.user.id) : null</span>
-  
-<span class="cstat-no" title="statement not covered" >  if (settings &amp;&amp; settings.language &amp;&amp; (settings.language === "en" || settings.language === "pt")) {</span>
-<span class="cstat-no" title="statement not covered" >    initialLanguage = settings.language as "pt" | "en"</span>
+  const session = <span class="cstat-no" title="statement not covered" >await getSession();</span>
+  const settings = <span class="cstat-no" title="statement not covered" >session ? await getUserSettings(session.user.id) : null;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  if (</span>
+    settings &amp;&amp;
+    settings.language &amp;&amp;
+    (settings.language === "en" || settings.language === "pt")
+  ) {
+<span class="cstat-no" title="statement not covered" >    initialLanguage = settings.language as "pt" | "en";</span>
   } else <span class="cstat-no" title="statement not covered" >if (userLanguageCookie) {</span>
-    const cookieValue = <span class="cstat-no" title="statement not covered" >userLanguageCookie.value</span>
+    const cookieValue = <span class="cstat-no" title="statement not covered" >userLanguageCookie.value;</span>
 <span class="cstat-no" title="statement not covered" >    if (cookieValue === "en" || cookieValue === "pt") {</span>
-<span class="cstat-no" title="statement not covered" >      initialLanguage = cookieValue</span>
+<span class="cstat-no" title="statement not covered" >      initialLanguage = cookieValue;</span>
     }
   } else {
-    const legacyCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("language-storage")</span>
+    const legacyCookie = <span class="cstat-no" title="statement not covered" >cookieStore.get("language-storage");</span>
 <span class="cstat-no" title="statement not covered" >    if (legacyCookie) {</span>
 <span class="cstat-no" title="statement not covered" >      try {</span>
-        const parsedData = <span class="cstat-no" title="statement not covered" >JSON.parse(legacyCookie.value)</span>
+        const parsedData = <span class="cstat-no" title="statement not covered" >JSON.parse(legacyCookie.value);</span>
 <span class="cstat-no" title="statement not covered" >        if (parsedData.state &amp;&amp; parsedData.state.language) {</span>
-<span class="cstat-no" title="statement not covered" >          initialLanguage = parsedData.state.language as "pt" | "en"</span>
+<span class="cstat-no" title="statement not covered" >          initialLanguage = parsedData.state.language as "pt" | "en";</span>
         }
       } catch (e) {
-<span class="cstat-no" title="statement not covered" >        console.error("Error parsing language cookie:", e)</span>
+<span class="cstat-no" title="statement not covered" >        console.error("Error parsing language cookie:", e);</span>
       }
     }
   }
-  
-<span class="cstat-no" title="statement not covered" >  if (session &amp;&amp; settings &amp;&amp; userLanguageCookie) {</span>
-    const cookieLang = <span class="cstat-no" title="statement not covered" >userLanguageCookie.value;</span>
-    const dbLang = <span class="cstat-no" title="statement not covered" >settings.language;</span>
-  }
+&nbsp;
+  // A sincronização do idioma é feita pelo componente SyncLanguage no cliente
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
-    &lt;html 
-      lang={initialLanguage === "en" ? "en" : "pt-BR"} 
+    &lt;html
+      lang={initialLanguage === "en" ? "en" : "pt-BR"}
       suppressHydrationWarning
       data-language={initialLanguage}
     &gt;
@@ -355,30 +384,36 @@ export default async function <span class="fstat-no" title="function not covered
                 &lt;TranslationsLoader requiredKeys={["Create New Project"]}&gt;
                   &lt;ThemeInitializer&gt;
                     {settings ? (
-                &lt;PomodoroProvider
-                  initialSettings={{
-                    pomodoro_work_minutes: settings.pomodoro_work_minutes,
-                    pomodoro_break_minutes: settings.pomodoro_break_minutes,
-                    pomodoro_long_break_minutes: settings.pomodoro_long_break_minutes,
-                    pomodoro_cycles: settings.pomodoro_cycles,
-                    enable_sound: settings.enable_sound,
-                    notification_sound: settings.notification_sound,
-                    enable_desktop_notifications: settings.enable_desktop_notifications,
-                  }}
-                &gt;
-                  &lt;ServiceWorkerRegistration /&gt;
-                  &lt;div className="flex-1"&gt;{children}&lt;/div&gt;
-                &lt;/PomodoroProvider&gt;
-              ) : (
-                &lt;&gt;
-                  &lt;ServiceWorkerRegistration /&gt;
-                  &lt;div className="flex-1"&gt;{children}&lt;/div&gt;
-                &lt;/&gt;
-              )}
-                      &lt;Toaster /&gt;
-                    &lt;/ThemeInitializer&gt;
-                  &lt;/TranslationsLoader&gt;
-                &lt;/AppWrapper&gt;
+                      &lt;&gt;
+                        &lt;SyncLanguage initialLanguage={initialLanguage} /&gt;
+                        &lt;PomodoroProvider
+                          initialSettings={{
+                            pomodoro_work_minutes: settings.pomodoro_work_minutes,
+                            pomodoro_break_minutes:
+                              settings.pomodoro_break_minutes,
+                            pomodoro_long_break_minutes:
+                              settings.pomodoro_long_break_minutes,
+                            pomodoro_cycles: settings.pomodoro_cycles,
+                            enable_sound: settings.enable_sound,
+                            notification_sound: settings.notification_sound,
+                            enable_desktop_notifications:
+                              settings.enable_desktop_notifications,
+                          }}
+                        &gt;
+                          &lt;ServiceWorkerRegistration /&gt;
+                          &lt;div className="flex-1"&gt;{children}&lt;/div&gt;
+                        &lt;/PomodoroProvider&gt;
+                      &lt;/&gt;
+                    ) : (
+                      &lt;&gt;
+                        &lt;ServiceWorkerRegistration /&gt;
+                        &lt;div className="flex-1"&gt;{children}&lt;/div&gt;
+                      &lt;/&gt;
+                    )}
+                    &lt;Toaster /&gt;
+                  &lt;/ThemeInitializer&gt;
+                &lt;/TranslationsLoader&gt;
+              &lt;/AppWrapper&gt;
             &lt;/AppLoading&gt;
           &lt;/LanguageProvider&gt;
         &lt;/ThemeProvider&gt;
@@ -386,15 +421,16 @@ export default async function <span class="fstat-no" title="function not covered
         &lt;SpeedInsights /&gt;
       &lt;/body&gt;
     &lt;/html&gt;
-  )
-}</pre></td></tr></table></pre>
+  );
+}
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-23T02:12:29.116Z
+                at 2025-06-27T03:15:04.810Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -46,7 +46,17 @@ const processDescription = (text: string) => {
     .replace(/\[([ xX]?)\]/g, (match, inside) => inside === 'x' || inside === 'X' ? '✓ ' : '□ ');
 };
 
-export function TaskList({ tasks }: { tasks: Todo[] }) {
+interface TaskListProps {
+  tasks: Todo[];
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url?: string | null;
+  } | null;
+}
+
+export function TaskList({ tasks, user }: TaskListProps) {
   const [expandedTask, setExpandedTask] = useState<number | null>(null)
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null)
   const [showTaskDetail, setShowTaskDetail] = useState(false)
@@ -431,6 +441,7 @@ export function TaskList({ tasks }: { tasks: Todo[] }) {
             setShowTaskDetail(open)
             if (!open) setSelectedTask(null)
           }}
+          user={user}
         />
       )}
     </div>

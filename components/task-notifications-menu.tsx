@@ -47,6 +47,12 @@ export function TaskNotificationsMenu() {
   const [completingTask, setCompletingTask] = useState<number | null>(null)
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null)
   const [showTaskDetail, setShowTaskDetail] = useState(false)
+  const [user, setUser] = useState<{
+    id: number;
+    name: string;
+    email: string;
+    avatar_url?: string | null;
+  } | null>(null);
   const [notifications, setNotifications] = useState<TaskNotification>({
     enabled: false,
     overdueCount: 0,
@@ -102,6 +108,15 @@ export function TaskNotificationsMenu() {
           
           const sessionResponse = await fetch('/api/auth/session');
           const sessionData = await sessionResponse.json();
+          
+          if (sessionData?.user && !user) {
+            setUser({
+              id: sessionData.user.id,
+              name: sessionData.user.name || '',
+              email: sessionData.user.email || '',
+              avatar_url: sessionData.user.avatar_url
+            });
+          }
           
           if (!sessionData || !sessionData.user || !sessionData.user.id) {
             console.error('[TaskNotificationsMenu] Não foi possível obter informações da sessão do usuário');
@@ -543,6 +558,7 @@ export function TaskNotificationsMenu() {
             setTimeout(() => setSelectedTask(null), 300);
           }
         }} 
+        user={user}
       />
     )}
     </>

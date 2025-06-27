@@ -111,6 +111,18 @@ export default async function AppPage() {
 
 async function TaskListWrapper({ userId }: { userId: number }) {
   const tasks = await getTodayTasks(userId)
-  return <TaskList tasks={tasks} />
+  const session = await requireAuth()
+  
+  return (
+    <TaskList 
+      tasks={tasks} 
+      user={{
+        id: session.user.id,
+        name: session.user.name || '',
+        email: session.user.email || '',
+        avatar_url: session.user.avatar_url
+      }} 
+    />
+  )
 }
 
