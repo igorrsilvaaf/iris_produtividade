@@ -1,18 +1,22 @@
-import { useState, useEffect } from 'react';
-import { formatDistanceToNow } from 'date-fns';
+import { useState, useEffect, useCallback } from 'react';
+import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { MoreVertical, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Pencil, Trash2, Heart, MessageSquare, Reply } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
+import { Badge } from './ui/badge';
 import type { User } from '@/lib/auth';
 import { useUser } from '@/hooks/use-user';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { RichTextEditor } from './rich-text-editor';
+import { RichCommentEditor } from './rich-comment-editor';
 
 interface Comment {
   id: number;
@@ -22,6 +26,8 @@ interface Comment {
   user_id: string;
   author_name: string;
   author_avatar: string | null;
+  likes_count?: number;
+  is_liked?: boolean;
 }
 
 interface TaskCommentsProps {
@@ -41,8 +47,8 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
   const [editingContent, setEditingContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Usar o hook personalizado para gerenciar o usuário
+  const [showCommentBox, setShowCommentBox] = useState(false);
+  const [likeLoadingId, setLikeLoadingId] = useState<number | null>(null);
   const { user, loading: userLoading, error: userError, refetch: refetchUser } = useUser(userProp);
 
   useEffect(() => {
@@ -94,6 +100,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
         const newCommentData = await response.json();
         setComments([newCommentData, ...comments]);
         setNewComment('');
+        setShowCommentBox(false);
       } else if (response.status === 401) {
         console.error('Sessão expirada ao adicionar comentário');
         refetchUser();
@@ -131,6 +138,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
           )
         );
         setEditingCommentId(null);
+        setEditingContent('');
       } else if (response.status === 401) {
         console.error('Sessão expirada ao atualizar comentário');
         refetchUser();
@@ -173,6 +181,87 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
     setEditingContent('');
   };
 
+  const handleLikeComment = async (commentId: number) => {
+    if (!user || likeLoadingId === commentId) return;
+    
+    setLikeLoadingId(commentId);
+    
+    // Adicionar animação de bounce
+    const heartButton = document.querySelector(`[data-comment-id="${commentId}"] .heart-icon`);
+    if (heartButton) {
+      heartButton.classList.add('comment-like-bounce');
+      setTimeout(() => heartButton.classList.remove('comment-like-bounce'), 300);
+    }
+    
+    try {
+      // Simular like/unlike - implementar API depois se necessário
+      setComments(comments.map(comment => {
+        if (comment.id === commentId) {
+          const isLiked = comment.is_liked;
+          return {
+            ...comment,
+            is_liked: !isLiked,
+            likes_count: (comment.likes_count || 0) + (isLiked ? -1 : 1)
+          };
+        }
+        return comment;
+      }));
+    } catch (error) {
+      console.error('Erro ao curtir comentário:', error);
+    } finally {
+      setLikeLoadingId(null);
+    }
+  };
+
+  const formatCommentDate = useCallback((dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'agora';
+    if (diffInMinutes < 60) return `${diffInMinutes}m`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h`;
+    if (diffInMinutes < 10080) return `${Math.floor(diffInMinutes / 1440)}d`;
+    
+    return format(date, 'dd/MM/yyyy', { locale: ptBR });
+  }, []);
+
+  const renderMarkdown = useCallback((content: string) => {
+    return (
+      <div className="prose-comment">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            p: ({ children }) => <p className="text-sm leading-relaxed mb-2 last:mb-0">{children}</p>,
+            strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+            em: ({ children }) => <em className="italic text-muted-foreground">{children}</em>,
+            u: ({ children }) => <u className="underline">{children}</u>,
+            code: ({ children }) => (
+              <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">{children}</code>
+            ),
+            pre: ({ children }) => (
+              <pre className="bg-muted p-2 rounded-md text-xs overflow-x-auto">{children}</pre>
+            ),
+            ul: ({ children }) => <ul className="list-disc list-inside space-y-1 text-sm">{children}</ul>,
+            ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 text-sm">{children}</ol>,
+            li: ({ children }) => <li className="text-sm">{children}</li>,
+            blockquote: ({ children }) => (
+              <blockquote className="border-l-4 border-border pl-4 italic text-muted-foreground my-2">{children}</blockquote>
+            ),
+            a: ({ children, href }) => (
+              <a href={href} className="text-primary underline hover:text-primary/80" target="_blank" rel="noopener noreferrer">{children}</a>
+            ),
+            img: ({ src, alt }) => (
+              <img src={src} alt={alt} className="max-w-full h-auto rounded-lg my-2" />
+            ),
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
+    );
+  }, []);
+
   if (isLoading || userLoading) {
     return <div className="p-4 text-muted-foreground">Carregando comentários...</div>;
   }
@@ -210,137 +299,172 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-start gap-3">
-        <Avatar className="h-9 w-9 mt-1">
-          <AvatarImage src={user?.avatar_url || ''} alt={user?.name || 'Usuário'} />
-          <AvatarFallback>
-            {user?.name?.[0] || 'U'}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 space-y-2">
-          <Textarea
-            placeholder="Adicione um comentário..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleAddComment();
-              }
-            }}
-            className="min-h-[80px]"
-          />
-          <div className="flex justify-end">
-            <Button
-              onClick={handleAddComment}
-              disabled={!newComment.trim() || isSubmitting}
-              size="sm"
-            >
-              Comentar
-            </Button>
-          </div>
+    <TooltipProvider>
+      <div className="space-y-4">
+        {/* Área de adicionar comentário com RichTextEditor */}
+        <RichCommentEditor
+          user={user}
+          value={newComment}
+          onChange={setNewComment}
+          onSubmit={handleAddComment}
+          onCancel={() => {
+            setShowCommentBox(false);
+            setNewComment('');
+          }}
+          isSubmitting={isSubmitting}
+          expanded={showCommentBox}
+          onToggleExpand={() => setShowCommentBox(true)}
+        />
+
+        {/* Lista de comentários */}
+        <div className="space-y-3">
+          {comments.length === 0 ? (
+            <div className="text-center py-8">
+              <MessageSquare className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
+                Nenhum comentário ainda. Seja o primeiro a comentar!
+              </p>
+            </div>
+          ) : (
+            comments.map((comment) => {
+              const isOwner = user?.id.toString() === comment.user_id || user?.id === parseInt(comment.user_id);
+              const isEditing = editingCommentId === comment.id;
+              
+              return (
+                <div key={comment.id} className="group comment-hover">
+                  <div className="flex gap-3">
+                    <Avatar className="h-8 w-8 flex-shrink-0">
+                      <AvatarImage src={comment.author_avatar || ''} alt={comment.author_name} />
+                      <AvatarFallback className="text-xs">{comment.author_name?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="bg-muted/30 rounded-2xl px-4 py-3 border">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm text-foreground">
+                              {comment.author_name}
+                            </span>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="text-xs text-muted-foreground cursor-help">
+                                  {formatCommentDate(comment.created_at)}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{format(new Date(comment.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            {comment.updated_at !== comment.created_at && (
+                              <Badge variant="secondary" className="text-xs px-1.5 py-0 h-auto">
+                                editado
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          {isOwner && !isEditing && (
+                            <div className="flex items-center gap-1 comment-actions">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                    onClick={() => startEditing(comment)}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Editar comentário</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Excluir comentário</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          )}
+                        </div>
+
+                        {isEditing ? (
+                          <div className="mt-2">
+                            <RichTextEditor
+                              value={editingContent}
+                              onChange={setEditingContent}
+                              placeholder="Editar comentário..."
+                              onSubmit={() => handleUpdateComment(comment.id)}
+                              onCancel={cancelEditing}
+                              submitLabel="Salvar"
+                              cancelLabel="Cancelar"
+                              minHeight="100px"
+                            />
+                          </div>
+                        ) : (
+                          <div className="prose-comment">
+                            {renderMarkdown(comment.content)}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Ações do comentário */}
+                      {!isEditing && (
+                        <div className="flex items-center gap-4 mt-1 ml-2" data-comment-id={comment.id}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`h-6 px-2 text-xs gap-1 hover:bg-transparent ${
+                                  comment.is_liked 
+                                    ? 'text-red-500 hover:text-red-600' 
+                                    : 'text-muted-foreground hover:text-red-500'
+                                }`}
+                                onClick={() => handleLikeComment(comment.id)}
+                                disabled={likeLoadingId === comment.id}
+                              >
+                                <Heart className={`h-3 w-3 heart-icon ${comment.is_liked ? 'fill-current' : ''}`} />
+                                {comment.likes_count || 0}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>{comment.is_liked ? 'Descurtir' : 'Curtir'}</TooltipContent>
+                          </Tooltip>
+                          
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground hover:bg-transparent"
+                                onClick={() => {
+                                  // Implementar resposta depois se necessário
+                                  console.log('Responder comentário:', comment.id);
+                                }}
+                              >
+                                <Reply className="h-3 w-3" />
+                                Responder
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Responder comentário</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
-
-      <div className="space-y-4 mt-6">
-        {comments.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            Nenhum comentário ainda. Seja o primeiro a comentar!
-          </p>
-        ) : (
-          comments.map((comment) => {
-            const isOwner = user?.id.toString() === comment.user_id || user?.id === parseInt(comment.user_id);
-            return (
-            <div key={comment.id} className="flex gap-3 group">
-              <Avatar className="h-9 w-9 flex-shrink-0">
-                <AvatarImage src={comment.author_avatar || ''} alt={comment.author_name} />
-                <AvatarFallback>{comment.author_name?.[0] || 'U'}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="bg-muted/50 rounded-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">
-                        {comment.author_name}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(comment.created_at), {
-                          addSuffix: true,
-                          locale: ptBR,
-                        })}
-                        {comment.updated_at !== comment.created_at && ' (editado)'}
-                      </span>
-                    </div>
-                    {isOwner && (
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteComment(comment.id)}
-                          title="Excluir comentário"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                            >
-                              <MoreVertical className="h-3.5 w-3.5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => startEditing(comment)}>
-                              <Pencil className="h-3.5 w-3.5 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    )}
-                  </div>
-
-                  {editingCommentId === comment.id ? (
-                    <div className="mt-2 space-y-2">
-                      <Textarea
-                        value={editingContent}
-                        onChange={(e) => setEditingContent(e.target.value)}
-                        className="min-h-[80px]"
-                        autoFocus
-                      />
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={cancelEditing}
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Cancelar
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleUpdateComment(comment.id)}
-                        >
-                          <Check className="h-4 w-4 mr-1" />
-                          Salvar
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="mt-1 text-sm whitespace-pre-wrap">
-                      {comment.content}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )})
-        )}
-      </div>
-    </div>
+    </TooltipProvider>
   );
 }

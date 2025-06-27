@@ -19,7 +19,11 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import "@/app/globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap',
+  preload: true
+});
 
 export { metadata, viewport };
 
@@ -56,12 +60,20 @@ export default async function RootLayout({
           initialLanguage = parsedData.state.language as "pt" | "en";
         }
       } catch (e) {
-        console.error("Error parsing language cookie:", e);
+        // Silently fail
       }
     }
   }
 
-  // A sincronização do idioma é feita pelo componente SyncLanguage no cliente
+  const pomodoroSettings = settings ? {
+    pomodoro_work_minutes: settings.pomodoro_work_minutes,
+    pomodoro_break_minutes: settings.pomodoro_break_minutes,
+    pomodoro_long_break_minutes: settings.pomodoro_long_break_minutes,
+    pomodoro_cycles: settings.pomodoro_cycles,
+    enable_sound: settings.enable_sound,
+    notification_sound: settings.notification_sound,
+    enable_desktop_notifications: settings.enable_desktop_notifications,
+  } : null;
 
   return (
     <html
@@ -78,27 +90,11 @@ export default async function RootLayout({
               <AppWrapper>
                 <TranslationsLoader requiredKeys={["Create New Project"]}>
                   <ThemeInitializer>
-                    {settings ? (
-                      <>
-                        <SyncLanguage initialLanguage={initialLanguage} />
-                        <PomodoroProvider
-                          initialSettings={{
-                            pomodoro_work_minutes: settings.pomodoro_work_minutes,
-                            pomodoro_break_minutes:
-                              settings.pomodoro_break_minutes,
-                            pomodoro_long_break_minutes:
-                              settings.pomodoro_long_break_minutes,
-                            pomodoro_cycles: settings.pomodoro_cycles,
-                            enable_sound: settings.enable_sound,
-                            notification_sound: settings.notification_sound,
-                            enable_desktop_notifications:
-                              settings.enable_desktop_notifications,
-                          }}
-                        >
-                          <ServiceWorkerRegistration />
-                          <div className="flex-1">{children}</div>
-                        </PomodoroProvider>
-                      </>
+                    {pomodoroSettings ? (
+                      <PomodoroProvider initialSettings={pomodoroSettings}>
+                        <ServiceWorkerRegistration />
+                        <div className="flex-1">{children}</div>
+                      </PomodoroProvider>
                     ) : (
                       <>
                         <ServiceWorkerRegistration />

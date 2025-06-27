@@ -14,29 +14,66 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    unoptimized: false,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+    formats: ['image/webp', 'image/avif'],
   },
   experimental: {
     webpackBuildWorker: true,
-    parallelServerBuildTraces: true,
+    parallelServerBuildTraces: true,  
     parallelServerCompiles: true,
+    // Desabilitando temporariamente para resolver problemas com critters
+    // optimizeCss: true,
+    optimizeServerReact: true,
+    turbo: {
+      resolveAlias: {
+        canvas: './empty-module.js',
+      },
+    },
   },
-  webpack: (config) => {
-    // Aumentar o timeout dos chunks para evitar erros de timeout
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            enforce: true,
+          },
+        },
+      };
+    }
+
     config.watchOptions = {
       ...config.watchOptions,
       aggregateTimeout: 300,
       poll: 1000,
     };
     
-    // Configurar os limites de tempo para carregar os chunks
     config.output = {
       ...config.output,
-      chunkLoadTimeout: 60000, // 60 segundos (valor padrão: 120000 ms)
+      chunkLoadTimeout: 60000,
     };
     
     return config;
   },
+  poweredByHeader: false,
+  reactStrictMode: true,
 }
 
 mergeConfig(nextConfig, userConfig)

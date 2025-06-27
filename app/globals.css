@@ -303,3 +303,221 @@ body.very-large-screen .landing-reader {
   }
 }
 
+/* Estilos para os comentários tipo Trello */
+.prose-comment {
+  @apply text-sm text-foreground;
+}
+
+.prose-comment p {
+  @apply mb-2 last:mb-0 leading-relaxed;
+}
+
+.prose-comment strong {
+  @apply font-semibold text-foreground;
+}
+
+.prose-comment em {
+  @apply italic text-muted-foreground;
+}
+
+.prose-comment code {
+  @apply px-1.5 py-0.5 bg-muted rounded text-xs font-mono;
+}
+
+.prose-comment pre {
+  @apply bg-muted p-2 rounded-md text-xs overflow-x-auto my-2;
+}
+
+.prose-comment ul,
+.prose-comment ol {
+  @apply list-inside space-y-1 text-sm my-2;
+}
+
+.prose-comment ul {
+  @apply list-disc;
+}
+
+.prose-comment ol {
+  @apply list-decimal;
+}
+
+.prose-comment li {
+  @apply text-sm;
+}
+
+.prose-comment blockquote {
+  @apply border-l-4 border-border pl-4 italic text-muted-foreground my-2;
+}
+
+.prose-comment a {
+  @apply text-primary underline hover:text-primary/80;
+}
+
+/* Animações suaves para os comentários */
+.comment-enter {
+  @apply opacity-0 translate-y-2;
+  transition: all 0.2s ease-out;
+}
+
+.comment-enter-active {
+  @apply opacity-100 translate-y-0;
+}
+
+.comment-like-bounce {
+  animation: heart-bounce 0.3s ease-in-out;
+}
+
+@keyframes heart-bounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Melhoria para o hover dos comentários */
+.comment-hover:hover .comment-actions {
+  @apply opacity-100;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.comment-actions {
+  @apply opacity-0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Estilos para o campo de comentário expandido */
+.comment-input-expanded {
+  @apply border-primary/50 shadow-sm;
+  transition: all 0.2s ease-in-out;
+}
+
+.comment-input-expanded:focus-within {
+  @apply border-primary shadow-md;
+}
+
+/* Melhoria para dispositivos móveis */
+@media (max-width: 768px) {
+  .comment-actions {
+    @apply opacity-100;
+  }
+  
+  .prose-comment {
+    @apply text-xs;
+  }
+  
+  .prose-comment p {
+    @apply text-xs;
+  }
+}
+
+/* Estilos para o Rich Text Editor */
+.rich-text-toolbar {
+  @apply border-b border-border bg-muted/30;
+}
+
+.rich-text-toolbar button {
+  @apply transition-colors duration-200;
+}
+
+.rich-text-toolbar button:hover {
+  @apply bg-muted/70;
+}
+
+.rich-text-toolbar button[data-active="true"] {
+  @apply bg-primary/10 text-primary;
+}
+
+.rich-text-editor-content {
+  @apply min-h-[120px] resize-none border-0 focus-visible:ring-0;
+}
+
+.rich-text-preview {
+  @apply p-3 min-h-[120px] prose-comment;
+}
+
+/* Melhorias no campo de entrada expandido */
+.comment-input-expanded {
+  @apply shadow-lg border-primary/20;
+  transition: all 0.3s ease-in-out;
+}
+
+.comment-input-expanded:focus-within {
+  @apply shadow-xl border-primary/40;
+}
+
+/* Animações para os botões da toolbar */
+.toolbar-button {
+  @apply relative overflow-hidden;
+}
+
+.toolbar-button:before {
+  content: '';
+  @apply absolute inset-0 bg-primary/10 translate-y-full transition-transform duration-200;
+}
+
+.toolbar-button:hover:before {
+  @apply translate-y-0;
+}
+
+/* Estilo para o dialog de links */
+.link-dialog-input:focus {
+  @apply ring-2 ring-primary/20 border-primary/50;
+}
+
+/* Responsividade da toolbar */
+@media (max-width: 640px) {
+  .rich-text-toolbar {
+    @apply flex-wrap gap-1 p-1;
+  }
+  
+  .rich-text-toolbar button {
+    @apply h-8 w-8 text-xs;
+  }
+  
+  .rich-text-toolbar .toolbar-divider {
+    @apply hidden;
+  }
+}
+
+/* Estados de loading para botões */
+.toolbar-button[data-loading="true"] {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.toolbar-button[data-loading="true"]:after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Melhorias no preview */
+.rich-text-preview img {
+  @apply rounded-lg shadow-sm;
+}
+
+.rich-text-preview pre {
+  @apply bg-muted border border-border;
+}
+
+.rich-text-preview blockquote {
+  @apply bg-muted/50 rounded-r-lg;
+}
+
+/* Estilos para anexos */
+.attachment-preview {
+  @apply flex items-center gap-2 p-2 bg-muted/50 rounded-lg border border-dashed border-border;
+}
+
+.attachment-preview:hover {
+  @apply bg-muted/70 border-solid;
+}
+
+/* Melhorias nos tooltips */
+.rich-text-tooltip {
+  @apply bg-popover text-popover-foreground border border-border;
+}
+
