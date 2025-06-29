@@ -1,47 +1,47 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { useLanguageStore } from "@/lib/i18n"
-
-function setCookie(name: string, value: string) {
-  document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Strict`
-}
+import { useEffect, useState } from 'react'
+import { useTranslation, rehydrateLanguageStore } from '@/lib/i18n'
 
 interface LanguageProviderProps {
-  initialLanguage: "en" | "pt"
   children: React.ReactNode
+  initialLanguage?: string
 }
 
-export function LanguageProvider({ initialLanguage, children }: LanguageProviderProps) {
-  const router = useRouter()
-  const { language: currentLanguage, setLanguage, isHydrated } = useLanguageStore()
+export function LanguageProvider({ children, initialLanguage }: LanguageProviderProps) {
+  const { language, isHydrated, setLanguage } = useTranslation()
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    document.cookie = `language-storage=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
-    
-    setCookie('user-language', initialLanguage)
-    setLanguage(initialLanguage)
-    
-    document.documentElement.lang = initialLanguage === 'en' ? 'en' : 'pt-BR'
-    document.documentElement.setAttribute('data-language', initialLanguage)
-    
-    const timer = setTimeout(() => {
-      const cookies = document.cookie.split(';').map(c => c.trim())
-      const langCookie = cookies.find(c => c.startsWith('user-language='))
+    const initializeLanguage = async () => {
+      if (typeof window === 'undefined') return
+      
+      if (!isHydrated) {
+        rehydrateLanguageStore()
+      }
+      
+      if (initialLanguage && initialLanguage !== language) {
+        setLanguage(initialLanguage)
+      }
       
       setIsReady(true)
-    }, 100)
-    
-    return () => clearTimeout(timer)
-  }, [initialLanguage, setLanguage, currentLanguage])
+    }
 
-  if (!isHydrated || !isReady) {
-    console.log('LanguageProvider - Waiting for hydration and language setup...');
-    return null;
+    initializeLanguage()
+  }, [initialLanguage, language, isHydrated, setLanguage])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(true)
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (!isReady) {
+    return null
   }
-  
+
   return <>{children}</>
 }
 

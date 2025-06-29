@@ -262,6 +262,11 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
     );
   }, []);
 
+  const handleReply = (comment: Comment) => {
+    setEditingCommentId(comment.id);
+    setEditingContent('');
+  };
+
   if (isLoading || userLoading) {
     return <div className="p-4 text-muted-foreground">Carregando comentários...</div>;
   }
@@ -331,17 +336,19 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
               const isEditing = editingCommentId === comment.id;
               
               return (
-                <div key={comment.id} className="group comment-hover">
-                  <div className="flex gap-3">
-                    <Avatar className="h-8 w-8 flex-shrink-0">
+                                  <div key={comment.id} className="group comment-hover">
+                  <div className="flex gap-2 sm:gap-3">
+                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
                       <AvatarImage src={comment.author_avatar || ''} alt={comment.author_name} />
-                      <AvatarFallback className="text-xs">{comment.author_name?.[0] || 'U'}</AvatarFallback>
+                      <AvatarFallback className="text-xs" key={`avatar-${comment.id}-${comment.user_id}`}>
+                        {comment.author_name?.[0] || 'U'}
+                      </AvatarFallback>
                     </Avatar>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="bg-muted/30 rounded-2xl px-4 py-3 border">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2">
+                      <div className="bg-muted/30 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border">
+                        <div className="flex items-start justify-between mb-1 gap-2">
+                          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                             <span className="font-medium text-sm text-foreground">
                               {comment.author_name}
                             </span>
@@ -363,7 +370,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                           </div>
                           
                           {isOwner && !isEditing && (
-                            <div className="flex items-center gap-1 comment-actions">
+                            <div className="flex items-center gap-1 comment-actions flex-shrink-0">
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
@@ -417,7 +424,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                       
                       {/* Ações do comentário */}
                       {!isEditing && (
-                        <div className="flex items-center gap-4 mt-1 ml-2" data-comment-id={comment.id}>
+                        <div className="flex items-center gap-3 sm:gap-4 mt-1 ml-1 sm:ml-2" data-comment-id={comment.id}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
@@ -444,10 +451,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground hover:bg-transparent"
-                                onClick={() => {
-                                  // Implementar resposta depois se necessário
-                                  console.log('Responder comentário:', comment.id);
-                                }}
+                                onClick={() => handleReply(comment)}
                               >
                                 <Reply className="h-3 w-3" />
                                 Responder

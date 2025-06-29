@@ -148,7 +148,7 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
               >
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={user.avatar_url || ""} alt={user.name} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm" key={`header-avatar-${user.id}`}>
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
@@ -158,7 +158,7 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
               <div className="flex items-center gap-3 p-2.5 mb-1 rounded-lg">
                 <Avatar className="h-10 w-10 border-2 border-muted">
                   <AvatarImage src={user.avatar_url || ""} alt={user.name} />
-                  <AvatarFallback className="bg-primary/10 text-primary">
+                  <AvatarFallback className="bg-primary/10 text-primary" key={`dropdown-avatar-${user.id}`}>
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>

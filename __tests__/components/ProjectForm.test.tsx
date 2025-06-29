@@ -40,6 +40,36 @@ jest.mock("@/components/ui/use-toast", () => ({
   }),
 }));
 
+// Mock do useTranslation
+jest.mock("@/lib/i18n", () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        "Name": "Name",
+        "Project name": "Project name",
+        "Project Color": "Project Color",
+        "Color picker": "Color picker",
+        "Select color": "Select color",
+        "Color value": "Color value",
+        "Mark as favorite": "Mark as favorite",
+        "Create Project": "Create Project",
+        "Update Project": "Update Project",
+        "Saving...": "Saving...",
+        "Project created": "Project created",
+        "Project has been created successfully.": "Project has been created successfully.",
+        "Project updated": "Project updated",
+        "Project has been updated successfully.": "Project has been updated successfully.",
+        "Failed to create project": "Failed to create project",
+        "Failed to update project": "Failed to update project",
+        "Please try again.": "Please try again.",
+        "Project name is required": "Project name is required",
+        "Color must be a valid hex code": "Color must be a valid hex code"
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
 describe("ProjectForm Component", () => {
   const mockProject = {
     id: 1,

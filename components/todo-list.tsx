@@ -129,9 +129,13 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
 
   const toggleTaskCompletion = useCallback(async (taskId: number) => {
     try {
-      await fetch(`/api/tasks/${taskId}/toggle`, {
+      const response = await fetch(`/api/tasks/${taskId}/toggle`, {
         method: "PATCH",
       })
+      
+      if (!response.ok) {
+        throw new Error(`Failed to toggle task: ${response.statusText}`)
+      }
 
       toast({
         title: t("Task updated"),
@@ -139,6 +143,7 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
       })
 
       router.refresh()
+
     } catch (error) {
       toast({
         variant: "destructive",
@@ -146,13 +151,17 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
         description: t("Please try again."),
       })
     }
-  }, [router, toast, t])
+  }, [toast, t, router])
 
   const deleteTask = useCallback(async (taskId: number) => {
     try {
-      await fetch(`/api/tasks/${taskId}`, {
+      const response = await fetch(`/api/tasks/${taskId}`, {
         method: "DELETE",
       })
+      
+      if (!response.ok) {
+        throw new Error(`Failed to delete task: ${response.statusText}`)
+      }
 
       toast({
         title: t("taskDeleted"),
@@ -160,6 +169,7 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
       })
 
       router.refresh()
+
     } catch (error) {
       toast({
         variant: "destructive",
@@ -167,7 +177,7 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
         description: t("Please try again."),
       })
     }
-  }, [router, toast, t])
+  }, [toast, t, router])
 
   const getPriorityColor = useCallback((priority: number) => {
     switch (priority) {

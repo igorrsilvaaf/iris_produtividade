@@ -125,18 +125,10 @@ export const translations: Translations = {
 }
 
 // Função específica para uso em componentes do servidor
-export function getServerTranslation(key: string, language: Language = "pt"): string {
+export function getServerTranslation(key: string, language: "en" | "pt" = "pt"): string {
   if (!translations[key]) {
-    console.warn(`[getServerTranslation] Tradução não encontrada para: ${key}`)
     return key
   }
   
-  const translated = translations[key][language] || key
-  
-  // Log apenas para depuração
-  if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
-
-  }
-  
-  return translated
+  return translations[key][language] || key
 } 

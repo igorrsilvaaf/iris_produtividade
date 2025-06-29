@@ -144,21 +144,26 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
     return null
   }
 
-  const handleComplete = (e: React.MouseEvent) => {
+  const handleComplete = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (onComplete) {
       onComplete(todoData.id)
     } else {
       try {
-        fetch(`/api/tasks/${todoData.id}/toggle`, {
+        const response = await fetch(`/api/tasks/${todoData.id}/toggle`, {
           method: "PATCH",
-        }).then(() => {
-          toast({
-            title: t ? t("Task updated") : "Tarefa atualizada",
-            description: t ? t("Task status has been updated.") : "O status da tarefa foi atualizado.",
-          })
-          router.refresh()
         })
+        
+        if (!response.ok) {
+          throw new Error(`Failed to toggle task: ${response.statusText}`)
+        }
+        
+        toast({
+          title: t ? t("Task updated") : "Tarefa atualizada",
+          description: t ? t("Task status has been updated.") : "O status da tarefa foi atualizado.",
+        })
+        
+        router.refresh()
       } catch (error) {
         toast({
           variant: "destructive",
@@ -169,21 +174,26 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
     }
   }
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (onDelete) {
       onDelete(todoData.id)
     } else {
       try {
-        fetch(`/api/tasks/${todoData.id}`, {
+        const response = await fetch(`/api/tasks/${todoData.id}`, {
           method: "DELETE",
-        }).then(() => {
-          toast({
-            title: t ? t("taskDeleted") : "Tarefa excluída",
-            description: t ? t("Task has been deleted successfully.") : "A tarefa foi excluída com sucesso.",
-          })
-          router.refresh()
         })
+        
+        if (!response.ok) {
+          throw new Error(`Failed to delete task: ${response.statusText}`)
+        }
+        
+        toast({
+          title: t ? t("taskDeleted") : "Tarefa excluída",
+          description: t ? t("Task has been deleted successfully.") : "A tarefa foi excluída com sucesso.",
+        })
+        
+        router.refresh()
       } catch (error) {
         toast({
           variant: "destructive",

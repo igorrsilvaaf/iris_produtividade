@@ -906,7 +906,7 @@ export function KanbanBoard() {
   };
   const deleteCard = async (cardId: number) => {
     try {
-      const response = await fetch(`/api/tasks/${cardId}`, {
+      const response = await fetch(`/api/tasks/${cardId}/${cardId}`, {
         method: "DELETE",
       });
       
@@ -1039,11 +1039,9 @@ export function KanbanBoard() {
 
       if (newColumnKey === "backlog") {
         if (taskDueDate && taskDueDate.getTime() < today.getTime()) {
-          console.warn(`Tarefa ${activeCard.id} movida para backlog com data passada/presente.`);
         }
       } else if (newColumnKey === "planning") {
         if (taskDueDate && taskDueDate.getTime() !== today.getTime()) {
-          console.warn(`Tarefa ${activeCard.id} movida para planejamento sem ser para hoje.`);
         }
       }
     }

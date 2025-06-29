@@ -1,35 +1,28 @@
-'use client'
+"use client"
 
-import * as React from 'react'
-import {
-  ThemeProvider as NextThemesProvider,
-  type ThemeProviderProps,
-  useTheme
-} from 'next-themes'
-
-function ThemeDebug() {
-  const { theme, systemTheme, resolvedTheme } = useTheme()
-  
-  React.useEffect(() => {
-    console.log('Theme Debug:', {
-      theme,
-      systemTheme,
-      resolvedTheme,
-      time: new Date().toISOString()
-    })
-  }, [theme, systemTheme, resolvedTheme])
-  
-  return null
-}
+import * as React from "react"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { type ThemeProviderProps } from "next-themes/dist/types"
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  const [mounted, setMounted] = React.useState(false)
+
   React.useEffect(() => {
-    console.log('ThemeProvider mounted with props:', props)
-  }, [props])
-  
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return null
+  }
+
   return (
-    <NextThemesProvider {...props}>
-      <ThemeDebug />
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      {...props}
+    >
       {children}
     </NextThemesProvider>
   )
