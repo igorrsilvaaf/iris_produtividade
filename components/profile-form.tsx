@@ -201,7 +201,7 @@ export function ProfileForm({ user }: { user: UserWithAvatar }) {
               <div className="relative group">
                 <Avatar className="h-24 w-24 cursor-pointer border-2 border-muted bg-muted" onClick={triggerFileInput}>
                   <AvatarImage src={avatarBase64 || ""} alt={user.name} />
-                  <AvatarFallback className="text-2xl">{getInitials(user.name)}</AvatarFallback>
+                  <AvatarFallback className="text-2xl" key={`profile-avatar-${user.id}`}>{getInitials(user.name)}</AvatarFallback>
                   
                   {/* Overlay com ícone de câmera */}
                   <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">

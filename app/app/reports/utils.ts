@@ -96,10 +96,7 @@ export async function fetchTasks(reportType: string, startDate: string, endDate:
         })
       ) || [];
       
-      if (filteredTasks.length !== data.tasks?.length) {
-        console.warn(`Filtragem adicional de projetos aplicada: ${data.tasks?.length || 0} -> ${filteredTasks.length}`);
-        return filteredTasks;
-      }
+      return filteredTasks;
     }
     
     return data.tasks || [];

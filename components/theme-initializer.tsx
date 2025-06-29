@@ -1,51 +1,32 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
-import { useTheme } from 'next-themes'
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 
 interface ThemeInitializerProps {
   children: React.ReactNode
+  initialTheme?: string
 }
 
-export function ThemeInitializer({ children }: ThemeInitializerProps) {
-  const { theme, systemTheme, resolvedTheme, setTheme } = useTheme()
-  const [isReady, setIsReady] = useState(false)
+export function ThemeInitializer({ children, initialTheme }: ThemeInitializerProps) {
+  const { theme, setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    console.log('ThemeInitializer - Theme state:', {
-      theme,
-      systemTheme,
-      resolvedTheme,
-      isReady
-    })
-
-    // Garantir que o tema está pronto
-    if (resolvedTheme) {
-      console.log('ThemeInitializer - Theme is ready:', resolvedTheme)
-      setIsReady(true)
-    } else {
-      // Se não houver tema definido, usar o tema do sistema
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      const defaultTheme = prefersDark ? 'dark' : 'light'
+    setMounted(true)
+    
+    if (initialTheme && !theme) {
+      const defaultTheme = initialTheme === 'auto' ? 'system' : initialTheme
       
-      console.log(`ThemeInitializer - No theme set, using system preference: ${defaultTheme}`)
       setTheme(defaultTheme)
       
-      // Forçar atualização após um pequeno atraso
-      const timer = setTimeout(() => {
-        console.log('ThemeInitializer - Forcing theme update')
-        setIsReady(true)
-      }, 100)
-      
-      return () => clearTimeout(timer)
+      setTimeout(() => setTheme(defaultTheme), 100)
     }
-  }, [theme, systemTheme, resolvedTheme, setTheme])
+  }, [initialTheme, theme, setTheme])
 
-  if (!isReady) {
-    console.log('ThemeInitializer - Waiting for theme to be ready...')
+  if (!mounted || !resolvedTheme) {
     return null
   }
 
-  console.log('ThemeInitializer - Rendering children with theme:', resolvedTheme)
   return <>{children}</>
 }

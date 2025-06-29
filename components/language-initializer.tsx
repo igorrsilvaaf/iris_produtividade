@@ -1,52 +1,41 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useLanguageStore } from "@/lib/i18n"
+import { useEffect, useState } from 'react'
+import { useTranslation, rehydrateLanguageStore } from '@/lib/i18n'
 
 interface LanguageInitializerProps {
-  initialLanguage: "pt" | "en"
+  children: React.ReactNode
+  initialLanguage?: string
 }
 
-export function LanguageInitializer({ initialLanguage }: LanguageInitializerProps) {
-  const { language, setLanguage, isHydrated } = useLanguageStore()
+export function LanguageInitializer({ children, initialLanguage }: LanguageInitializerProps) {
+  const { language, isHydrated, setLanguage } = useTranslation()
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
-    console.log('LanguageInitializer - Initializing with:', {
-      initialLanguage,
-      currentLanguage: language,
-      isHydrated,
-      isInitialized
-    })
-
-    // Só prosseguir se a store estiver hidratada
+    
     if (!isHydrated) {
-      console.log('LanguageInitializer - Store not hydrated yet, waiting...')
+      rehydrateLanguageStore()
       return
     }
 
-    // Só sincronizar uma vez após a hidratação
-    if (!isInitialized) {
-      console.log('LanguageInitializer - First run after hydration, syncing language...')
+    if (!isInitialized && isHydrated) {
+      setIsInitialized(true)
       
-      // Atualizar o idioma se for diferente
-      if (language !== initialLanguage) {
-        console.log(`LanguageInitializer - Updating language from '${language}' to '${initialLanguage}'`)
+      if (initialLanguage && initialLanguage !== language) {
         setLanguage(initialLanguage)
       }
-      
-      // Atualizar o cookie para garantir consistência
-      document.cookie = `user-language=${initialLanguage}; path=/; max-age=31536000; SameSite=Strict`
-      
-      // Atualizar atributos HTML
-      document.documentElement.lang = initialLanguage === 'en' ? 'en' : 'pt-BR'
-      document.documentElement.setAttribute('data-language', initialLanguage)
-      
-      setIsInitialized(true)
-      console.log('LanguageInitializer - Language sync completed')
     }
-  }, [initialLanguage, language, setLanguage, isHydrated, isInitialized])
+  }, [initialLanguage, language, isHydrated, setLanguage, isInitialized])
 
-  // Não renderizar nada
-  return null
+  useEffect(() => {
+    if (isInitialized) {
+    }
+  }, [isInitialized])
+
+  if (!isHydrated || !isInitialized) {
+    return null
+  }
+
+  return <>{children}</>
 }

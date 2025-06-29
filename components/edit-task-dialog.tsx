@@ -310,7 +310,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         ? Number.parseInt(values.projectId) 
         : null;
 
-      const projectResponse = await fetch(`/api/tasks/${task.id}/project`, {
+      const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

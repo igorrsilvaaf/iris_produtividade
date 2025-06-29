@@ -90,9 +90,13 @@ export function TaskList({ tasks, user }: TaskListProps) {
 
   const toggleTaskCompletion = async (taskId: number) => {
     try {
-      await fetch(`/api/tasks/${taskId}/toggle`, {
+      const response = await fetch(`/api/tasks/${taskId}/toggle`, {
         method: "PATCH",
       })
+
+      if (!response.ok) {
+        throw new Error(`Failed to toggle task: ${response.statusText}`)
+      }
 
       toast({
         title: t("Task updated"),
@@ -100,6 +104,7 @@ export function TaskList({ tasks, user }: TaskListProps) {
       })
 
       router.refresh()
+
     } catch (error) {
       toast({
         variant: "destructive",
@@ -111,16 +116,19 @@ export function TaskList({ tasks, user }: TaskListProps) {
 
   const deleteTask = async (taskId: number) => {
     try {
-      await fetch(`/api/tasks/${taskId}`, {
+      const response = await fetch(`/api/tasks/${taskId}`, {
         method: "DELETE",
       })
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete task: ${response.statusText}`)
+      }
 
       toast({
         title: t("taskDeleted"),
         description: t("Task has been deleted successfully."),
       })
 
-      router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",

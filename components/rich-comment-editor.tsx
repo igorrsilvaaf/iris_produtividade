@@ -40,19 +40,19 @@ export function RichCommentEditor({
   }
 
   return (
-    <div className="flex items-start gap-3">
-      <Avatar className="h-8 w-8 flex-shrink-0">
+    <div className="flex items-start gap-2 sm:gap-3">
+      <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
         <AvatarImage src={user?.avatar_url || ''} alt={user?.name || 'Usuário'} />
-        <AvatarFallback className="text-xs">
+        <AvatarFallback className="text-xs" key={`comment-editor-${user?.id}`}>
           {user?.name?.[0] || 'U'}
         </AvatarFallback>
       </Avatar>
       
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         {!expanded ? (
           <Button
             variant="ghost"
-            className="w-full justify-start h-9 text-muted-foreground hover:bg-muted/50 border border-input"
+            className="w-full justify-start h-9 text-muted-foreground hover:bg-muted/50 border border-input text-sm"
             onClick={onToggleExpand}
           >
             {placeholder}

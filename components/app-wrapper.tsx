@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useState, memo } from 'react'
-import { useLanguageStore } from '@/lib/i18n'
+import { useTranslation } from '@/lib/i18n'
 import { useTheme } from 'next-themes'
 
 interface AppWrapperProps {
@@ -9,7 +9,7 @@ interface AppWrapperProps {
 }
 
 export const AppWrapper = memo(function AppWrapper({ children }: AppWrapperProps) {
-  const { isHydrated, language } = useLanguageStore()
+  const { isHydrated, language } = useTranslation()
   const { resolvedTheme } = useTheme()
   const [isReady, setIsReady] = useState(false)
 

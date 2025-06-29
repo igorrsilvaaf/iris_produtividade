@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Sparkles, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -73,35 +73,16 @@ export function ChangelogNotification() {
       const changelogData = getChangelogData()
       const newChanges = changelogData.filter(item => item.isNew)
       
-      console.log('ChangelogNotification Debug:', {
-        changelogData: changelogData.slice(0, 3),
-        newChanges,
-        isClient
-      })
-      
       if (newChanges.length === 0) return
       
       const latestNewVersion = newChanges[0].version
       const lastSeenVersion = localStorage.getItem('lastSeenChangelogVersion')
 
-      console.log('Version check:', {
-        latestNewVersion,
-        lastSeenVersion,
-        shouldShow: lastSeenVersion !== latestNewVersion
-      })
-
       if (lastSeenVersion !== latestNewVersion) {
         const dismissedVersions = localStorage.getItem('dismissedChangelogVersions')
         const dismissedArray = dismissedVersions ? JSON.parse(dismissedVersions) : []
         
-        console.log('Dismissed versions check:', {
-          dismissedVersions,
-          dismissedArray,
-          isLatestDismissed: dismissedArray.includes(latestNewVersion)
-        })
-        
         if (!dismissedArray.includes(latestNewVersion)) {
-          console.log('Opening modal for version:', latestNewVersion)
           setLatestChangelog(latestNewVersion)
           setOpen(true)
         }

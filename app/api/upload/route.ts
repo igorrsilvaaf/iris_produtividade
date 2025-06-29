@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { neon } from "@neondatabase/serverless"
-
-const sql = neon(process.env.DATABASE_URL!)
+import prisma from "@/lib/prisma"
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,60 +20,58 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Converter o arquivo para base64
+    if (!taskId) {
+      return NextResponse.json(
+        { error: "Task ID is required" },
+        { status: 400 }
+      )
+    }
+
+    // Verificar se a tarefa existe e pertence ao usuário
+    const task = await prisma.todos.findFirst({
+      where: {
+        id: parseInt(taskId),
+        user_id: session.user.id
+      }
+    })
+
+    if (!task) {
+      return NextResponse.json(
+        { error: "Task not found" },
+        { status: 404 }
+      )
+    }
+
+    // Converter o arquivo para base64 (por enquanto)
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const base64 = buffer.toString('base64')
 
-    // Criar um objeto de anexo com o conteúdo em base64
-    const newAttachment = {
+    // Criar anexo na nova tabela
+    const attachment = await prisma.attachments.create({
+      data: {
+        user_id: session.user.id,
+        entity_type: 'task',
+        entity_id: parseInt(taskId),
+        file_name: file.name,
+        original_name: file.name,
+        file_path: `data:${file.type};base64,${base64}`, // Por enquanto armazenando como base64
+        file_size: BigInt(file.size),
+        mime_type: file.type,
+        alt_text: null,
+        description: null
+      }
+    })
+
+    return NextResponse.json({
+      id: attachment.id,
       type: file.type.startsWith('image/') ? 'image' : 'file',
-      url: `data:${file.type};base64,${base64}`,
-      name: file.name
-    }
-
-    // Se tiver taskId, atualizar a task existente
-    if (taskId) {
-      // Primeiro, buscar os anexos existentes da task
-      const result = await sql`
-        SELECT attachments FROM todos WHERE id = ${taskId}
-      `
-
-      if (!result || result.length === 0) {
-        return NextResponse.json(
-          { error: "Task not found" },
-          { status: 404 }
-        )
-      }
-
-      // Pegar os anexos existentes e adicionar o novo
-      // Garantir que os anexos sejam um array válido, independente de como estão armazenados no banco
-      let currentAttachments = [];
-      try {
-        if (result[0].attachments) {
-          if (Array.isArray(result[0].attachments)) {
-            currentAttachments = result[0].attachments;
-          } else if (typeof result[0].attachments === 'string') {
-            // Tentar fazer parse se for uma string JSON
-            currentAttachments = JSON.parse(result[0].attachments);
-          }
-        }
-      } catch (error) {
-        currentAttachments = [];
-      }
-
-      const updatedAttachments = [...currentAttachments, newAttachment]
-
-      // Atualizar a task com o novo array de anexos
-      await sql`
-        UPDATE todos 
-        SET attachments = ${JSON.stringify(updatedAttachments)}
-        WHERE id = ${taskId}
-      `
-    }
-
-    return NextResponse.json(newAttachment)
+      url: attachment.file_path,
+      name: attachment.file_name,
+      size: Number(attachment.file_size)
+    })
   } catch (error) {
+    console.error("Error uploading file:", error)
     return NextResponse.json(
       { error: "Failed to upload file" },
       { status: 500 }

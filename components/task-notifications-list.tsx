@@ -68,7 +68,7 @@ export function TaskNotificationsList({ taskNotifications, daysAhead }: TaskNoti
   const handleCompleteTask = async (taskId: number) => {
     setCompletingTask(taskId)
     try {
-      const response = await fetch(`/api/tasks/${taskId}/complete`, {
+      const response = await fetch(`/api/tasks/${taskId}/${taskId}/complete`, {
         method: "PATCH",
       })
 
@@ -81,7 +81,6 @@ export function TaskNotificationsList({ taskNotifications, daysAhead }: TaskNoti
         description: t("The task has been marked as complete."),
       })
 
-      router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
