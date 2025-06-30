@@ -198,7 +198,7 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
       onDelete(todoData.id)
     } else {
       try {
-        const response = await fetch(`/api/tasks/${todoData.id}`, {
+        const response = await fetch(`/api/tasks/${todoData.id}/${todoData.id}`, {
           method: "DELETE",
         })
         
