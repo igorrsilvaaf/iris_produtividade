@@ -150,7 +150,7 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
       onComplete(todoData.id)
     } else {
       try {
-        const response = await fetch(`/api/tasks/${todoData.id}/toggle`, {
+        const response = await fetch(`/api/tasks/toggle/${todoData.id}`, {
           method: "PATCH",
         })
         

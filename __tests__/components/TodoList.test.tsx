@@ -111,7 +111,7 @@ describe('Componente TodoList', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        '/api/tasks/1/toggle',
+        '/api/tasks/toggle/1',
         { method: 'PATCH' }
       );
     });

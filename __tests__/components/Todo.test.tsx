@@ -128,7 +128,7 @@ describe('Componente Todo', () => {
     
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        `/api/tasks/${mockTodo.id}/toggle`,
+        `/api/tasks/toggle/${mockTodo.id}`,
         { method: "PATCH" }
       );
       

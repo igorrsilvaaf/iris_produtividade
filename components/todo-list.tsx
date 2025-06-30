@@ -129,7 +129,7 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
 
   const toggleTaskCompletion = useCallback(async (taskId: number) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}/toggle`, {
+      const response = await fetch(`/api/tasks/toggle/${taskId}`, {
         method: "PATCH",
       })
       
