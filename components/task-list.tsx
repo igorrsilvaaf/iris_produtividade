@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { Calendar, Check, ChevronRight, Edit, Flag, MoreHorizontal, Trash, ArrowUpDown, Clock, FileText, Link, Timer, CircleDot } from "lucide-react"
@@ -61,12 +61,18 @@ export function TaskList({ tasks, user }: TaskListProps) {
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null)
   const [showTaskDetail, setShowTaskDetail] = useState(false)
   const [sortBy, setSortBy] = useState<SortOption>("priority")
+  const [optimisticTasks, setOptimisticTasks] = useState<Todo[]>(tasks)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
 
+  // Sincronizar com as props quando mudarem
+  useEffect(() => {
+    setOptimisticTasks(tasks)
+  }, [tasks])
+
   const sortedTasks = useMemo(() => {
-    const tasksCopy = [...tasks];
+    const tasksCopy = [...optimisticTasks];
     
     switch (sortBy) {
       case "priority":
@@ -86,9 +92,18 @@ export function TaskList({ tasks, user }: TaskListProps) {
       default:
         return tasksCopy;
     }
-  }, [tasks, sortBy]);
+  }, [optimisticTasks, sortBy]);
 
   const toggleTaskCompletion = async (taskId: number) => {
+    // Atualização otimista - atualizar UI imediatamente
+    const originalTasks = [...optimisticTasks]
+    const updatedTasks = optimisticTasks.map(task => 
+      task.id === taskId 
+        ? { ...task, completed: !task.completed }
+        : task
+    )
+    setOptimisticTasks(updatedTasks)
+
     try {
       const response = await fetch(`/api/tasks/toggle/${taskId}`, {
         method: "PATCH",
@@ -103,9 +118,12 @@ export function TaskList({ tasks, user }: TaskListProps) {
         description: t("Task status has been updated."),
       })
 
-      router.refresh()
+      // Sincronização silenciosa - sem refresh imediato para melhor UX
 
     } catch (error) {
+      // Reverter mudanças otimistas em caso de erro
+      setOptimisticTasks(originalTasks)
+      
       toast({
         variant: "destructive",
         title: t("Failed to update task"),

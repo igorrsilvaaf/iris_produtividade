@@ -137,7 +137,7 @@ describe('Componente Todo', () => {
         description: "Task status has been updated.",
       });
       
-      expect(mockRefresh).toHaveBeenCalled();
+      // Não verifica mais router.refresh() pois foi removido para melhor performance
     });
   });
 

@@ -164,7 +164,7 @@ describe('Componente TodoList', () => {
         title: 'Tarefa atualizada',
         description: 'O status da tarefa foi atualizado.',
       });
-      expect(mockRefresh).toHaveBeenCalled();
+      // Não verifica mais router.refresh() pois foi removido para melhor performance
     });
   });
 
