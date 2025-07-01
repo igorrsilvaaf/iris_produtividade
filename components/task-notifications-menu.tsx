@@ -66,156 +66,79 @@ export function TaskNotificationsMenu() {
     }
   })
 
-  const fetchTaskNotifications = async () => {
-    setLoading(true)
-    
-    const maxRetries = 3;
-    let retryCount = 0;
-    let success = false;
-    
-    while (retryCount < maxRetries && !success) {
-      try {
-        if (!navigator.onLine) {
-
-          break;
-        }
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // Aumentado para 15 segundos
-        const cacheKey = Date.now().toString();
-        const url = `/api/notifications/tasks?_cache=${cacheKey}`;
-        
-        console.log(`[TaskNotificationsMenu] Iniciando busca de notificações (tentativa ${retryCount + 1}/${maxRetries})`);
-
-        
-        const response = await fetch(url, {
-          signal: controller.signal,
-          cache: 'no-store',
-          credentials: 'same-origin',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (response.ok) {
-          const data = await response.json();
-          
-
-          
-          const sessionResponse = await fetch('/api/auth/session');
-          const sessionData = await sessionResponse.json();
-          
-          if (sessionData?.user && !user) {
-            setUser({
-              id: sessionData.user.id,
-              name: sessionData.user.name || '',
-              email: sessionData.user.email || '',
-              avatar_url: sessionData.user.avatar_url
-            });
-          }
-          
-          if (!sessionData || !sessionData.user || !sessionData.user.id) {
-            console.error('[TaskNotificationsMenu] Não foi possível obter informações da sessão do usuário');
-            setNotifications({
-              enabled: false,
-              overdueCount: 0,
-              dueTodayCount: 0,
-              upcomingCount: 0,
-              totalCount: 0,
-              tasks: {
-                overdueTasks: [],
-                dueTodayTasks: [],
-                upcomingTasks: []
-              }
-            });
-            success = true;
-            continue;
-          }
-          
-          const currentUserId = sessionData.user.id;
-          
-          if (data.userId && data.userId.toString() !== currentUserId.toString()) {
-            console.error(`[TaskNotificationsMenu] ERRO DE SEGURANÇA: Recebidas notificações para usuário incorreto. Esperado: ${currentUserId}, Recebido: ${data.userId}`);
-            throw new Error('Dados de usuário incorretos recebidos');
-          }
-          
-          if (data.tasks) {
-            const secureTasks = {
-              overdueTasks: data.tasks.overdueTasks?.filter((task: Todo) => task.user_id.toString() === currentUserId.toString()) || [],
-              dueTodayTasks: data.tasks.dueTodayTasks?.filter((task: Todo) => task.user_id.toString() === currentUserId.toString()) || [],
-              upcomingTasks: data.tasks.upcomingTasks?.filter((task: Todo) => task.user_id.toString() === currentUserId.toString()) || []
-            };
-            
-            if (secureTasks.overdueTasks.length !== data.tasks.overdueTasks?.length) {
-              console.error(`[TaskNotificationsMenu] Filtradas ${data.tasks.overdueTasks.length - secureTasks.overdueTasks.length} tarefas vencidas de outro usuário`);
-            }
-            if (secureTasks.dueTodayTasks.length !== data.tasks.dueTodayTasks?.length) {
-              console.error(`[TaskNotificationsMenu] Filtradas ${data.tasks.dueTodayTasks.length - secureTasks.dueTodayTasks.length} tarefas para hoje de outro usuário`);
-            }
-            if (secureTasks.upcomingTasks.length !== data.tasks.upcomingTasks?.length) {
-              console.error(`[TaskNotificationsMenu] Filtradas ${data.tasks.upcomingTasks.length - secureTasks.upcomingTasks.length} tarefas futuras de outro usuário`);
-            }
-            
-            data.tasks = secureTasks;
-            data.overdueCount = secureTasks.overdueTasks.length;
-            data.dueTodayCount = secureTasks.dueTodayTasks.length;
-            data.upcomingCount = secureTasks.upcomingTasks.length;
-            data.totalCount = secureTasks.overdueTasks.length + secureTasks.dueTodayTasks.length + secureTasks.upcomingTasks.length;
-            
-
-          }
-          
-          setNotifications(data);
-          success = true;
-        } else {
-          console.error(`Erro ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries}):`, 
-            response.status, response.statusText);
-          retryCount++;
-          
-          if (retryCount < maxRetries) {
-            await new Promise(r => setTimeout(r, retryCount * 1000));
-          }
-        }
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          console.error(`[TaskNotificationsMenu] Timeout ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries})`);
-        } else if (error instanceof Error) {
-          console.error(`[TaskNotificationsMenu] Erro ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries}):`, error.message);
-          if (error.stack) {
-            console.error('[TaskNotificationsMenu] Stack trace:', error.stack);
-          }
-        } else {
-          console.error(`[TaskNotificationsMenu] Erro desconhecido ao buscar notificações (tentativa ${retryCount + 1}/${maxRetries}):`, error);
-        }
-        
-        retryCount++;
-        
-        if (retryCount < maxRetries) {
-          const delay = retryCount * 2000; // Aumenta o delay entre tentativas para 2s, 4s, 6s...
-          console.log(`[TaskNotificationsMenu] Tentando novamente em ${delay/1000} segundos...`);
-          await new Promise(r => setTimeout(r, delay));
-        }
-      }
+  const fetchTaskNotifications = async (retryCount = 0, ignoreReadStatus = false) => {
+    if (retryCount === 0) {
+      setLoading(true)
     }
     
-    setLoading(false);
+    try {
+      
+      const response = await fetch(`/api/notifications/tasks?ignoreReadStatus=${ignoreReadStatus}`)
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Unauthorized")
+        }
+        if (response.status >= 500) {
+          throw new Error("Server error")
+        }
+        throw new Error(`Failed to fetch notifications: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      const validatedData = {
+        overdueCount: Number(data.overdueCount) || 0,
+        dueTodayCount: Number(data.dueTodayCount) || 0,
+        upcomingCount: Number(data.upcomingCount) || 0,
+        totalCount: Number(data.overdueCount || 0) + Number(data.dueTodayCount || 0) + Number(data.upcomingCount || 0),
+        tasks: {
+          overdueTasks: Array.isArray(data.overdueTasks) ? data.overdueTasks : [],
+          dueTodayTasks: Array.isArray(data.dueTodayTasks) ? data.dueTodayTasks : [],
+          upcomingTasks: Array.isArray(data.upcomingTasks) ? data.upcomingTasks : []
+        }
+      }
+
+      setNotifications(validatedData)
+      
+    } catch (error) {
+      if (retryCount < maxRetries - 1) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000)
+        
+        setTimeout(() => {
+          fetchTaskNotifications(retryCount + 1, ignoreReadStatus)
+        }, delay)
+      } else {
+        setNotifications({
+          overdueCount: 0,
+          dueTodayCount: 0,
+          upcomingCount: 0,
+          totalCount: 0,
+          tasks: {
+            overdueTasks: [],
+            dueTodayTasks: [],
+            upcomingTasks: []
+          }
+        })
+      }
+    } finally {
+      if (retryCount === 0) {
+        setLoading(false)
+      }
+    }
   }
 
   useEffect(() => {
+    const handleOpenChange = (isOpen: boolean) => {
+      if (isOpen) {
+        setViewed(true)
+        fetchTaskNotifications(0, true)
+      } else {
+      }
+    }
+
     if (open) {
-      console.log('[TaskNotificationsMenu] Menu de notificações aberto, buscando notificações...');
-      fetchTaskNotifications()
-      setViewed(true)
-      
-      // Limpa o estado de loading se o componente for desmontado
-      return () => {
-        console.log('[TaskNotificationsMenu] Menu de notificações fechado');
-        setLoading(false);
-      };
+      handleOpenChange(true)
     }
   }, [open])
   
@@ -296,7 +219,7 @@ export function TaskNotificationsMenu() {
     setCompletingTask(taskId)
     
     try {
-      const response = await fetch(`/api/tasks/${taskId}/complete`, {
+      const response = await fetch(`/api/tasks/${taskId}/${taskId}/complete`, {
         method: "PATCH",
       })
 

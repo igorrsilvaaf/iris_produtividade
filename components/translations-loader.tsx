@@ -1,7 +1,7 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
 import { useTranslation } from '@/lib/i18n'
+import { useEffect, useState } from 'react'
 
 interface TranslationsLoaderProps {
   children: React.ReactNode
@@ -9,36 +9,32 @@ interface TranslationsLoaderProps {
 }
 
 export function TranslationsLoader({ children, requiredKeys = [] }: TranslationsLoaderProps) {
-  const { t, language } = useTranslation()
+  const { t, isHydrated } = useTranslation()
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    const missingKeys = requiredKeys.filter(key => {
-      const translated = t(key)
-      const isMissing = translated === key
-      if (isMissing) {
-        console.warn(`[TRANSLATION MISSING] Key "${key}" for language: ${language}`)
-      }
-      return isMissing
+    if (!isHydrated) return
+
+    if (requiredKeys.length === 0) {
+      setIsReady(true)
+      return
+    }
+
+    const allTranslationsAvailable = requiredKeys.every(key => {
+      const translation = t(key)
+      return translation !== key
     })
 
-    if (missingKeys.length === 0) {
-      console.log('TranslationsLoader - All required translations are available')
+    if (allTranslationsAvailable) {
       setIsReady(true)
     } else {
-      const timer = setTimeout(() => {
-        console.log('TranslationsLoader - Proceeding with missing translations')
-        setIsReady(true)
-      }, 100)
-      
-      return () => clearTimeout(timer)
+      setIsReady(true)
     }
-  }, [language, t])
+  }, [isHydrated, t, requiredKeys])
 
-  if (!isReady) {
-    console.log('TranslationsLoader - Waiting for translations to be ready...')
+  if (!isHydrated || !isReady) {
     return null
   }
-  
+
   return <>{children}</>
 }

@@ -4,7 +4,7 @@ import { getTaskById, updateTask, deleteTask } from "@/lib/todos";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ taskId: string; id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -13,8 +13,8 @@ export async function GET(
     }
 
     const userId = session.user.id;
-    const resolvedParams = await Promise.resolve(params);
-    const taskId = parseInt(resolvedParams.id, 10);
+    const resolvedParams = await params;
+    const taskId = parseInt(resolvedParams.taskId || resolvedParams.id, 10);
 
     if (isNaN(taskId)) {
       return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
@@ -37,7 +37,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ taskId: string; id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -46,8 +46,8 @@ export async function PUT(
     }
 
     const userId = session.user.id;
-    const resolvedParams = await Promise.resolve(params);
-    const taskId = parseInt(resolvedParams.id, 10);
+    const resolvedParams = await params;
+    const taskId = parseInt(resolvedParams.taskId || resolvedParams.id, 10);
 
     if (isNaN(taskId)) {
       return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
@@ -84,7 +84,7 @@ export async function PUT(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ taskId: string; id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -93,8 +93,8 @@ export async function PATCH(
     }
 
     const userId = session.user.id;
-    const resolvedParams = await Promise.resolve(params);
-    const taskId = parseInt(resolvedParams.id, 10);
+    const resolvedParams = await params;
+    const taskId = parseInt(resolvedParams.taskId || resolvedParams.id, 10);
 
     if (isNaN(taskId)) {
       return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });
@@ -121,7 +121,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ taskId: string; id: string }> }
 ) {
   try {
     const session = await getSession();
@@ -130,8 +130,8 @@ export async function DELETE(
     }
 
     const userId = session.user.id;
-    const resolvedParams = await Promise.resolve(params);
-    const taskId = parseInt(resolvedParams.id, 10);
+    const resolvedParams = await params;
+    const taskId = parseInt(resolvedParams.taskId || resolvedParams.id, 10);
 
     if (isNaN(taskId)) {
       return NextResponse.json({ error: "Invalid task ID" }, { status: 400 });

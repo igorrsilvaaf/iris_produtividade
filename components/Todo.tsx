@@ -92,6 +92,7 @@ function formatDueDate(dueDate: string | null, t: any) {
 
 export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
   const [isClient, setIsClient] = useState(false)
+  const [optimisticTodo, setOptimisticTodo] = useState<TodoType | null>(todo || null)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
@@ -106,6 +107,13 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
   
   // Estado para dados locais
   const [localData, setLocalData] = useState<TodoType | null>(null)
+
+  // Sincronizar com props quando mudarem
+  useEffect(() => {
+    if (todo) {
+      setOptimisticTodo(todo)
+    }
+  }, [todo])
   
   // Carregar dados do localStorage apenas no cliente e apenas na primeira renderização
   useEffect(() => {
@@ -115,7 +123,9 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
       if (!todo && localStorage) {
         const saved = localStorage.getItem('todo-data')
         if (saved) {
-          setLocalData(JSON.parse(saved))
+          const parsed = JSON.parse(saved)
+          setLocalData(parsed)
+          setOptimisticTodo(parsed)
         }
       }
       initialLoadDone.current = true
@@ -125,41 +135,54 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
   }, [isClient, todo])
 
   useEffect(() => {
-    if (!isClient || !todo) return
+    if (!isClient || !optimisticTodo) return
     
     const timeoutId = setTimeout(() => {
       try {
-        localStorage.setItem('todo-data', JSON.stringify(todo))
+        localStorage.setItem('todo-data', JSON.stringify(optimisticTodo))
       } catch (error) {
         console.error("Erro ao salvar no localStorage:", error)
       }
     }, 500)
     
     return () => clearTimeout(timeoutId)
-  }, [isClient, todo])
+  }, [isClient, optimisticTodo])
 
-  const todoData = todo || localData
+  const todoData = optimisticTodo || localData
   
   if (!todoData) {
     return null
   }
 
-  const handleComplete = (e: React.MouseEvent) => {
+  const handleComplete = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (onComplete) {
       onComplete(todoData.id)
     } else {
+      // Atualização otimista - atualizar UI imediatamente
+      const originalTodo = optimisticTodo
+      const updatedTodo = { ...todoData, completed: !todoData.completed }
+      setOptimisticTodo(updatedTodo)
+
       try {
-        fetch(`/api/tasks/${todoData.id}/toggle`, {
+        const response = await fetch(`/api/tasks/toggle/${todoData.id}`, {
           method: "PATCH",
-        }).then(() => {
-          toast({
-            title: t ? t("Task updated") : "Tarefa atualizada",
-            description: t ? t("Task status has been updated.") : "O status da tarefa foi atualizado.",
-          })
-          router.refresh()
         })
+        
+        if (!response.ok) {
+          throw new Error(`Failed to toggle task: ${response.statusText}`)
+        }
+        
+        toast({
+          title: t ? t("Task updated") : "Tarefa atualizada",
+          description: t ? t("Task status has been updated.") : "O status da tarefa foi atualizado.",
+        })
+        
+        // Sincronização silenciosa - sem refresh imediato para melhor UX
       } catch (error) {
+        // Reverter mudanças otimistas em caso de erro
+        setOptimisticTodo(originalTodo)
+        
         toast({
           variant: "destructive",
           title: t ? t("Failed to update task") : "Falha ao atualizar tarefa",
@@ -169,21 +192,26 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
     }
   }
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (onDelete) {
       onDelete(todoData.id)
     } else {
       try {
-        fetch(`/api/tasks/${todoData.id}`, {
+        const response = await fetch(`/api/tasks/${todoData.id}/${todoData.id}`, {
           method: "DELETE",
-        }).then(() => {
-          toast({
-            title: t ? t("taskDeleted") : "Tarefa excluída",
-            description: t ? t("Task has been deleted successfully.") : "A tarefa foi excluída com sucesso.",
-          })
-          router.refresh()
         })
+        
+        if (!response.ok) {
+          throw new Error(`Failed to delete task: ${response.statusText}`)
+        }
+        
+        toast({
+          title: t ? t("taskDeleted") : "Tarefa excluída",
+          description: t ? t("Task has been deleted successfully.") : "A tarefa foi excluída com sucesso.",
+        })
+        
+        router.refresh()
       } catch (error) {
         toast({
           variant: "destructive",

@@ -1,8 +1,6 @@
 "use client"
 
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react'
 
 type Language = "en" | "pt"
 
@@ -12,11 +10,27 @@ type Translations = {
   }
 }
 
+// Função para definir cookies
 function setCookie(name: string, value: string) {
   if (typeof document !== 'undefined') {
-    document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Strict`;
-
+    document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Strict`
   }
+}
+
+// Função para obter cookies
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null
+  
+  const cookies = document.cookie.split(';').map(c => c.trim())
+  const cookie = cookies.find(c => c.startsWith(`${name}=`))
+  return cookie ? cookie.split('=')[1] : null
+}
+
+// Função para obter idioma do sistema
+function getSystemLanguage(): Language {
+  if (typeof navigator === 'undefined') return 'pt'
+  const browserLang = navigator.language.split('-')[0]
+  return browserLang === 'pt' ? 'pt' : 'en'
 }
 
 export const translations: Translations = {
@@ -2797,145 +2811,59 @@ export const translations: Translations = {
   },
 }
 
-type LanguageState = {
+interface LanguageStore {
   language: Language
-  setLanguage: (language: Language) => void
   isHydrated: boolean
+  setLanguage: (language: Language) => void
   setHydrated: (hydrated: boolean) => void
 }
 
-const DEFAULT_LANGUAGE: Language = "pt"
+// Estado simples sem zustand
+let currentLanguage: Language = 'pt';
+let isHydrated = false;
 
-// Função para obter o idioma inicial do navegador
-const getInitialLanguage = (): Language => {
-  if (typeof window === 'undefined') return 'pt';
+// Função para reidratar o store do lado do cliente
+export const rehydrateLanguageStore = () => {
+  if (typeof window === 'undefined') return;
   
-  // Verificar se há um cookie de idioma
-  const cookies = document.cookie.split(';').map(c => c.trim());
-  const langCookie = cookies.find(c => c.startsWith('user-language='));
-  
-  if (langCookie) {
-    const lang = langCookie.split('=')[1];
-    if (lang === 'en' || lang === 'pt') return lang;
+  const cookieLang = getCookie('language');
+  if (cookieLang && (cookieLang === 'en' || cookieLang === 'pt')) {
+    currentLanguage = cookieLang;
+  } else {
+    currentLanguage = getSystemLanguage();
   }
   
-  // Verificar o idioma do navegador
-  const browserLang = navigator.language.split('-')[0];
-  return browserLang === 'pt' ? 'pt' : 'en';
+  isHydrated = true;
 };
 
-export const useLanguageStore = create<LanguageState>()(
-  persist(
-    (set, get) => {
-      const initialLanguage = getInitialLanguage();
-      console.log('Initializing language store with language:', initialLanguage);
-      
-      // Definir o cookie se não estiver definido
-      if (typeof window !== 'undefined') {
-        const cookies = document.cookie.split(';').map(c => c.trim());
-        const langCookie = cookies.find(c => c.startsWith('user-language='));
-        
-        if (!langCookie) {
-          console.log('Setting initial language cookie:', initialLanguage);
-          setCookie('user-language', initialLanguage);
-        }
-      }
-      
-      return {
-        language: initialLanguage,
-        isHydrated: false,
-        setLanguage: (language) => {
-          console.log('Setting language to:', language, 'previous:', get().language);
-          set({ language });
-          setCookie('user-language', language);
-          console.log('Language set to:', language, 'new state:', get());
-        },
-        setHydrated: (hydrated) => {
-          console.log('Setting hydrated to:', hydrated, 'previous:', get().isHydrated);
-          set({ isHydrated: hydrated });
-          console.log('Hydrated set to:', hydrated, 'new state:', get());
-        },
-      };
-    },
-    {
-      name: 'language-storage',
-      onRehydrateStorage: () => {
-        console.log('Starting rehydration of language store...');
-        return (state) => {
-          console.log('Language store rehydrated with state:', state);
-          if (state) {
-            console.log('Setting hydrated to true');
-            state.setHydrated(true);
-            
-            // Verificar se há um cookie de idioma e sincronizar
-            const cookies = document.cookie.split(';').map(c => c.trim());
-            const langCookie = cookies.find(c => c.startsWith('user-language='));
-            
-            if (langCookie) {
-              const cookieLang = langCookie.split('=')[1];
-              console.log('Found language cookie:', cookieLang);
-              
-              if ((cookieLang === 'en' || cookieLang === 'pt') && cookieLang !== state.language) {
-                console.log(`Updating language from cookie: ${cookieLang} (current: ${state.language})`);
-                state.setLanguage(cookieLang);
-              }
-            } else {
-              console.log('No language cookie found, using default language');
-            }
-          }
-        };
-      },
-    }
-  )
-)
-
 export function useTranslation() {
-  const { language, setLanguage, isHydrated } = useLanguageStore()
-  
-  useEffect(() => {
-    console.log('useTranslation - Current language:', language);
-    console.log('useTranslation - isHydrated:', isHydrated);
-  }, [language, isHydrated])
+  const setLanguage = (language: Language) => {
+    currentLanguage = language;
+    setCookie('language', language);
+  };
 
   const t = (key: string): string => {
-    console.log(`[t] Translating key: "${key}" for language: ${language}`);
-    
     if (!translations[key]) {
-      console.warn(`[TRADUÇÃO FALTANDO] Key: "${key}" para o idioma: ${language}`)
-      
-      const suggestion = `  "${key}": {
-    en: "${key}",
-    pt: "TRADUÇÃO PENDENTE",
-  },`
-      console.info('Adicione isto ao arquivo i18n.ts:\n', suggestion)
-      return key
+      return key;
     }
     
-    const translated = translations[key][language] || translations[key]['en'] || key
-    
-    if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
-      // Nada a fazer aqui, apenas mantendo a compatibilidade
-    }
-    
-    console.log(`[t] Translated "${key}" to "${translated}" (language: ${language})`);
-    return translated
-  }
+    const translated = translations[key][currentLanguage] || translations[key]['en'] || key;
+    return translated;
+  };
 
-  return { t, language, setLanguage }
+  return {
+    t,
+    language: currentLanguage,
+    isHydrated,
+    setLanguage,
+  };
 }
 
 export function getServerTranslation(key: string, language: "en" | "pt" = "pt"): string {
   if (!translations[key]) {
-    console.warn(`[getServerTranslation] Tradução não encontrada para: ${key}`)
     return key
   }
   
-  const translated = translations[key][language] || key
-  
-  if (['inbox', 'today', 'upcoming', 'completed', 'projects', 'labels'].includes(key)) {
-
-  }
-  
-  return translated
+  return translations[key][language] || key
 }
 

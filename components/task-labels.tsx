@@ -120,7 +120,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
 
   const addLabelToTask = async (labelId: number) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}/labels`, {
+      const response = await fetch(`/api/tasks/${taskId}/${taskId}/labels`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ labelId }),
@@ -152,7 +152,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
 
   const removeLabelFromTask = async (labelId: number) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}/labels`, {
+      const response = await fetch(`/api/tasks/${taskId}/${taskId}/labels`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ labelId }),
@@ -170,7 +170,6 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
       })
 
     } catch (error) {
-      console.error(`[TaskLabels] Erro ao remover label:`, error);
       toast({
         variant: "destructive",
         title: t("Failed to remove label"),

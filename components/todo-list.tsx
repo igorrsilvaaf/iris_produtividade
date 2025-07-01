@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useCallback, memo } from "react"
+import { useMemo, useState, useCallback, memo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Flag, Clock, CircleDot, Check, Trash, Calendar, FileText, ArrowUpDown } from "lucide-react"
 import type { Todo } from "@/lib/todos"
@@ -100,12 +100,18 @@ TaskItem.displayName = "TaskItem"
 
 export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
   const [sortBy, setSortBy] = useState<SortOption>("priority")
+  const [optimisticTasks, setOptimisticTasks] = useState<Todo[]>(tasks)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
 
+  // Sincronizar com as props quando mudarem
+  useEffect(() => {
+    setOptimisticTasks(tasks)
+  }, [tasks])
+
   const sortedTasks = useMemo(() => {
-    const tasksCopy = [...tasks];
+    const tasksCopy = [...optimisticTasks];
     
     switch (sortBy) {
       case "priority":
@@ -125,34 +131,55 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
       default:
         return tasksCopy;
     }
-  }, [tasks, sortBy]);
+  }, [optimisticTasks, sortBy]);
 
   const toggleTaskCompletion = useCallback(async (taskId: number) => {
+    // Atualização otimista - atualizar UI imediatamente
+    const originalTasks = [...optimisticTasks]
+    const updatedTasks = optimisticTasks.map(task => 
+      task.id === taskId 
+        ? { ...task, completed: !task.completed }
+        : task
+    )
+    setOptimisticTasks(updatedTasks)
+
     try {
-      await fetch(`/api/tasks/${taskId}/toggle`, {
+      const response = await fetch(`/api/tasks/toggle/${taskId}`, {
         method: "PATCH",
       })
+      
+      if (!response.ok) {
+        throw new Error(`Failed to toggle task: ${response.statusText}`)
+      }
 
       toast({
         title: t("Task updated"),
         description: t("Task status has been updated."),
       })
 
-      router.refresh()
+      // Sincronização silenciosa - sem refresh imediato para melhor UX
+
     } catch (error) {
+      // Reverter mudanças otimistas em caso de erro
+      setOptimisticTasks(originalTasks)
+      
       toast({
         variant: "destructive",
         title: t("Failed to update task"),
         description: t("Please try again."),
       })
     }
-  }, [router, toast, t])
+  }, [optimisticTasks, toast, t, router])
 
   const deleteTask = useCallback(async (taskId: number) => {
     try {
-      await fetch(`/api/tasks/${taskId}`, {
+      const response = await fetch(`/api/tasks/${taskId}`, {
         method: "DELETE",
       })
+      
+      if (!response.ok) {
+        throw new Error(`Failed to delete task: ${response.statusText}`)
+      }
 
       toast({
         title: t("taskDeleted"),
@@ -160,6 +187,7 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
       })
 
       router.refresh()
+
     } catch (error) {
       toast({
         variant: "destructive",
@@ -167,7 +195,7 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
         description: t("Please try again."),
       })
     }
-  }, [router, toast, t])
+  }, [toast, t, router])
 
   const getPriorityColor = useCallback((priority: number) => {
     switch (priority) {

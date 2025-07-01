@@ -576,18 +576,23 @@ export function generatePDF(data: ReportData): Buffer {
       // Continuar sem o rodapé se houver erro
     }
     
-    console.log("Geração de PDF concluída, convertendo para buffer...");
+    // Finalizar o documento PDF
+    doc.end();
+
+    // Converter o stream para buffer
+    const buffers: Buffer[] = [];
+    doc.on('data', buffers.push.bind(buffers));
     
-    // Converter para buffer com tratamento de erro
-    try {
-      const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
-      return pdfBuffer;
-    } catch (err) {
-      console.error("Erro ao converter PDF para buffer:", err);
-      throw new Error("Falha ao converter o PDF para download: " + (err instanceof Error ? err.message : String(err)));
-    }
+    return new Promise<Buffer>((resolve, reject) => {
+      doc.on('end', () => {
+        
+        const pdfBuffer = Buffer.concat(buffers);
+        resolve(pdfBuffer);
+      });
+      
+      doc.on('error', reject);
+    });
   } catch (error) {
-    console.error('Erro ao gerar PDF:', error);
-    throw new Error('Falha ao gerar o PDF: ' + (error instanceof Error ? error.message : String(error)));
+    throw new Error(`Erro ao gerar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
   }
 } 

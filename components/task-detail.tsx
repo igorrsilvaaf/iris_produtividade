@@ -184,12 +184,10 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       if (!open || task.id === undefined) return;
 
       try {
-        console.log(`[TaskDetail] Buscando projeto para task ID: ${task.id}`);
         const response = await fetch(`/api/tasks/${task.id}/${task.id}/project`);
         
         if (response.ok) {
           const data = await response.json();
-          console.log(`[TaskDetail] Projeto encontrado:`, data);
           if (data.projectId) {
             setProjectId(data.projectId.toString());
           } else {
@@ -309,9 +307,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       fetch('/api/auth/session')
         .then(res => res.json())
         .then(session => {
-          console.log('Session debug:', session);
           if (session?.user) {
-            console.log('User authenticated, fetching projects...');
             fetchProjects();
           } else {
             console.error('User not authenticated - cannot fetch projects');
@@ -395,7 +391,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         estimatedTimeUnit
       );
 
-      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
+      const taskResponse = await fetch(`/api/tasks/${task.id}/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -465,12 +461,17 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
     setIsDeleting(true);
 
     try {
-      const response = await fetch(`/api/tasks/${task.id}`, {
+      const response = await fetch(`/api/tasks/${task.id}/${task.id}`, {
         method: "DELETE",
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete task");
+        const errorData = await response.json();
+        throw new Error(`Failed to delete task: ${errorData.error}`);
       }
 
       onOpenChange(false);
@@ -480,16 +481,12 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         description: t("Your task has been deleted successfully."),
         variant: "success",
       });
-
-      setTimeout(() => {
-        router.refresh();
-      }, 300);
+      
     } catch (error) {
-      console.error(`[TaskDetail] Erro ao excluir tarefa:`, error);
       toast({
         variant: "destructive",
         title: t("Failed to delete task"),
-        description: t("Please try again."),
+        description: error instanceof Error ? error.message : t("Please try again."),
       });
     } finally {
       setIsDeleting(false);
@@ -557,7 +554,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
   const updateTaskDescription = async (newDescription: string) => {
     try {
-      const response = await fetch(`/api/tasks/${task.id}`, {
+      const response = await fetch(`/api/tasks/${task.id}/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -772,13 +769,9 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   useEffect(() => {
     if (open && task.due_date) {
       if (dueDate === undefined) {
-        console.warn(
-          "[TaskDetail] Data indefinida detectada, tentando reparar"
-        );
         try {
           setDueDate(new Date(task.due_date));
         } catch (error) {
-          console.error(`[TaskDetail] Falha ao reparar data: ${error}`);
         }
       }
     }
@@ -791,7 +784,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
   const toggleCompletion = async () => {
     try {
-      const response = await fetch(`/api/tasks/${task.id}/complete`, {
+      const response = await fetch(`/api/tasks/complete/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -803,19 +796,15 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         throw new Error("Failed to update task completion status");
       }
 
-      router.refresh();
-
       toast({
         title: task.completed
           ? t("Task marked as incomplete")
           : t("Task marked as complete"),
         variant: "success",
       });
+
+      router.refresh();
     } catch (error) {
-      console.error(
-        `[TaskDetail] Erro ao atualizar status de conclusão:`,
-        error
-      );
       toast({
         variant: "destructive",
         title: t("Failed to update task"),
@@ -948,7 +937,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         name: data.name,
       };
 
-      const taskDetailResponse = await fetch(`/api/tasks/${task.id}`);
+      const taskDetailResponse = await fetch(`/api/tasks/${task.id}/${task.id}`);
 
       if (!taskDetailResponse.ok) {
         throw new Error("Failed to fetch updated task");
@@ -1018,7 +1007,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
       const updatedAttachments = [...currentAttachments, newAttachment];
 
-      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
+      const taskResponse = await fetch(`/api/tasks/${task.id}/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1081,7 +1070,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       const updatedAttachments = [...currentAttachments];
       updatedAttachments.splice(index, 1);
 
-      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
+      const taskResponse = await fetch(`/api/tasks/${task.id}/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1168,7 +1157,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         onOpenChange(newOpen);
       }}
     >
-      <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-auto w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? t("Editar Tarefa") : t("Detalhes da Tarefa")}
@@ -1217,7 +1206,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">{t("dueDate")}</label>
               <div className="flex flex-col space-y-2">
@@ -1229,22 +1218,24 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal",
+                        "w-full justify-start text-left font-normal text-sm",
                         !dueDate && "text-muted-foreground",
                         !isEditMode && "cursor-not-allowed"
                       )}
                       disabled={!isEditMode}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dueDate ? (
-                        isAllDay ? (
-                          format(dueDate, "PPP")
+                      <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">
+                        {dueDate ? (
+                          isAllDay ? (
+                            format(dueDate, "dd/MM/yyyy")
+                          ) : (
+                            `${format(dueDate, "dd/MM/yyyy")} ${dueTime}`
+                          )
                         ) : (
-                          `${format(dueDate, "PPP")} ${dueTime}`
-                        )
-                      ) : (
-                        <span>{t("Pick a date")}</span>
-                      )}
+                          t("Pick a date")
+                        )}
+                      </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -1304,8 +1295,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         </div>
                       </div>
                       <div className={`mt-2 ${isAllDay ? "hidden" : ""}`}>
-                        <div className="flex items-center">
-                          <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           <Input
                             type="time"
                             value={dueTime}
@@ -1388,7 +1379,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">
                 {t("points") || "Pontos"}
@@ -1447,11 +1438,11 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
               <label className="text-sm font-medium">
                 {t("Tempo estimado")}
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Input
                   type="number"
                   placeholder={t("Tempo")}
-                  className={`w-full ${
+                  className={`flex-1 ${
                     !isEditMode ? "cursor-not-allowed" : ""
                   }`}
                   min="0"
@@ -1469,7 +1460,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   disabled={!isEditMode}
                 >
                   <SelectTrigger
-                    className={`w-[110px] ${
+                    className={`w-full sm:w-[110px] ${
                       !isEditMode ? "cursor-not-allowed" : ""
                     }`}
                   >
@@ -1821,13 +1812,15 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           </div>
 
           {/* Seção de Comentários */}
-          <div className="border-t pt-6 mt-6">
-            <h3 className="text-lg font-medium mb-4">Comentários</h3>
-            <TaskComments taskId={task.id} user={user} />
+          <div className="border-t pt-4 mt-6">
+            <h3 className="text-lg font-medium mb-4 px-1">Comentários</h3>
+            <div className="px-1">
+              <TaskComments taskId={task.id} user={user || null} />
+            </div>
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row justify-between gap-2 pt-4">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-4 px-2">
           <Button
             variant="secondary"
             size="sm"
@@ -1859,12 +1852,12 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 onOpenChange(false);
               }
             }}
-            className="w-full sm:w-28"
+            className="w-full sm:w-auto min-w-[100px]"
           >
             <X className="mr-1 h-4 w-4" />
             {isEditMode ? t("cancel") : t("close")}
           </Button>
-          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             {isEditMode ? (
               <>
                 <Button
@@ -1872,7 +1865,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   size="sm"
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="w-full sm:w-28"
+                  className="w-full sm:w-auto min-w-[100px]"
                 >
                   <Trash className="mr-1 h-4 w-4" />
                   {isDeleting ? t("Deleting...") : t("delete")}
@@ -1881,7 +1874,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   size="sm"
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="w-full sm:w-28"
+                  className="w-full sm:w-auto min-w-[100px]"
                 >
                   <Check className="mr-1 h-4 w-4" />
                   {isSaving ? t("Saving...") : t("save")}
@@ -1892,7 +1885,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 <Button
                   size="sm"
                   onClick={() => setIsEditMode(true)}
-                  className="w-full sm:w-28"
+                  className="w-full sm:w-auto min-w-[100px]"
                 >
                   <Edit className="mr-1 h-4 w-4" />
                   {t("edit")}

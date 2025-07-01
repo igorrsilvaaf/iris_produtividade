@@ -41,11 +41,15 @@ export function ServiceWorkerRegistration() {
     }
 
     const safeClipboardWrite = async (text: string): Promise<void> => {
-      if (navigator.clipboard) {
-        return navigator.clipboard.writeText(text);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(text)
+          return true
+        } catch (err) {
+          return false
+        }
       } else {
-        console.warn("API Clipboard não é suportada neste navegador");
-        return Promise.resolve();
+        return false
       }
     };
 

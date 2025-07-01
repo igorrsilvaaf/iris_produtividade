@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import prisma from './prisma';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -70,7 +71,6 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     AND t.due_date >= ${today.toISOString()}
     AND t.due_date < ${tomorrow.toISOString()}
     AND t.completed = false
-    AND t.due_date >= ${now.toISOString()}
     ORDER BY t.kanban_order ASC NULLS LAST, t.priority ASC, t.due_date ASC
   `;
 
@@ -188,6 +188,15 @@ export async function updateTask(
 ): Promise<Todo> {
   const now = new Date().toISOString();
 
+  // Verificar se a tarefa existe e pertence ao usuário
+  const existingTask = await sql`
+    SELECT id, user_id FROM todos WHERE id = ${taskId} AND user_id = ${userId}
+  `;
+
+  if (existingTask.length === 0) {
+    throw new Error("Task not found or not owned by user");
+  }
+
   if (updates.due_date !== undefined) {
     try {
       if (updates.due_date !== null) {
@@ -195,28 +204,15 @@ export async function updateTask(
         if (!isNaN(date.getTime())) {
           updates.due_date = date.toISOString();
         } else {
-          console.error(
-            `[updateTask] ERRO: Data inválida fornecida: ${updates.due_date}`,
-          );
+          updates.due_date = null;
         }
       }
     } catch (error) {
-      console.error(`[updateTask] Erro ao processar data: ${error}`);
+      updates.due_date = null;
     }
   }
 
-  if (updates.kanban_column !== undefined) {
-  }
-
-  if (updates.kanban_order !== undefined) {
-  }
-
-  if (updates.points !== undefined) {
-  }
-
   if (updates.attachments !== undefined) {
-
-
     // Garantir que attachments seja sempre um array válido antes de atualizar
     let normalizedAttachments = [];
     try {
@@ -226,28 +222,22 @@ export async function updateTask(
         try {
           normalizedAttachments = JSON.parse(updates.attachments);
         } catch (e) {
-          console.error(
-            `[updateTask] Erro ao parsear anexos como string: ${e}`,
-          );
-          // Obter os anexos atuais da tarefa em vez de substituir com array vazio
-          const existingTask = await getTaskById(taskId, userId);
-          normalizedAttachments = existingTask?.attachments || [];
+          // Manter anexos atuais em caso de erro
+          const currentTask = await getTaskById(taskId, userId);
+          normalizedAttachments = currentTask?.attachments || [];
         }
       } else if (updates.attachments) {
-        // Obter os anexos atuais da tarefa em vez de substituir com array vazio
-        const existingTask = await getTaskById(taskId, userId);
-        normalizedAttachments = existingTask?.attachments || [];
+        // Manter anexos atuais se formato inválido
+        const currentTask = await getTaskById(taskId, userId);
+        normalizedAttachments = currentTask?.attachments || [];
       }
     } catch (error) {
-      // Obter os anexos atuais da tarefa em vez de substituir com array vazio
-      const existingTask = await getTaskById(taskId, userId);
-      normalizedAttachments = existingTask?.attachments || [];
+      // Manter anexos atuais em caso de erro
+      const currentTask = await getTaskById(taskId, userId);
+      normalizedAttachments = currentTask?.attachments || [];
     }
 
     updates.attachments = normalizedAttachments;
-  }
-
-  if (updates.estimated_time !== undefined) {
   }
 
   const [task] = await sql`
@@ -289,6 +279,16 @@ export async function toggleTaskCompletion(
 ): Promise<Todo> {
   const now = new Date().toISOString();
 
+  // Primeiro verificar se a tarefa existe e pertence ao usuário
+  const existingTask = await sql`
+    SELECT id, user_id, completed FROM todos WHERE id = ${taskId} AND user_id = ${userId}
+  `;
+
+  if (existingTask.length === 0) {
+    throw new Error("Task not found or not owned by user");
+  }
+
+  // Executar a atualização
   const [task] = await sql`
     UPDATE todos
     SET
@@ -298,6 +298,10 @@ export async function toggleTaskCompletion(
     RETURNING *
   `;
 
+  if (!task) {
+    throw new Error("Failed to update task completion status");
+  }
+
   return task as Todo;
 }
 
@@ -305,10 +309,35 @@ export async function deleteTask(
   taskId: number,
   userId: number,
 ): Promise<void> {
-  await sql`
-    DELETE FROM todos
-    WHERE id = ${taskId} AND user_id = ${userId}
-  `;
+  
+  try {
+    // Primeiro verificar se a tarefa existe e pertence ao usuário
+    const existingTask = await sql`
+      SELECT id, user_id FROM todos WHERE id = ${taskId} AND user_id = ${userId}
+    `;
+    
+    if (existingTask.length === 0) {
+      throw new Error("Task not found or not owned by user");
+    }
+    
+    // Deletar anexos relacionados
+    await prisma.attachments.deleteMany({
+      where: {
+        entity_type: 'task',
+        entity_id: taskId,
+        user_id: userId
+      }
+    });
+    
+    // Deletar a tarefa
+    const result = await sql`
+      DELETE FROM todos
+      WHERE id = ${taskId} AND user_id = ${userId}
+    `;
+    
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function getTaskById(
@@ -323,7 +352,39 @@ export async function getTaskById(
     WHERE t.id = ${taskId} AND t.user_id = ${userId}
   `;
 
-  return tasks.length > 0 ? (tasks[0] as Todo) : null;
+  if (tasks.length === 0) {
+    return null;
+  }
+
+  const task = tasks[0] as Todo;
+
+  // Buscar anexos da nova tabela
+  try {
+    const attachments = await prisma.attachments.findMany({
+      where: {
+        entity_type: 'task',
+        entity_id: taskId,
+        user_id: userId
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
+    });
+
+    // Converter anexos para o formato esperado pelo frontend
+    task.attachments = attachments.map(att => ({
+      id: att.id,
+      type: att.mime_type.startsWith('image/') ? 'image' : 'file',
+      url: att.file_path,
+      name: att.file_name,
+      size: Number(att.file_size)
+    }));
+  } catch (error) {
+    console.error('Error fetching attachments:', error);
+    task.attachments = [];
+  }
+
+  return task;
 }
 
 export async function getTaskProject(
@@ -487,173 +548,70 @@ export async function getTasksForNotifications(
   dueTodayTasks: Todo[];
   upcomingTasks: Todo[];
 }> {
-  try {
-    const userCheck =
-      await sql`SELECT id FROM users WHERE id = ${userId} LIMIT 1`;
-    if (userCheck.length === 0) {
-      return {
-        overdueCount: 0,
-        dueTodayCount: 0,
-        upcomingCount: 0,
-        overdueTasks: [],
-        dueTodayTasks: [],
-        upcomingTasks: [],
-      };
-    }
+  
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
 
-    // Forçar processamento separado para evitar problemas de cache
-    const cacheBreaker = Date.now().toString();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const now = new Date();
-    const today = new Date(now);
-    today.setHours(0, 0, 0, 0);
+  const futureDate = new Date(today);
+  futureDate.setDate(futureDate.getDate() + daysAhead);
 
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+  // Tasks vencidas (overdue)
+  const overdueTasks = await sql`
+    SELECT t.*, p.name as project_name, p.color as project_color
+    FROM todos t
+    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+    LEFT JOIN projects p ON tp.project_id = p.id
+    WHERE t.user_id = ${userId}
+    AND t.due_date IS NOT NULL
+    AND t.due_date < ${today.toISOString()}
+    AND t.completed = false
+    ORDER BY t.due_date ASC
+  `;
 
-    const futureDate = new Date(today);
-    futureDate.setDate(futureDate.getDate() + daysAhead);
+  // Tasks para hoje (due today)
+  const dueTodayTasks = await sql`
+    SELECT t.*, p.name as project_name, p.color as project_color
+    FROM todos t
+    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+    LEFT JOIN projects p ON tp.project_id = p.id
+    WHERE t.user_id = ${userId}
+    AND t.due_date IS NOT NULL
+    AND t.due_date >= ${today.toISOString()}
+    AND t.due_date < ${tomorrow.toISOString()}
+    AND t.completed = false
+    ORDER BY t.due_date ASC
+  `;
 
-    // Adicionando parâmetro para evitar cache entre consultas
-    const overdueTasks = await sql`
-      WITH user_overdue_tasks AS (
-        SELECT t.*, p.name as project_name, p.color as project_color
-        FROM todos t
-        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-        LEFT JOIN projects p ON tp.project_id = p.id
-        WHERE t.user_id = ${userId}
-        AND t.due_date IS NOT NULL
-        AND t.due_date < ${today.toISOString()}
-        AND t.completed = false
-        ORDER BY t.due_date ASC, t.priority ASC
-        LIMIT 10
-      )
-      SELECT * FROM user_overdue_tasks
-      WHERE user_id = ${userId} /* Garantia adicional */
-    `;
+  // Tasks futuras (upcoming)
+  const upcomingTasks = await sql`
+    SELECT t.*, p.name as project_name, p.color as project_color
+    FROM todos t
+    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
+    LEFT JOIN projects p ON tp.project_id = p.id
+    WHERE t.user_id = ${userId}
+    AND t.due_date IS NOT NULL
+    AND t.due_date >= ${tomorrow.toISOString()}
+    AND t.due_date < ${futureDate.toISOString()}
+    AND t.completed = false
+    ORDER BY t.due_date ASC
+  `;
 
-    const dueTodayTasks = await sql`
-      WITH user_today_tasks AS (
-        SELECT t.*, p.name as project_name, p.color as project_color
-        FROM todos t
-        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-        LEFT JOIN projects p ON tp.project_id = p.id
-        WHERE t.user_id = ${userId}
-        AND t.due_date IS NOT NULL
-        AND t.due_date >= ${today.toISOString()}
-        AND t.due_date < ${tomorrow.toISOString()}
-        AND t.completed = false
-        ORDER BY t.due_date ASC, t.priority ASC
-        LIMIT 10
-      )
-      SELECT * FROM user_today_tasks
-      WHERE user_id = ${userId} /* Garantia adicional */
-    `;
+  const safeOverdueTasks = Array.isArray(overdueTasks) ? overdueTasks : [];
+  const safeDueTodayTasks = Array.isArray(dueTodayTasks) ? dueTodayTasks : [];
+  const safeUpcomingTasks = Array.isArray(upcomingTasks) ? upcomingTasks : [];
 
-    let upcomingTasksQuery;
-
-    if (daysAhead === 1) {
-      upcomingTasksQuery = await sql`
-        WITH user_upcoming_tasks AS (
-          SELECT t.*, p.name as project_name, p.color as project_color
-          FROM todos t
-          LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-          LEFT JOIN projects p ON tp.project_id = p.id
-          WHERE t.user_id = ${userId}
-          AND t.due_date IS NOT NULL
-          AND CAST(t.due_date AS DATE) = CAST(${tomorrow.toISOString()} AS DATE)
-          AND t.completed = false
-          ORDER BY t.due_date ASC, t.priority ASC
-          LIMIT 10
-        )
-        SELECT * FROM user_upcoming_tasks
-        WHERE user_id = ${userId} /* Garantia adicional */
-      `;
-    } else {
-      upcomingTasksQuery = await sql`
-        WITH user_upcoming_tasks AS (
-          SELECT t.*, p.name as project_name, p.color as project_color
-          FROM todos t
-          LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-          LEFT JOIN projects p ON tp.project_id = p.id
-          WHERE t.user_id = ${userId}
-          AND t.due_date IS NOT NULL
-          AND t.due_date >= ${tomorrow.toISOString()}
-          AND t.due_date < ${futureDate.toISOString()}
-          AND t.completed = false
-          ORDER BY t.due_date ASC, t.priority ASC
-          LIMIT 10
-        )
-        SELECT * FROM user_upcoming_tasks
-        WHERE user_id = ${userId} /* Garantia adicional */
-      `;
-    }
-
-    const upcomingTasks = upcomingTasksQuery;
-    const safeOverdueTasks = overdueTasks.filter(
-      (task: any) => task.user_id === userId,
-    );
-    
-    // Aplicar o mesmo filtro de horário para as tarefas de hoje nas notificações
-    // Isso garante consistência com a função getTodayTasks
-    const safeDueTodayTasks = dueTodayTasks
-      .filter((task: any) => task.user_id === userId)
-      .filter((task: any) => {
-        const taskDueDate = new Date(task.due_date);
-        // Só inclui tarefas cujo horário ainda não passou
-        return taskDueDate >= now;
-      });
-      
-    const safeUpcomingTasks = upcomingTasks.filter(
-      (task: any) => task.user_id === userId,
-    );
-
-    // Log para verificar possíveis falhas de segurança
-    if (safeOverdueTasks.length !== overdueTasks.length) {
-      console.error(
-        `[getTasksForNotifications] ERRO DE SEGURANÇA: Encontradas ${overdueTasks.length - safeOverdueTasks.length} tarefas vencidas de outro usuário!`,
-      );
-    }
-    if (safeDueTodayTasks.length !== dueTodayTasks.length) {
-      console.error(
-        `[getTasksForNotifications] ERRO DE SEGURANÇA: Encontradas ${dueTodayTasks.length - safeDueTodayTasks.length} tarefas de hoje de outro usuário!`,
-      );
-    }
-    if (safeUpcomingTasks.length !== upcomingTasks.length) {
-      console.error(
-        `[getTasksForNotifications] ERRO DE SEGURANÇA: Encontradas ${upcomingTasks.length - safeUpcomingTasks.length} tarefas futuras de outro usuário!`,
-      );
-    }
-
-    // Log detalhado para debug
-    safeOverdueTasks.forEach((task: any) => {});
-
-    safeDueTodayTasks.forEach((task: any) => {});
-
-    safeUpcomingTasks.forEach((task: any) => {});
-
-    return {
-      overdueCount: safeOverdueTasks.length,
-      dueTodayCount: safeDueTodayTasks.length,
-      upcomingCount: safeUpcomingTasks.length,
-      overdueTasks: safeOverdueTasks as Todo[],
-      dueTodayTasks: safeDueTodayTasks as Todo[],
-      upcomingTasks: safeUpcomingTasks as Todo[],
-    };
-  } catch (error) {
-    console.error(
-      "[getTasksForNotifications] Erro ao buscar tarefas para notificações:",
-      error,
-    );
-    return {
-      overdueCount: 0,
-      dueTodayCount: 0,
-      upcomingCount: 0,
-      overdueTasks: [],
-      dueTodayTasks: [],
-      upcomingTasks: [],
-    };
-  }
+  return {
+    overdueCount: safeOverdueTasks.length,
+    dueTodayCount: safeDueTodayTasks.length,
+    upcomingCount: safeUpcomingTasks.length,
+    overdueTasks: safeOverdueTasks as Todo[],
+    dueTodayTasks: safeDueTodayTasks as Todo[],
+    upcomingTasks: safeUpcomingTasks as Todo[],
+  };
 }
 
 export async function getAllTasksForUser(userId: number): Promise<Todo[]> {
