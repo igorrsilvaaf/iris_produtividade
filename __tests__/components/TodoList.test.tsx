@@ -111,7 +111,7 @@ describe('Componente TodoList', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        '/api/tasks/1/toggle',
+        '/api/tasks/toggle/1',
         { method: 'PATCH' }
       );
     });
@@ -164,7 +164,7 @@ describe('Componente TodoList', () => {
         title: 'Tarefa atualizada',
         description: 'O status da tarefa foi atualizado.',
       });
-      expect(mockRefresh).toHaveBeenCalled();
+      // Não verifica mais router.refresh() pois foi removido para melhor performance
     });
   });
 

@@ -487,7 +487,7 @@ export function AddTaskDialog({
       if (labelIds.length > 0) {
         await Promise.all(
           labelIds.map(async (labelId) => {
-            const labelResponse = await fetch(`/api/tasks/${taskId}/labels`, {
+            const labelResponse = await fetch(`/api/tasks/${taskId}/${taskId}/labels`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ labelId }),
@@ -502,7 +502,6 @@ export function AddTaskDialog({
 
       // Atualizar a interface com os dados da tarefa criada, incluindo os anexos
       if (responseData.task) {
-        router.refresh();
         setOpen(false);
         toast({
           title: t("Task created"),

@@ -71,7 +71,6 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     AND t.due_date >= ${today.toISOString()}
     AND t.due_date < ${tomorrow.toISOString()}
     AND t.completed = false
-    AND t.due_date >= ${now.toISOString()}
     ORDER BY t.kanban_order ASC NULLS LAST, t.priority ASC, t.due_date ASC
   `;
 

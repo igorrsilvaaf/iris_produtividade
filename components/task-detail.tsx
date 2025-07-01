@@ -784,7 +784,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
   const toggleCompletion = async () => {
     try {
-      const response = await fetch(`/api/tasks/${task.id}/complete`, {
+      const response = await fetch(`/api/tasks/complete/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
