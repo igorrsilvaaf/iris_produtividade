@@ -252,6 +252,18 @@ export function TaskNotificationsMenu() {
         description: t("The task has been marked as complete."),
         duration: 3000,
       })
+
+      // Disparar evento para outros componentes (como Kanban)
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('taskCompleted', { 
+          detail: { 
+            taskId: taskId, 
+            completed: true,
+            timestamp: Date.now() 
+          }
+        });
+        window.dispatchEvent(event);
+      }
       
     } catch (error) {
       console.error("Error completing task:", error)

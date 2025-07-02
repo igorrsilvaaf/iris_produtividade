@@ -144,6 +144,37 @@ export async function createTask({
       normalizedDueDate = null;
     }
   }
+  
+  // Se não foi especificada uma coluna kanban, determinar baseado na data
+  if (!kanbanColumn && normalizedDueDate) {
+    const taskDate = new Date(normalizedDueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Se a data é hoje
+    if (taskDate >= today && taskDate < tomorrow) {
+      kanbanColumn = "planning";
+      console.log(`[createTask] Tarefa com data de hoje, definindo coluna como planning`);
+    } 
+    // Se a data é futura
+    else if (taskDate >= tomorrow) {
+      kanbanColumn = "backlog";
+      console.log(`[createTask] Tarefa com data futura, definindo coluna como backlog`);
+    }
+    // Se a data já passou
+    else {
+      kanbanColumn = "backlog";
+      console.log(`[createTask] Tarefa com data passada, definindo coluna como backlog`);
+    }
+  }
+  
+  // Se ainda não tem coluna (sem data), vai para backlog
+  if (!kanbanColumn) {
+    kanbanColumn = "backlog";
+  }
 
   let normalizedAttachments = [];
   try {

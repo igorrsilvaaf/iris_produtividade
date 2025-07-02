@@ -409,12 +409,9 @@ export function AddTaskDialog({
           return;
         }
 
-
-
         if (values.isAllDay) {
           date.setHours(0, 0, 0, 0);
           dueDateTime = date.toISOString();
-
         } else if (values.dueTime) {
           const [hours, minutes] = values.dueTime.split(":").map(Number);
 
@@ -433,8 +430,6 @@ export function AddTaskDialog({
 
           date.setHours(hours, minutes, 0, 0);
           dueDateTime = date.toISOString();
-
-
         }
       }
 
@@ -450,8 +445,6 @@ export function AddTaskDialog({
         url: attachment.url,
         name: attachment.name,
       }));
-
-
 
       const taskData = {
         title: values.title,
@@ -507,10 +500,19 @@ export function AddTaskDialog({
           title: t("Task created"),
           description: t("Your task has been created successfully."),
         });
+        
+        // Disparar evento customizado para notificar o Kanban Board
+        if (typeof window !== 'undefined') {
+          const event = new CustomEvent('taskCreated', { 
+            detail: { task: responseData.task, timestamp: Date.now() }
+          });
+          window.dispatchEvent(event);
+        }
       }
 
       form.reset();
       setSelectedLabels([]);
+      setAttachments([]);
     } catch (error) {
       console.error("[AddTaskDialog] Erro detalhado:", error);
       toast({

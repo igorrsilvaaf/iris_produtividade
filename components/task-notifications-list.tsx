@@ -81,6 +81,18 @@ export function TaskNotificationsList({ taskNotifications, daysAhead }: TaskNoti
         description: t("The task has been marked as complete."),
       })
 
+      // Disparar evento para outros componentes (como Kanban)
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('taskCompleted', { 
+          detail: { 
+            taskId: taskId, 
+            completed: true,
+            timestamp: Date.now() 
+          }
+        });
+        window.dispatchEvent(event);
+      }
+
     } catch (error) {
       toast({
         variant: "destructive",

@@ -442,7 +442,7 @@ export function KanbanBoard() {
       window.removeEventListener('kanban-move-card', handleKanbanMoveCard as EventListener);
     };
   }, [cards]); // Dependência em cards para garantir acesso aos dados mais recentes
-
+  
   const updateTasksOnServer = async (tasksToUpdate: Array<{ id: number; column?: KanbanColumn; completed?: boolean; kanban_order?: number }>) => {
     if (tasksToUpdate.length === 0) return;
 
@@ -529,10 +529,10 @@ export function KanbanBoard() {
   
   const fetchAndDistributeTasks = useCallback(async (signal?: AbortSignal): Promise<void> => {
     const now = Date.now();
-    const cacheTime = 5000; 
+    const cacheTime = 10000; // Aumentar para 10 segundos
     
     if (now - lastFetchTimeRef.current < cacheTime && initialLoadDoneRef.current) {
-
+      console.log('[KanbanBoard] Cache válido, pulando fetch');
       return Promise.resolve();
     }
     
@@ -540,7 +540,7 @@ export function KanbanBoard() {
     
     try {
       setIsLoading(true);
-
+      console.log('[KanbanBoard] Iniciando fetch de tarefas');
       
       const tasksResponse = await fetch("/api/tasks?all=true", {
         method: "GET",
@@ -564,48 +564,6 @@ export function KanbanBoard() {
         return;
       }
       
-      let todayData = { tasks: [] };
-      try {
-        const todayResponse = await fetch("/api/tasks/today", {
-          method: "GET",
-          signal,
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            'x-timestamp': Date.now().toString()
-          }
-        });
-        
-        if (todayResponse.ok) {
-          todayData = await todayResponse.json();
-        } else {
-          console.error(`Erro ao buscar tarefas de hoje: ${todayResponse.status}`);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar tarefas de hoje:", error);
-      }
-      
-      let upcomingData = { tasks: [] };
-      try {
-        const upcomingResponse = await fetch("/api/tasks/upcoming", {
-          method: "GET",
-          signal,
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            'x-timestamp': Date.now().toString()
-          }
-        });
-        
-        if (upcomingResponse.ok) {
-          upcomingData = await upcomingResponse.json();
-        } else {
-          console.error(`Erro ao buscar tarefas próximas: ${upcomingResponse.status}`);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar tarefas próximas:", error);
-      }
-      
       const tasksData = await tasksResponse.json();
       
       if (!tasksData.tasks || !Array.isArray(tasksData.tasks)) {
@@ -615,19 +573,6 @@ export function KanbanBoard() {
       }
       
       const allTasks = tasksData.tasks as Todo[];
-      const todayList = Array.isArray(todayData.tasks) ? todayData.tasks : [];
-      const upcomingList = Array.isArray(upcomingData.tasks) ? upcomingData.tasks : [];
-      
-
-      
-      if (upcomingList.length > 0) {
-
-        upcomingList.forEach((task: any) => {
-
-        });
-      } else {
-
-      }
       let orderCounter = 0;
       const tasksToUpdateOnServer: Array<{ id: number; column?: KanbanColumn; completed?: boolean; kanban_order?: number }> = [];
 
@@ -639,32 +584,40 @@ export function KanbanBoard() {
         if (task.kanban_column && 
             ["backlog", "planning", "inProgress", "validation", "completed"].includes(task.kanban_column)) {
           column = task.kanban_column as KanbanColumn;
-
         } 
         else {
           needsServerUpdate = true;
           if (task.completed) {
             column = "completed";
-
           } 
-          else if (todayList.some((t: any) => t.id === task.id)) {
-            column = "planning";
-
-          } 
-          else if (upcomingList.some((t: any) => t.id === task.id)) {
-            column = "backlog";
-
+          else if (task.due_date) {
+            const now = new Date();
+            const today = new Date(now);
+            today.setHours(0, 0, 0, 0);
+            
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const taskDueDate = new Date(task.due_date);
+            
+            if (taskDueDate >= today && taskDueDate < tomorrow) {
+              column = "planning";
+            } 
+            else if (taskDueDate >= tomorrow) {
+              column = "backlog";
+            }
+            else {
+              column = "backlog";
+            }
           }
           else {
-            column = "backlog"; 
-
+            column = "backlog";
           }
         }
 
         if (currentKanbanOrder == null) {
           currentKanbanOrder = orderCounter++;
           needsServerUpdate = true;
-
         }
         
         if (needsServerUpdate) {
@@ -685,28 +638,16 @@ export function KanbanBoard() {
         return (a.kanban_order || 0) - (b.kanban_order || 0);
       });
       
-
+      // Atualizar no servidor apenas se necessário
       if (tasksToUpdateOnServer.length > 0) {
-
+        console.log(`[KanbanBoard] Atualizando ${tasksToUpdateOnServer.length} tarefas no servidor`);
         updateTasksOnServer(tasksToUpdateOnServer);
       }
       
       setCards(kanbanCards);
-      setTimeout(() => {
-        const backlog = kanbanCards.filter(c => c.column === "backlog").length;
-        const planning = kanbanCards.filter(c => c.column === "planning").length;
-        const inProgress = kanbanCards.filter(c => c.column === "inProgress").length;
-        const validation = kanbanCards.filter(c => c.column === "validation").length;
-        const completed = kanbanCards.filter(c => c.column === "completed").length;
-        
-
-        
-        if (kanbanCards.length === 0) {
-
-        }
-      }, 100);
-      
       initialLoadDoneRef.current = true;
+      console.log(`[KanbanBoard] Fetch concluído com ${kanbanCards.length} tarefas`);
+      
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error("Erro ao buscar tarefas:", error);
@@ -732,26 +673,42 @@ export function KanbanBoard() {
       if (initialLoadDoneRef.current) return;
       
       try {
-        const savedCards = localStorage.getItem('kanban-cards');
-        if (savedCards) {
-          const parsedCards = JSON.parse(savedCards) as KanbanCard[];
-
-          setCards(parsedCards);
-          setIsLoading(false);
-          initialLoadDoneRef.current = true;
+        if (isClient) {
+          const savedCards = localStorage.getItem('kanban-cards');
+          if (savedCards) {
+            const parsedCards = JSON.parse(savedCards) as KanbanCard[];
+            // Validar que os cards são válidos
+            if (Array.isArray(parsedCards) && parsedCards.length > 0) {
+              setCards(parsedCards);
+              setIsLoading(false);
+              initialLoadDoneRef.current = true;
+              return;
+            }
+          }
         }
+        
+        // Se não há dados salvos ou não está no cliente, apenas continua com o loading normal
+        // O fetchAndDistributeTasks vai terminar o loading
       } catch (error) {
         console.error("Erro ao carregar dados do localStorage:", error);
+        // Continua com o loading normal
       }
     };
     
     loadFromLocalStorage();
     
+    // Timeout de segurança para garantir que o loading sempre termine
+    const safetyTimeout = setTimeout(() => {
+      if (mounted && isLoading) {
+        console.log('[KanbanBoard] Timeout de segurança ativado, terminando loading');
+        setIsLoading(false);
+      }
+    }, 10000); // 10 segundos
 
     fetchAndDistributeTasks(controller.signal)
       .then(() => {
         if (mounted) {
-
+          console.log('[KanbanBoard] Inicialização concluída');
         }
       })
       .catch(error => {
@@ -760,21 +717,149 @@ export function KanbanBoard() {
         }
       });
     
-    const intervalId = setInterval(() => {
-      if (mounted && document.visibilityState === 'visible') {
-
-        fetchAndDistributeTasks().catch(err => {
-          console.error("Erro na atualização automática:", err);
-        });
-      }
-    }, 120000);
-    
     return () => {
       mounted = false;
       controller.abort();
-      clearInterval(intervalId);
+      clearTimeout(safetyTimeout);
     };
   }, [fetchAndDistributeTasks, shouldRefetch, isClient]);
+  
+  // Listener para outros eventos de tarefa (atualização, exclusão)
+  useEffect(() => {
+    const handleTaskUpdated = () => {
+      console.log('[KanbanBoard] Tarefa atualizada, sincronizando');
+      setTimeout(() => {
+        lastFetchTimeRef.current = 0;
+        fetchAndDistributeTasks();
+      }, 1000);
+    };
+    
+    const handleTaskDeleted = () => {
+      console.log('[KanbanBoard] Tarefa deletada, sincronizando');
+      setTimeout(() => {
+        lastFetchTimeRef.current = 0;
+        fetchAndDistributeTasks();
+      }, 1000);
+    };
+    
+    window.addEventListener('taskUpdated', handleTaskUpdated);
+    window.addEventListener('taskDeleted', handleTaskDeleted);
+    
+    return () => {
+      window.removeEventListener('taskUpdated', handleTaskUpdated);
+      window.removeEventListener('taskDeleted', handleTaskDeleted);
+    };
+  }, [fetchAndDistributeTasks]);
+  
+  // Listener para o evento de criação de tarefa
+  useEffect(() => {
+    const handleTaskCreated = (event: CustomEvent) => {
+      console.log('[KanbanBoard] Nova tarefa criada:', event.detail);
+      
+      if (!event.detail || !event.detail.task) return;
+      
+      const newTask = event.detail.task;
+      
+      // Determinar a coluna baseada na data
+      let column: KanbanColumn;
+      
+      if (newTask.kanban_column && 
+          ["backlog", "planning", "inProgress", "validation", "completed"].includes(newTask.kanban_column)) {
+        column = newTask.kanban_column as KanbanColumn;
+      } else if (newTask.completed) {
+        column = "completed";
+      } else if (newTask.due_date) {
+        const now = new Date();
+        const today = new Date(now);
+        today.setHours(0, 0, 0, 0);
+        
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const taskDueDate = new Date(newTask.due_date);
+        
+        if (taskDueDate >= today && taskDueDate < tomorrow) {
+          column = "planning";
+        } else if (taskDueDate >= tomorrow) {
+          column = "backlog";
+        } else {
+          column = "backlog";
+        }
+      } else {
+        column = "backlog";
+      }
+      
+      // Criar o novo card com ordem apropriada
+      const newCard: KanbanCard = {
+        ...newTask,
+        column,
+        kanban_order: newTask.kanban_order || cards.length + 1
+      };
+      
+      // Adicionar instantaneamente ao estado local
+      setCards(prevCards => {
+        // Verificar se a tarefa já existe para evitar duplicatas
+        if (prevCards.some(card => card.id === newCard.id)) {
+          return prevCards;
+        }
+        
+        const updatedCards = [...prevCards, newCard];
+        // Ordenar por kanban_order
+        return updatedCards.sort((a, b) => (a.kanban_order || 0) - (b.kanban_order || 0));
+      });
+      
+      // Fazer um fetch inteligente após criar a tarefa
+      setTimeout(() => {
+        lastFetchTimeRef.current = 0; // Resetar cache
+        fetchAndDistributeTasks();
+      }, 1000);
+    };
+    
+    window.addEventListener('taskCreated', handleTaskCreated as EventListener);
+    
+    return () => {
+      window.removeEventListener('taskCreated', handleTaskCreated as EventListener);
+    };
+  }, [cards, fetchAndDistributeTasks]);
+
+  // Listener para o evento de conclusão de tarefa
+  useEffect(() => {
+    const handleTaskCompleted = (event: CustomEvent) => {
+      console.log('[KanbanBoard] Tarefa concluída:', event.detail);
+      
+      if (!event.detail || !event.detail.taskId) return;
+      
+      const { taskId, completed } = event.detail;
+      
+      // Remover instantaneamente do estado local se foi concluída
+      if (completed) {
+        setCards(prevCards => {
+          const updatedCards = prevCards.filter(card => card.id !== taskId);
+          console.log(`[KanbanBoard] Tarefa ${taskId} removida do Kanban (concluída)`);
+          return updatedCards;
+        });
+        
+        // Mostrar notificação de sucesso
+        toast({
+          title: t("Task completed"),
+          description: t("Task moved to completed section"),
+        });
+      } else {
+        // Se foi desmarcada como concluída, precisamos recarregar para determinar a coluna correta
+        setTimeout(() => {
+          console.log('[KanbanBoard] Sincronizando após tarefa desmarcada...');
+          lastFetchTimeRef.current = 0; // Resetar cache
+          fetchAndDistributeTasks();
+        }, 500);
+      }
+    };
+
+    window.addEventListener('taskCompleted', handleTaskCompleted as EventListener);
+    
+    return () => {
+      window.removeEventListener('taskCompleted', handleTaskCompleted as EventListener);
+    };
+  }, [toast, t, fetchAndDistributeTasks]);
   
   useEffect(() => {
     if (!isClient || isLoading || cards.length === 0) return;
@@ -792,57 +877,16 @@ export function KanbanBoard() {
     return () => clearTimeout(timeoutId);
   }, [cards, isLoading, isClient]);
   
-  useEffect(() => {
-    let isRefreshing = false;
-    
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !isRefreshing) {
-        isRefreshing = true;
-
-        
-        fetchAndDistributeTasks()
-          .finally(() => {
-            isRefreshing = false;
-          });
-      }
-    };
-    
-    const handleFocus = () => {
-      if (!isRefreshing) {
-        isRefreshing = true;
-
-        
-        fetchAndDistributeTasks()
-          .finally(() => {
-            isRefreshing = false;
-          });
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [fetchAndDistributeTasks]);
-  
   const createNewCard = async (column: KanbanColumn) => {
     if (!newCardTitle.trim()) return;
     
     try {
-
-      setIsLoading(true);
-      
       const taskData = {
         title: newCardTitle,
         description: "",
         kanban_column: column,
         completed: column === "completed",
       };
-      
-
       
       const response = await fetch("/api/tasks", {
         method: "POST",
@@ -852,20 +896,20 @@ export function KanbanBoard() {
         body: JSON.stringify(taskData),
       });
       
-
-      
       if (response.ok) {
         const data = await response.json();
-
         
         try {
           await updateColumnOnServer(data.task.id, column, column === "completed");
-
         } catch (error) {
           console.error("Erro ao definir coluna da tarefa:", error);
         }
         
-        fetchAndDistributeTasks();
+        // Fazer um fetch inteligente após criar a tarefa
+        setTimeout(() => {
+          lastFetchTimeRef.current = 0; // Resetar cache
+          fetchAndDistributeTasks();
+        }, 1000);
         
         setNewCardTitle("");
         setActiveColumn(null);
@@ -911,7 +955,16 @@ export function KanbanBoard() {
       });
       
       if (response.ok) {
-        setCards(cards.filter(card => card.id !== cardId));
+        // Atualizar localmente primeiro
+        setCards(prevCards => prevCards.filter(card => card.id !== cardId));
+        
+        // Disparar evento para outros componentes
+        if (typeof window !== 'undefined') {
+          const event = new CustomEvent('taskDeleted', { 
+            detail: { taskId: cardId, timestamp: Date.now() }
+          });
+          window.dispatchEvent(event);
+        }
         
         toast({
           title: t("Task deleted successfully"),
@@ -1229,12 +1282,18 @@ export function KanbanBoard() {
   
   const getColumnTitle = (key: KanbanColumn): string => {
     switch (key) {
-      case "backlog": return t("backlog");
-      case "planning": return t("planning");
-      case "inProgress": return t("inProgress");
-      case "validation": return t("validation");
-      case "completed": return t("completed");
-      default: return "";
+      case "backlog":
+        return t("backlog") || "Caixa de Entrada";
+      case "planning":
+        return t("planning") || "Planejamento";
+      case "inProgress":
+        return t("inProgress") || "Em Progresso";
+      case "validation":
+        return t("validation") || "Validação";
+      case "completed":
+        return t("completed") || "Concluído";
+      default:
+        return key;
     }
   };
   
@@ -1259,10 +1318,10 @@ export function KanbanBoard() {
     );
   }
   
-  if (isLoading) {
+  if (isLoading && cards.length === 0) {
     return (
-      <div className="flex justify-center items-center h-40">
-        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full"></div>
+      <div className="flex justify-center items-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -1313,144 +1372,60 @@ export function KanbanBoard() {
           {t("Refresh")}
         </Button>
       </div>
-    
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex flex-nowrap gap-4 p-4 overflow-x-auto pb-8">
-          <DroppableColumn
-            title={getColumnTitle("backlog")}
-            columnKey="backlog"
-            items={backlogCards}
-            activeColumn={activeColumn}
-            setActiveColumn={setActiveColumn}
-            newCardTitle={newCardTitle}
-            setNewCardTitle={setNewCardTitle}
-            createNewCard={createNewCard}
-            onDeleteCard={deleteCard}
-            onEditCard={editCard}
-            language={language}
-            highlightedColumn={highlightedColumn}
-            activeCardId={activeCardId}
-          />
-          
-          <DroppableColumn
-            title={getColumnTitle("planning")}
-            columnKey="planning"
-            items={planningCards}
-            activeColumn={activeColumn}
-            setActiveColumn={setActiveColumn}
-            newCardTitle={newCardTitle}
-            setNewCardTitle={setNewCardTitle}
-            createNewCard={createNewCard}
-            onDeleteCard={deleteCard}
-            onEditCard={editCard}
-            language={language}
-            highlightedColumn={highlightedColumn}
-            activeCardId={activeCardId}
-          />
-          
-          <DroppableColumn
-            title={getColumnTitle("inProgress")}
-            columnKey="inProgress"
-            items={inProgressCards}
-            activeColumn={activeColumn}
-            setActiveColumn={setActiveColumn}
-            newCardTitle={newCardTitle}
-            setNewCardTitle={setNewCardTitle}
-            createNewCard={createNewCard}
-            onDeleteCard={deleteCard}
-            onEditCard={editCard}
-            language={language}
-            highlightedColumn={highlightedColumn}
-            activeCardId={activeCardId}
-          />
-          
-          <DroppableColumn
-            title={getColumnTitle("validation")}
-            columnKey="validation"
-            items={validationCards}
-            activeColumn={activeColumn}
-            setActiveColumn={setActiveColumn}
-            newCardTitle={newCardTitle}
-            setNewCardTitle={setNewCardTitle}
-            createNewCard={createNewCard}
-            onDeleteCard={deleteCard}
-            onEditCard={editCard}
-            language={language}
-            highlightedColumn={highlightedColumn}
-            activeCardId={activeCardId}
-          />
-          
-          <DroppableColumn
-            title={getColumnTitle("completed")}
-            columnKey="completed"
-            items={completedCards}
-            activeColumn={activeColumn}
-            setActiveColumn={setActiveColumn}
-            newCardTitle={newCardTitle}
-            setNewCardTitle={setNewCardTitle}
-            createNewCard={createNewCard}
-            onDeleteCard={deleteCard}
-            onEditCard={editCard}
-            language={language}
-            highlightedColumn={highlightedColumn}
-            activeCardId={activeCardId}
-          />
-        </div>
-        
-        <DragOverlay>
-          {activeCardId && activeCard ? (
-            <Card className="w-68 mb-2 shadow-lg">
-              <CardContent className="p-2">
-                <div className="font-medium text-sm">{activeCard.title}</div>
-                {activeCard.description && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {activeCard.description.length > 50 
-                      ? `${activeCard.description.substring(0, 50)}...`
-                      : activeCard.description}
-                  </div>
-                )}
-                <div className="flex flex-wrap items-center gap-1 mt-1">
-                  {activeCard.points !== undefined && (
-                    <div className={`text-xs px-1.5 py-0.5 rounded-full ${
-                      activeCard.points === 1 ? 'bg-green-100 text-green-800' :
-                      activeCard.points === 2 ? 'bg-blue-100 text-blue-800' :
-                      activeCard.points === 3 ? 'bg-yellow-100 text-yellow-800' :
-                      activeCard.points === 4 ? 'bg-orange-100 text-orange-800' :
-                      activeCard.points === 5 ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {activeCard.points}
-                    </div>
-                  )}
-                </div>
-                {activeCard.project_name && (
-                  <Badge 
-                    variant="outline" 
-                    className="text-xs mt-2" 
-                    style={{ borderColor: activeCard.project_color || '#888', color: activeCard.project_color || '#888' }}
-                  >
-                    {activeCard.project_name}
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
       
+      <div className="px-4 pb-4" suppressHydrationWarning>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {(["backlog", "planning", "inProgress", "validation", "completed"] as KanbanColumn[]).map((columnKey) => (
+              <DroppableColumn
+                key={columnKey}
+                title={getColumnTitle(columnKey)}
+                columnKey={columnKey}
+                items={cards.filter((card) => card.column === columnKey)}
+                activeColumn={activeColumn}
+                setActiveColumn={setActiveColumn}
+                newCardTitle={newCardTitle}
+                setNewCardTitle={setNewCardTitle}
+                createNewCard={createNewCard}
+                onDeleteCard={deleteCard}
+                onEditCard={editCard}
+                language={language}
+                highlightedColumn={highlightedColumn}
+                activeCardId={activeCardId}
+              />
+            ))}
+          </div>
+          
+          <DragOverlay>
+            {activeCard && (
+              <Card className="shadow-lg opacity-90">
+                <CardContent className="p-3">
+                  <div className="font-medium">{activeCard.title}</div>
+                </CardContent>
+              </Card>
+            )}
+          </DragOverlay>
+        </DndContext>
+      </div>
       
       {selectedTask && (
-        <TaskDetail 
-          task={selectedTask} 
-          open={showTaskDetail} 
-          onOpenChange={setShowTaskDetail} 
-          user={user}
+        <TaskDetail
+          task={selectedTask}
+          open={showTaskDetail}
+          onOpenChange={(open) => {
+            setShowTaskDetail(open)
+            if (!open) {
+              setSelectedTask(null)
+              fetchAndDistributeTasks()
+            }
+          }}
+          user={user || { id: 0, name: '', email: '' }}
         />
       )}
     </>
