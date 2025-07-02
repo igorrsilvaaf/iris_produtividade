@@ -821,6 +821,45 @@ export function KanbanBoard() {
       window.removeEventListener('taskCreated', handleTaskCreated as EventListener);
     };
   }, [cards, fetchAndDistributeTasks]);
+
+  // Listener para o evento de conclusão de tarefa
+  useEffect(() => {
+    const handleTaskCompleted = (event: CustomEvent) => {
+      console.log('[KanbanBoard] Tarefa concluída:', event.detail);
+      
+      if (!event.detail || !event.detail.taskId) return;
+      
+      const { taskId, completed } = event.detail;
+      
+      // Remover instantaneamente do estado local se foi concluída
+      if (completed) {
+        setCards(prevCards => {
+          const updatedCards = prevCards.filter(card => card.id !== taskId);
+          console.log(`[KanbanBoard] Tarefa ${taskId} removida do Kanban (concluída)`);
+          return updatedCards;
+        });
+        
+        // Mostrar notificação de sucesso
+        toast({
+          title: t("Task completed"),
+          description: t("Task moved to completed section"),
+        });
+      } else {
+        // Se foi desmarcada como concluída, precisamos recarregar para determinar a coluna correta
+        setTimeout(() => {
+          console.log('[KanbanBoard] Sincronizando após tarefa desmarcada...');
+          lastFetchTimeRef.current = 0; // Resetar cache
+          fetchAndDistributeTasks();
+        }, 500);
+      }
+    };
+
+    window.addEventListener('taskCompleted', handleTaskCompleted as EventListener);
+    
+    return () => {
+      window.removeEventListener('taskCompleted', handleTaskCompleted as EventListener);
+    };
+  }, [toast, t, fetchAndDistributeTasks]);
   
   useEffect(() => {
     if (!isClient || isLoading || cards.length === 0) return;

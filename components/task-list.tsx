@@ -91,11 +91,26 @@ export function TaskList({ tasks, user }: TaskListProps) {
         return [newTask, ...prevTasks];
       });
     };
+
+    const handleTaskCompleted = (event: CustomEvent) => {
+      console.log('[TaskList] Tarefa concluída em outro componente:', event.detail);
+      
+      if (!event.detail || !event.detail.taskId) return;
+      
+      const { taskId, completed } = event.detail;
+      
+      // Se a tarefa foi concluída, remover da lista atual
+      if (completed) {
+        setOptimisticTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+      }
+    };
     
     window.addEventListener('taskCreated', handleTaskCreated as EventListener);
+    window.addEventListener('taskCompleted', handleTaskCompleted as EventListener);
     
     return () => {
       window.removeEventListener('taskCreated', handleTaskCreated as EventListener);
+      window.removeEventListener('taskCompleted', handleTaskCompleted as EventListener);
     };
   }, []);
 
@@ -123,15 +138,6 @@ export function TaskList({ tasks, user }: TaskListProps) {
   }, [optimisticTasks, sortBy]);
 
   const toggleTaskCompletion = async (taskId: number) => {
-    // Atualização otimista - atualizar UI imediatamente
-    const originalTasks = [...optimisticTasks]
-    const updatedTasks = optimisticTasks.map(task => 
-      task.id === taskId 
-        ? { ...task, completed: !task.completed }
-        : task
-    )
-    setOptimisticTasks(updatedTasks)
-
     try {
       const response = await fetch(`/api/tasks/toggle/${taskId}`, {
         method: "PATCH",
@@ -141,17 +147,41 @@ export function TaskList({ tasks, user }: TaskListProps) {
         throw new Error(`Failed to toggle task: ${response.statusText}`)
       }
 
+      const taskBeingToggled = optimisticTasks.find(task => task.id === taskId);
+      const wasCompleted = !taskBeingToggled?.completed;
+
       toast({
         title: t("Task updated"),
         description: t("Task status has been updated."),
       })
 
-      // Sincronização silenciosa - sem refresh imediato para melhor UX
+      // Disparar evento para outros componentes
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('taskCompleted', { 
+          detail: { 
+            taskId: taskId, 
+            completed: wasCompleted,
+            timestamp: Date.now() 
+          }
+        });
+        window.dispatchEvent(event);
+      }
+
+      // Se a tarefa foi concluída, remover da lista atual
+      if (wasCompleted) {
+        setOptimisticTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+      } else {
+        // Se foi desmarcada, atualizar localmente
+        setOptimisticTasks(prevTasks => 
+          prevTasks.map(task => 
+            task.id === taskId 
+              ? { ...task, completed: false }
+              : task
+          )
+        );
+      }
 
     } catch (error) {
-      // Reverter mudanças otimistas em caso de erro
-      setOptimisticTasks(originalTasks)
-      
       toast({
         variant: "destructive",
         title: t("Failed to update task"),

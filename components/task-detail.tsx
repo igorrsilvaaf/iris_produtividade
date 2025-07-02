@@ -803,6 +803,18 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         variant: "success",
       });
 
+      // Disparar evento para outros componentes (como Kanban)
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('taskCompleted', { 
+          detail: { 
+            taskId: task.id, 
+            completed: !task.completed,
+            timestamp: Date.now() 
+          }
+        });
+        window.dispatchEvent(event);
+      }
+
       router.refresh();
     } catch (error) {
       toast({

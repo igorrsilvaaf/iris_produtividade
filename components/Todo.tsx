@@ -159,11 +159,6 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
     if (onComplete) {
       onComplete(todoData.id)
     } else {
-      // Atualização otimista - atualizar UI imediatamente
-      const originalTodo = optimisticTodo
-      const updatedTodo = { ...todoData, completed: !todoData.completed }
-      setOptimisticTodo(updatedTodo)
-
       try {
         const response = await fetch(`/api/tasks/toggle/${todoData.id}`, {
           method: "PATCH",
@@ -173,16 +168,33 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
           throw new Error(`Failed to toggle task: ${response.statusText}`)
         }
         
+        const updatedTask = { ...todoData, completed: !todoData.completed }
+        
         toast({
           title: t ? t("Task updated") : "Tarefa atualizada",
           description: t ? t("Task status has been updated.") : "O status da tarefa foi atualizado.",
         })
         
-        // Sincronização silenciosa - sem refresh imediato para melhor UX
-      } catch (error) {
-        // Reverter mudanças otimistas em caso de erro
-        setOptimisticTodo(originalTodo)
+        // Disparar evento para outros componentes
+        if (typeof window !== 'undefined') {
+          const event = new CustomEvent('taskCompleted', { 
+            detail: { 
+              taskId: todoData.id, 
+              completed: updatedTask.completed,
+              timestamp: Date.now() 
+            }
+          });
+          window.dispatchEvent(event);
+        }
         
+        // Se a tarefa foi concluída, remover da visualização atual
+        if (updatedTask.completed && onDelete) {
+          setTimeout(() => {
+            onDelete(todoData.id);
+          }, 100);
+        }
+        
+      } catch (error) {
         toast({
           variant: "destructive",
           title: t ? t("Failed to update task") : "Falha ao atualizar tarefa",
