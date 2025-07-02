@@ -53,14 +53,23 @@ export function QuickAddTodo() {
         throw new Error("Failed to create task")
       }
       
+      const data = await response.json()
+      
       toast({
         title: t("Task created") || "Tarefa criada",
         description: t("Your task has been added successfully") || "Sua tarefa foi adicionada com sucesso",
       })
       
+      // Disparar evento customizado para notificar o Kanban Board
+      if (typeof window !== 'undefined' && data.task) {
+        const event = new CustomEvent('taskCreated', { 
+          detail: { task: data.task, timestamp: Date.now() }
+        });
+        window.dispatchEvent(event);
+      }
+      
       setTitle("")
       setPriority("4")
-      router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",

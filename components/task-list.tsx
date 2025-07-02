@@ -70,6 +70,34 @@ export function TaskList({ tasks, user }: TaskListProps) {
   useEffect(() => {
     setOptimisticTasks(tasks)
   }, [tasks])
+  
+  // Listener para o evento de criação de tarefa
+  useEffect(() => {
+    const handleTaskCreated = (event: CustomEvent) => {
+      console.log('[TaskList] Nova tarefa criada:', event.detail);
+      
+      if (!event.detail || !event.detail.task) return;
+      
+      const newTask = event.detail.task;
+      
+      // Adicionar a nova tarefa instantaneamente
+      setOptimisticTasks(prevTasks => {
+        // Verificar se a tarefa já existe para evitar duplicatas
+        if (prevTasks.some(task => task.id === newTask.id)) {
+          return prevTasks;
+        }
+        
+        // Adicionar a nova tarefa no início da lista
+        return [newTask, ...prevTasks];
+      });
+    };
+    
+    window.addEventListener('taskCreated', handleTaskCreated as EventListener);
+    
+    return () => {
+      window.removeEventListener('taskCreated', handleTaskCreated as EventListener);
+    };
+  }, []);
 
   const sortedTasks = useMemo(() => {
     const tasksCopy = [...optimisticTasks];
