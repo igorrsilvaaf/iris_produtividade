@@ -16,6 +16,7 @@ interface RichCommentEditorProps {
   onCancel: () => void;
   isSubmitting?: boolean;
   placeholder?: string;
+  submitLabel?: string;
   expanded?: boolean;
   onToggleExpand?: () => void;
 }
@@ -28,6 +29,7 @@ export function RichCommentEditor({
   onCancel,
   isSubmitting = false,
   placeholder = "Escreva um comentário...",
+  submitLabel = "Comentar",
   expanded = false,
   onToggleExpand
 }: RichCommentEditorProps) {
@@ -64,7 +66,7 @@ export function RichCommentEditor({
             placeholder={placeholder}
             onSubmit={onSubmit}
             onCancel={onCancel}
-            submitLabel={isSubmitting ? 'Enviando...' : 'Comentar'}
+            submitLabel={isSubmitting ? 'Enviando...' : submitLabel}
             disabled={isSubmitting}
             className="comment-input-expanded"
           />
