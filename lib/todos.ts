@@ -1,7 +1,5 @@
-import { neon } from "@neondatabase/serverless";
+import { sql } from "./supabase";
 import prisma from './prisma';
-
-const sql = neon(process.env.DATABASE_URL!);
 
 export type Todo = {
   id: number;
@@ -157,17 +155,14 @@ export async function createTask({
     // Se a data é hoje
     if (taskDate >= today && taskDate < tomorrow) {
       kanbanColumn = "planning";
-      console.log(`[createTask] Tarefa com data de hoje, definindo coluna como planning`);
     } 
     // Se a data é futura
     else if (taskDate >= tomorrow) {
       kanbanColumn = "backlog";
-      console.log(`[createTask] Tarefa com data futura, definindo coluna como backlog`);
     }
     // Se a data já passou
     else {
       kanbanColumn = "backlog";
-      console.log(`[createTask] Tarefa com data passada, definindo coluna como backlog`);
     }
   }
   

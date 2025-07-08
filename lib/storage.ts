@@ -1,10 +1,8 @@
-import { neon } from "@neondatabase/serverless"
+import { sql } from "./supabase"
 import type { Todo } from "./todos"
 import type { Project } from "./projects"
 import type { Label } from "./labels"
 import type { UserSettings } from "./settings"
-
-const sql = neon(process.env.DATABASE_URL!)
 
 export class StorageService {
   // Métodos genéricos

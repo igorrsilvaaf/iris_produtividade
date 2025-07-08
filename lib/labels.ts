@@ -1,6 +1,4 @@
-import { neon } from "@neondatabase/serverless"
-
-const sql = neon(process.env.DATABASE_URL!)
+import { sql, setCurrentUserId, sqlWithUser } from "./supabase"
 
 export type Label = {
   id: number
@@ -11,6 +9,8 @@ export type Label = {
 }
 
 export async function getLabels(userId: number): Promise<Label[]> {
+  await setCurrentUserId(userId)
+  
   const labels = await sql`
     SELECT * FROM labels
     WHERE user_id = ${userId}
@@ -21,6 +21,8 @@ export async function getLabels(userId: number): Promise<Label[]> {
 }
 
 export async function getLabel(labelId: number, userId: number): Promise<Label | null> {
+  await setCurrentUserId(userId)
+  
   const labels = await sql`
     SELECT * FROM labels
     WHERE id = ${labelId} AND user_id = ${userId}
@@ -30,6 +32,8 @@ export async function getLabel(labelId: number, userId: number): Promise<Label |
 }
 
 export async function createLabel(userId: number, name: string, color = "#808080"): Promise<Label> {
+  await setCurrentUserId(userId)
+  
   const [label] = await sql`
     INSERT INTO labels (user_id, name, color)
     VALUES (${userId}, ${name}, ${color})
@@ -40,6 +44,8 @@ export async function createLabel(userId: number, name: string, color = "#808080
 }
 
 export async function updateLabel(labelId: number, userId: number, updates: Partial<Label>): Promise<Label> {
+  await setCurrentUserId(userId)
+  
   const [label] = await sql`
     UPDATE labels
     SET
@@ -53,6 +59,8 @@ export async function updateLabel(labelId: number, userId: number, updates: Part
 }
 
 export async function deleteLabel(labelId: number, userId: number): Promise<void> {
+  await setCurrentUserId(userId)
+  
   await sql`
     DELETE FROM labels
     WHERE id = ${labelId} AND user_id = ${userId}
@@ -60,6 +68,8 @@ export async function deleteLabel(labelId: number, userId: number): Promise<void
 }
 
 export async function getLabelTasks(labelId: number, userId: number): Promise<any[]> {
+  await setCurrentUserId(userId)
+  
   const tasks = await sql`
     SELECT t.* 
     FROM todos t

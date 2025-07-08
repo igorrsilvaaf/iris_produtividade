@@ -532,7 +532,6 @@ export function KanbanBoard() {
     const cacheTime = 10000; // Aumentar para 10 segundos
     
     if (now - lastFetchTimeRef.current < cacheTime && initialLoadDoneRef.current) {
-      console.log('[KanbanBoard] Cache válido, pulando fetch');
       return Promise.resolve();
     }
     
@@ -540,7 +539,6 @@ export function KanbanBoard() {
     
     try {
       setIsLoading(true);
-      console.log('[KanbanBoard] Iniciando fetch de tarefas');
       
       const tasksResponse = await fetch("/api/tasks?all=true", {
         method: "GET",
@@ -640,13 +638,11 @@ export function KanbanBoard() {
       
       // Atualizar no servidor apenas se necessário
       if (tasksToUpdateOnServer.length > 0) {
-        console.log(`[KanbanBoard] Atualizando ${tasksToUpdateOnServer.length} tarefas no servidor`);
         updateTasksOnServer(tasksToUpdateOnServer);
       }
       
       setCards(kanbanCards);
       initialLoadDoneRef.current = true;
-      console.log(`[KanbanBoard] Fetch concluído com ${kanbanCards.length} tarefas`);
       
     } catch (error: any) {
       if (error.name !== 'AbortError') {
@@ -700,7 +696,6 @@ export function KanbanBoard() {
     // Timeout de segurança para garantir que o loading sempre termine
     const safetyTimeout = setTimeout(() => {
       if (mounted && isLoading) {
-        console.log('[KanbanBoard] Timeout de segurança ativado, terminando loading');
         setIsLoading(false);
       }
     }, 10000); // 10 segundos
@@ -708,7 +703,7 @@ export function KanbanBoard() {
     fetchAndDistributeTasks(controller.signal)
       .then(() => {
         if (mounted) {
-          console.log('[KanbanBoard] Inicialização concluída');
+          // ... existing code ...
         }
       })
       .catch(error => {
@@ -727,7 +722,6 @@ export function KanbanBoard() {
   // Listener para outros eventos de tarefa (atualização, exclusão)
   useEffect(() => {
     const handleTaskUpdated = () => {
-      console.log('[KanbanBoard] Tarefa atualizada, sincronizando');
       setTimeout(() => {
         lastFetchTimeRef.current = 0;
         fetchAndDistributeTasks();
@@ -735,7 +729,6 @@ export function KanbanBoard() {
     };
     
     const handleTaskDeleted = () => {
-      console.log('[KanbanBoard] Tarefa deletada, sincronizando');
       setTimeout(() => {
         lastFetchTimeRef.current = 0;
         fetchAndDistributeTasks();
@@ -754,8 +747,6 @@ export function KanbanBoard() {
   // Listener para o evento de criação de tarefa
   useEffect(() => {
     const handleTaskCreated = (event: CustomEvent) => {
-      console.log('[KanbanBoard] Nova tarefa criada:', event.detail);
-      
       if (!event.detail || !event.detail.task) return;
       
       const newTask = event.detail.task;
@@ -825,8 +816,6 @@ export function KanbanBoard() {
   // Listener para o evento de conclusão de tarefa
   useEffect(() => {
     const handleTaskCompleted = (event: CustomEvent) => {
-      console.log('[KanbanBoard] Tarefa concluída:', event.detail);
-      
       if (!event.detail || !event.detail.taskId) return;
       
       const { taskId, completed } = event.detail;
@@ -835,7 +824,6 @@ export function KanbanBoard() {
       if (completed) {
         setCards(prevCards => {
           const updatedCards = prevCards.filter(card => card.id !== taskId);
-          console.log(`[KanbanBoard] Tarefa ${taskId} removida do Kanban (concluída)`);
           return updatedCards;
         });
         
@@ -847,7 +835,6 @@ export function KanbanBoard() {
       } else {
         // Se foi desmarcada como concluída, precisamos recarregar para determinar a coluna correta
         setTimeout(() => {
-          console.log('[KanbanBoard] Sincronizando após tarefa desmarcada...');
           lastFetchTimeRef.current = 0; // Resetar cache
           fetchAndDistributeTasks();
         }, 500);

@@ -74,8 +74,6 @@ export function TaskList({ tasks, user }: TaskListProps) {
   // Listener para o evento de criação de tarefa
   useEffect(() => {
     const handleTaskCreated = (event: CustomEvent) => {
-      console.log('[TaskList] Nova tarefa criada:', event.detail);
-      
       if (!event.detail || !event.detail.task) return;
       
       const newTask = event.detail.task;
@@ -93,8 +91,6 @@ export function TaskList({ tasks, user }: TaskListProps) {
     };
 
     const handleTaskCompleted = (event: CustomEvent) => {
-      console.log('[TaskList] Tarefa concluída em outro componente:', event.detail);
-      
       if (!event.detail || !event.detail.taskId) return;
       
       const { taskId, completed } = event.detail;

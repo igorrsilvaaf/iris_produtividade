@@ -1,10 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
 import { createTask, getCompletedTasks, getInboxTasks, getTasksForNotifications, searchTasks, getAllTasksForUser } from "@/lib/todos"
-import { neon } from "@neondatabase/serverless"
+import { sql } from "../../../lib/supabase"
 import prisma from '@/lib/prisma'
-
-const sql = neon(process.env.DATABASE_URL!)
 
 export async function GET(request: NextRequest) {
   try {

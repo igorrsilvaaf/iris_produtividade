@@ -113,8 +113,6 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
   // Listener para eventos de tarefas
   useEffect(() => {
     const handleTaskCompleted = (event: CustomEvent) => {
-      console.log('[TodoList] Tarefa concluída em outro componente:', event.detail);
-      
       if (!event.detail || !event.detail.taskId) return;
       
       const { taskId, completed } = event.detail;

@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { neon } from "@neondatabase/serverless"
+import { sql } from "../../../../lib/supabase"
 import { put } from '@vercel/blob'
 import { v4 as uuidv4 } from 'uuid'
-
-const sql = neon(process.env.DATABASE_URL!)
 
 export async function POST(request: NextRequest) {
   try {

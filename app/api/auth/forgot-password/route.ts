@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createPasswordResetToken } from "@/lib/auth"
 import { sendEmail, createPasswordResetEmailHtml } from "@/lib/email"
-import { neon } from "@neondatabase/serverless"
-
-const sql = neon(process.env.DATABASE_URL!)
+import { sql } from "../../../../lib/supabase"
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 

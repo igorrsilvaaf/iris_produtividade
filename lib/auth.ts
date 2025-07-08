@@ -1,9 +1,8 @@
-import { neon } from "@neondatabase/serverless"
+import { sql } from "./supabase"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import * as bcrypt from "bcryptjs"
 import crypto from "crypto"
-const sql = neon(process.env.DATABASE_URL!)
 
 export type User = {
   id: number
