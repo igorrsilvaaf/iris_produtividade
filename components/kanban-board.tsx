@@ -118,11 +118,13 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
       data-card-id={card.id} 
       data-type="card" 
       data-column={card.column}
+      data-testid={`kanban-card-${card.id}`}
       onClick={handleCardClick}
       {...attributes} 
     >
       <div 
         className="absolute top-0 left-0 right-0 h-8 flex items-center justify-center bg-primary/10 opacity-0 hover:opacity-20 transition-opacity rounded-t-md cursor-grab"
+        data-testid={`kanban-card-drag-handle-${card.id}`}
         {...listeners}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -131,9 +133,11 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
         </svg>
       </div>
       <CardContent className="p-2 pb-0 cursor-default">
-        <div className="font-medium mb-1 text-sm">{card.title}</div>
+        <div className="font-medium mb-1 text-sm" data-testid={`kanban-card-title-${card.id}`}>
+          {card.title}
+        </div>
         {card.description && (
-          <div className="text-xs text-muted-foreground mb-1">
+          <div className="text-xs text-muted-foreground mb-1" data-testid={`kanban-card-description-${card.id}`}>
             {card.description.length > 50 
               ? `${card.description.substring(0, 50)}...`
               : card.description}
@@ -141,13 +145,16 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
         )}
         <div className="flex flex-wrap items-center gap-1 mb-1">
           {card.due_date && (
-            <div className="flex items-center text-xs text-muted-foreground">
+            <div className="flex items-center text-xs text-muted-foreground" data-testid={`kanban-card-due-date-${card.id}`}>
               <Calendar className="h-3 w-3 mr-1" />
               {format(new Date(card.due_date), 'PPP', { locale: localeObj })}
             </div>
           )}
           {card.points !== undefined && (
-            <div className={`text-xs px-1.5 py-0.5 rounded-full ${getPointsBadgeColor(card.points)}`}>
+            <div 
+              className={`text-xs px-1.5 py-0.5 rounded-full ${getPointsBadgeColor(card.points)}`}
+              data-testid={`kanban-card-points-${card.id}`}
+            >
               {card.points} {getPointsLabel(card.points) && `- ${getPointsLabel(card.points)}`}
             </div>
           )}
@@ -157,6 +164,7 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
             variant="outline" 
             className="text-xs mb-1" 
             style={{ borderColor: card.project_color || '#888', color: card.project_color || '#888' }}
+            data-testid={`kanban-card-project-${card.id}`}
           >
             {card.project_name}
           </Badge>
@@ -171,6 +179,7 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
               onClick={moveCardToPreviousColumn}
               className="h-7 px-2 text-xs"
               title={t("Move to previous column")}
+              data-testid={`kanban-card-move-previous-${card.id}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5" />
@@ -185,6 +194,7 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
               onClick={moveCardToNextColumn}
               className="h-7 px-2 text-xs"
               title={t("Move to next column")}
+              data-testid={`kanban-card-move-next-${card.id}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14" />
@@ -203,6 +213,7 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
             }}
             className="h-7 px-2 text-xs"
             title={t("Edit")}
+            data-testid={`kanban-card-edit-${card.id}`}
           >
             <Edit className="h-3 w-3" />
           </Button>
@@ -213,8 +224,9 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
               e.stopPropagation();
               onDelete(card.id);
             }}
-            className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
+            className="h-7 px-2 text-xs text-red-500 hover:text-red-700"
             title={t("Delete")}
+            data-testid={`kanban-card-delete-${card.id}`}
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -1315,7 +1327,7 @@ export function KanbanBoard() {
   
   return (
     <>
-      <div className="flex justify-between items-center mb-4 px-4">
+      <div className="flex justify-between items-center mb-4 px-4" data-testid="kanban-header">
         <h2 className="text-2xl font-bold">{t("kanban")}</h2>
         <Button 
           variant="outline" 
@@ -1354,13 +1366,14 @@ export function KanbanBoard() {
           }}
           disabled={isLoading}
           className="flex items-center gap-1"
+          data-testid="kanban-refresh-button"
         >
           <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           {t("Refresh")}
         </Button>
       </div>
       
-      <div className="px-4 pb-4" suppressHydrationWarning>
+      <div className="px-4 pb-4" suppressHydrationWarning data-testid="kanban-board">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -1368,7 +1381,7 @@ export function KanbanBoard() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 overflow-x-auto pb-2">
+          <div className="flex gap-4 overflow-x-auto pb-2" data-testid="kanban-columns">
             {(["backlog", "planning", "inProgress", "validation", "completed"] as KanbanColumn[]).map((columnKey) => (
               <DroppableColumn
                 key={columnKey}
@@ -1391,7 +1404,7 @@ export function KanbanBoard() {
           
           <DragOverlay>
             {activeCard && (
-              <Card className="shadow-lg opacity-90">
+              <Card className="shadow-lg opacity-90" data-testid="kanban-drag-overlay">
                 <CardContent className="p-3">
                   <div className="font-medium">{activeCard.title}</div>
                 </CardContent>

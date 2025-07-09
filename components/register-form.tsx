@@ -146,7 +146,11 @@ export function RegisterForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form 
+        onSubmit={form.handleSubmit(onSubmit)} 
+        className="space-y-6"
+        data-testid="register-form"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -154,7 +158,13 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>{t("Name")}</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} autoComplete="name" aria-required="true" />
+                <Input 
+                  placeholder="John Doe" 
+                  {...field} 
+                  autoComplete="name" 
+                  aria-required="true" 
+                  data-testid="register-name-input"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -173,6 +183,7 @@ export function RegisterForm() {
                   autoComplete="email" 
                   aria-required="true" 
                   onBlur={() => onEmailBlur(field.value)}
+                  data-testid="register-email-input"
                 />
               </FormControl>
               <FormMessage />
@@ -193,6 +204,7 @@ export function RegisterForm() {
                     {...field} 
                     autoComplete="new-password"
                     aria-required="true"
+                    data-testid="register-password-input"
                   />
                   <Button
                     type="button"
@@ -201,6 +213,7 @@ export function RegisterForm() {
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? t("Hide password") : t("Show password")}
+                    data-testid="register-password-toggle"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -212,9 +225,6 @@ export function RegisterForm() {
                 </div>
               </FormControl>
               <FormMessage />
-              <p className="text-xs text-muted-foreground">
-                {t("Password must be at least 6 characters with one uppercase letter and one number.")}
-              </p>
             </FormItem>
           )}
         />
@@ -232,6 +242,7 @@ export function RegisterForm() {
                     {...field} 
                     autoComplete="new-password"
                     aria-required="true"
+                    data-testid="register-confirm-password-input"
                   />
                   <Button
                     type="button"
@@ -240,6 +251,7 @@ export function RegisterForm() {
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     aria-label={showConfirmPassword ? t("Hide password") : t("Show password")}
+                    data-testid="register-confirm-password-toggle"
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -254,13 +266,18 @@ export function RegisterForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading}
+          data-testid="register-submit-button"
+        >
           {isLoading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Sign Up")}
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Creating account")}
             </>
           ) : (
-            t("Sign Up")
+            t("Create Account")
           )}
         </Button>
       </form>

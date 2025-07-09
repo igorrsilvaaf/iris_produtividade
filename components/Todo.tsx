@@ -243,83 +243,119 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
   return (
     <div 
       className={cn(
-        "p-4 border rounded-lg mb-2 hover:shadow-md transition-all",
-        todoData.completed ? 'bg-gray-50 dark:bg-gray-900' : '',
-        onClick ? 'cursor-pointer hover:bg-accent' : ''
+        "group flex items-center gap-3 rounded-lg border p-3 hover:bg-accent/50 transition-colors cursor-pointer",
+        todoData.completed && "opacity-60 bg-muted/30"
       )}
-      onClick={onClick ? handleClick : undefined}
+      onClick={handleClick}
+      data-testid={`todo-item-${todoData.id}`}
     >
-      <div className="flex justify-between">
-        <h3 className={cn("font-medium text-base", todoData.completed ? 'line-through opacity-70' : '')}>
-          {todoData.title}
-        </h3>
-        {todoData.completed && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <CheckCircle2 data-testid="check-icon" className="text-green-500 h-5 w-5" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t ? t("Completed") : "Concluído"}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+      <div 
+        className="flex items-center" 
+        onClick={(e) => e.stopPropagation()}
+        data-testid={`todo-checkbox-wrapper-${todoData.id}`}
+      >
+        <input
+          type="checkbox"
+          checked={todoData.completed}
+          onChange={handleComplete}
+          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+          data-testid={`todo-checkbox-${todoData.id}`}
+          aria-label={`Marcar tarefa ${todoData.title} como ${todoData.completed ? 'incompleta' : 'concluída'}`}
+        />
       </div>
-
-      {todoData.description && (
-        <p className={cn("text-sm text-muted-foreground mt-2 line-clamp-2", todoData.completed ? 'opacity-70' : '')}>
-          {todoData.description}
-        </p>
-      )}
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {todoData.due_date && (
-          <div className="flex items-center text-xs text-muted-foreground">
-            <Clock className="mr-1 h-3 w-3" />
-            <span>{formatDueDate(todoData.due_date, t)}</span>
-          </div>
-        )}
-        {todoData.priority && (
-          <div className="flex items-center text-xs">
-            <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(todoData.priority)}`} />
-            <span>P{todoData.priority}</span>
-          </div>
-        )}
-        {todoData.points && (
-          <div className="flex items-center text-xs">
-            <CircleDot className={`mr-1 h-3 w-3 ${getPointsColor(todoData.points)}`} />
-            <span>{todoData.points} - {getPointsLabel(todoData.points)}</span>
-          </div>
-        )}
-        {todoData.project_name && (
-          <div
-            className="flex items-center text-xs rounded-full px-2 py-0.5"
-            style={{ 
-              backgroundColor: `${todoData.project_color}20`,
-              color: todoData.project_color 
-            }}
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <h3 
+            className={cn(
+              "font-medium truncate",
+              todoData.completed && "line-through text-muted-foreground"
+            )}
+            data-testid={`todo-title-${todoData.id}`}
           >
-            <span>{todoData.project_name}</span>
-          </div>
-        )}
+            {todoData.title}
+          </h3>
+          
+          {todoData.priority && todoData.priority <= 3 && (
+            <Flag 
+              className={cn("h-4 w-4 shrink-0", getPriorityColor(todoData.priority))}
+              data-testid={`todo-priority-flag-${todoData.id}`}
+            />
+          )}
+          
+          {todoData.points && todoData.points > 0 && (
+            <div 
+              className="flex items-center gap-1"
+              data-testid={`todo-points-${todoData.id}`}
+            >
+              <CircleDot className={cn("h-3 w-3", getPointsColor(todoData.points))} />
+              <span className="text-xs text-muted-foreground">{todoData.points}</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+          {todoData.due_date && (
+            <div 
+              className="flex items-center gap-1"
+              data-testid={`todo-due-date-${todoData.id}`}
+            >
+              <Clock className="h-3 w-3" />
+              <span>{formatDueDate(todoData.due_date, t)}</span>
+            </div>
+          )}
+          
+          {todoData.project_name && (
+            <div 
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs"
+              style={{ 
+                backgroundColor: `${todoData.project_color}20`,
+                color: todoData.project_color 
+              }}
+              data-testid={`todo-project-${todoData.id}`}
+            >
+              <span>{todoData.project_name}</span>
+            </div>
+          )}
+        </div>
       </div>
-
-      <div className="mt-3 flex gap-2">
-        {!todoData.completed && (
-          <button 
-            onClick={handleComplete}
-            className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-          >
-            {t ? t("Complete") : "Completar"}
-          </button>
-        )}
-        <button 
-          onClick={handleDelete}
-          className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
-        >
-          {t ? t("Delete") : "Excluir"}
-        </button>
+      
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleDelete}
+                className="p-1 rounded-md hover:bg-destructive/10 text-destructive hover:text-destructive"
+                data-testid={`todo-delete-button-${todoData.id}`}
+                aria-label={`Excluir tarefa ${todoData.title}`}
+              >
+                <Trash className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t("Delete task")}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleComplete}
+                className="p-1 rounded-md hover:bg-green-500/10 text-green-500 hover:text-green-600"
+                data-testid={`todo-complete-button-${todoData.id}`}
+                aria-label={`${todoData.completed ? 'Marcar como incompleta' : 'Marcar como concluída'} tarefa ${todoData.title}`}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{todoData.completed ? t("Mark as incomplete") : t("Mark as complete")}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   )

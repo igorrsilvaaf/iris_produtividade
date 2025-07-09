@@ -23,10 +23,10 @@ export default function KanbanPage() {
   }, [])
   
   return (
-    <div className={`container mx-auto py-6 ${isMobile ? "px-0" : "px-6"}`}>
-      <div className={`mb-6 ${isMobile ? "px-4" : ""}`}>
-        <h1 className="text-3xl font-bold">{t("kanbanBoard")}</h1>
-        <p className="text-muted-foreground">{t("organizeYourWorkflow")}</p>
+    <div className={`container mx-auto py-6 ${isMobile ? "px-0" : "px-6"}`} data-testid="kanban-page">
+      <div className={`mb-6 ${isMobile ? "px-4" : ""}`} data-testid="kanban-page-header">
+        <h1 className="text-3xl font-bold" data-testid="kanban-page-title">{t("kanbanBoard")}</h1>
+        <p className="text-muted-foreground" data-testid="kanban-page-description">{t("organizeYourWorkflow")}</p>
       </div>
       
       <KanbanBoard />

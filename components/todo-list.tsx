@@ -42,30 +42,44 @@ const TaskItem = memo(({
         "flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-all",
         task.completed && "opacity-60"
       )}
+      data-testid={`task-item-${task.id}`}
     >
       <div className="flex items-center space-x-3">
         <Checkbox
           checked={task.completed}
           onCheckedChange={() => onToggle(task.id)}
           className="h-5 w-5"
+          data-testid={`task-checkbox-${task.id}`}
         />
         <div>
-          <div className={cn("font-medium", task.completed && "line-through")}>
+          <div 
+            className={cn("font-medium", task.completed && "line-through")}
+            data-testid={`task-title-${task.id}`}
+          >
             {task.title}
           </div>
           <div className="mt-1 flex items-center gap-2 flex-wrap">
             {task.due_date && (
-              <div className="flex items-center text-xs text-muted-foreground">
+              <div 
+                className="flex items-center text-xs text-muted-foreground"
+                data-testid={`task-due-date-${task.id}`}
+              >
                 <Clock className="mr-1 h-3 w-3" />
                 <span>{formatDueDate(task.due_date)}</span>
               </div>
             )}
-            <div className="flex items-center text-xs">
+            <div 
+              className="flex items-center text-xs"
+              data-testid={`task-priority-${task.id}`}
+            >
               <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(task.priority)}`} />
               <span>P{task.priority}</span>
             </div>
             {task.points && (
-              <div className="flex items-center text-xs">
+              <div 
+                className="flex items-center text-xs"
+                data-testid={`task-points-${task.id}`}
+              >
                 <CircleDot className={`mr-1 h-3 w-3 ${getPointsColor(task.points)}`} />
                 <span>{task.points} pts</span>
               </div>
@@ -77,6 +91,7 @@ const TaskItem = memo(({
                   backgroundColor: `${task.project_color}20`,
                   color: task.project_color 
                 }}
+                data-testid={`task-project-${task.id}`}
               >
                 <span>{task.project_name}</span>
               </div>
@@ -89,6 +104,7 @@ const TaskItem = memo(({
         className="text-red-500 hover:text-red-700 p-1"
         title="Excluir tarefa"
         aria-label="Excluir tarefa"
+        data-testid={`task-delete-button-${task.id}`}
       >
         <Trash className="h-4 w-4" />
       </button>
@@ -301,59 +317,65 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-end mb-4">
+    <div className="space-y-4" data-testid="todo-list">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold" data-testid="todo-list-title">
+          {t("Tasks")} ({sortedTasks.length})
+        </h2>
         <div className="flex items-center gap-2">
-          <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setSortBy("priority")}
+            data-testid="sort-button"
+          >
+            <ArrowUpDown className="h-4 w-4 mr-2" />
+            {t("Sort")}
+          </Button>
+          <Select value={sortBy} onValueChange={setSortBy} data-testid="sort-select">
             <SelectTrigger className="w-[180px]">
-              <div className="flex items-center">
-                <ArrowUpDown className="mr-2 h-4 w-4" />
-                <SelectValue placeholder={t("Sort by") || "Ordenar por"} />
-              </div>
+              <SelectValue placeholder={t("Sort by")} />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="priority">
-                <div className="flex items-center">
-                  <Flag className="mr-2 h-4 w-4" />
-                  {t("Prioridade") || "Prioridade"}
-                </div>
+            <SelectContent data-testid="sort-select-content">
+              <SelectItem value="priority" data-testid="sort-option-priority">
+                {t("Priority")}
               </SelectItem>
-              <SelectItem value="title">
-                <div className="flex items-center">
-                  <FileText className="mr-2 h-4 w-4" />
-                  {t("Título") || "Título"}
-                </div>
+              <SelectItem value="title" data-testid="sort-option-title">
+                {t("Title")}
               </SelectItem>
-              <SelectItem value="dueDate">
-                <div className="flex items-center">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {t("Data de Vencimento") || "Data de Vencimento"}
-                </div>
+              <SelectItem value="dueDate" data-testid="sort-option-due-date">
+                {t("Due Date")}
               </SelectItem>
-              <SelectItem value="createdAt">
-                <div className="flex items-center">
-                  <Clock className="mr-2 h-4 w-4" />
-                  {t("Data de Criação") || "Data de Criação"}
-                </div>
+              <SelectItem value="createdAt" data-testid="sort-option-created-at">
+                {t("Created At")}
               </SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
-
-      <ul className="space-y-3">
-        {sortedTasks.map((task) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            onToggle={toggleTaskCompletion}
-            onDelete={deleteTask}
-            formatDueDate={formatDueDate}
-            getPriorityColor={getPriorityColor}
-            getPointsColor={getPointsColor}
-          />
-        ))}
-      </ul>
+      
+      {sortedTasks.length === 0 ? (
+        <Card className="p-6 text-center" data-testid="empty-state">
+          <div className="flex flex-col items-center space-y-2">
+            <Check className="h-8 w-8 text-muted-foreground" />
+            <p className="text-muted-foreground">{t("No tasks found")}</p>
+          </div>
+        </Card>
+      ) : (
+        <ul className="space-y-2" data-testid="tasks-list">
+          {sortedTasks.map(task => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              onToggle={toggleTaskCompletion}
+              onDelete={deleteTask}
+              formatDueDate={formatDueDate}
+              getPriorityColor={getPriorityColor}
+              getPointsColor={getPointsColor}
+            />
+          ))}
+        </ul>
+      )}
     </div>
   )
 })

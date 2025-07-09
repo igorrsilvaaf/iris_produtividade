@@ -528,7 +528,7 @@ export function AddTaskDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto" data-testid="add-task-dialog">
         <DialogHeader>
           <div className="flex items-center">
             <div className="md:hidden">
@@ -544,6 +544,7 @@ export function AddTaskDialog({
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4 sm:space-y-6"
+            data-testid="add-task-form"
           >
             <FormField
               control={form.control}
@@ -556,6 +557,7 @@ export function AddTaskDialog({
                       placeholder={t("Task title")}
                       className="min-h-[80px] text-base"
                       rows={3}
+                      data-testid="add-task-title-input"
                       {...field}
                     />
                   </FormControl>

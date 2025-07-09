@@ -46,11 +46,11 @@ export default async function InboxPage() {
   );
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{translatedTitle}</h1>
+    <div className="space-y-8" data-testid="inbox-page">
+      <div className="flex items-center justify-between" data-testid="inbox-page-header">
+        <h1 className="text-2xl font-bold" data-testid="inbox-page-title">{translatedTitle}</h1>
         <AddTaskDialog initialLanguage={initialLanguage}>
-          <Button>
+          <Button data-testid="inbox-page-add-task-button">
             <Plus className="mr-2 h-4 w-4" />
             {getServerTranslation("addTask", initialLanguage as "en" | "pt")}
           </Button>

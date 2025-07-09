@@ -95,7 +95,7 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="label-form">
         <FormField
           control={form.control}
           name="name"
@@ -103,7 +103,7 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
             <FormItem>
               <FormLabel>{t("Name")}</FormLabel>
               <FormControl>
-                <Input placeholder={t("Label name")} {...field} />
+                <Input placeholder={t("Label name")} {...field} data-testid="label-name-input" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -121,12 +121,13 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
                     className="h-6 w-6 rounded-full border"
                     style={{ backgroundColor: field.value }}
                   />
-                  <Input type="color" {...field} className="w-12 p-1" />
+                  <Input type="color" {...field} className="w-12 p-1" data-testid="label-color-picker" />
                   <Input
                     type="text"
                     value={field.value}
                     onChange={field.onChange}
                     className="flex-1"
+                    data-testid="label-color-text"
                   />
                 </div>
               </FormControl>
@@ -135,7 +136,7 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
           )}
         />
         <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} data-testid="label-submit-button">
             {isLoading
               ? t("Salvando...")
               : label

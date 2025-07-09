@@ -82,7 +82,12 @@ export function QuickAddTodo() {
   }
   
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2" role="form">
+    <form 
+      onSubmit={handleSubmit} 
+      className="flex flex-col sm:flex-row gap-2" 
+      role="form"
+      data-testid="quick-add-todo-form"
+    >
       <Input
         type="text"
         placeholder={t("Add a new task...") || "Adicionar nova tarefa..."}
@@ -90,25 +95,39 @@ export function QuickAddTodo() {
         onChange={(e) => setTitle(e.target.value)}
         className="flex-1"
         disabled={isLoading}
+        data-testid="quick-add-todo-input"
       />
       
       <Select 
         value={priority} 
         onValueChange={setPriority}
         disabled={isLoading}
+        data-testid="quick-add-todo-priority-select"
       >
-        <SelectTrigger className="w-[130px]">
+        <SelectTrigger className="w-[130px]" data-testid="quick-add-todo-priority-trigger">
           <SelectValue placeholder={t("Priority") || "Prioridade"} />
         </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="1">{t("Grave") || "Grave"}</SelectItem>
-          <SelectItem value="2">{t("Alta") || "Alta"}</SelectItem>
-          <SelectItem value="3">{t("Média") || "Média"}</SelectItem>
-          <SelectItem value="4">{t("Baixa") || "Baixa"}</SelectItem>
+        <SelectContent data-testid="quick-add-todo-priority-content">
+          <SelectItem value="1" data-testid="priority-option-grave">
+            {t("Grave") || "Grave"}
+          </SelectItem>
+          <SelectItem value="2" data-testid="priority-option-alta">
+            {t("Alta") || "Alta"}
+          </SelectItem>
+          <SelectItem value="3" data-testid="priority-option-media">
+            {t("Média") || "Média"}
+          </SelectItem>
+          <SelectItem value="4" data-testid="priority-option-baixa">
+            {t("Baixa") || "Baixa"}
+          </SelectItem>
         </SelectContent>
       </Select>
       
-      <Button type="submit" disabled={isLoading || !title.trim()}>
+      <Button 
+        type="submit" 
+        disabled={isLoading || !title.trim()}
+        data-testid="quick-add-todo-submit"
+      >
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

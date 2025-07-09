@@ -342,7 +342,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" data-testid="edit-task-dialog">
         <DialogHeader>
           <div className="flex items-center">
             <div className="md:hidden">
@@ -355,7 +355,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="edit-task-form">
             <FormField
               control={form.control}
               name="title"

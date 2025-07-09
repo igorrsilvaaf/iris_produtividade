@@ -102,7 +102,11 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form 
+        onSubmit={form.handleSubmit(onSubmit)} 
+        className="space-y-6"
+        data-testid="login-form"
+      >
         <FormField
           control={form.control}
           name="email"
@@ -115,6 +119,7 @@ export function LoginForm() {
                   {...field} 
                   autoComplete="email"
                   aria-required="true"
+                  data-testid="login-email-input"
                 />
               </FormControl>
               <FormMessage />
@@ -135,6 +140,7 @@ export function LoginForm() {
                     {...field} 
                     autoComplete="current-password"
                     aria-required="true"
+                    data-testid="login-password-input"
                   />
                   <Button
                     type="button"
@@ -143,6 +149,7 @@ export function LoginForm() {
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? t("Hide password") : t("Show password")}
+                    data-testid="login-password-toggle"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -163,7 +170,12 @@ export function LoginForm() {
             name="rememberMe"
             render={({ field }) => (
               <div className="flex items-center space-x-2">
-                <Checkbox id="rememberMe" checked={field.value} onCheckedChange={field.onChange} />
+                <Checkbox 
+                  id="rememberMe" 
+                  checked={field.value} 
+                  onCheckedChange={field.onChange}
+                  data-testid="login-remember-me-checkbox"
+                />
                 <label
                   htmlFor="rememberMe"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -173,11 +185,21 @@ export function LoginForm() {
               </div>
             )}
           />
-          <Button variant="link" className="px-0 font-normal" asChild>
+          <Button 
+            variant="link" 
+            className="px-0 font-normal" 
+            asChild
+            data-testid="login-forgot-password-link"
+          >
             <a href="/forgot-password">{t("Forgot password?")}</a>
           </Button>
         </div>
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading}
+          data-testid="login-submit-button"
+        >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Sign In")}

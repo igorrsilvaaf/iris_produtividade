@@ -100,7 +100,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="space-y-6">
+      <form onSubmit={onSubmit} className="space-y-6" data-testid="project-form">
         <FormField
           control={form.control}
           name="name"
@@ -114,6 +114,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                   id="project-name"
                   name="name"
                   aria-label={t("Project name")}
+                  data-testid="project-name-input"
                 />
               </FormControl>
               <FormMessage />
@@ -143,6 +144,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                     className="w-12 p-1"
                     id="color-picker"
                     aria-label={t("Select color")}
+                    data-testid="project-color-picker"
                   />
                   <Input
                     type="text"
@@ -152,6 +154,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                     id="color-text"
                     name="color"
                     aria-label={t("Color value")}
+                    data-testid="project-color-text"
                   />
                 </div>
               </FormControl>
@@ -171,6 +174,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                   id="project-favorite"
                   name="is_favorite"
                   aria-label={t("Mark as favorite")}
+                  data-testid="project-favorite-checkbox"
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
@@ -181,7 +185,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading} data-testid="project-submit-button">
           {isLoading
             ? t("Saving...")
             : project

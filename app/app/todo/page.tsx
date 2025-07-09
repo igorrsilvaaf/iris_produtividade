@@ -15,10 +15,10 @@ export default async function TodoPage() {
   const sampleTask = tasks.length > 0 ? tasks[0] : null
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Gerenciador de Tarefas</h1>
+    <div className="container py-8" data-testid="todo-page">
+      <h1 className="text-3xl font-bold mb-8" data-testid="todo-page-title">Gerenciador de Tarefas</h1>
       
-      <Card className="mb-8">
+      <Card className="mb-8" data-testid="todo-page-quick-add-card">
         <CardHeader>
           <CardTitle>Adicionar Tarefa</CardTitle>
           <CardDescription>Adicione uma nova tarefa rapidamente</CardDescription>

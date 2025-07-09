@@ -189,10 +189,10 @@ export default function PomodoroPage() {
   }
 
   return (
-    <div className={`container mx-auto py-6 ${isMobile ? "px-0" : "px-6"}`}>
-      <div className={`mb-6 ${isMobile ? "hidden" : ""} text-center`}>
-        <h1 className="text-3xl font-bold">{t("pomodoroTimer")}</h1>
-        <p className="text-muted-foreground">{t("focusOnYourTasks")}</p>
+    <div className={`container mx-auto py-6 ${isMobile ? "px-0" : "px-6"}`} data-testid="pomodoro-page">
+      <div className={`mb-6 ${isMobile ? "hidden" : ""} text-center`} data-testid="pomodoro-page-header">
+        <h1 className="text-3xl font-bold" data-testid="pomodoro-page-title">{t("pomodoroTimer")}</h1>
+        <p className="text-muted-foreground" data-testid="pomodoro-page-description">{t("focusOnYourTasks")}</p>
       </div>
 
       {/* Seletor de Tarefas para Desktop */}

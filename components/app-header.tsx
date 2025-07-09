@@ -74,16 +74,24 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center border-b bg-gradient-to-r from-background via-background to-background/95 backdrop-blur-sm px-3 md:px-5">
+    <header 
+      className="sticky top-0 z-30 flex h-16 items-center border-b bg-gradient-to-r from-background via-background to-background/95 backdrop-blur-sm px-3 md:px-5"
+      data-testid="app-header"
+    >
       {/* Mobile menu button (positioned to the left of search) */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="mr-2 md:hidden">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="mr-2 md:hidden"
+            data-testid="mobile-menu-button"
+          >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-72">
+        <SheetContent side="left" className="p-0 w-72" data-testid="mobile-menu-content">
           <SheetTitle className="sr-only">
             {t("Navigation Menu")}
           </SheetTitle>
@@ -92,16 +100,22 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
       </Sheet>
       
       {/* Search area - always visible on all devices */}
-      <div className="flex flex-1 justify-center transition-all duration-200">
+      <div className="flex flex-1 justify-center transition-all duration-200" data-testid="search-area">
         <div className="w-full max-w-md relative">
           <SearchTasks />
         </div>
       </div>
       
       {/* Primary navigation */}
-      <nav className="flex items-center gap-1 ml-auto md:ml-4">
+      <nav className="flex items-center gap-1 ml-auto md:ml-4" data-testid="primary-navigation">
         <div className="hidden md:flex items-center mr-1 border-r pr-2 border-muted">
-          <Button variant="ghost" size="sm" className="rounded-full h-9 px-3 text-sm font-medium" asChild>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="rounded-full h-9 px-3 text-sm font-medium" 
+            asChild
+            data-testid="calendar-button-desktop"
+          >
             <a href="/app/calendar" className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />
               {t("calendar")}
@@ -118,6 +132,7 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
             size="icon" 
             className="md:hidden rounded-full h-9 w-9 hover:bg-accent/50 hover:text-accent-foreground transition-colors" 
             asChild
+            data-testid="calendar-button-mobile"
           >
             <a href="/app/calendar">
               <Calendar className="h-4.5 w-4.5" />
@@ -130,6 +145,7 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
             size="icon" 
             className="rounded-full h-9 w-9 hover:bg-accent/50 hover:text-accent-foreground transition-colors" 
             asChild
+            data-testid="settings-button"
           >
             <a href="/app/settings">
               <Settings className="h-4.5 w-4.5" />
@@ -145,6 +161,7 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
                 variant="ghost" 
                 size="icon" 
                 className="rounded-full h-9 w-9 ml-1 p-0 overflow-hidden ring-2 ring-primary/10 hover:ring-primary/20"
+                data-testid="user-menu-trigger"
               >
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={user.avatar_url || ""} alt={user.name} />
@@ -154,8 +171,8 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5 border-muted/50 shadow-lg">
-              <div className="flex items-center gap-3 p-2.5 mb-1 rounded-lg">
+            <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5 border-muted/50 shadow-lg" data-testid="user-menu-content">
+              <div className="flex items-center gap-3 p-2.5 mb-1 rounded-lg" data-testid="user-menu-profile">
                 <Avatar className="h-10 w-10 border-2 border-muted">
                   <AvatarImage src={user.avatar_url || ""} alt={user.name} />
                   <AvatarFallback className="bg-primary/10 text-primary" key={`dropdown-avatar-${user.id}`}>
@@ -171,28 +188,28 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
               <DropdownMenuSeparator className="my-1" />
               
               <div className="p-1">
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5">
+                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="user-menu-profile-link">
                   <a href="/app/profile" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
                     {t("profile")}
                   </a>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5">
+                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="user-menu-settings-link">
                   <a href="/app/settings" className="flex items-center">
                     <Settings className="mr-2 h-4 w-4" />
                     {t("settings")}
                   </a>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5">
+                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="user-menu-storage-link">
                   <a href="/app/storage" className="flex items-center">
                     <Database className="mr-2 h-4 w-4" />
                     {t("storage")}
                   </a>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5">
+                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="user-menu-changelog-link">
                   <a href="/app/changelog" className="flex items-center">
                     <FileText className="mr-2 h-4 w-4" />
                     {t("changelog")}
@@ -265,7 +282,8 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
                 
                 <DropdownMenuItem 
                   onClick={handleLogout} 
-                  className="rounded-lg cursor-pointer h-9 px-2 py-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20"
+                  className="rounded-lg cursor-pointer h-9 px-2 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/10 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-900/10"
+                  data-testid="user-menu-logout-button"
                 >
                   {t("logout")}
                 </DropdownMenuItem>

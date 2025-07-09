@@ -147,14 +147,14 @@ export function AppSidebar({ user }: { user: User }) {
   }, [toast])
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col bg-background">
-      <div className="flex h-14 items-center border-b px-4">
+    <div className="flex h-full flex-col bg-background" data-testid="app-sidebar">
+      <div className="flex h-14 items-center border-b px-4" data-testid="sidebar-header">
         <Link href="/app" className="flex items-center gap-2 font-bold w-full">
           <Logo asLink={false} />
         </Link>
       </div>
-      <ScrollArea className="flex-1 px-2 py-4">
-        <nav className="grid gap-1">
+      <ScrollArea className="flex-1 px-2 py-4" data-testid="sidebar-content">
+        <nav className="grid gap-1" data-testid="sidebar-navigation">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -163,6 +163,7 @@ export function AppSidebar({ user }: { user: User }) {
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
                 pathname === item.href ? "bg-accent text-accent-foreground" : "transparent",
               )}
+              data-testid={`sidebar-nav-${item.translationKey}`}
             >
               {item.icon}
               {t(item.translationKey)}
@@ -175,6 +176,7 @@ export function AppSidebar({ user }: { user: User }) {
               <Button
                 variant="ghost"
                 className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium"
+                data-testid="sidebar-projects-toggle"
               >
                 <div className="flex items-center gap-3">
                   <LayoutDashboard className="h-5 w-5" />
@@ -183,13 +185,15 @@ export function AppSidebar({ user }: { user: User }) {
                 {projectsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-1">
+            <CollapsibleContent className="space-y-1" data-testid="sidebar-projects-content">
               {isLoading ? (
-                <div className="flex items-center justify-center py-4">
+                <div className="flex items-center justify-center py-4" data-testid="sidebar-projects-loading">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
               ) : projects.length === 0 ? (
-                <p className="px-3 py-2 text-sm text-muted-foreground">{t("No projects found")}</p>
+                <p className="px-3 py-2 text-sm text-muted-foreground" data-testid="sidebar-projects-empty">
+                  {t("No projects found")}
+                </p>
               ) : (
                 projects.map((project) => (
                   <Link
@@ -201,31 +205,38 @@ export function AppSidebar({ user }: { user: User }) {
                         ? "bg-accent text-accent-foreground"
                         : "transparent",
                     )}
+                    data-testid={`sidebar-project-${project.id}`}
                   >
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color }} />
-                    {project.name}
-                    {project.is_favorite && <span className="ml-auto text-yellow-400">★</span>}
+                    <div
+                      className="h-3 w-3 rounded-full"
+                      style={{ backgroundColor: project.color }}
+                    />
+                    <span className="truncate">{project.name}</span>
                   </Link>
                 ))
               )}
-              <AddProjectDialog>
-                <Button
-                  variant="ghost"
-                  className="flex w-full items-center gap-3 rounded-lg px-8 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                >
-                  <Plus className="h-4 w-4" />
-                  {t("addProject")}
-                </Button>
-              </AddProjectDialog>
+              <div className="px-3 py-2">
+                <AddProjectDialog>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 text-sm"
+                    data-testid="sidebar-add-project-button"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t("Add project")}
+                  </Button>
+                </AddProjectDialog>
+              </div>
             </CollapsibleContent>
           </Collapsible>
         </div>
-        <div className="mt-2">
+        <div className="mt-6">
           <Collapsible open={labelsOpen} onOpenChange={setLabelsOpen} className="space-y-1">
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
                 className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium"
+                data-testid="sidebar-labels-toggle"
               >
                 <div className="flex items-center gap-3">
                   <Tag className="h-5 w-5" />
@@ -234,13 +245,15 @@ export function AppSidebar({ user }: { user: User }) {
                 {labelsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-1">
+            <CollapsibleContent className="space-y-1" data-testid="sidebar-labels-content">
               {isLoading ? (
-                <div className="flex items-center justify-center py-4">
+                <div className="flex items-center justify-center py-4" data-testid="sidebar-labels-loading">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
               ) : labels.length === 0 ? (
-                <p className="px-3 py-2 text-sm text-muted-foreground">{t("No labels found")}</p>
+                <p className="px-3 py-2 text-sm text-muted-foreground" data-testid="sidebar-labels-empty">
+                  {t("No labels found")}
+                </p>
               ) : (
                 labels.map((label) => (
                   <Link
@@ -252,21 +265,28 @@ export function AppSidebar({ user }: { user: User }) {
                         ? "bg-accent text-accent-foreground"
                         : "transparent",
                     )}
+                    data-testid={`sidebar-label-${label.id}`}
                   >
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: label.color }} />
-                    {label.name}
+                    <div
+                      className="h-3 w-3 rounded-full"
+                      style={{ backgroundColor: label.color }}
+                    />
+                    <span className="truncate">{label.name}</span>
                   </Link>
                 ))
               )}
-              <AddLabelDialog>
-                <Button
-                  variant="ghost"
-                  className="flex w-full items-center gap-3 rounded-lg px-8 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                >
-                  <Plus className="h-4 w-4" />
-                  {t("addLabel")}
-                </Button>
-              </AddLabelDialog>
+              <div className="px-3 py-2">
+                <AddLabelDialog>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 text-sm"
+                    data-testid="sidebar-add-label-button"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t("Add label")}
+                  </Button>
+                </AddLabelDialog>
+              </div>
             </CollapsibleContent>
           </Collapsible>
         </div>
@@ -274,6 +294,31 @@ export function AppSidebar({ user }: { user: User }) {
     </div>
   )
 
-  return <SidebarContent />;
+  return (
+    <>
+      {isMobile ? (
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="fixed left-4 top-4 z-50 lg:hidden"
+              data-testid="mobile-sidebar-toggle"
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle sidebar</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-72" data-testid="mobile-sidebar">
+            <SidebarContent />
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+          <SidebarContent />
+        </div>
+      )}
+    </>
+  )
 }
 

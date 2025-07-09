@@ -16,6 +16,7 @@ const Checkbox = React.forwardRef<
       "peer h-5 w-5 shrink-0 rounded-md border-2 border-primary shadow-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground transition-colors",
       className
     )}
+    data-testid={props['data-testid'] || "checkbox"}
     {...props}
   >
     <CheckboxPrimitive.Indicator

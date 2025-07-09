@@ -50,19 +50,19 @@ export default async function AppPage() {
 
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{translatedTitle}</h1>
+    <div className="space-y-8" data-testid="app-page">
+      <div className="flex items-center justify-between" data-testid="app-page-header">
+        <h1 className="text-2xl font-bold" data-testid="app-page-title">{translatedTitle}</h1>
         <AddTaskDialog initialLanguage={initialLanguage}>
-          <Button>
+          <Button data-testid="app-page-add-task-button">
             <Plus className="mr-2 h-4 w-4" />
             {getServerTranslation("addTask", initialLanguage as "en" | "pt")}
           </Button>
         </AddTaskDialog>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="md:col-span-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" data-testid="app-page-layout">
+        <div className="md:col-span-2" data-testid="app-page-task-list">
           <Suspense
             fallback={
               <div className="space-y-4">

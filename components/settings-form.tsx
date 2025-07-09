@@ -363,70 +363,60 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   };
 
   return (
-    <>
-      {isSaved && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="bg-green-500 text-white rounded-full p-6 animate-pulse shadow-lg">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-12 w-12 animate-bounce"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
+    <div className="space-y-6" data-testid="settings-form">
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t("settings")}
+          </h1>
+          <p className="text-muted-foreground">
+            {t("Manage your application preferences.")}
+          </p>
         </div>
-      )}
-      <Tabs
-        defaultValue={initialTab}
-        onValueChange={(value) => {
-          setActiveTab(value);
-        }}
-        className="w-full"
-      >
-        <TabsList className="mb-6 flex w-full justify-start rounded-lg bg-slate-800 dark:bg-slate-900 shadow-sm border-b border-border/40 overflow-x-auto p-0 no-scrollbar">
-          <TabsTrigger
-            value="general"
-            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5 p-1" data-testid="settings-tabs">
+          <TabsTrigger 
+            value="general" 
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0"
+            data-testid="settings-tab-general"
           >
             {t("general")}
           </TabsTrigger>
           <TabsTrigger
             value="pomodoro"
-            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0"
+            data-testid="settings-tab-pomodoro"
           >
             {t("pomodoroTimer")}
           </TabsTrigger>
           <TabsTrigger
             value="notifications"
-            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0"
+            data-testid="settings-tab-notifications"
           >
             {t("notifications")}
           </TabsTrigger>
           <TabsTrigger
             value="spotify"
-            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0"
+            data-testid="settings-tab-spotify"
           >
             Música
           </TabsTrigger>
           <TabsTrigger
             value="flipclock"
-            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0"
+            data-testid="settings-tab-flipclock"
           >
             Flip Clock
           </TabsTrigger>
         </TabsList>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <TabsContent value="general">
+          <form onSubmit={form.handleSubmit(onSubmit)} data-testid="settings-form-container">
+            <TabsContent value="general" data-testid="settings-general-content">
               <Card className="overflow-hidden">
                 <CardHeader className="px-4 sm:px-6">
                   <CardTitle>{t("general")}</CardTitle>
@@ -447,16 +437,21 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                             setTheme(value);
                           }}
                           defaultValue={field.value}
+                          data-testid="settings-theme-select"
                         >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder={t("Select a theme")} />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="light">{t("light")}</SelectItem>
-                            <SelectItem value="dark">{t("dark")}</SelectItem>
-                            <SelectItem value="system">
+                          <SelectContent data-testid="settings-theme-options">
+                            <SelectItem value="light" data-testid="theme-option-light">
+                              {t("light")}
+                            </SelectItem>
+                            <SelectItem value="dark" data-testid="theme-option-dark">
+                              {t("dark")}
+                            </SelectItem>
+                            <SelectItem value="system" data-testid="theme-option-system">
                               {t("system")}
                             </SelectItem>
                           </SelectContent>
@@ -483,6 +478,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                             setLanguage(value);
                           }}
                           defaultValue={field.value}
+                          data-testid="settings-language-select"
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -491,9 +487,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                               />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="en">{t("english")}</SelectItem>
-                            <SelectItem value="pt">
+                          <SelectContent data-testid="settings-language-options">
+                            <SelectItem value="en" data-testid="language-option-en">
+                              {t("english")}
+                            </SelectItem>
+                            <SelectItem value="pt" data-testid="language-option-pt">
                               {t("portuguese")}
                             </SelectItem>
                           </SelectContent>
@@ -513,6 +511,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     type="button"
                     disabled={isLoading}
                     className="relative w-full sm:w-auto"
+                    data-testid="settings-general-save-button"
                     onClick={async () => {
                       try {
                         setIsLoading(true);
@@ -599,12 +598,29 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                             r="10"
                             stroke="currentColor"
                             strokeWidth="4"
-                          ></circle>
+                          />
                           <path
                             className="opacity-75"
                             fill="currentColor"
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
+                          />
+                        </svg>
+                      </span>
+                    )}
+                    {isSaved && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <svg
+                          className="h-5 w-5 text-green-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       </span>
                     )}
@@ -613,7 +629,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               </Card>
             </TabsContent>
 
-            <TabsContent value="pomodoro">
+            <TabsContent value="pomodoro" data-testid="settings-pomodoro-content">
               <Card className="overflow-hidden">
                 <CardHeader className="px-4 sm:px-6">
                   <CardTitle>{t("pomodoroTimer")}</CardTitle>
@@ -840,12 +856,12 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                             r="10"
                             stroke="currentColor"
                             strokeWidth="4"
-                          ></circle>
+                          />
                           <path
                             className="opacity-75"
                             fill="currentColor"
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
+                          />
                         </svg>
                       </span>
                     )}
@@ -854,7 +870,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               </Card>
             </TabsContent>
 
-            <TabsContent value="notifications">
+            <TabsContent value="notifications" data-testid="settings-notifications-content">
               <Card className="overflow-hidden">
                 <CardHeader className="px-4 sm:px-6">
                   <CardTitle>{t("notifications")}</CardTitle>
@@ -1122,12 +1138,12 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                             r="10"
                             stroke="currentColor"
                             strokeWidth="4"
-                          ></circle>
+                          />
                           <path
                             className="opacity-75"
                             fill="currentColor"
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
+                          />
                         </svg>
                       </span>
                     )}
@@ -1136,7 +1152,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               </Card>
             </TabsContent>
 
-            <TabsContent value="spotify">
+            <TabsContent value="spotify" data-testid="settings-spotify-content">
               <Card className="overflow-hidden">
                 <CardHeader className="px-4 sm:px-6">
                   <CardTitle>Player de Música</CardTitle>
@@ -1367,12 +1383,12 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                             r="10"
                             stroke="currentColor"
                             strokeWidth="4"
-                          ></circle>
+                          />
                           <path
                             className="opacity-75"
                             fill="currentColor"
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
+                          />
                         </svg>
                       </span>
                     )}
@@ -1381,7 +1397,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               </Card>
             </TabsContent>
 
-            <TabsContent value="flipclock">
+            <TabsContent value="flipclock" data-testid="settings-flipclock-content">
               <Card className="overflow-hidden">
                 <CardHeader className="px-4 sm:px-6">
                   <CardTitle>Flip Clock</CardTitle>
@@ -1550,12 +1566,12 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                             r="10"
                             stroke="currentColor"
                             strokeWidth="4"
-                          ></circle>
+                          />
                           <path
                             className="opacity-75"
                             fill="currentColor"
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
+                          />
                         </svg>
                       </span>
                     )}
@@ -1566,6 +1582,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           </form>
         </Form>
       </Tabs>
-    </>
+    </div>
   );
 }

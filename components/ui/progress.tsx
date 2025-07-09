@@ -21,6 +21,7 @@ const Progress = React.forwardRef<
       "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
       className
     )}
+    data-testid={props['data-testid'] || "progress"}
     {...props}
   >
     <ProgressPrimitive.Indicator
@@ -29,6 +30,7 @@ const Progress = React.forwardRef<
         indicatorClassName // Adicionar a classe customizada aqui
       )}
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+      data-testid={props['data-testid'] ? `${props['data-testid']}-indicator` : "progress-indicator"}
     />
   </ProgressPrimitive.Root>
 ))
