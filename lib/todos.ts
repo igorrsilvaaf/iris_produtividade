@@ -26,7 +26,6 @@ export type Todo = {
 };
 
 // Função auxiliar para determinar o board correto baseado na data
-// Função auxiliar para determinar o board correto baseado na data
 function determineKanbanColumnByDate(dueDate: Date | null, completed: boolean): string {
   if (completed) {
     return "completed";
@@ -36,13 +35,13 @@ function determineKanbanColumnByDate(dueDate: Date | null, completed: boolean): 
     return "backlog";
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   
   const taskDate = new Date(dueDate);
-  taskDate.setHours(0, 0, 0, 0);
+  const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
   
-  const taskTime = taskDate.getTime();
+  const taskTime = taskDateOnly.getTime();
   const todayTime = today.getTime();
   
   if (taskTime === todayTime) {
@@ -61,8 +60,7 @@ function isTaskValidForToday(task: any): boolean {
   
   const now = new Date();
   const taskDueDate = new Date(task.due_date);
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -80,10 +78,9 @@ function isTaskValidForToday(task: any): boolean {
 }
 
 export async function getTodayTasks(userId: number): Promise<Todo[]> {
+  // Usar timezone local do usuário para calcular o intervalo de hoje
   const now = new Date();
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
-
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 

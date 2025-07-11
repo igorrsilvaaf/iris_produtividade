@@ -130,7 +130,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
       if (!open || !task.id) return;
       
       try {
-        const response = await fetch(`/api/tasks/${task.id}/project`);
+        const response = await fetch(`/api/tasks/${task.id}/${task.id}/project`);
         if (response.ok) {
           const data = await response.json();
           const projectId = data.projectId ? data.projectId.toString() : "noProject";
@@ -288,7 +288,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
       const estimatedTimeInMinutes = convertTimeToMinutes(values.estimatedTime, values.estimatedTimeUnit)
 
-      const taskResponse = await fetch(`/api/tasks/${task.id}`, {
+      const taskResponse = await fetch(`/api/tasks/${task.id}/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

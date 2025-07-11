@@ -57,7 +57,7 @@ export default async function UpcomingPage() {
         </AddTaskDialog>
       </div>
 
-      <TaskList tasks={tasks} />
+      <TaskList initialTasks={tasks} />
     </div>
   )
 }

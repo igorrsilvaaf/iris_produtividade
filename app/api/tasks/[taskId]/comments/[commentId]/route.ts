@@ -42,7 +42,7 @@ export async function PATCH(
         updated_at: new Date()
       },
       include: {
-        users: {
+        user: {
           select: {
             name: true,
             avatar_url: true
@@ -53,8 +53,8 @@ export async function PATCH(
 
     return NextResponse.json({
       ...updatedComment,
-      author_name: updatedComment.users.name,
-      author_avatar: updatedComment.users.avatar_url
+      author_name: updatedComment.user.name,
+      author_avatar: updatedComment.user.avatar_url
     });
   } catch (error) {
     console.error('Erro ao atualizar comentário:', error);
