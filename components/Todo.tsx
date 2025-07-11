@@ -236,9 +236,10 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
         onClick ? 'cursor-pointer hover:bg-accent' : ''
       )}
       onClick={onClick ? handleClick : undefined}
+      data-testid={`todo-item-${todoData.id}`}
     >
       <div className="flex justify-between">
-        <h3 className={cn("font-medium text-base", todoData.completed ? 'line-through opacity-70' : '')}>
+        <h3 className={cn("font-medium text-base", todoData.completed ? 'line-through opacity-70' : '')} data-testid="todo-title">
           {todoData.title}
         </h3>
         {todoData.completed && (
@@ -256,26 +257,26 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
       </div>
 
       {todoData.description && (
-        <p className={cn("text-sm text-muted-foreground mt-2 line-clamp-2", todoData.completed ? 'opacity-70' : '')}>
+        <p className={cn("text-sm text-muted-foreground mt-2 line-clamp-2", todoData.completed ? 'opacity-70' : '')} data-testid="todo-description">
           {todoData.description}
         </p>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2" data-testid="todo-metadata">
         {todoData.due_date && (
-          <div className="flex items-center text-xs text-muted-foreground">
+          <div className="flex items-center text-xs text-muted-foreground" data-testid="todo-due-date">
             <Clock className="mr-1 h-3 w-3" />
             <span>{formatDueDate(todoData.due_date, t)}</span>
           </div>
         )}
         {todoData.priority && (
-          <div className="flex items-center text-xs">
+          <div className="flex items-center text-xs" data-testid="todo-priority">
             <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(todoData.priority)}`} />
             <span>P{todoData.priority}</span>
           </div>
         )}
         {todoData.points && (
-          <div className="flex items-center text-xs">
+          <div className="flex items-center text-xs" data-testid="todo-points">
             <CircleDot className={`mr-1 h-3 w-3 ${getPointsColor(todoData.points)}`} />
             <span>{todoData.points} - {getPointsLabel(todoData.points)}</span>
           </div>
@@ -287,17 +288,19 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
               backgroundColor: `${todoData.project_color}20`,
               color: todoData.project_color 
             }}
+            data-testid="todo-project"
           >
             <span>{todoData.project_name}</span>
           </div>
         )}
       </div>
 
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 flex gap-2" data-testid="todo-actions">
         {!todoData.completed && (
           <button 
             onClick={handleComplete}
             className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+            data-testid="todo-complete-button"
           >
             {t ? t("Complete") : "Completar"}
           </button>
@@ -305,6 +308,7 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
         <button 
           onClick={handleDelete}
           className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+          data-testid="todo-delete-button"
         >
           {t ? t("Delete") : "Excluir"}
         </button>

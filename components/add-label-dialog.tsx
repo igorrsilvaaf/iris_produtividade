@@ -31,11 +31,11 @@ export function AddLabelDialog({ children }: AddLabelDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogTrigger asChild data-testid="add-label-dialog-trigger">{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]" data-testid="add-label-dialog-content">
         <DialogHeader>
-          <DialogTitle>{t("addLabel")}</DialogTitle>
-          <DialogDescription>{t("createNewLabel")}</DialogDescription>
+          <DialogTitle data-testid="add-label-dialog-title">{t("addLabel")}</DialogTitle>
+          <DialogDescription data-testid="add-label-dialog-description">{t("createNewLabel")}</DialogDescription>
         </DialogHeader>
         <LabelForm onSuccess={handleSuccess} />
       </DialogContent>

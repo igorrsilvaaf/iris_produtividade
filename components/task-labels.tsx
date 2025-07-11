@@ -198,14 +198,14 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
   }
 
   if (isLoading) {
-    return <div className="flex items-center justify-center p-4">{t("Loading labels...")}</div>
+    return <div className="flex items-center justify-center p-4" data-testid="task-labels-loading">{t("Loading labels...")}</div>
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2 mt-1">
+    <div className="space-y-4" data-testid="task-labels">
+      <div className="flex flex-wrap gap-2 mt-1" data-testid="task-labels-list">
         {labels.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("No labels")}</p>
+          <p className="text-sm text-muted-foreground" data-testid="task-labels-empty">{t("No labels")}</p>
         ) : (
           labels.map((label) => (
             <div
@@ -215,15 +215,17 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
                 backgroundColor: label.color,
                 color: getContrastColor(label.color),
               }}
+              data-testid={`task-label-${label.id}`}
             >
               <Tag className="mr-1 h-3 w-3" />
-              <span>{label.name}</span>
+              <span data-testid={`task-label-name-${label.id}`}>{label.name}</span>
               {!readOnly && (
                 <button
                   type="button"
                   onClick={() => removeLabelFromTask(label.id)}
                   className="ml-1 hover:bg-black/10 rounded-full p-0.5"
                   aria-label={`Remove ${label.name} label`}
+                  data-testid={`task-label-remove-${label.id}`}
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -234,21 +236,21 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
       </div>
       
       {!readOnly && (
-        <Dialog open={showAddLabel} onOpenChange={setShowAddLabel}>
+        <Dialog open={showAddLabel} onOpenChange={setShowAddLabel} data-testid="task-labels-add-dialog">
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="mt-2" id="addLabelBtn">
+            <Button variant="outline" size="sm" className="mt-2" id="addLabelBtn" data-testid="task-labels-add-button">
               <Plus className="mr-1 h-3 w-3" />
               {t("Add Label")}
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent data-testid="task-labels-add-dialog-content">
             <DialogHeader>
-              <DialogTitle>{t("Add Label")}</DialogTitle>
-              <DialogDescription>{t("Select a label to add to this task.")}</DialogDescription>
+              <DialogTitle data-testid="task-labels-add-dialog-title">{t("Add Label")}</DialogTitle>
+              <DialogDescription data-testid="task-labels-add-dialog-description">{t("Select a label to add to this task.")}</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-2 py-4">
+            <div className="grid gap-2 py-4" data-testid="task-labels-available-list">
               {allLabels.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("No labels found.")}</p>
+                <p className="text-sm text-muted-foreground" data-testid="task-labels-available-empty">{t("No labels found.")}</p>
               ) : (
                 allLabels
                   .filter((label) => !labels.some((l) => l.id === label.id))
@@ -258,32 +260,34 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
                       type="button"
                       className="flex items-center justify-between p-2 border rounded hover:bg-accent"
                       onClick={() => addLabelToTask(label.id)}
+                      data-testid={`task-labels-available-${label.id}`}
                     >
                       <div className="flex items-center">
                         <div
                           className="w-4 h-4 rounded-full mr-2"
                           style={{ backgroundColor: label.color }}
+                          data-testid={`task-labels-available-color-${label.id}`}
                         />
-                        <span>{label.name}</span>
+                        <span data-testid={`task-labels-available-name-${label.id}`}>{label.name}</span>
                       </div>
                     </button>
                   ))
               )}
             </div>
-            <div className="mt-4 border-t pt-4 flex justify-between">
-              <Button variant="outline" onClick={() => setShowAddLabel(false)}>
+            <div className="mt-4 border-t pt-4 flex justify-between" data-testid="task-labels-add-dialog-actions">
+              <Button variant="outline" onClick={() => setShowAddLabel(false)} data-testid="task-labels-add-dialog-cancel">
                 {t("Cancel")}
               </Button>
-              <Dialog open={showCreateLabel} onOpenChange={setShowCreateLabel}>
+              <Dialog open={showCreateLabel} onOpenChange={setShowCreateLabel} data-testid="task-labels-create-dialog">
                 <DialogTrigger asChild>
-                  <Button onClick={() => setShowCreateLabel(true)}>
+                  <Button onClick={() => setShowCreateLabel(true)} data-testid="task-labels-create-button">
                     {t("Create New Label")}
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent data-testid="task-labels-create-dialog-content">
                   <DialogHeader>
-                    <DialogTitle>{t("Create New Label")}</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle data-testid="task-labels-create-dialog-title">{t("Create New Label")}</DialogTitle>
+                    <DialogDescription data-testid="task-labels-create-dialog-description">
                       {t("Fill in the details to create a new label.")}
                     </DialogDescription>
                   </DialogHeader>

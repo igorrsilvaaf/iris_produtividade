@@ -95,7 +95,7 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="label-form">
         <FormField
           control={form.control}
           name="name"
@@ -103,7 +103,7 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
             <FormItem>
               <FormLabel>{t("Name")}</FormLabel>
               <FormControl>
-                <Input placeholder={t("Label name")} {...field} />
+                <Input data-testid="label-name-input" placeholder={t("Label name")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -116,13 +116,14 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
             <FormItem>
               <FormLabel>{t("Color")}</FormLabel>
               <FormControl>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2" data-testid="label-color-picker">
                   <div
                     className="h-6 w-6 rounded-full border"
                     style={{ backgroundColor: field.value }}
                   />
-                  <Input type="color" {...field} className="w-12 p-1" />
+                  <Input data-testid="label-color-input" type="color" {...field} className="w-12 p-1" />
                   <Input
+                    data-testid="label-color-text-input"
                     type="text"
                     value={field.value}
                     onChange={field.onChange}
@@ -135,7 +136,7 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
           )}
         />
         <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} data-testid="label-submit-button">
             {isLoading
               ? t("Salvando...")
               : label

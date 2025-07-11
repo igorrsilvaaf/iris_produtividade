@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { neon } from "@neondatabase/serverless"
-
-const sql = neon(process.env.DATABASE_URL!)
+import prisma from "../../../../lib/prisma"
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -15,13 +13,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await sql`
-      SELECT COUNT(*) as count
-      FROM users
-      WHERE email = ${email}
-    `
+    const existingUser = await prisma.users.findUnique({
+      where: { email }
+    })
 
-    const emailExists = result[0].count > 0
+    const emailExists = !!existingUser
     
     return NextResponse.json(
       { available: !emailExists },

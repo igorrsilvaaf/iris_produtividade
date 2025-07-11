@@ -1,6 +1,4 @@
-import { neon } from "@neondatabase/serverless"
-
-const sql = neon(process.env.DATABASE_URL!)
+import prisma from "./prisma"
 
 export type Project = {
   id: number
@@ -12,80 +10,180 @@ export type Project = {
 }
 
 export async function getProjects(userId: number): Promise<Project[]> {
-  const projects = await sql`
-    SELECT * FROM projects
-    WHERE user_id = ${userId}
-    ORDER BY is_favorite DESC, name ASC
-  `
+  const projects = await prisma.projects.findMany({
+    where: {
+      user_id: userId
+    },
+    orderBy: [
+      { is_favorite: 'desc' },
+      { name: 'asc' }
+    ]
+  });
 
-  return projects
+  return projects.map(p => ({
+    ...p,
+    created_at: p.created_at.toISOString(),
+    color: p.color || "#808080",
+    is_favorite: p.is_favorite || false
+  }));
 }
 
 export async function getProject(projectId: number, userId: number): Promise<Project | null> {
-  const projects = await sql`
-    SELECT * FROM projects
-    WHERE id = ${projectId} AND user_id = ${userId}
-  `
+  const project = await prisma.projects.findFirst({
+    where: {
+      id: projectId,
+      user_id: userId
+    }
+  });
 
-  return projects.length > 0 ? projects[0] : null
+  if (!project) {
+    return null;
+  }
+
+  return {
+    ...project,
+    created_at: project.created_at.toISOString(),
+    color: project.color || "#808080",
+    is_favorite: project.is_favorite || false
+  };
+}
+
+export async function getFavoriteProjects(userId: number): Promise<Project[]> {
+  const projects = await prisma.projects.findMany({
+    where: {
+      user_id: userId,
+      is_favorite: true
+    },
+    orderBy: {
+      name: 'asc'
+    }
+  });
+
+  return projects.map(p => ({
+    ...p,
+    created_at: p.created_at.toISOString(),
+    color: p.color || "#808080",
+    is_favorite: p.is_favorite || false
+  }));
 }
 
 export async function createProject(
   userId: number,
   name: string,
-  color = "#808080",
-  isFavorite = false,
+  color: string = "#808080",
 ): Promise<Project> {
-  const [project] = await sql`
-    INSERT INTO projects (user_id, name, color, is_favorite)
-    VALUES (${userId}, ${name}, ${color}, ${isFavorite})
-    RETURNING *
-  `
+  const project = await prisma.projects.create({
+    data: {
+      user_id: userId,
+      name,
+      color,
+      is_favorite: false
+    }
+  });
 
-  return project
+  return {
+    ...project,
+    created_at: project.created_at.toISOString(),
+    color: project.color || "#808080",
+    is_favorite: project.is_favorite || false
+  };
 }
 
-export async function updateProject(projectId: number, userId: number, updates: Partial<Project>): Promise<Project> {
-  const [project] = await sql`
-    UPDATE projects
-    SET
-      name = COALESCE(${updates.name}, name),
-      color = COALESCE(${updates.color}, color),
-      is_favorite = COALESCE(${updates.is_favorite}, is_favorite)
-    WHERE id = ${projectId} AND user_id = ${userId}
-    RETURNING *
-  `
+export async function updateProject(
+  projectId: number,
+  userId: number,
+  updates: Partial<Project>,
+): Promise<Project> {
+  const project = await prisma.projects.update({
+    where: {
+      id: projectId,
+      user_id: userId
+    },
+    data: {
+      name: updates.name,
+      color: updates.color,
+      is_favorite: updates.is_favorite
+    }
+  });
 
-  return project
-}
-
-export async function deleteProject(projectId: number, userId: number): Promise<void> {
-  await sql`
-    DELETE FROM projects
-    WHERE id = ${projectId} AND user_id = ${userId}
-  `
+  return {
+    ...project,
+    created_at: project.created_at.toISOString(),
+    color: project.color || "#808080",
+    is_favorite: project.is_favorite || false
+  };
 }
 
 export async function toggleProjectFavorite(projectId: number, userId: number): Promise<Project> {
-  const [project] = await sql`
-    UPDATE projects
-    SET is_favorite = NOT is_favorite
-    WHERE id = ${projectId} AND user_id = ${userId}
-    RETURNING *
-  `
+  const existingProject = await prisma.projects.findFirst({
+    where: {
+      id: projectId,
+      user_id: userId
+    }
+  });
 
-  return project
+  if (!existingProject) {
+    throw new Error("Project not found");
+  }
+
+  const project = await prisma.projects.update({
+    where: {
+      id: projectId,
+      user_id: userId
+    },
+    data: {
+      is_favorite: !existingProject.is_favorite
+    }
+  });
+
+  return {
+    ...project,
+    created_at: project.created_at.toISOString(),
+    color: project.color || "#808080",
+    is_favorite: project.is_favorite || false
+  };
 }
 
-export async function getProjectTasks(projectId: number, userId: number): Promise<any[]> {
-  const tasks = await sql`
-    SELECT t.* 
-    FROM todos t
-    JOIN todo_projects tp ON t.id = tp.todo_id
-    WHERE tp.project_id = ${projectId} AND t.user_id = ${userId}
-    ORDER BY t.completed ASC, t.priority ASC, t.due_date ASC
-  `
+export async function deleteProject(projectId: number, userId: number): Promise<void> {
+  await prisma.projects.delete({
+    where: {
+      id: projectId,
+      user_id: userId
+    }
+  });
+}
 
-  return tasks
+export async function getProjectTasks(projectId: number, userId: number) {
+  const tasks = await prisma.todos.findMany({
+    where: {
+      user_id: userId,
+      todo_projects: {
+        some: {
+          project_id: projectId
+        }
+      }
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    },
+    orderBy: [
+      { completed: 'asc' },
+      { priority: 'asc' }
+    ]
+  });
+
+  return tasks.map(task => ({
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  }));
 }
 

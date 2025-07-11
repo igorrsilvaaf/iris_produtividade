@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { neon } from "@neondatabase/serverless"
-
-const sql = neon(process.env.DATABASE_URL!)
+import prisma from "../../../lib/prisma"
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -18,23 +16,34 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: "Name and email are required" }, { status: 400 })
     }
 
-    const existingUser = await sql`
-      SELECT id FROM users
-      WHERE email = ${email} AND id != ${session.user.id}
-    `
+    const existingUser = await prisma.users.findFirst({
+      where: {
+        email: email,
+        id: { not: session.user.id }
+      }
+    })
 
-    if (existingUser.length > 0) {
+    if (existingUser) {
       return NextResponse.json({ message: "Email is already in use" }, { status: 400 })
     }
 
-    const updatedUser = await sql`
-      UPDATE users
-      SET name = ${name}, email = ${email}, avatar_url = ${avatar_url}
-      WHERE id = ${session.user.id}
-      RETURNING id, name, email, avatar_url
-    `
+    const updatedUser = await prisma.users.update({
+      where: { id: session.user.id },
+      data: {
+        name,
+        email,
+        avatar_url,
+        updated_at: new Date()
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar_url: true
+      }
+    })
 
-    return NextResponse.json({ user: updatedUser[0] })
+    return NextResponse.json({ user: updatedUser })
   } catch (error: any) {
     return NextResponse.json({ message: error.message || "Failed to update profile" }, { status: 500 })
   }

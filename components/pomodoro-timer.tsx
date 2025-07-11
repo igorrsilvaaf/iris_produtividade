@@ -291,11 +291,11 @@ export function PomodoroTimer({
   const activeBorderClass = "border-b-2"
 
   return (
-    <Card className={fullScreen ? "h-full border-0 shadow-none rounded-none flex flex-col bg-transparent" : ""}>
+    <Card className={fullScreen ? "h-full border-0 shadow-none rounded-none flex flex-col bg-transparent" : ""} data-testid="pomodoro-timer">
       <CardHeader className={`pb-2 flex flex-row items-center justify-between ${fullScreen ? 'pt-2' : ''}`}>
         <div className="w-9"></div>
-        <CardTitle className="text-lg sm:text-xl text-center flex-1">{t("pomodoroTimer")}</CardTitle>
-        <Button variant="ghost" size="icon" onClick={navigateToSettings}>
+        <CardTitle className="text-lg sm:text-xl text-center flex-1" data-testid="pomodoro-title">{t("pomodoroTimer")}</CardTitle>
+        <Button variant="ghost" size="icon" onClick={navigateToSettings} data-testid="pomodoro-settings-button">
           <Settings className="h-4 w-4" />
           <span className="sr-only">{t("settings")}</span>
         </Button>
@@ -306,23 +306,27 @@ export function PomodoroTimer({
             value={mode} 
             onValueChange={handleTabChange} 
             className="w-full"
+            data-testid="pomodoro-mode-tabs"
           >
-            <TabsList className={`grid w-full grid-cols-3 mb-6`}>
+            <TabsList className={`grid w-full grid-cols-3 mb-6`} data-testid="pomodoro-tabs-list">
               <TabsTrigger 
                 value="work" 
                 className={cn(tabsTriggerBaseClass, mode === "work" ? `${activeTabStyleClass} ${activeBorderClass}` : "border-transparent")}
+                data-testid="pomodoro-work-tab"
               >
                 {t("work")}
               </TabsTrigger>
               <TabsTrigger 
                 value="shortBreak" 
                 className={cn(tabsTriggerBaseClass, mode === "shortBreak" ? `${activeTabStyleClass} ${activeBorderClass}` : "border-transparent")}
+                data-testid="pomodoro-short-break-tab"
               >
                 {t("shortBreak")}
               </TabsTrigger>
               <TabsTrigger 
                 value="longBreak" 
                 className={cn(tabsTriggerBaseClass, mode === "longBreak" ? `${activeTabStyleClass} ${activeBorderClass}` : "border-transparent")}
+                data-testid="pomodoro-long-break-tab"
               >
                 {t("longBreak")}
               </TabsTrigger>
@@ -331,20 +335,21 @@ export function PomodoroTimer({
         </div>
 
         <div className={`w-full flex flex-col items-center ${fullScreen ? 'flex-1 justify-center' : 'mt-4 sm:mt-6'}`}>
-          <div className={`${fullScreen ? 'text-6xl sm:text-7xl mb-6' : 'text-4xl sm:text-5xl'} font-bold tabular-nums ${timerTextColorClass}`}>
+          <div className={`${fullScreen ? 'text-6xl sm:text-7xl mb-6' : 'text-4xl sm:text-5xl'} font-bold tabular-nums ${timerTextColorClass}`} data-testid="pomodoro-timer-display">
             {formatTime(timeLeft)}
           </div>
           
           <div className={`w-full ${fullScreen ? 'max-w-[85%] mx-auto mb-8' : 'mt-4 mb-6'}`}>
-            <Progress value={getProgress()} className={`${fullScreen ? 'h-3' : 'h-2'} w-full`} />
+            <Progress value={getProgress()} className={`${fullScreen ? 'h-3' : 'h-2'} w-full`} data-testid="pomodoro-progress-bar" />
           </div>
 
-          <div className={`flex items-center justify-center gap-6 ${fullScreen ? 'mb-6' : ''}`}>
+          <div className={`flex items-center justify-center gap-6 ${fullScreen ? 'mb-6' : ''}`} data-testid="pomodoro-controls">
             <Button 
               variant="outline" 
               size="icon" 
               onClick={toggleStoreTimer} 
               className={`${fullScreen ? 'h-16 w-16' : 'h-12 w-12'} rounded-full ${isRunning ? 'bg-primary/10 hover:bg-primary/20 border-primary/20' : playButtonColorClass}`}
+              data-testid="pomodoro-play-pause-button"
             >
               {isRunning ? 
                 <Pause className={fullScreen ? "h-8 w-8" : "h-6 w-6"} /> : 
@@ -356,12 +361,13 @@ export function PomodoroTimer({
               size="icon" 
               onClick={resetStoreTimer} 
               className={`${fullScreen ? 'h-12 w-12' : 'h-10 w-10'} rounded-full bg-transparent`}
+              data-testid="pomodoro-reset-button"
             >
               <RotateCcw className={fullScreen ? "h-5 w-5" : "h-4 w-4"} />
             </Button>
           </div>
 
-          <div className={`text-xs sm:text-sm text-muted-foreground ${fullScreen ? 'mt-2' : 'mt-6'}`}>
+          <div className={`text-xs sm:text-sm text-muted-foreground ${fullScreen ? 'mt-2' : 'mt-6'}`} data-testid="pomodoro-cycle-info">
             {t("cycleStage")}: {mode === "work" ? (cycles % (storeSettings.longBreakInterval || 4)) + 1 : cycles % (storeSettings.longBreakInterval || 4)}/{storeSettings.longBreakInterval || 4} 
           </div>
         </div>

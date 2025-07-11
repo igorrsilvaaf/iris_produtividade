@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { neon } from "@neondatabase/serverless"
+import prisma from "../../../../lib/prisma"
 import { put } from '@vercel/blob'
 import { v4 as uuidv4 } from 'uuid'
-
-const sql = neon(process.env.DATABASE_URL!)
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,11 +35,10 @@ export async function POST(request: NextRequest) {
       contentType: file.type,
     })
 
-    await sql`
-      UPDATE users
-      SET avatar_url = ${upload.url}
-      WHERE id = ${session.user.id}
-    `
+    await prisma.users.update({
+      where: { id: session.user.id },
+      data: { avatar_url: upload.url }
+    })
 
     return NextResponse.json({ 
       message: "Avatar updated successfully", 
