@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
+import prisma from '../../../../../../lib/prisma';
 import { getSession } from '@/lib/auth';
-
-const sql = neon(process.env.DATABASE_URL!);
 
 export async function PATCH(
   request: NextRequest,
@@ -22,20 +20,42 @@ export async function PATCH(
       return new NextResponse('Conteúdo do comentário é obrigatório', { status: 400 });
     }
 
-    const result = await sql`
-      UPDATE task_comments
-      SET content = ${content.trim()}, updated_at = NOW()
-      WHERE id = ${commentId} AND user_id = ${userId}
-      RETURNING *,
-        (SELECT name FROM users WHERE id = ${userId}) as author_name,
-        (SELECT avatar_url FROM users WHERE id = ${userId}) as author_avatar
-    `;
+    // Verificar se o comentário existe e pertence ao usuário
+    const existingComment = await prisma.task_comments.findFirst({
+      where: {
+        id: parseInt(commentId),
+        user_id: userId
+      }
+    });
 
-    if (result.length === 0) {
+    if (!existingComment) {
       return new NextResponse('Comentário não encontrado ou você não tem permissão para editá-lo', { status: 404 });
     }
 
-    return NextResponse.json(result[0]);
+    // Atualizar o comentário
+    const updatedComment = await prisma.task_comments.update({
+      where: {
+        id: parseInt(commentId)
+      },
+      data: {
+        content: content.trim(),
+        updated_at: new Date()
+      },
+      include: {
+        users: {
+          select: {
+            name: true,
+            avatar_url: true
+          }
+        }
+      }
+    });
+
+    return NextResponse.json({
+      ...updatedComment,
+      author_name: updatedComment.users.name,
+      author_avatar: updatedComment.users.avatar_url
+    });
   } catch (error) {
     console.error('Erro ao atualizar comentário:', error);
     return new NextResponse('Erro interno do servidor', { status: 500 });
@@ -55,15 +75,24 @@ export async function DELETE(
 
     const { commentId } = await params;
 
-    const result = await sql`
-      DELETE FROM task_comments
-      WHERE id = ${commentId} AND user_id = ${userId}
-      RETURNING *
-    `;
+    // Verificar se o comentário existe e pertence ao usuário
+    const existingComment = await prisma.task_comments.findFirst({
+      where: {
+        id: parseInt(commentId),
+        user_id: userId
+      }
+    });
 
-    if (result.length === 0) {
+    if (!existingComment) {
       return new NextResponse('Comentário não encontrado ou você não tem permissão para excluí-lo', { status: 404 });
     }
+
+    // Deletar o comentário
+    await prisma.task_comments.delete({
+      where: {
+        id: parseInt(commentId)
+      }
+    });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

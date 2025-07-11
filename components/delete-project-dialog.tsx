@@ -63,15 +63,15 @@ export function DeleteProjectDialog({ projectId, projectName, children }: Delete
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogTrigger asChild data-testid="delete-project-dialog-trigger">{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]" data-testid="delete-project-dialog-content">
         <DialogHeader>
-          <DialogTitle>{t("deleteProject")}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle data-testid="delete-project-dialog-title">{t("deleteProject")}</DialogTitle>
+          <DialogDescription data-testid="delete-project-dialog-description">
             {t("deleteProjectConfirm")}
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
+        <div className="py-4" data-testid="delete-project-dialog-info">
           <p className="text-sm font-medium">
             {t("project")}: <span className="font-bold">{projectName}</span>
           </p>
@@ -80,8 +80,8 @@ export function DeleteProjectDialog({ projectId, projectName, children }: Delete
           </p>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>{t("cancel")}</Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
+          <Button variant="outline" onClick={() => setOpen(false)} data-testid="delete-project-cancel-button">{t("cancel")}</Button>
+          <Button variant="destructive" onClick={handleDelete} disabled={isLoading} data-testid="delete-project-confirm-button">
             {t("delete")}
           </Button>
         </DialogFooter>

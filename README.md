@@ -80,8 +80,7 @@ O sistema segue um padrão de fluxo de dados unidirecional:
 
 ### Backend
 - **Next.js API Routes**: Endpoints de API
-- **PostgreSQL**: Banco de dados relacional (via Neon)
-- **Neon Serverless**: Banco de dados PostgreSQL serverless
+- **PostgreSQL**: Banco de dados relacional
 - **Auth.js**: Sistema de autenticação
 
 ### DevOps

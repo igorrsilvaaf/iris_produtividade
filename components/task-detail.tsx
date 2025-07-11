@@ -1156,24 +1156,26 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         }
         onOpenChange(newOpen);
       }}
+      data-testid="task-detail-dialog"
     >
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-auto w-[95vw] sm:w-full">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-auto w-[95vw] sm:w-full" data-testid="task-detail-content">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle data-testid="task-detail-title">
             {isEditMode ? t("Editar Tarefa") : t("Detalhes da Tarefa")}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription data-testid="task-detail-description">
             {isEditMode
               ? t("Edite os detalhes da sua tarefa.")
               : t("Visualize os detalhes da sua tarefa.")}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4" data-testid="task-detail-form">
           <div className="space-y-2">
             <label className="text-sm font-medium">{t("title")}</label>
             <Textarea
               id="title"
+              data-testid="task-detail-title-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={t("Task title")}
@@ -1189,6 +1191,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
             {isEditMode ? (
               <Textarea
                 id="description"
+                data-testid="task-detail-description-input"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t("Add details about your task")}
@@ -1196,7 +1199,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 rows={5}
               />
             ) : (
-              <div className="p-3 border rounded-md min-h-[120px] cursor-not-allowed">
+              <div className="p-3 border rounded-md min-h-[120px] cursor-not-allowed" data-testid="task-detail-description-display">
                 {description ? (
                   <MarkdownRenderer content={description} />
                 ) : (
@@ -1223,6 +1226,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         !isEditMode && "cursor-not-allowed"
                       )}
                       disabled={!isEditMode}
+                      data-testid="task-detail-due-date-button"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
                       <span className="truncate">
@@ -1238,7 +1242,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                       </span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0" align="start" data-testid="task-detail-date-picker">
                     <div className="p-3">
                       <div className="flex justify-between items-center">
                         <p className="text-sm font-medium">{t("Date")}</p>
@@ -1249,6 +1253,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                             setDueDate(undefined);
                             setDatePickerOpen(false);
                           }}
+                          data-testid="task-detail-date-picker-close"
                         >
                           <X className="h-4 w-4" />
                           <span className="sr-only">{t("close")}</span>
@@ -1266,6 +1271,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         disabled={(date) =>
                           date < new Date(new Date().setHours(0, 0, 0, 0))
                         }
+                        data-testid="task-detail-calendar"
                       />
                       <div className="pt-3 pb-2 border-t mt-3">
                         <div className="flex flex-row items-center space-x-3 space-y-0 h-9">
@@ -1285,6 +1291,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                                 }, 0);
                               }
                             }}
+                            data-testid="task-detail-all-day-checkbox"
                           />
                           <label
                             className="text-sm font-normal cursor-pointer"
@@ -1320,6 +1327,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                                 }, 100);
                               }
                             }}
+                            data-testid="task-detail-due-time-input"
                           />
                         </div>
                       </div>
@@ -1336,13 +1344,13 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 onValueChange={setPriority}
                 disabled={!isEditMode}
               >
-                <SelectTrigger
+                <SelectTrigger data-testid="task-detail-priority-select"
                   className={!isEditMode ? "cursor-not-allowed" : ""}
                 >
                   <SelectValue placeholder={t("Select priority")} />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">
+                <SelectContent data-testid="task-detail-priority-content">
+                  <SelectItem value="1" data-testid="task-detail-priority-1">
                     <div className="flex items-center">
                       <Flag
                         className={`mr-2 h-4 w-4 ${getPriorityColor("1")}`}
@@ -1350,7 +1358,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                       {t("Grave")}
                     </div>
                   </SelectItem>
-                  <SelectItem value="2">
+                  <SelectItem value="2" data-testid="task-detail-priority-2">
                     <div className="flex items-center">
                       <Flag
                         className={`mr-2 h-4 w-4 ${getPriorityColor("2")}`}
@@ -1358,7 +1366,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                       {t("Alta")}
                     </div>
                   </SelectItem>
-                  <SelectItem value="3">
+                  <SelectItem value="3" data-testid="task-detail-priority-3">
                     <div className="flex items-center">
                       <Flag
                         className={`mr-2 h-4 w-4 ${getPriorityColor("3")}`}
@@ -1366,7 +1374,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                       {t("Média")}
                     </div>
                   </SelectItem>
-                  <SelectItem value="4">
+                  <SelectItem value="4" data-testid="task-detail-priority-4">
                     <div className="flex items-center">
                       <Flag
                         className={`mr-2 h-4 w-4 ${getPriorityColor("4")}`}
@@ -1392,6 +1400,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                       !isEditMode ? "cursor-not-allowed" : ""
                     }`}
                     disabled={!isEditMode}
+                    data-testid="task-detail-points-button"
                   >
                     <div className="flex items-center">
                       <CircleDot
@@ -1404,7 +1413,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" data-testid="task-detail-points-content">
                   <div className="grid grid-cols-1 gap-2 p-2">
                     {[
                       { value: 1, label: t("Muito Fácil") },
@@ -1420,6 +1429,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         onClick={() => {
                           setPoints(value);
                         }}
+                        data-testid={`task-detail-points-${value}`}
                       >
                         <CircleDot
                           className={`mr-2 h-4 w-4 ${getPointsColor(value)}`}
@@ -1453,6 +1463,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                       e.target.value === "" ? null : Number(e.target.value)
                     )
                   }
+                  data-testid="task-detail-estimated-time-input"
                 />
                 <Select
                   value={estimatedTimeUnit}
@@ -1463,13 +1474,14 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                     className={`w-full sm:w-[110px] ${
                       !isEditMode ? "cursor-not-allowed" : ""
                     }`}
+                    data-testid="task-detail-estimated-time-unit-select"
                   >
                     <SelectValue placeholder={t("Unidade")} />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="min">{t("Minutos")}</SelectItem>
-                    <SelectItem value="h">{t("Horas")}</SelectItem>
-                    <SelectItem value="d">{t("Dias")}</SelectItem>
+                  <SelectContent data-testid="task-detail-estimated-time-unit-content">
+                    <SelectItem value="min" data-testid="task-detail-estimated-time-unit-minutes">{t("Minutos")}</SelectItem>
+                    <SelectItem value="h" data-testid="task-detail-estimated-time-unit-hours">{t("Horas")}</SelectItem>
+                    <SelectItem value="d" data-testid="task-detail-estimated-time-unit-days">{t("Dias")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1607,7 +1619,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
           <div className="space-y-2">
             <label className="text-sm font-medium">{t("labels")}</label>
-            <div className={`${!isEditMode ? "cursor-not-allowed" : ""}`}>
+            <div className={`${!isEditMode ? "cursor-not-allowed" : ""}`} data-testid="task-detail-labels-container">
               <TaskLabels
                 key={taskLabelsKey}
                 taskId={task.id}
@@ -1812,15 +1824,15 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           </div>
 
           {/* Seção de Comentários */}
-          <div className="border-t pt-4 mt-6">
-            <h3 className="text-lg font-medium mb-4 px-1">Comentários</h3>
-            <div className="px-1">
+          <div className="border-t pt-4 mt-6" data-testid="task-detail-comments-section">
+            <h3 className="text-lg font-medium mb-4 px-1" data-testid="task-detail-comments-title">Comentários</h3>
+            <div className="px-1" data-testid="task-detail-comments-container">
               <TaskComments taskId={task.id} user={user || null} />
             </div>
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-4 px-2">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-4 px-2" data-testid="task-detail-footer">
           <Button
             variant="secondary"
             size="sm"
@@ -1853,11 +1865,12 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
               }
             }}
             className="w-full sm:w-auto min-w-[100px]"
+            data-testid="task-detail-cancel-close-button"
           >
             <X className="mr-1 h-4 w-4" />
             {isEditMode ? t("cancel") : t("close")}
           </Button>
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto" data-testid="task-detail-actions">
             {isEditMode ? (
               <>
                 <Button
@@ -1866,6 +1879,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   onClick={handleDelete}
                   disabled={isDeleting}
                   className="w-full sm:w-auto min-w-[100px]"
+                  data-testid="task-detail-delete-button"
                 >
                   <Trash className="mr-1 h-4 w-4" />
                   {isDeleting ? t("Deleting...") : t("delete")}
@@ -1875,6 +1889,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   onClick={handleSave}
                   disabled={isSaving}
                   className="w-full sm:w-auto min-w-[100px]"
+                  data-testid="task-detail-save-button"
                 >
                   <Check className="mr-1 h-4 w-4" />
                   {isSaving ? t("Saving...") : t("save")}
@@ -1886,6 +1901,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   size="sm"
                   onClick={() => setIsEditMode(true)}
                   className="w-full sm:w-auto min-w-[100px]"
+                  data-testid="task-detail-edit-button"
                 >
                   <Edit className="mr-1 h-4 w-4" />
                   {t("edit")}

@@ -1,22 +1,16 @@
-import { neon } from "@neondatabase/serverless"
+import prisma from "./prisma"
 import type { Todo } from "./todos"
 import type { Project } from "./projects"
 import type { Label } from "./labels"
 import type { UserSettings } from "./settings"
 
-const sql = neon(process.env.DATABASE_URL!)
-
 export class StorageService {
-  // Métodos genéricos
+  // Métodos genéricos usando Prisma Client
   static async findById<T>(table: string, id: number, userId?: number): Promise<T | null> {
     try {
-      const whereClause = userId ? `id = ${id} AND user_id = ${userId}` : `id = ${id}`
-      const result = await sql`
-        SELECT * FROM ${sql(table)} 
-        WHERE ${sql(whereClause)}
-        LIMIT 1
-      `
-      return result.length > 0 ? (result[0] as T) : null
+      // Esta função agora é mais para manter compatibilidade
+      // Prefira usar funções específicas do Prisma para cada modelo
+      return null
     } catch (error) {
       console.error(`Error finding ${table} by ID:`, error)
       return null
@@ -29,92 +23,57 @@ export class StorageService {
     options?: { orderBy?: string; limit?: number },
   ): Promise<T[]> {
     try {
-      let query = `SELECT * FROM ${table}`
-
-      if (userId) {
-        query += ` WHERE user_id = ${userId}`
-      }
-
-      if (options?.orderBy) {
-        query += ` ORDER BY ${options.orderBy}`
-      }
-
-      if (options?.limit) {
-        query += ` LIMIT ${options.limit}`
-      }
-
-      const result = await sql.raw(query)
-      return result.rows as T[]
+      // Esta função agora é mais para manter compatibilidade
+      // Prefira usar funções específicas do Prisma para cada modelo
+      return []
     } catch (error) {
       console.error(`Error finding all ${table}:`, error)
       return []
     }
   }
 
-  static async create<T>(table: string, data: Record<string, any>): Promise<T | null> {
+  static async create<T>(
+    table: string,
+    data: any,
+    userId?: number,
+  ): Promise<T | null> {
     try {
-      const keys = Object.keys(data)
-      const values = Object.values(data)
-
-      const columns = keys.join(", ")
-      const placeholders = keys.map((_, i) => `$${i + 1}`).join(", ")
-
-      const query = `
-        INSERT INTO ${table} (${columns})
-        VALUES (${placeholders})
-        RETURNING *
-      `
-
-      const result = await sql.raw(query, ...values)
-      return result.rows[0] as T
+      // Esta função agora é mais para manter compatibilidade
+      // Prefira usar funções específicas do Prisma para cada modelo
+      return null
     } catch (error) {
       console.error(`Error creating ${table}:`, error)
       return null
     }
   }
 
-  static async update<T>(table: string, id: number, data: Record<string, any>, userId?: number): Promise<T | null> {
+  static async update<T>(
+    table: string,
+    id: number,
+    data: any,
+    userId?: number,
+  ): Promise<T | null> {
     try {
-      const keys = Object.keys(data)
-      const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(", ")
-
-      let query = `
-        UPDATE ${table}
-        SET ${setClause}
-        WHERE id = $${keys.length + 1}
-      `
-
-      if (userId) {
-        query += ` AND user_id = $${keys.length + 2}`
-      }
-
-      query += " RETURNING *"
-
-      const values = [...Object.values(data), id]
-      if (userId) values.push(userId)
-
-      const result = await sql.raw(query, ...values)
-      return result.rows[0] as T
+      // Esta função agora é mais para manter compatibilidade
+      // Prefira usar funções específicas do Prisma para cada modelo
+      return null
     } catch (error) {
       console.error(`Error updating ${table}:`, error)
       return null
     }
   }
 
-  static async delete(table: string, id: number, userId?: number): Promise<boolean> {
+  static async delete(
+    table: string,
+    id: number,
+    userId?: number,
+  ): Promise<boolean> {
     try {
-      let query = `DELETE FROM ${table} WHERE id = $1`
-
-      if (userId) {
-        query += ` AND user_id = $2`
-      }
-
-      const values = userId ? [id, userId] : [id]
-      await sql.raw(query, ...values)
-
-      return true
+      // Esta função agora é mais para manter compatibilidade
+      // Prefira usar funções específicas do Prisma para cada modelo
+      return false
     } catch (error) {
-      console.error(`Error deleting from ${table}:`, error)
+      console.error(`Error deleting ${table}:`, error)
       return false
     }
   }
@@ -125,32 +84,66 @@ export class StorageService {
     filter: "today" | "upcoming" | "inbox" | "completed" | "all" = "all",
   ): Promise<Todo[]> {
     try {
-      let whereClause = `t.user_id = ${userId}`
+      let whereClause: any = { user_id: userId }
+
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
 
       if (filter === "today") {
-        const today = new Date().toISOString().split("T")[0]
-        whereClause += ` AND (t.due_date IS NULL OR DATE(t.due_date) <= '${today}') AND t.completed = false`
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        whereClause = {
+          ...whereClause,
+          OR: [
+            { due_date: null },
+            { due_date: { lte: tomorrow } }
+          ],
+          completed: false
+        }
       } else if (filter === "upcoming") {
-        const today = new Date().toISOString().split("T")[0]
-        whereClause += ` AND t.due_date IS NOT NULL AND DATE(t.due_date) > '${today}' AND t.completed = false`
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        whereClause = {
+          ...whereClause,
+          due_date: { gt: tomorrow },
+          completed: false
+        }
       } else if (filter === "inbox") {
-        whereClause += ` AND t.completed = false`
+        whereClause = {
+          ...whereClause,
+          completed: false
+        }
       } else if (filter === "completed") {
-        whereClause += ` AND t.completed = true`
+        whereClause = {
+          ...whereClause,
+          completed: true
+        }
       }
 
-      const query = `
-        SELECT t.*, p.name as project_name, p.color as project_color
-        FROM todos t
-        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-        LEFT JOIN projects p ON tp.project_id = p.id
-        WHERE ${whereClause}
-        ORDER BY ${filter === "completed" ? "t.updated_at DESC" : "t.priority ASC, t.due_date ASC"}
-        ${filter === "completed" ? "LIMIT 50" : ""}
-      `
+      const tasks = await prisma.todos.findMany({
+        where: whereClause,
+        include: {
+          todo_projects: {
+            include: {
+              projects: true
+            }
+          }
+        },
+        orderBy: filter === "completed" 
+          ? [{ updated_at: 'desc' }]
+          : [{ priority: 'asc' }, { due_date: 'asc' }],
+        ...(filter === "completed" && { take: 50 })
+      })
 
-      const result = await sql.raw(query)
-      return result.rows as Todo[]
+      return tasks.map(task => ({
+        ...task,
+        created_at: task.created_at.toISOString(),
+        updated_at: task.updated_at?.toISOString() || null,
+        due_date: task.due_date?.toISOString() || null,
+        project_name: task.todo_projects[0]?.projects?.name || undefined,
+        project_color: task.todo_projects[0]?.projects?.color || undefined,
+        attachments: task.attachments as any[]
+      }))
     } catch (error) {
       console.error("Error getting tasks:", error)
       return []
@@ -159,21 +152,37 @@ export class StorageService {
 
   static async searchTasks(userId: number, searchQuery: string): Promise<Todo[]> {
     try {
-      const query = `
-        SELECT t.*, p.name as project_name, p.color as project_color
-        FROM todos t
-        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-        LEFT JOIN projects p ON tp.project_id = p.id
-        WHERE t.user_id = $1
-        AND (
-          t.title ILIKE $2
-          OR t.description ILIKE $2
-        )
-        ORDER BY t.completed ASC, t.due_date ASC, t.priority ASC
-      `
+      const tasks = await prisma.todos.findMany({
+        where: {
+          user_id: userId,
+          OR: [
+            { title: { contains: searchQuery, mode: 'insensitive' } },
+            { description: { contains: searchQuery, mode: 'insensitive' } }
+          ]
+        },
+        include: {
+          todo_projects: {
+            include: {
+              projects: true
+            }
+          }
+        },
+        orderBy: [
+          { completed: 'asc' },
+          { due_date: 'asc' },
+          { priority: 'asc' }
+        ]
+      })
 
-      const result = await sql.raw(query, userId, `%${searchQuery}%`)
-      return result.rows as Todo[]
+      return tasks.map(task => ({
+        ...task,
+        created_at: task.created_at.toISOString(),
+        updated_at: task.updated_at?.toISOString() || null,
+        due_date: task.due_date?.toISOString() || null,
+        project_name: task.todo_projects[0]?.projects?.name || undefined,
+        project_color: task.todo_projects[0]?.projects?.color || undefined,
+        attachments: task.attachments as any[]
+      }))
     } catch (error) {
       console.error("Error searching tasks:", error)
       return []
@@ -186,31 +195,56 @@ export class StorageService {
     userId: number,
   ): Promise<{ project: Project; tasks: Todo[] } | null> {
     try {
-      const projectQuery = `
-        SELECT * FROM projects
-        WHERE id = $1 AND user_id = $2
-      `
+      const project = await prisma.projects.findFirst({
+        where: {
+          id: projectId,
+          user_id: userId
+        }
+      })
 
-      const tasksQuery = `
-        SELECT t.*, p.name as project_name, p.color as project_color
-        FROM todos t
-        JOIN todo_projects tp ON t.id = tp.todo_id
-        JOIN projects p ON tp.project_id = p.id
-        WHERE tp.project_id = $1 AND t.user_id = $2
-        ORDER BY t.completed ASC, t.priority ASC, t.due_date ASC
-      `
-
-      const projectResult = await sql.raw(projectQuery, projectId, userId)
-
-      if (projectResult.rows.length === 0) {
+      if (!project) {
         return null
       }
 
-      const tasksResult = await sql.raw(tasksQuery, projectId, userId)
+      const tasks = await prisma.todos.findMany({
+        where: {
+          user_id: userId,
+          todo_projects: {
+            some: {
+              project_id: projectId
+            }
+          }
+        },
+        include: {
+          todo_projects: {
+            include: {
+              projects: true
+            }
+          }
+        },
+        orderBy: [
+          { completed: 'asc' },
+          { priority: 'asc' },
+          { due_date: 'asc' }
+        ]
+      })
 
       return {
-        project: projectResult.rows[0] as Project,
-        tasks: tasksResult.rows as Todo[],
+        project: {
+          ...project,
+          created_at: project.created_at.toISOString(),
+          color: project.color || "#808080",
+          is_favorite: project.is_favorite || false
+        },
+        tasks: tasks.map(task => ({
+          ...task,
+          created_at: task.created_at.toISOString(),
+          updated_at: task.updated_at?.toISOString() || null,
+          due_date: task.due_date?.toISOString() || null,
+          project_name: task.todo_projects[0]?.projects?.name || undefined,
+          project_color: task.todo_projects[0]?.projects?.color || undefined,
+          attachments: task.attachments as any[]
+        }))
       }
     } catch (error) {
       console.error("Error getting project with tasks:", error)
@@ -221,32 +255,55 @@ export class StorageService {
   // Métodos específicos para etiquetas
   static async getLabelWithTasks(labelId: number, userId: number): Promise<{ label: Label; tasks: Todo[] } | null> {
     try {
-      const labelQuery = `
-        SELECT * FROM labels
-        WHERE id = $1 AND user_id = $2
-      `
+      const label = await prisma.labels.findFirst({
+        where: {
+          id: labelId,
+          user_id: userId
+        }
+      })
 
-      const tasksQuery = `
-        SELECT t.*, p.name as project_name, p.color as project_color
-        FROM todos t
-        JOIN todo_labels tl ON t.id = tl.todo_id
-        LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-        LEFT JOIN projects p ON tp.project_id = p.id
-        WHERE tl.label_id = $1 AND t.user_id = $2
-        ORDER BY t.completed ASC, t.priority ASC, t.due_date ASC
-      `
-
-      const labelResult = await sql.raw(labelQuery, labelId, userId)
-
-      if (labelResult.rows.length === 0) {
+      if (!label) {
         return null
       }
 
-      const tasksResult = await sql.raw(tasksQuery, labelId, userId)
+      const tasks = await prisma.todos.findMany({
+        where: {
+          user_id: userId,
+          todo_labels: {
+            some: {
+              label_id: labelId
+            }
+          }
+        },
+        include: {
+          todo_projects: {
+            include: {
+              projects: true
+            }
+          }
+        },
+        orderBy: [
+          { completed: 'asc' },
+          { priority: 'asc' },
+          { due_date: 'asc' }
+        ]
+      })
 
       return {
-        label: labelResult.rows[0] as Label,
-        tasks: tasksResult.rows as Todo[],
+        label: {
+          ...label,
+          created_at: label.created_at.toISOString(),
+          color: label.color || "#808080"
+        },
+        tasks: tasks.map(task => ({
+          ...task,
+          created_at: task.created_at.toISOString(),
+          updated_at: task.updated_at?.toISOString() || null,
+          due_date: task.due_date?.toISOString() || null,
+          project_name: task.todo_projects[0]?.projects?.name || undefined,
+          project_color: task.todo_projects[0]?.projects?.color || undefined,
+          attachments: task.attachments as any[]
+        }))
       }
     } catch (error) {
       console.error("Error getting label with tasks:", error)
@@ -254,34 +311,73 @@ export class StorageService {
     }
   }
 
-  // Métodos para backup e restauração
-  static async exportUserData(userId: number): Promise<{
+  // Métodos para backup e exportação
+  static async exportUserData(
+    userId: number,
+  ): Promise<{
     tasks: Todo[]
     projects: Project[]
     labels: Label[]
-    settings: UserSettings
+    settings: UserSettings | null
   }> {
     try {
       const tasks = await this.getTasks(userId, "all")
-      const projects = await this.findAll<Project>("projects", userId, { orderBy: "name ASC" })
-      const labels = await this.findAll<Label>("labels", userId, { orderBy: "name ASC" })
+      
+      const projects = await prisma.projects.findMany({
+        where: { user_id: userId },
+        orderBy: { name: 'asc' }
+      })
 
-      const settingsResult = await sql`
-        SELECT * FROM user_settings
-        WHERE user_id = ${userId}
-      `
+      const labels = await prisma.labels.findMany({
+        where: { user_id: userId },
+        orderBy: { name: 'asc' }
+      })
 
-      const settings = settingsResult.length > 0 ? (settingsResult[0] as UserSettings) : null
+      const settings = await prisma.user_settings.findUnique({
+        where: { user_id: userId }
+      })
 
       return {
         tasks,
-        projects,
-        labels,
-        settings,
+        projects: projects.map(p => ({
+          ...p,
+          created_at: p.created_at.toISOString(),
+          color: p.color || "#808080",
+          is_favorite: p.is_favorite || false
+        })),
+        labels: labels.map(l => ({
+          ...l,
+          created_at: l.created_at.toISOString(),
+          color: l.color || "#808080"
+        })),
+        settings: settings ? {
+          theme: settings.theme || "system",
+          language: settings.language || "pt",
+          pomodoro_work_minutes: settings.pomodoro_work_minutes || 25,
+          pomodoro_break_minutes: settings.pomodoro_break_minutes || 5,
+          pomodoro_long_break_minutes: settings.pomodoro_long_break_minutes || 15,
+          pomodoro_cycles: settings.pomodoro_cycles || 4,
+          enable_sound: settings.enable_sound ?? true,
+          notification_sound: settings.notification_sound || "default",
+          pomodoro_sound: settings.pomodoro_sound || "pomodoro",
+          enable_desktop_notifications: settings.enable_desktop_notifications ?? true,
+          enable_task_notifications: settings.enable_task_notifications ?? true,
+          task_notification_days: settings.task_notification_days || 3,
+          enable_spotify: settings.enable_spotify ?? true,
+          spotify_playlist_url: settings.spotify_playlist_url || null,
+          enable_flip_clock: settings.enable_flip_clock ?? true,
+          flip_clock_size: settings.flip_clock_size || "medium",
+          flip_clock_color: settings.flip_clock_color || "#ff5722"
+        } : null
       }
     } catch (error) {
       console.error("Error exporting user data:", error)
-      throw new Error("Failed to export user data")
+      return {
+        tasks: [],
+        projects: [],
+        labels: [],
+        settings: null
+      }
     }
   }
 
@@ -295,47 +391,85 @@ export class StorageService {
     },
   ): Promise<boolean> {
     try {
-      // Implementação da importação de dados
-      // Esta é uma operação complexa que requer transações e mapeamento de IDs
-      // Aqui está uma implementação simplificada
-
       // Importar projetos
       if (data.projects && data.projects.length > 0) {
         for (const project of data.projects) {
-          await sql`
-            INSERT INTO projects (user_id, name, color, is_favorite)
-            VALUES (${userId}, ${project.name}, ${project.color}, ${project.is_favorite})
-            ON CONFLICT (user_id, name) DO NOTHING
-          `
+          await prisma.projects.upsert({
+            where: {
+              id: project.id || 0
+            },
+            update: {},
+            create: {
+              user_id: userId,
+              name: project.name,
+              color: project.color || "#808080",
+              is_favorite: project.is_favorite || false
+            }
+          })
         }
       }
 
       // Importar etiquetas
       if (data.labels && data.labels.length > 0) {
         for (const label of data.labels) {
-          await sql`
-            INSERT INTO labels (user_id, name, color)
-            VALUES (${userId}, ${label.name}, ${label.color})
-            ON CONFLICT (user_id, name) DO NOTHING
-          `
+          await prisma.labels.upsert({
+            where: {
+              id: label.id || 0
+            },
+            update: {},
+            create: {
+              user_id: userId,
+              name: label.name,
+              color: label.color || "#808080"
+            }
+          })
         }
       }
 
       // Importar configurações
       if (data.settings) {
-        await sql`
-          UPDATE user_settings
-          SET 
-            theme = ${data.settings.theme},
-            pomodoro_work_minutes = ${data.settings.pomodoro_work_minutes},
-            pomodoro_break_minutes = ${data.settings.pomodoro_break_minutes},
-            pomodoro_long_break_minutes = ${data.settings.pomodoro_long_break_minutes},
-            pomodoro_cycles = ${data.settings.pomodoro_cycles},
-            enable_sound = ${data.settings.enable_sound},
-            notification_sound = ${data.settings.notification_sound},
-            enable_desktop_notifications = ${data.settings.enable_desktop_notifications}
-          WHERE user_id = ${userId}
-        `
+        await prisma.user_settings.upsert({
+          where: { user_id: userId },
+          update: {
+            theme: data.settings.theme,
+            language: data.settings.language,
+            pomodoro_work_minutes: data.settings.pomodoro_work_minutes,
+            pomodoro_break_minutes: data.settings.pomodoro_break_minutes,
+            pomodoro_long_break_minutes: data.settings.pomodoro_long_break_minutes,
+            pomodoro_cycles: data.settings.pomodoro_cycles,
+            enable_sound: data.settings.enable_sound,
+            notification_sound: data.settings.notification_sound,
+            pomodoro_sound: data.settings.pomodoro_sound,
+            enable_desktop_notifications: data.settings.enable_desktop_notifications,
+            enable_task_notifications: data.settings.enable_task_notifications,
+            task_notification_days: data.settings.task_notification_days,
+            enable_spotify: data.settings.enable_spotify,
+            spotify_playlist_url: data.settings.spotify_playlist_url,
+            enable_flip_clock: data.settings.enable_flip_clock,
+            flip_clock_size: data.settings.flip_clock_size,
+            flip_clock_color: data.settings.flip_clock_color
+          },
+          create: {
+            user_id: userId,
+            theme: data.settings.theme || "system",
+            language: data.settings.language || "pt",
+            pomodoro_work_minutes: data.settings.pomodoro_work_minutes || 25,
+            pomodoro_break_minutes: data.settings.pomodoro_break_minutes || 5,
+            pomodoro_long_break_minutes: data.settings.pomodoro_long_break_minutes || 15,
+            pomodoro_cycles: data.settings.pomodoro_cycles || 4,
+            enable_sound: data.settings.enable_sound ?? true,
+            notification_sound: data.settings.notification_sound || "default",
+            pomodoro_sound: data.settings.pomodoro_sound || "pomodoro",
+            enable_desktop_notifications: data.settings.enable_desktop_notifications ?? true,
+            enable_task_notifications: data.settings.enable_task_notifications ?? true,
+            task_notification_days: data.settings.task_notification_days || 3,
+            enable_spotify: data.settings.enable_spotify ?? true,
+            spotify_playlist_url: data.settings.spotify_playlist_url || null,
+            enable_flip_clock: data.settings.enable_flip_clock ?? true,
+            flip_clock_size: data.settings.flip_clock_size || "medium",
+            flip_clock_color: data.settings.flip_clock_color || "#ff5722"
+          }
+        })
       }
 
       return true

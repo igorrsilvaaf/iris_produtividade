@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createPasswordResetToken } from "@/lib/auth"
 import { sendEmail, createPasswordResetEmailHtml } from "@/lib/email"
-import { neon } from "@neondatabase/serverless"
-
-const sql = neon(process.env.DATABASE_URL!)
+import prisma from "../../../../lib/prisma"
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -31,59 +29,43 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    const users = await sql`SELECT name FROM users WHERE email = ${email}`;
-    const userName = users.length > 0 ? users[0].name : 'Usuário';
+    const user = await prisma.users.findUnique({
+      where: { email },
+      select: { name: true, id: true }
+    })
 
-    try {
-      const resetToken = await createPasswordResetToken(email)
-      
-      if (resetToken) {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
-        
-        if (emailConfigComplete) {
-          try {
-            const emailHtml = createPasswordResetEmailHtml(resetUrl, userName);
-            
-            const emailResult = await sendEmail({
-              to: email,
-              subject: 'Redefinição de Senha - Íris',
-              html: emailHtml,
-            });
-          } catch (emailError) {
-            if (!isDevelopment) {
-              throw emailError;
-            }
-          }
-        }
-        
-        return NextResponse.json(
-          { 
-            success: true, 
-            emailFound: true,
-            message: "Um link de redefinição de senha foi enviado para o seu email." 
-          },
-          { status: 200 }
-        )
-      } else {
-        return NextResponse.json(
-          { 
-            success: false, 
-            emailFound: false,
-            message: "Email não encontrado na base de dados Íris." 
-          },
-          { status: 200 } 
-        )
-      }
-    } catch (tokenError) {
+    const userName = user?.name || 'Usuário';
+    
+    if (!user) {
       return NextResponse.json(
-        { message: "Falha ao processar a solicitação de redefinição de senha" },
-        { status: 500 }
+        { message: "Se o email existir, um link de redefinição será enviado" },
+        { status: 200 }
       )
     }
-  } catch (error) {
+
+    const token = await createPasswordResetToken(user.id);
+    const resetLink = `${process.env.NEXT_PUBLIC_URL}/reset-password?token=${token}`;
+
+    if (emailConfigComplete) {
+      const emailHtml = createPasswordResetEmailHtml(userName, resetLink);
+      
+      await sendEmail({
+        to: email,
+        subject: "Redefinição de senha - Iris Produtividade",
+        html: emailHtml
+      });
+    } else {
+      console.log("Email não configurado. Link para redefinição de senha:", resetLink);
+    }
+
     return NextResponse.json(
-      { message: "Falha ao processar a solicitação de redefinição de senha" },
+      { message: "Se o email existir, um link de redefinição será enviado" },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error("Erro ao processar solicitação de redefinição de senha:", error)
+    return NextResponse.json(
+      { message: "Erro interno do servidor" },
       { status: 500 }
     )
   }

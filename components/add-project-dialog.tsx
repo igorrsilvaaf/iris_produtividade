@@ -91,14 +91,14 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
       }
       setOpen(newOpen);
     }}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogTrigger asChild data-testid="add-project-dialog-trigger">{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]" data-testid="add-project-dialog-content">
         <DialogHeader>
-          <DialogTitle>{t("addProject")}</DialogTitle>
-          <DialogDescription>{t("createNewProject")}</DialogDescription>
+          <DialogTitle data-testid="add-project-dialog-title">{t("addProject")}</DialogTitle>
+          <DialogDescription data-testid="add-project-dialog-description">{t("createNewProject")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="add-project-form">
             <FormField
               control={form.control}
               name="name"
@@ -106,7 +106,7 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
                 <FormItem>
                   <FormLabel>{t("name")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t("projectName")} {...field} />
+                    <Input data-testid="add-project-name-input" placeholder={t("projectName")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -119,10 +119,10 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
                 <FormItem>
                   <FormLabel>{t("color")}</FormLabel>
                   <FormControl>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2" data-testid="add-project-color-picker">
                       <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: field.value }} />
-                      <Input type="color" {...field} className="w-12 p-1" />
-                      <Input type="text" value={field.value} onChange={field.onChange} className="flex-1" />
+                      <Input data-testid="add-project-color-input" type="color" {...field} className="w-12 p-1" />
+                      <Input data-testid="add-project-color-text-input" type="text" value={field.value} onChange={field.onChange} className="flex-1" />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -130,7 +130,7 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
               )}
             />
             <DialogFooter className="flex justify-end">
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} data-testid="add-project-submit-button">
                 {isSubmitting ? t("creating") : t("createProject")}
               </Button>
             </DialogFooter>

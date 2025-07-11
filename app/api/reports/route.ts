@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { neon } from "@neondatabase/serverless"
+import prisma from "../../../lib/prisma"
 
-const sql = neon(process.env.DATABASE_URL!)
+
 
 export async function POST(request: NextRequest) {
   try {

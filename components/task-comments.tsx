@@ -268,18 +268,19 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
   };
 
   if (isLoading || userLoading) {
-    return <div className="p-4 text-muted-foreground">Carregando comentários...</div>;
+    return <div className="p-4 text-muted-foreground" data-testid="task-comments-loading">Carregando comentários...</div>;
   }
 
   if (userError) {
     return (
-      <div className="p-4 text-muted-foreground">
+      <div className="p-4 text-muted-foreground" data-testid="task-comments-error">
         <p>Erro ao carregar dados do usuário: {userError}</p>
         <Button 
           variant="outline" 
           size="sm" 
           className="mt-2"
           onClick={refetchUser}
+          data-testid="task-comments-retry-button"
         >
           Tentar Novamente
         </Button>
@@ -289,13 +290,14 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
 
   if (!user) {
     return (
-      <div className="p-4 text-muted-foreground">
+      <div className="p-4 text-muted-foreground" data-testid="task-comments-no-user">
         <p>É necessário estar logado para ver e adicionar comentários.</p>
         <Button 
           variant="outline" 
           size="sm" 
           className="mt-2"
           onClick={() => window.location.reload()}
+          data-testid="task-comments-reload-button"
         >
           Recarregar Página
         </Button>
@@ -305,26 +307,28 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
 
   return (
     <TooltipProvider>
-      <div className="space-y-4">
+      <div className="space-y-4" data-testid="task-comments">
         {/* Área de adicionar comentário com RichTextEditor */}
-        <RichCommentEditor
-          user={user}
-          value={newComment}
-          onChange={setNewComment}
-          onSubmit={handleAddComment}
-          onCancel={() => {
-            setShowCommentBox(false);
-            setNewComment('');
-          }}
-          isSubmitting={isSubmitting}
-          expanded={showCommentBox}
-          onToggleExpand={() => setShowCommentBox(true)}
-        />
+        <div data-testid="task-comments-add-section">
+          <RichCommentEditor
+            user={user}
+            value={newComment}
+            onChange={setNewComment}
+            onSubmit={handleAddComment}
+            onCancel={() => {
+              setShowCommentBox(false);
+              setNewComment('');
+            }}
+            isSubmitting={isSubmitting}
+            expanded={showCommentBox}
+            onToggleExpand={() => setShowCommentBox(true)}
+          />
+        </div>
 
         {/* Lista de comentários */}
-        <div className="space-y-3">
+        <div className="space-y-3" data-testid="task-comments-list">
           {comments.length === 0 ? (
-            <div className="text-center py-8">
+            <div className="text-center py-8" data-testid="task-comments-empty">
               <MessageSquare className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">
                 Nenhum comentário ainda. Seja o primeiro a comentar!
@@ -336,9 +340,9 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
               const isEditing = editingCommentId === comment.id;
               
               return (
-                                  <div key={comment.id} className="group comment-hover">
+                <div key={comment.id} className="group comment-hover" data-testid={`task-comment-${comment.id}`}>
                   <div className="flex gap-2 sm:gap-3">
-                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
+                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0" data-testid={`task-comment-avatar-${comment.id}`}>
                       <AvatarImage src={comment.author_avatar || ''} alt={comment.author_name} />
                       <AvatarFallback className="text-xs" key={`avatar-${comment.id}-${comment.user_id}`}>
                         {comment.author_name?.[0] || 'U'}
@@ -346,15 +350,15 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                     </Avatar>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="bg-muted/30 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border">
+                      <div className="bg-muted/30 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border" data-testid={`task-comment-content-${comment.id}`}>
                         <div className="flex items-start justify-between mb-1 gap-2">
                           <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                            <span className="font-medium text-sm text-foreground">
+                            <span className="font-medium text-sm text-foreground" data-testid={`task-comment-author-${comment.id}`}>
                               {comment.author_name}
                             </span>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className="text-xs text-muted-foreground cursor-help">
+                                <span className="text-xs text-muted-foreground cursor-help" data-testid={`task-comment-date-${comment.id}`}>
                                   {formatCommentDate(comment.created_at)}
                                 </span>
                               </TooltipTrigger>
@@ -363,14 +367,14 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                               </TooltipContent>
                             </Tooltip>
                             {comment.updated_at !== comment.created_at && (
-                              <Badge variant="secondary" className="text-xs px-1.5 py-0 h-auto">
+                              <Badge variant="secondary" className="text-xs px-1.5 py-0 h-auto" data-testid={`task-comment-edited-badge-${comment.id}`}>
                                 editado
                               </Badge>
                             )}
                           </div>
                           
                           {isOwner && !isEditing && (
-                            <div className="flex items-center gap-1 comment-actions flex-shrink-0">
+                            <div className="flex items-center gap-1 comment-actions flex-shrink-0" data-testid={`task-comment-actions-${comment.id}`}>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button
@@ -378,6 +382,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                                     size="icon"
                                     className="h-6 w-6 text-muted-foreground hover:text-foreground"
                                     onClick={() => startEditing(comment)}
+                                    data-testid={`task-comment-edit-button-${comment.id}`}
                                   >
                                     <Pencil className="h-3 w-3" />
                                   </Button>
@@ -392,6 +397,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                                     size="icon"
                                     className="h-6 w-6 text-muted-foreground hover:text-destructive"
                                     onClick={() => handleDeleteComment(comment.id)}
+                                    data-testid={`task-comment-delete-button-${comment.id}`}
                                   >
                                     <Trash2 className="h-3 w-3" />
                                   </Button>
@@ -403,7 +409,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                         </div>
 
                         {isEditing ? (
-                          <div className="mt-2">
+                          <div className="mt-2" data-testid={`task-comment-edit-form-${comment.id}`}>
                             <RichTextEditor
                               value={editingContent}
                               onChange={setEditingContent}
@@ -416,7 +422,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                             />
                           </div>
                         ) : (
-                          <div className="prose-comment">
+                          <div className="prose-comment" data-testid={`task-comment-text-${comment.id}`}>
                             {renderMarkdown(comment.content)}
                           </div>
                         )}
@@ -424,7 +430,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                       
                       {/* Ações do comentário */}
                       {!isEditing && (
-                        <div className="flex items-center gap-3 sm:gap-4 mt-1 ml-1 sm:ml-2" data-comment-id={comment.id}>
+                        <div className="flex items-center gap-3 sm:gap-4 mt-1 ml-1 sm:ml-2" data-comment-id={comment.id} data-testid={`task-comment-reactions-${comment.id}`}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
@@ -437,6 +443,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                                 }`}
                                 onClick={() => handleLikeComment(comment.id)}
                                 disabled={likeLoadingId === comment.id}
+                                data-testid={`task-comment-like-button-${comment.id}`}
                               >
                                 <Heart className={`h-3 w-3 heart-icon ${comment.is_liked ? 'fill-current' : ''}`} />
                                 {comment.likes_count || 0}
@@ -452,6 +459,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                                 size="sm"
                                 className="h-6 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground hover:bg-transparent"
                                 onClick={() => handleReply(comment)}
+                                data-testid={`task-comment-reply-button-${comment.id}`}
                               >
                                 <Reply className="h-3 w-3" />
                                 Responder

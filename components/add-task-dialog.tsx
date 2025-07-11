@@ -525,16 +525,16 @@ export function AddTaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogTrigger asChild data-testid="add-task-dialog-trigger">{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto" data-testid="add-task-dialog-content">
         <DialogHeader>
           <div className="flex items-center">
             <div className="md:hidden">
-              <BackButton onClick={() => setOpen(false)} className="mr-2" />
+              <BackButton onClick={() => setOpen(false)} className="mr-2" data-testid="add-task-back-button" />
             </div>
-            <DialogTitle>{t("addTask")}</DialogTitle>
+            <DialogTitle data-testid="add-task-dialog-title">{t("addTask")}</DialogTitle>
           </div>
-          <DialogDescription>
+          <DialogDescription data-testid="add-task-dialog-description">
             {t("Create a new task to keep track of your work.")}
           </DialogDescription>
         </DialogHeader>
@@ -542,6 +542,7 @@ export function AddTaskDialog({
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4 sm:space-y-6"
+            data-testid="add-task-form"
           >
             <FormField
               control={form.control}
@@ -551,6 +552,7 @@ export function AddTaskDialog({
                   <FormLabel>{t("title")}</FormLabel>
                   <FormControl>
                     <Textarea
+                      data-testid="add-task-title-input"
                       placeholder={t("Task title")}
                       className="min-h-[80px] text-base"
                       rows={3}
@@ -569,6 +571,7 @@ export function AddTaskDialog({
                   <FormLabel>{t("description")}</FormLabel>
                   <FormControl>
                     <Textarea
+                      data-testid="add-task-description-input"
                       placeholder={t("Add details about your task")}
                       className="min-h-[200px] text-base"
                       rows={8}
@@ -598,6 +601,7 @@ export function AddTaskDialog({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
+                            data-testid="add-task-due-date-button"
                             variant="outline"
                             className={`w-full justify-start text-left font-normal ${
                               !field.value && "text-muted-foreground"
@@ -621,6 +625,7 @@ export function AddTaskDialog({
                         className="w-auto p-0"
                         align="start"
                         side="bottom"
+                        data-testid="add-task-date-picker"
                       >
                         <div className="p-3">
                           <div className="flex justify-between items-center mb-2">
@@ -632,6 +637,7 @@ export function AddTaskDialog({
                               size="sm"
                               className="h-7 w-7 p-0 rounded-full"
                               onClick={() => setDatePickerOpen(false)}
+                              data-testid="add-task-date-picker-close"
                             >
                               <X className="h-4 w-4" />
                               <span className="sr-only">{t("close")}</span>
@@ -649,6 +655,7 @@ export function AddTaskDialog({
                             disabled={(date) =>
                               date < new Date(new Date().setHours(0, 0, 0, 0))
                             }
+                            data-testid="add-task-calendar"
                           />
                           <div className="pt-3 pb-2 border-t mt-3">
                             <FormField
@@ -658,6 +665,7 @@ export function AddTaskDialog({
                                 <FormItem className="flex flex-row items-center space-x-3 space-y-0 h-9">
                                   <FormControl>
                                     <Checkbox
+                                      data-testid="add-task-all-day-checkbox"
                                       id="isAllDay"
                                       checked={field.value}
                                       onCheckedChange={(checked) => {
@@ -696,6 +704,7 @@ export function AddTaskDialog({
                                   <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
                                   <FormControl>
                                     <Input
+                                      data-testid="add-task-due-time-input"
                                       type="time"
                                       value={field.value || "12:00"}
                                       onChange={(e) =>
