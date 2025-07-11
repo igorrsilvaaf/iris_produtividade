@@ -17,13 +17,27 @@ export async function GET(
 
     const comments = await prisma.task_comments.findMany({
       where: {
-        task_id: parseInt(taskId)
+        task_id: parseInt(taskId),
+        parent_id: null // Só comentários principais (não respostas)
       },
       include: {
-        users: {
+        user: {
           select: {
             name: true,
             avatar_url: true
+          }
+        },
+        replies: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                avatar_url: true
+              }
+            }
+          },
+          orderBy: {
+            created_at: 'asc'
           }
         }
       },
@@ -34,8 +48,13 @@ export async function GET(
 
     const formattedComments = comments.map(comment => ({
       ...comment,
-      author_name: comment.users.name,
-      author_avatar: comment.users.avatar_url
+      author_name: comment.user.name,
+      author_avatar: comment.user.avatar_url,
+      replies: comment.replies.map(reply => ({
+        ...reply,
+        author_name: reply.user.name,
+        author_avatar: reply.user.avatar_url
+      }))
     }));
 
     return NextResponse.json(formattedComments);
@@ -57,7 +76,7 @@ export async function POST(
     const userId = session.user.id;
 
     const { taskId } = await params;
-    const { content } = await request.json();
+    const { content, parent_id } = await request.json();
 
     if (!content || typeof content !== 'string' || content.trim() === '') {
       return new NextResponse('Conteúdo do comentário é obrigatório', { status: 400 });
@@ -67,10 +86,11 @@ export async function POST(
       data: {
         task_id: parseInt(taskId),
         user_id: userId,
-        content: content.trim()
+        content: content.trim(),
+        ...(parent_id && { parent_id: parseInt(parent_id) })
       },
       include: {
-        users: {
+        user: {
           select: {
             name: true,
             avatar_url: true
@@ -81,8 +101,8 @@ export async function POST(
 
     return NextResponse.json({
       ...newComment,
-      author_name: newComment.users.name,
-      author_avatar: newComment.users.avatar_url
+      author_name: newComment.user.name,
+      author_avatar: newComment.user.avatar_url
     }, { status: 201 });
   } catch (error) {
     console.error('Erro ao adicionar comentário:', error);

@@ -154,7 +154,7 @@ describe('Componente Todo', () => {
     
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        `/api/tasks/${mockTodo.id}`,
+        `/api/tasks/${mockTodo.id}/${mockTodo.id}`,
         { method: "DELETE" }
       );
       

@@ -31,7 +31,7 @@ export default async function LabelPage({ params }: { params: { id: string } }) 
   return (
     <div className="space-y-8">
       <LabelHeaderActions label={label} />
-      <TaskList tasks={tasks} />
+      <TaskList initialTasks={tasks} />
     </div>
   )
 }

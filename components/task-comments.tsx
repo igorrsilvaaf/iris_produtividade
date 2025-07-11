@@ -23,11 +23,13 @@ interface Comment {
   content: string;
   created_at: string;
   updated_at: string;
-  user_id: string;
+  user_id: number;
+  parent_id?: number | null;
   author_name: string;
   author_avatar: string | null;
   likes_count?: number;
   is_liked?: boolean;
+  replies?: Comment[];
 }
 
 interface TaskCommentsProps {
@@ -49,6 +51,8 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [likeLoadingId, setLikeLoadingId] = useState<number | null>(null);
+  const [replyingToId, setReplyingToId] = useState<number | null>(null);
+  const [replyContent, setReplyContent] = useState('');
   const { user, loading: userLoading, error: userError, refetch: refetchUser } = useUser(userProp);
 
   useEffect(() => {
@@ -107,6 +111,39 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
       }
     } catch (error) {
       console.error('Erro ao adicionar comentário:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddReply = async (parentId: number) => {
+    if (!replyContent.trim() || !user) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/tasks/${taskId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          content: replyContent,
+          parent_id: parentId,
+        }),
+      });
+
+      if (response.ok) {
+        // Recarregar todos os comentários para pegar a estrutura atualizada
+        await fetchComments();
+        setReplyContent('');
+        setReplyingToId(null);
+      } else if (response.status === 401) {
+        console.error('Sessão expirada ao adicionar resposta');
+        refetchUser();
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar resposta:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -262,10 +299,182 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
     );
   }, []);
 
-  const handleReply = (comment: Comment) => {
-    setEditingCommentId(comment.id);
-    setEditingContent('');
-  };
+  const handleReply = useCallback((comment: Comment) => {
+    setReplyingToId(comment.id);
+    setReplyContent(`@${comment.author_name} `);
+  }, []);
+
+  const cancelReply = useCallback(() => {
+    setReplyingToId(null);
+    setReplyContent('');
+  }, []);
+
+  const renderComment = useCallback((comment: Comment, isReply: boolean = false) => {
+    const isOwner = user?.id === comment.user_id;
+    const isEditing = editingCommentId === comment.id;
+    const isReplying = replyingToId === comment.id;
+    
+    return (
+      <div key={comment.id} className={`group comment-hover ${isReply ? 'ml-8 sm:ml-12' : ''}`} data-testid={`task-comment-${comment.id}`}>
+        <div className="flex gap-2 sm:gap-3">
+          <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0" data-testid={`task-comment-avatar-${comment.id}`}>
+            <AvatarImage src={comment.author_avatar || ''} alt={comment.author_name} />
+            <AvatarFallback className="text-xs" key={`avatar-${comment.id}-${comment.user_id}`}>
+              {comment.author_name?.[0] || 'U'}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="flex-1 min-w-0">
+            <div className="bg-muted/30 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border" data-testid={`task-comment-content-${comment.id}`}>
+              <div className="flex items-start justify-between mb-1 gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                  <span className="font-medium text-sm text-foreground" data-testid={`task-comment-author-${comment.id}`}>
+                    {comment.author_name}
+                  </span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-xs text-muted-foreground cursor-help" data-testid={`task-comment-date-${comment.id}`}>
+                        {formatCommentDate(comment.created_at)}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{format(new Date(comment.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  {comment.updated_at !== comment.created_at && (
+                    <Badge variant="secondary" className="text-xs px-1.5 py-0 h-auto" data-testid={`task-comment-edited-badge-${comment.id}`}>
+                      editado
+                    </Badge>
+                  )}
+                </div>
+                
+                {isOwner && !isEditing && (
+                  <div className="flex items-center gap-1 comment-actions flex-shrink-0" data-testid={`task-comment-actions-${comment.id}`}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                          onClick={() => startEditing(comment)}
+                          data-testid={`task-comment-edit-button-${comment.id}`}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Editar comentário</TooltipContent>
+                    </Tooltip>
+                    
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteComment(comment.id)}
+                          data-testid={`task-comment-delete-button-${comment.id}`}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Excluir comentário</TooltipContent>
+                    </Tooltip>
+                  </div>
+                )}
+              </div>
+
+              {isEditing ? (
+                <div className="mt-2" data-testid={`task-comment-edit-form-${comment.id}`}>
+                  <RichTextEditor
+                    value={editingContent}
+                    onChange={setEditingContent}
+                    placeholder="Editar comentário..."
+                    onSubmit={() => handleUpdateComment(comment.id)}
+                    onCancel={cancelEditing}
+                    submitLabel="Salvar"
+                    cancelLabel="Cancelar"
+                    minHeight="100px"
+                  />
+                </div>
+              ) : (
+                <div className="prose-comment" data-testid={`task-comment-text-${comment.id}`}>
+                  {renderMarkdown(comment.content)}
+                </div>
+              )}
+            </div>
+            
+            {/* Ações do comentário */}
+            {!isEditing && (
+              <div className="flex items-center gap-3 sm:gap-4 mt-1 ml-1 sm:ml-2" data-comment-id={comment.id} data-testid={`task-comment-reactions-${comment.id}`}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`h-6 px-2 text-xs gap-1 hover:bg-transparent ${
+                        comment.is_liked 
+                          ? 'text-red-500 hover:text-red-600' 
+                          : 'text-muted-foreground hover:text-red-500'
+                      }`}
+                      onClick={() => handleLikeComment(comment.id)}
+                      disabled={likeLoadingId === comment.id}
+                      data-testid={`task-comment-like-button-${comment.id}`}
+                    >
+                      <Heart className={`h-3 w-3 heart-icon ${comment.is_liked ? 'fill-current' : ''}`} />
+                      {comment.likes_count || 0}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{comment.is_liked ? 'Descurtir' : 'Curtir'}</TooltipContent>
+                </Tooltip>
+                
+                {!isReply && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground hover:bg-transparent"
+                        onClick={() => handleReply(comment)}
+                        data-testid={`task-comment-reply-button-${comment.id}`}
+                      >
+                        <Reply className="h-3 w-3" />
+                        Responder
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Responder comentário</TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+            )}
+
+            {/* Caixa de resposta */}
+            {isReplying && !isReply && (
+              <div className="mt-3 ml-1 sm:ml-2">
+                <RichCommentEditor
+                  user={user}
+                  value={replyContent}
+                  onChange={setReplyContent}
+                  onSubmit={() => handleAddReply(comment.id)}
+                  onCancel={cancelReply}
+                  isSubmitting={isSubmitting}
+                  expanded={true}
+                  onToggleExpand={() => {}}
+                  placeholder={`Respondendo a ${comment.author_name}...`}
+                />
+              </div>
+            )}
+
+            {/* Renderizar respostas */}
+            {comment.replies && comment.replies.length > 0 && (
+              <div className="mt-3 space-y-3">
+                {comment.replies.map((reply) => renderComment(reply, true))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }, [user, editingCommentId, replyingToId, replyContent, isSubmitting, formatCommentDate, renderMarkdown, handleLikeComment, likeLoadingId, handleReply, handleAddReply, cancelReply, startEditing, handleDeleteComment, handleUpdateComment, editingContent, cancelEditing]);
 
   if (isLoading || userLoading) {
     return <div className="p-4 text-muted-foreground" data-testid="task-comments-loading">Carregando comentários...</div>;
@@ -335,145 +544,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
               </p>
             </div>
           ) : (
-            comments.map((comment) => {
-              const isOwner = user?.id.toString() === comment.user_id || user?.id === parseInt(comment.user_id);
-              const isEditing = editingCommentId === comment.id;
-              
-              return (
-                <div key={comment.id} className="group comment-hover" data-testid={`task-comment-${comment.id}`}>
-                  <div className="flex gap-2 sm:gap-3">
-                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0" data-testid={`task-comment-avatar-${comment.id}`}>
-                      <AvatarImage src={comment.author_avatar || ''} alt={comment.author_name} />
-                      <AvatarFallback className="text-xs" key={`avatar-${comment.id}-${comment.user_id}`}>
-                        {comment.author_name?.[0] || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="bg-muted/30 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border" data-testid={`task-comment-content-${comment.id}`}>
-                        <div className="flex items-start justify-between mb-1 gap-2">
-                          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                            <span className="font-medium text-sm text-foreground" data-testid={`task-comment-author-${comment.id}`}>
-                              {comment.author_name}
-                            </span>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="text-xs text-muted-foreground cursor-help" data-testid={`task-comment-date-${comment.id}`}>
-                                  {formatCommentDate(comment.created_at)}
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{format(new Date(comment.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                            {comment.updated_at !== comment.created_at && (
-                              <Badge variant="secondary" className="text-xs px-1.5 py-0 h-auto" data-testid={`task-comment-edited-badge-${comment.id}`}>
-                                editado
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          {isOwner && !isEditing && (
-                            <div className="flex items-center gap-1 comment-actions flex-shrink-0" data-testid={`task-comment-actions-${comment.id}`}>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                    onClick={() => startEditing(comment)}
-                                    data-testid={`task-comment-edit-button-${comment.id}`}
-                                  >
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Editar comentário</TooltipContent>
-                              </Tooltip>
-                              
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                    onClick={() => handleDeleteComment(comment.id)}
-                                    data-testid={`task-comment-delete-button-${comment.id}`}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Excluir comentário</TooltipContent>
-                              </Tooltip>
-                            </div>
-                          )}
-                        </div>
-
-                        {isEditing ? (
-                          <div className="mt-2" data-testid={`task-comment-edit-form-${comment.id}`}>
-                            <RichTextEditor
-                              value={editingContent}
-                              onChange={setEditingContent}
-                              placeholder="Editar comentário..."
-                              onSubmit={() => handleUpdateComment(comment.id)}
-                              onCancel={cancelEditing}
-                              submitLabel="Salvar"
-                              cancelLabel="Cancelar"
-                              minHeight="100px"
-                            />
-                          </div>
-                        ) : (
-                          <div className="prose-comment" data-testid={`task-comment-text-${comment.id}`}>
-                            {renderMarkdown(comment.content)}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Ações do comentário */}
-                      {!isEditing && (
-                        <div className="flex items-center gap-3 sm:gap-4 mt-1 ml-1 sm:ml-2" data-comment-id={comment.id} data-testid={`task-comment-reactions-${comment.id}`}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className={`h-6 px-2 text-xs gap-1 hover:bg-transparent ${
-                                  comment.is_liked 
-                                    ? 'text-red-500 hover:text-red-600' 
-                                    : 'text-muted-foreground hover:text-red-500'
-                                }`}
-                                onClick={() => handleLikeComment(comment.id)}
-                                disabled={likeLoadingId === comment.id}
-                                data-testid={`task-comment-like-button-${comment.id}`}
-                              >
-                                <Heart className={`h-3 w-3 heart-icon ${comment.is_liked ? 'fill-current' : ''}`} />
-                                {comment.likes_count || 0}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>{comment.is_liked ? 'Descurtir' : 'Curtir'}</TooltipContent>
-                          </Tooltip>
-                          
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground hover:bg-transparent"
-                                onClick={() => handleReply(comment)}
-                                data-testid={`task-comment-reply-button-${comment.id}`}
-                              >
-                                <Reply className="h-3 w-3" />
-                                Responder
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Responder comentário</TooltipContent>
-                          </Tooltip>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })
+            comments.map((comment) => renderComment(comment))
           )}
         </div>
       </div>

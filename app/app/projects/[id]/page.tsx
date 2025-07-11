@@ -40,7 +40,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <ProjectHeaderActions project={project} />
       </div>
 
-      <TaskList tasks={tasks} />
+      <TaskList initialTasks={tasks} />
     </div>
   )
 }

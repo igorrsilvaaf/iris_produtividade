@@ -469,7 +469,7 @@ export function KanbanBoard() {
 
 
 
-        const response = await fetch(`/api/tasks/${id}`, {
+        const response = await fetch(`/api/tasks/${id}/${id}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",

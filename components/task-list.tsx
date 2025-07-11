@@ -109,7 +109,7 @@ export function TaskList({ initialTasks, user }: TaskListProps) {
         throw new Error(`Failed to toggle task: ${response.statusText}`)
       }
 
-      const updatedTask = await response.json()
+      const result = await response.json()
 
       toast({
         title: t("Task updated"),
@@ -117,7 +117,9 @@ export function TaskList({ initialTasks, user }: TaskListProps) {
       })
 
       // Notificar sobre a atualização da task
-      notifyTaskCompleted(taskId, updatedTask)
+      if (result.task) {
+        notifyTaskCompleted(taskId, result.task)
+      }
 
     } catch (error) {
       toast({
@@ -130,7 +132,7 @@ export function TaskList({ initialTasks, user }: TaskListProps) {
 
   const deleteTask = async (taskId: number) => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}`, {
+      const response = await fetch(`/api/tasks/${taskId}/${taskId}`, {
         method: "DELETE",
       })
 

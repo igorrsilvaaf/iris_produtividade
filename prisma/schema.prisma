@@ -82,17 +82,21 @@ model task_notifications_read {
 }
 
 model task_comments {
-  id         Int       @id @default(autoincrement())
+  id         Int             @id @default(autoincrement())
   task_id    Int
   user_id    Int
   content    String
-  created_at DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at DateTime? @default(now()) @db.Timestamptz(6)
-  task       todos     @relation("TaskComments", fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user       users     @relation("UserComments", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at DateTime?       @default(now()) @db.Timestamptz(6)
+  updated_at DateTime?       @default(now()) @db.Timestamptz(6)
+  parent_id  Int?
+  parent     task_comments?  @relation("CommentReplies", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  replies    task_comments[] @relation("CommentReplies")
+  task       todos           @relation("TaskComments", fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user       users           @relation("UserComments", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([task_id], map: "idx_task_comments_task_id")
   @@index([user_id], map: "idx_task_comments_user_id")
+  @@index([parent_id], map: "idx_task_comments_parent_id")
 }
 
 model todo_labels {

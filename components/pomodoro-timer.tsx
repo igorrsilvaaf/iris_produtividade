@@ -205,7 +205,7 @@ export function PomodoroTimer({
         return
       }
       try {
-        const response = await fetch(`/api/tasks/${selectedTaskId}`)
+        const response = await fetch(`/api/tasks/${selectedTaskId}/${selectedTaskId}`)
         if (response.ok) {
           const data = await response.json()
           setSelectedTask(data.task)
