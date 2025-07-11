@@ -25,6 +25,35 @@ export type Todo = {
   estimated_time?: number | null;
 };
 
+// Função auxiliar para determinar o board correto baseado na data
+// Função auxiliar para determinar o board correto baseado na data
+function determineKanbanColumnByDate(dueDate: Date | null, completed: boolean): string {
+  if (completed) {
+    return "completed";
+  }
+  
+  if (!dueDate) {
+    return "backlog";
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const taskDate = new Date(dueDate);
+  taskDate.setHours(0, 0, 0, 0);
+  
+  const taskTime = taskDate.getTime();
+  const todayTime = today.getTime();
+  
+  if (taskTime === todayTime) {
+    return "planning";
+  } else if (taskTime < todayTime) {
+    return "planning"; // Tasks atrasadas vão para planning para serem priorizadas
+  } else {
+    return "backlog";
+  }
+}
+
 // Função auxiliar para verificar se uma tarefa é válida para hoje
 // Considera data e horário para determinar se ainda não venceu
 function isTaskValidForToday(task: any): boolean {
@@ -206,6 +235,9 @@ export async function createTask({
     normalizedAttachments = [];
   }
 
+  // Determinar o board correto automaticamente se não foi especificado
+  const finalKanbanColumn = kanbanColumn || determineKanbanColumnByDate(normalizedDueDate, false);
+
   const task = await prisma.todos.create({
     data: {
       user_id: userId,
@@ -213,7 +245,7 @@ export async function createTask({
       description,
       due_date: normalizedDueDate,
       priority,
-      kanban_column: kanbanColumn,
+      kanban_column: finalKanbanColumn,
       kanban_order: kanbanOrder,
       points,
       attachments: normalizedAttachments,
@@ -309,6 +341,18 @@ export async function updateTask(
   if (normalizedAttachments !== undefined) updateData.attachments = normalizedAttachments;
   if (updates.estimated_time !== undefined) updateData.estimated_time = updates.estimated_time;
 
+  // Atualizar o board automaticamente quando o status de completion mudar
+  if (updates.completed !== undefined && updates.kanban_column === undefined) {
+    const finalDueDate = normalizedDueDate !== null ? normalizedDueDate : (existingTask.due_date || null);
+    updateData.kanban_column = determineKanbanColumnByDate(finalDueDate, updates.completed);
+  }
+  
+  // Atualizar o board automaticamente quando a data mudar
+  if (updates.due_date !== undefined && updates.kanban_column === undefined && updates.completed === undefined) {
+    const finalCompleted = existingTask.completed;
+    updateData.kanban_column = determineKanbanColumnByDate(normalizedDueDate, finalCompleted);
+  }
+
   const task = await prisma.todos.update({
     where: {
       id: taskId
@@ -352,6 +396,10 @@ export async function toggleTaskCompletion(
     throw new Error("Task not found or not owned by user");
   }
 
+  // Determinar o board correto baseado no novo status
+  const newCompletedStatus = !existingTask.completed;
+  const newKanbanColumn = determineKanbanColumnByDate(existingTask.due_date, newCompletedStatus);
+
   // Executar a atualização
   const task = await prisma.todos.update({
     where: {
@@ -359,7 +407,8 @@ export async function toggleTaskCompletion(
       user_id: userId
     },
     data: {
-      completed: !existingTask.completed,
+      completed: newCompletedStatus,
+      kanban_column: newKanbanColumn,
       updated_at: now
     },
     include: {

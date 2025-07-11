@@ -77,6 +77,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { LabelForm } from "@/components/label-form";
 import { ProjectForm } from "@/components/project-form";
 import { BackButton } from "@/components/ui/back-button";
+import { useTaskUpdates } from "@/hooks/use-task-updates";
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -131,6 +132,7 @@ export function AddTaskDialog({
   const router = useRouter();
   const { toast } = useToast();
   const { t, setLanguage } = useTranslation();
+  const { notifyTaskCreated } = useTaskUpdates();
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachmentUrl, setAttachmentUrl] = useState("");
@@ -507,6 +509,9 @@ export function AddTaskDialog({
           title: t("Task created"),
           description: t("Your task has been created successfully."),
         });
+        
+        // Notificar sobre a criação da task para atualização dinâmica
+        notifyTaskCreated(responseData.task);
       }
 
       form.reset();

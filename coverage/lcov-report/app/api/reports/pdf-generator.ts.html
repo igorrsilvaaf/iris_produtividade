@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/285</span>
+                <span class='fraction'>0/286</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/175</span>
+                <span class='fraction'>0/173</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/22</span>
+                <span class='fraction'>0/24</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/265</span>
+                <span class='fraction'>0/266</span>
             </div>
         
             
@@ -655,7 +655,12 @@
 <a name='L590'></a><a href='#L590'>590</a>
 <a name='L591'></a><a href='#L591'>591</a>
 <a name='L592'></a><a href='#L592'>592</a>
-<a name='L593'></a><a href='#L593'>593</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L593'></a><a href='#L593'>593</a>
+<a name='L594'></a><a href='#L594'>594</a>
+<a name='L595'></a><a href='#L595'>595</a>
+<a name='L596'></a><a href='#L596'>596</a>
+<a name='L597'></a><a href='#L597'>597</a>
+<a name='L598'></a><a href='#L598'>598</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1233,10 +1238,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1245,6 +1253,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import jsPDF from 'jspdf';
@@ -1825,19 +1835,24 @@ export function <span class="fstat-no" title="function not covered" >generatePDF
       // Continuar sem o rodapé se houver erro
     }
     
-<span class="cstat-no" title="statement not covered" >    console.log("Geração de PDF concluída, convertendo para buffer...");</span>
+    // Finalizar o documento PDF
+<span class="cstat-no" title="statement not covered" >    doc.end();</span>
+&nbsp;
+    // Converter o stream para buffer
+    const buffers: Buffer[] = <span class="cstat-no" title="statement not covered" >[];</span>
+<span class="cstat-no" title="statement not covered" >    doc.on('data', buffers.push.bind(buffers));</span>
     
-    // Converter para buffer com tratamento de erro
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      const pdfBuffer = <span class="cstat-no" title="statement not covered" >Buffer.from(doc.output('arraybuffer'));</span>
-<span class="cstat-no" title="statement not covered" >      return pdfBuffer;</span>
-    } catch (err) {
-<span class="cstat-no" title="statement not covered" >      console.error("Erro ao converter PDF para buffer:", err);</span>
-<span class="cstat-no" title="statement not covered" >      throw new Error("Falha ao converter o PDF para download: " + (err instanceof Error ? err.message : String(err)));</span>
-    }
+<span class="cstat-no" title="statement not covered" >    return new Promise&lt;Buffer&gt;(<span class="fstat-no" title="function not covered" >(r</span>esolve, reject) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      doc.on('end', <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+        
+        const pdfBuffer = <span class="cstat-no" title="statement not covered" >Buffer.concat(buffers);</span>
+<span class="cstat-no" title="statement not covered" >        resolve(pdfBuffer);</span>
+      });
+      
+<span class="cstat-no" title="statement not covered" >      doc.on('error', reject);</span>
+    });
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error('Erro ao gerar PDF:', error);</span>
-<span class="cstat-no" title="statement not covered" >    throw new Error('Falha ao gerar o PDF: ' + (error instanceof Error ? error.message : String(error)));</span>
+<span class="cstat-no" title="statement not covered" >    throw new Error(`Erro ao gerar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);</span>
   }
 } </pre></td></tr></table></pre>
 
@@ -1846,7 +1861,7 @@ export function <span class="fstat-no" title="function not covered" >generatePDF
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-27T16:35:02.089Z
+                at 2025-07-11T02:16:48.778Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

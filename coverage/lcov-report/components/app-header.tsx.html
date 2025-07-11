@@ -351,7 +351,11 @@
 <a name='L286'></a><a href='#L286'>286</a>
 <a name='L287'></a><a href='#L287'>287</a>
 <a name='L288'></a><a href='#L288'>288</a>
-<a name='L289'></a><a href='#L289'>289</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -427,6 +431,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -715,11 +723,11 @@ export function <span class="fstat-no" title="function not covered" >AppHeader(<
   }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
-    &lt;header className="sticky top-0 z-30 flex h-16 items-center border-b bg-gradient-to-r from-background via-background to-background/95 backdrop-blur-sm px-3 md:px-5"&gt;
+    &lt;header className="sticky top-0 z-30 flex h-16 items-center border-b bg-gradient-to-r from-background via-background to-background/95 backdrop-blur-sm px-3 md:px-5" data-testid="app-header"&gt;
       {/* Mobile menu button (positioned to the left of search) */}
       &lt;Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}&gt;
         &lt;SheetTrigger asChild&gt;
-          &lt;Button variant="ghost" size="icon" className="mr-2 md:hidden"&gt;
+          &lt;Button variant="ghost" size="icon" className="mr-2 md:hidden" data-testid="header-mobile-menu-button"&gt;
             &lt;Menu className="h-5 w-5" /&gt;
             &lt;span className="sr-only"&gt;Toggle menu&lt;/span&gt;
           &lt;/Button&gt;
@@ -733,16 +741,16 @@ export function <span class="fstat-no" title="function not covered" >AppHeader(<
       &lt;/Sheet&gt;
       
       {/* Search area - always visible on all devices */}
-      &lt;div className="flex flex-1 justify-center transition-all duration-200"&gt;
+      &lt;div className="flex flex-1 justify-center transition-all duration-200" data-testid="header-search-area"&gt;
         &lt;div className="w-full max-w-md relative"&gt;
           &lt;SearchTasks /&gt;
         &lt;/div&gt;
       &lt;/div&gt;
       
       {/* Primary navigation */}
-      &lt;nav className="flex items-center gap-1 ml-auto md:ml-4"&gt;
+      &lt;nav className="flex items-center gap-1 ml-auto md:ml-4" data-testid="header-navigation"&gt;
         &lt;div className="hidden md:flex items-center mr-1 border-r pr-2 border-muted"&gt;
-          &lt;Button variant="ghost" size="sm" className="rounded-full h-9 px-3 text-sm font-medium" asChild&gt;
+          &lt;Button variant="ghost" size="sm" className="rounded-full h-9 px-3 text-sm font-medium" asChild data-testid="header-calendar-button"&gt;
             &lt;a href="/app/calendar" className="flex items-center gap-1.5"&gt;
               &lt;Calendar className="h-4 w-4" /&gt;
               {t("calendar")}
@@ -759,6 +767,7 @@ export function <span class="fstat-no" title="function not covered" >AppHeader(<
             size="icon" 
             className="md:hidden rounded-full h-9 w-9 hover:bg-accent/50 hover:text-accent-foreground transition-colors" 
             asChild
+            data-testid="header-calendar-mobile-button"
           &gt;
             &lt;a href="/app/calendar"&gt;
               &lt;Calendar className="h-4.5 w-4.5" /&gt;
@@ -771,6 +780,7 @@ export function <span class="fstat-no" title="function not covered" >AppHeader(<
             size="icon" 
             className="rounded-full h-9 w-9 hover:bg-accent/50 hover:text-accent-foreground transition-colors" 
             asChild
+            data-testid="header-settings-button"
           &gt;
             &lt;a href="/app/settings"&gt;
               &lt;Settings className="h-4.5 w-4.5" /&gt;
@@ -786,20 +796,21 @@ export function <span class="fstat-no" title="function not covered" >AppHeader(<
                 variant="ghost" 
                 size="icon" 
                 className="rounded-full h-9 w-9 ml-1 p-0 overflow-hidden ring-2 ring-primary/10 hover:ring-primary/20"
+                data-testid="header-user-menu-trigger"
               &gt;
                 &lt;Avatar className="h-9 w-9"&gt;
                   &lt;AvatarImage src={user.avatar_url || ""} alt={user.name} /&gt;
-                  &lt;AvatarFallback className="bg-primary/10 text-primary text-sm"&gt;
+                  &lt;AvatarFallback className="bg-primary/10 text-primary text-sm" key={`header-avatar-${user.id}`}&gt;
                     {getInitials(user.name)}
                   &lt;/AvatarFallback&gt;
                 &lt;/Avatar&gt;
               &lt;/Button&gt;
             &lt;/DropdownMenuTrigger&gt;
-            &lt;DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5 border-muted/50 shadow-lg"&gt;
+            &lt;DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5 border-muted/50 shadow-lg" data-testid="header-user-menu"&gt;
               &lt;div className="flex items-center gap-3 p-2.5 mb-1 rounded-lg"&gt;
                 &lt;Avatar className="h-10 w-10 border-2 border-muted"&gt;
                   &lt;AvatarImage src={user.avatar_url || ""} alt={user.name} /&gt;
-                  &lt;AvatarFallback className="bg-primary/10 text-primary"&gt;
+                  &lt;AvatarFallback className="bg-primary/10 text-primary" key={`dropdown-avatar-${user.id}`}&gt;
                     {getInitials(user.name)}
                   &lt;/AvatarFallback&gt;
                 &lt;/Avatar&gt;
@@ -812,35 +823,35 @@ export function <span class="fstat-no" title="function not covered" >AppHeader(<
               &lt;DropdownMenuSeparator className="my-1" /&gt;
               
               &lt;div className="p-1"&gt;
-                &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5"&gt;
+                &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-profile"&gt;
                   &lt;a href="/app/profile" className="flex items-center"&gt;
                     &lt;User className="mr-2 h-4 w-4" /&gt;
                     {t("profile")}
                   &lt;/a&gt;
                 &lt;/DropdownMenuItem&gt;
                 
-                &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5"&gt;
+                &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-settings"&gt;
                   &lt;a href="/app/settings" className="flex items-center"&gt;
                     &lt;Settings className="mr-2 h-4 w-4" /&gt;
                     {t("settings")}
                   &lt;/a&gt;
                 &lt;/DropdownMenuItem&gt;
                 
-                &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5"&gt;
+                &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-storage"&gt;
                   &lt;a href="/app/storage" className="flex items-center"&gt;
                     &lt;Database className="mr-2 h-4 w-4" /&gt;
                     {t("storage")}
                   &lt;/a&gt;
                 &lt;/DropdownMenuItem&gt;
                 
-                &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5"&gt;
+                &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-changelog"&gt;
                   &lt;a href="/app/changelog" className="flex items-center"&gt;
                     &lt;FileText className="mr-2 h-4 w-4" /&gt;
                     {t("changelog")}
                   &lt;/a&gt;
                 &lt;/DropdownMenuItem&gt;
                 
-                &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5"&gt;
+                &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-reports"&gt;
                   &lt;a href="/app/reports" className="flex items-center"&gt;
                     &lt;svg 
                       className="mr-2 h-4 w-4"
@@ -872,7 +883,7 @@ export function <span class="fstat-no" title="function not covered" >AppHeader(<
                 {/* Theme toggle for mobile */}
                 &lt;div className="md:hidden"&gt;
                   &lt;DropdownMenuSeparator className="my-1" /&gt;
-                  &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5"&gt;
+                  &lt;DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-theme"&gt;
                     &lt;div className="flex items-center justify-between w-full"&gt;
                       &lt;div className="flex items-center"&gt;
                         &lt;svg
@@ -907,6 +918,7 @@ export function <span class="fstat-no" title="function not covered" >AppHeader(<
                 &lt;DropdownMenuItem 
                   onClick={handleLogout} 
                   className="rounded-lg cursor-pointer h-9 px-2 py-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20"
+                  data-testid="header-menu-logout"
                 &gt;
                   {t("logout")}
                 &lt;/DropdownMenuItem&gt;
@@ -934,7 +946,7 @@ export function <span class="fstat-no" title="function not covered" >AppHeader(<
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-27T16:35:02.089Z
+                at 2025-07-11T02:16:48.778Z
             </div>
         <script src="../prettify.js"></script>
         <script>

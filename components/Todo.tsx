@@ -8,6 +8,7 @@ import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
+import { useTaskUpdates } from "@/hooks/use-task-updates"
 import {
   Tooltip,
   TooltipContent,
@@ -96,6 +97,7 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+  const { notifyTaskCompleted } = useTaskUpdates()
   
   // Usar ref para rastrear a primeira renderização
   const initialLoadDone = useRef(false)
@@ -178,6 +180,11 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
           description: t ? t("Task status has been updated.") : "O status da tarefa foi atualizado.",
         })
         
+        // Notificar sobre a atualização da task
+        if (updatedTodo.completed) {
+          notifyTaskCompleted(todoData.id, updatedTodo);
+        }
+        
         // Sincronização silenciosa - sem refresh imediato para melhor UX
       } catch (error) {
         // Reverter mudanças otimistas em caso de erro
@@ -198,7 +205,7 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
       onDelete(todoData.id)
     } else {
       try {
-        const response = await fetch(`/api/tasks/${todoData.id}/${todoData.id}`, {
+        const response = await fetch(`/api/tasks/${todoData.id}`, {
           method: "DELETE",
         })
         

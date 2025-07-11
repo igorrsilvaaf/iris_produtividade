@@ -433,7 +433,13 @@
 <a name='L368'></a><a href='#L368'>368</a>
 <a name='L369'></a><a href='#L369'>369</a>
 <a name='L370'></a><a href='#L370'>370</a>
-<a name='L371'></a><a href='#L371'>371</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a>
+<a name='L376'></a><a href='#L376'>376</a>
+<a name='L377'></a><a href='#L377'>377</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -726,6 +732,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1096,11 +1108,11 @@ export function <span class="fstat-no" title="function not covered" >PomodoroTim
   const activeBorderClass = <span class="cstat-no" title="statement not covered" >"border-b-2"</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return (</span>
-    &lt;Card className={fullScreen ? "h-full border-0 shadow-none rounded-none flex flex-col bg-transparent" : ""}&gt;
+    &lt;Card className={fullScreen ? "h-full border-0 shadow-none rounded-none flex flex-col bg-transparent" : ""} data-testid="pomodoro-timer"&gt;
       &lt;CardHeader className={`pb-2 flex flex-row items-center justify-between ${fullScreen ? 'pt-2' : ''}`}&gt;
         &lt;div className="w-9"&gt;&lt;/div&gt;
-        &lt;CardTitle className="text-lg sm:text-xl text-center flex-1"&gt;{t("pomodoroTimer")}&lt;/CardTitle&gt;
-        &lt;Button variant="ghost" size="icon" onClick={navigateToSettings}&gt;
+        &lt;CardTitle className="text-lg sm:text-xl text-center flex-1" data-testid="pomodoro-title"&gt;{t("pomodoroTimer")}&lt;/CardTitle&gt;
+        &lt;Button variant="ghost" size="icon" onClick={navigateToSettings} data-testid="pomodoro-settings-button"&gt;
           &lt;Settings className="h-4 w-4" /&gt;
           &lt;span className="sr-only"&gt;{t("settings")}&lt;/span&gt;
         &lt;/Button&gt;
@@ -1111,23 +1123,27 @@ export function <span class="fstat-no" title="function not covered" >PomodoroTim
             value={mode} 
             onValueChange={handleTabChange} 
             className="w-full"
+            data-testid="pomodoro-mode-tabs"
           &gt;
-            &lt;TabsList className={`grid w-full grid-cols-3 mb-6`}&gt;
+            &lt;TabsList className={`grid w-full grid-cols-3 mb-6`} data-testid="pomodoro-tabs-list"&gt;
               &lt;TabsTrigger 
                 value="work" 
                 className={cn(tabsTriggerBaseClass, mode === "work" ? `${activeTabStyleClass} ${activeBorderClass}` : "border-transparent")}
+                data-testid="pomodoro-work-tab"
               &gt;
                 {t("work")}
               &lt;/TabsTrigger&gt;
               &lt;TabsTrigger 
                 value="shortBreak" 
                 className={cn(tabsTriggerBaseClass, mode === "shortBreak" ? `${activeTabStyleClass} ${activeBorderClass}` : "border-transparent")}
+                data-testid="pomodoro-short-break-tab"
               &gt;
                 {t("shortBreak")}
               &lt;/TabsTrigger&gt;
               &lt;TabsTrigger 
                 value="longBreak" 
                 className={cn(tabsTriggerBaseClass, mode === "longBreak" ? `${activeTabStyleClass} ${activeBorderClass}` : "border-transparent")}
+                data-testid="pomodoro-long-break-tab"
               &gt;
                 {t("longBreak")}
               &lt;/TabsTrigger&gt;
@@ -1136,20 +1152,21 @@ export function <span class="fstat-no" title="function not covered" >PomodoroTim
         &lt;/div&gt;
 &nbsp;
         &lt;div className={`w-full flex flex-col items-center ${fullScreen ? 'flex-1 justify-center' : 'mt-4 sm:mt-6'}`}&gt;
-          &lt;div className={`${fullScreen ? 'text-6xl sm:text-7xl mb-6' : 'text-4xl sm:text-5xl'} font-bold tabular-nums ${timerTextColorClass}`}&gt;
+          &lt;div className={`${fullScreen ? 'text-6xl sm:text-7xl mb-6' : 'text-4xl sm:text-5xl'} font-bold tabular-nums ${timerTextColorClass}`} data-testid="pomodoro-timer-display"&gt;
             {formatTime(timeLeft)}
           &lt;/div&gt;
           
           &lt;div className={`w-full ${fullScreen ? 'max-w-[85%] mx-auto mb-8' : 'mt-4 mb-6'}`}&gt;
-            &lt;Progress value={getProgress()} className={`${fullScreen ? 'h-3' : 'h-2'} w-full`} /&gt;
+            &lt;Progress value={getProgress()} className={`${fullScreen ? 'h-3' : 'h-2'} w-full`} data-testid="pomodoro-progress-bar" /&gt;
           &lt;/div&gt;
 &nbsp;
-          &lt;div className={`flex items-center justify-center gap-6 ${fullScreen ? 'mb-6' : ''}`}&gt;
+          &lt;div className={`flex items-center justify-center gap-6 ${fullScreen ? 'mb-6' : ''}`} data-testid="pomodoro-controls"&gt;
             &lt;Button 
               variant="outline" 
               size="icon" 
               onClick={toggleStoreTimer} 
               className={`${fullScreen ? 'h-16 w-16' : 'h-12 w-12'} rounded-full ${isRunning ? 'bg-primary/10 hover:bg-primary/20 border-primary/20' : playButtonColorClass}`}
+              data-testid="pomodoro-play-pause-button"
             &gt;
               {isRunning ? 
                 &lt;Pause className={fullScreen ? "h-8 w-8" : "h-6 w-6"} /&gt; : 
@@ -1161,12 +1178,13 @@ export function <span class="fstat-no" title="function not covered" >PomodoroTim
               size="icon" 
               onClick={resetStoreTimer} 
               className={`${fullScreen ? 'h-12 w-12' : 'h-10 w-10'} rounded-full bg-transparent`}
+              data-testid="pomodoro-reset-button"
             &gt;
               &lt;RotateCcw className={fullScreen ? "h-5 w-5" : "h-4 w-4"} /&gt;
             &lt;/Button&gt;
           &lt;/div&gt;
 &nbsp;
-          &lt;div className={`text-xs sm:text-sm text-muted-foreground ${fullScreen ? 'mt-2' : 'mt-6'}`}&gt;
+          &lt;div className={`text-xs sm:text-sm text-muted-foreground ${fullScreen ? 'mt-2' : 'mt-6'}`} data-testid="pomodoro-cycle-info"&gt;
             {t("cycleStage")}: {mode === "work" ? (cycles % (storeSettings.longBreakInterval || 4)) + 1 : cycles % (storeSettings.longBreakInterval || 4)}/{storeSettings.longBreakInterval || 4} 
           &lt;/div&gt;
         &lt;/div&gt;
@@ -1180,7 +1198,7 @@ export function <span class="fstat-no" title="function not covered" >PomodoroTim
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-27T16:35:02.089Z
+                at 2025-07-11T02:16:48.778Z
             </div>
         <script src="../prettify.js"></script>
         <script>

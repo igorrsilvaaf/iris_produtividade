@@ -72,6 +72,7 @@ import type { Project } from "@/lib/projects";
 // Hooks e utils locais
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { useTaskUpdates } from "@/hooks/use-task-updates";
 
 // 6. Componentes UI (agrupados por funcionalidade)
 import { Button } from "@/components/ui/button";
@@ -178,6 +179,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const router = useRouter();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { notifyTaskCompleted, notifyTaskUpdated } = useTaskUpdates();
 
   useEffect(() => {
     const fetchTaskProject = async () => {
@@ -796,12 +798,19 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         throw new Error("Failed to update task completion status");
       }
 
+      const responseData = await response.json();
+
       toast({
         title: task.completed
           ? t("Task marked as incomplete")
           : t("Task marked as complete"),
         variant: "success",
       });
+
+      // Notificar sobre a atualização da task
+      if (!task.completed) {
+        notifyTaskCompleted(task.id, responseData.task);
+      }
 
       router.refresh();
     } catch (error) {
