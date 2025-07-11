@@ -147,18 +147,19 @@ export function AppSidebar({ user }: { user: User }) {
   }, [toast])
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full flex-col bg-background" data-testid="app-sidebar">
       <div className="flex h-14 items-center border-b px-4">
-        <Link href="/app" className="flex items-center gap-2 font-bold w-full">
+        <Link href="/app" className="flex items-center gap-2 font-bold w-full" data-testid="sidebar-logo">
           <Logo asLink={false} />
         </Link>
       </div>
       <ScrollArea className="flex-1 px-2 py-4">
-        <nav className="grid gap-1">
+        <nav className="grid gap-1" data-testid="sidebar-navigation">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
+              data-testid={`sidebar-nav-${item.translationKey}`}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
                 pathname === item.href ? "bg-accent text-accent-foreground" : "transparent",
@@ -170,9 +171,10 @@ export function AppSidebar({ user }: { user: User }) {
           ))}
         </nav>
         <div className="mt-6">
-          <Collapsible open={projectsOpen} onOpenChange={setProjectsOpen} className="space-y-1">
+          <Collapsible open={projectsOpen} onOpenChange={setProjectsOpen} className="space-y-1" data-testid="sidebar-projects-section">
             <CollapsibleTrigger asChild>
               <Button
+                data-testid="sidebar-projects-toggle"
                 variant="ghost"
                 className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium"
               >
@@ -183,7 +185,7 @@ export function AppSidebar({ user }: { user: User }) {
                 {projectsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-1">
+            <CollapsibleContent className="space-y-1" data-testid="sidebar-projects-list">
               {isLoading ? (
                 <div className="flex items-center justify-center py-4">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
@@ -195,6 +197,7 @@ export function AppSidebar({ user }: { user: User }) {
                   <Link
                     key={project.id}
                     href={`/app/projects/${project.id}`}
+                    data-testid={`sidebar-project-${project.id}`}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-8 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
                       pathname === `/app/projects/${project.id}`
@@ -210,6 +213,7 @@ export function AppSidebar({ user }: { user: User }) {
               )}
               <AddProjectDialog>
                 <Button
+                  data-testid="sidebar-add-project-button"
                   variant="ghost"
                   className="flex w-full items-center gap-3 rounded-lg px-8 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                 >
@@ -221,9 +225,10 @@ export function AppSidebar({ user }: { user: User }) {
           </Collapsible>
         </div>
         <div className="mt-2">
-          <Collapsible open={labelsOpen} onOpenChange={setLabelsOpen} className="space-y-1">
+          <Collapsible open={labelsOpen} onOpenChange={setLabelsOpen} className="space-y-1" data-testid="sidebar-labels-section">
             <CollapsibleTrigger asChild>
               <Button
+                data-testid="sidebar-labels-toggle"
                 variant="ghost"
                 className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium"
               >
@@ -234,7 +239,7 @@ export function AppSidebar({ user }: { user: User }) {
                 {labelsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-1">
+            <CollapsibleContent className="space-y-1" data-testid="sidebar-labels-list">
               {isLoading ? (
                 <div className="flex items-center justify-center py-4">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
@@ -246,6 +251,7 @@ export function AppSidebar({ user }: { user: User }) {
                   <Link
                     key={label.id}
                     href={`/app/labels/${label.id}`}
+                    data-testid={`sidebar-label-${label.id}`}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-8 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
                       pathname === `/app/labels/${label.id}`
@@ -260,6 +266,7 @@ export function AppSidebar({ user }: { user: User }) {
               )}
               <AddLabelDialog>
                 <Button
+                  data-testid="sidebar-add-label-button"
                   variant="ghost"
                   className="flex w-full items-center gap-3 rounded-lg px-8 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                 >

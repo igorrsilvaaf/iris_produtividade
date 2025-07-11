@@ -1,7 +1,4 @@
-import { neon } from "@neondatabase/serverless";
 import prisma from './prisma';
-
-const sql = neon(process.env.DATABASE_URL!);
 
 export type Todo = {
   id: number;
@@ -61,49 +58,99 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const tasks = await sql`
-    SELECT t.*, p.name as project_name, p.color as project_color
-    FROM todos t
-    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-    LEFT JOIN projects p ON tp.project_id = p.id
-    WHERE t.user_id = ${userId}
-    AND t.due_date IS NOT NULL
-    AND t.due_date >= ${today.toISOString()}
-    AND t.due_date < ${tomorrow.toISOString()}
-    AND t.completed = false
-    ORDER BY t.kanban_order ASC NULLS LAST, t.priority ASC, t.due_date ASC
-  `;
+  const tasks = await prisma.todos.findMany({
+    where: {
+      user_id: userId,
+      due_date: {
+        gte: today,
+        lt: tomorrow
+      },
+      completed: false
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    },
+    orderBy: [
+      { kanban_order: 'asc' },
+      { priority: 'asc' },
+      { due_date: 'asc' }
+    ]
+  });
 
-  return tasks as Todo[];
+  return tasks.map(task => ({
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  }));
 }
 
 export async function getInboxTasks(userId: number): Promise<Todo[]> {
-  const tasks = await sql`
-    SELECT t.*, p.name as project_name, p.color as project_color
-    FROM todos t
-    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-    LEFT JOIN projects p ON tp.project_id = p.id
-    WHERE t.user_id = ${userId}
-    AND t.completed = false
-    ORDER BY t.kanban_order ASC NULLS LAST, t.created_at DESC
-  `;
+  const tasks = await prisma.todos.findMany({
+    where: {
+      user_id: userId,
+      completed: false
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    },
+    orderBy: [
+      { kanban_order: 'asc' },
+      { created_at: 'desc' }
+    ]
+  });
 
-  return tasks as Todo[];
+  return tasks.map(task => ({
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  }));
 }
 
 export async function getCompletedTasks(userId: number): Promise<Todo[]> {
-  const tasks = await sql`
-    SELECT t.*, p.name as project_name, p.color as project_color
-    FROM todos t
-    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-    LEFT JOIN projects p ON tp.project_id = p.id
-    WHERE t.user_id = ${userId}
-    AND t.completed = true
-    ORDER BY t.kanban_order ASC NULLS LAST, t.updated_at DESC
-    LIMIT 50
-  `;
+  const tasks = await prisma.todos.findMany({
+    where: {
+      user_id: userId,
+      completed: true
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    },
+    orderBy: [
+      { kanban_order: 'asc' },
+      { updated_at: 'desc' }
+    ],
+    take: 50
+  });
 
-  return tasks as Todo[];
+  return tasks.map(task => ({
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  }));
 }
 
 export async function createTask({
@@ -131,14 +178,13 @@ export async function createTask({
   attachments?: any[];
   estimatedTime?: number | null;
 }): Promise<Todo> {
-  const now = new Date().toISOString();
-  let normalizedDueDate = dueDate;
+  let normalizedDueDate: Date | null = null;
   
   if (dueDate) {
     try {
       const date = new Date(dueDate);
       if (!isNaN(date.getTime())) {
-        normalizedDueDate = date.toISOString();
+        normalizedDueDate = date;
       }
     } catch (error) {
       normalizedDueDate = null;
@@ -160,25 +206,44 @@ export async function createTask({
     normalizedAttachments = [];
   }
 
-  const [task] = await sql`
-    INSERT INTO todos (user_id, title, description, due_date, priority, created_at, kanban_column, kanban_order, points, attachments, estimated_time)
-    VALUES (${userId}, ${title}, ${description}, ${normalizedDueDate}, ${priority}, ${now}, ${kanbanColumn}, ${kanbanOrder}, ${points}, ${JSON.stringify(normalizedAttachments)}, ${estimatedTime})
-    RETURNING *
-  `;
+  const task = await prisma.todos.create({
+    data: {
+      user_id: userId,
+      title,
+      description,
+      due_date: normalizedDueDate,
+      priority,
+      kanban_column: kanbanColumn,
+      kanban_order: kanbanOrder,
+      points,
+      attachments: normalizedAttachments,
+      estimated_time: estimatedTime,
+      ...(projectId && {
+        todo_projects: {
+          create: {
+            project_id: projectId
+          }
+        }
+      })
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    }
+  });
 
-  if (projectId) {
-    await sql`
-      INSERT INTO todo_projects (todo_id, project_id)
-      VALUES (${task.id}, ${projectId})
-    `;
-  }
-
-  const taskWithParsedAttachments = {
+  return {
     ...task,
-    attachments: normalizedAttachments,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: normalizedAttachments
   };
-
-  return taskWithParsedAttachments as Todo;
 }
 
 export async function updateTask(
@@ -186,35 +251,34 @@ export async function updateTask(
   userId: number,
   updates: Partial<Todo>,
 ): Promise<Todo> {
-  const now = new Date().toISOString();
-
   // Verificar se a tarefa existe e pertence ao usuário
-  const existingTask = await sql`
-    SELECT id, user_id FROM todos WHERE id = ${taskId} AND user_id = ${userId}
-  `;
+  const existingTask = await prisma.todos.findFirst({
+    where: {
+      id: taskId,
+      user_id: userId
+    }
+  });
 
-  if (existingTask.length === 0) {
+  if (!existingTask) {
     throw new Error("Task not found or not owned by user");
   }
 
+  let normalizedDueDate: Date | null = null;
   if (updates.due_date !== undefined) {
     try {
       if (updates.due_date !== null) {
         const date = new Date(updates.due_date);
         if (!isNaN(date.getTime())) {
-          updates.due_date = date.toISOString();
-        } else {
-          updates.due_date = null;
+          normalizedDueDate = date;
         }
       }
     } catch (error) {
-      updates.due_date = null;
+      normalizedDueDate = null;
     }
   }
 
+  let normalizedAttachments = undefined;
   if (updates.attachments !== undefined) {
-    // Garantir que attachments seja sempre um array válido antes de atualizar
-    let normalizedAttachments = [];
     try {
       if (Array.isArray(updates.attachments)) {
         normalizedAttachments = updates.attachments;
@@ -222,55 +286,52 @@ export async function updateTask(
         try {
           normalizedAttachments = JSON.parse(updates.attachments);
         } catch (e) {
-          // Manter anexos atuais em caso de erro
-          const currentTask = await getTaskById(taskId, userId);
-          normalizedAttachments = currentTask?.attachments || [];
+          normalizedAttachments = [];
         }
-      } else if (updates.attachments) {
-        // Manter anexos atuais se formato inválido
-        const currentTask = await getTaskById(taskId, userId);
-        normalizedAttachments = currentTask?.attachments || [];
       }
     } catch (error) {
-      // Manter anexos atuais em caso de erro
-      const currentTask = await getTaskById(taskId, userId);
-      normalizedAttachments = currentTask?.attachments || [];
+      normalizedAttachments = [];
     }
-
-    updates.attachments = normalizedAttachments;
   }
 
-  const [task] = await sql`
-    UPDATE todos
-    SET
-      title = COALESCE(${updates.title}, title),
-      description = COALESCE(${updates.description}, description),
-      due_date = COALESCE(${updates.due_date}, due_date),
-      priority = COALESCE(${updates.priority}, priority),
-      completed = COALESCE(${updates.completed}, completed),
-      kanban_column = COALESCE(${updates.kanban_column}, kanban_column),
-      kanban_order = COALESCE(${updates.kanban_order}, kanban_order),
-      points = COALESCE(${updates.points}, points),
-      attachments = COALESCE(${updates.attachments !== undefined ? JSON.stringify(updates.attachments) : null}, attachments),
-      estimated_time = COALESCE(${updates.estimated_time}, estimated_time),
-      updated_at = ${now}
-    WHERE id = ${taskId} AND user_id = ${userId}
-    RETURNING *
-  `;
-
-  if (!task) {
-    throw new Error("Failed to update task or task not found");
-  }
-
-  const taskWithParsedAttachments = {
-    ...task,
-    attachments:
-      typeof task.attachments === "string"
-        ? JSON.parse(task.attachments)
-        : task.attachments || [],
+  const updateData: any = {
+    updated_at: new Date(),
   };
 
-  return taskWithParsedAttachments as Todo;
+  if (updates.title !== undefined) updateData.title = updates.title;
+  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.due_date !== undefined) updateData.due_date = normalizedDueDate;
+  if (updates.priority !== undefined) updateData.priority = updates.priority;
+  if (updates.completed !== undefined) updateData.completed = updates.completed;
+  if (updates.kanban_column !== undefined) updateData.kanban_column = updates.kanban_column;
+  if (updates.kanban_order !== undefined) updateData.kanban_order = updates.kanban_order;
+  if (updates.points !== undefined) updateData.points = updates.points;
+  if (normalizedAttachments !== undefined) updateData.attachments = normalizedAttachments;
+  if (updates.estimated_time !== undefined) updateData.estimated_time = updates.estimated_time;
+
+  const task = await prisma.todos.update({
+    where: {
+      id: taskId
+    },
+    data: updateData,
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    }
+  });
+
+  return {
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  };
 }
 
 export async function toggleTaskCompletion(
@@ -280,23 +341,35 @@ export async function toggleTaskCompletion(
   const now = new Date().toISOString();
 
   // Primeiro verificar se a tarefa existe e pertence ao usuário
-  const existingTask = await sql`
-    SELECT id, user_id, completed FROM todos WHERE id = ${taskId} AND user_id = ${userId}
-  `;
+  const existingTask = await prisma.todos.findFirst({
+    where: {
+      id: taskId,
+      user_id: userId
+    }
+  });
 
-  if (existingTask.length === 0) {
+  if (!existingTask) {
     throw new Error("Task not found or not owned by user");
   }
 
   // Executar a atualização
-  const [task] = await sql`
-    UPDATE todos
-    SET
-      completed = NOT completed,
-      updated_at = ${now}
-    WHERE id = ${taskId} AND user_id = ${userId}
-    RETURNING *
-  `;
+  const task = await prisma.todos.update({
+    where: {
+      id: taskId,
+      user_id: userId
+    },
+    data: {
+      completed: !existingTask.completed,
+      updated_at: now
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    }
+  });
 
   if (!task) {
     throw new Error("Failed to update task completion status");
@@ -312,11 +385,14 @@ export async function deleteTask(
   
   try {
     // Primeiro verificar se a tarefa existe e pertence ao usuário
-    const existingTask = await sql`
-      SELECT id, user_id FROM todos WHERE id = ${taskId} AND user_id = ${userId}
-    `;
+    const existingTask = await prisma.todos.findFirst({
+      where: {
+        id: taskId,
+        user_id: userId
+      }
+    });
     
-    if (existingTask.length === 0) {
+    if (!existingTask) {
       throw new Error("Task not found or not owned by user");
     }
     
@@ -330,10 +406,12 @@ export async function deleteTask(
     });
     
     // Deletar a tarefa
-    const result = await sql`
-      DELETE FROM todos
-      WHERE id = ${taskId} AND user_id = ${userId}
-    `;
+    await prisma.todos.delete({
+      where: {
+        id: taskId,
+        user_id: userId
+      }
+    });
     
   } catch (error) {
     throw error;
@@ -344,47 +422,44 @@ export async function getTaskById(
   taskId: number,
   userId: number,
 ): Promise<Todo | null> {
-  const tasks = await sql`
-    SELECT t.*, p.name as project_name, p.color as project_color
-    FROM todos t
-    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-    LEFT JOIN projects p ON tp.project_id = p.id
-    WHERE t.id = ${taskId} AND t.user_id = ${userId}
-  `;
+  const task = await prisma.todos.findFirst({
+    where: {
+      id: taskId,
+      user_id: userId
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      },
+      attachments: {
+        orderBy: {
+          created_at: 'desc'
+        }
+      }
+    }
+  });
 
-  if (tasks.length === 0) {
+  if (!task) {
     return null;
   }
 
-  const task = tasks[0] as Todo;
-
-  // Buscar anexos da nova tabela
-  try {
-    const attachments = await prisma.attachments.findMany({
-      where: {
-        entity_type: 'task',
-        entity_id: taskId,
-        user_id: userId
-      },
-      orderBy: {
-        created_at: 'desc'
-      }
-    });
-
-    // Converter anexos para o formato esperado pelo frontend
-    task.attachments = attachments.map(att => ({
+  return {
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments.map(att => ({
       id: att.id,
       type: att.mime_type.startsWith('image/') ? 'image' : 'file',
       url: att.file_path,
       name: att.file_name,
       size: Number(att.file_size)
-    }));
-  } catch (error) {
-    console.error('Error fetching attachments:', error);
-    task.attachments = [];
-  }
-
-  return task;
+    }))
+  };
 }
 
 export async function getTaskProject(
@@ -392,22 +467,28 @@ export async function getTaskProject(
   userId: number,
 ): Promise<number | null> {
   // Verificar primeiro se a tarefa pertence ao usuário
-  const taskCheck = await sql`
-    SELECT id FROM todos WHERE id = ${taskId} AND user_id = ${userId}
-  `;
+  const taskCheck = await prisma.todos.findFirst({
+    where: {
+      id: taskId,
+      user_id: userId
+    }
+  });
 
   // Se a tarefa não pertencer ao usuário, retorne null
-  if (taskCheck.length === 0) {
+  if (!taskCheck) {
     return null;
   }
 
-  const projects = await sql`
-    SELECT project_id
-    FROM todo_projects
-    WHERE todo_id = ${taskId}
-  `;
+  const project = await prisma.todo_projects.findFirst({
+    where: {
+      todo_id: taskId
+    },
+    include: {
+      projects: true
+    }
+  });
 
-  return projects.length > 0 ? projects[0].project_id : null;
+  return project?.project_id || null;
 }
 
 export async function setTaskProject(
@@ -421,26 +502,31 @@ export async function setTaskProject(
 
   try {
     // Verificar primeiro se a tarefa pertence ao usuário
-    const taskCheck = await sql`
-      SELECT id FROM todos WHERE id = ${taskId} AND user_id = ${userId}
-    `;
+    const taskCheck = await prisma.todos.findFirst({
+      where: {
+        id: taskId,
+        user_id: userId
+      }
+    });
 
     // Se a tarefa não pertencer ao usuário, lançar erro
-    if (taskCheck.length === 0) {
+    if (!taskCheck) {
       throw new Error("Task not found or not owned by user");
     }
 
-    await sql`
-      DELETE FROM todo_projects
-      WHERE todo_id = ${taskId}
-    `;
+    await prisma.todo_projects.deleteMany({
+      where: {
+        todo_id: taskId
+      }
+    });
 
     if (projectId !== null && projectId > 0) {
-      await sql`
-        INSERT INTO todo_projects (todo_id, project_id)
-        VALUES (${taskId}, ${projectId})
-      `;
-    } else {
+      await prisma.todo_projects.create({
+        data: {
+          todo_id: taskId,
+          project_id: projectId
+        }
+      });
     }
 
 
@@ -454,23 +540,42 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Início do dia de hoje
 
-  const tasks = await sql`
-    SELECT t.*, p.name as project_name, p.color as project_color
-    FROM todos t
-    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-    LEFT JOIN projects p ON tp.project_id = p.id
-    WHERE t.user_id = ${userId}
-    AND t.due_date IS NOT NULL
-    AND t.due_date >= ${today.toISOString()}
-    AND t.completed = false
-    ORDER BY t.kanban_order ASC NULLS LAST, t.due_date ASC, t.priority ASC
-  `;
+  const tasks = await prisma.todos.findMany({
+    where: {
+      user_id: userId,
+      due_date: {
+        not: null,
+        gte: today
+      },
+      completed: false
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    },
+    orderBy: [
+      { kanban_order: 'asc' },
+      { due_date: 'asc' },
+      { priority: 'asc' }
+    ]
+  });
 
   tasks.forEach((task: any) => {
 ;
   });
 
-  return tasks as Todo[];
+  return tasks.map(task => ({
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  }));
 }
 
 export async function searchTasks(
@@ -488,43 +593,55 @@ export async function searchTasks(
 
 
     const userCheck =
-      await sql`SELECT id FROM users WHERE id = ${userId} LIMIT 1`;
-    if (userCheck.length === 0) {
+      await prisma.users.findFirst({
+        where: {
+          id: userId
+        }
+      });
+    if (!userCheck) {
 
       return [];
     }
 
     const taskCount =
-      await sql`SELECT COUNT(*) as count FROM todos WHERE user_id = ${userId}`;
+      await prisma.todos.count({
+        where: {
+          user_id: userId
+        }
+      });
 
 
-    const result = await sql`
-      SELECT *
-      FROM todos
-      WHERE user_id = ${userId}
-      AND (
-        position(${normalizedSearchText} in LOWER(title)) > 0
-        OR position(${normalizedSearchText} in LOWER(coalesce(description, ''))) > 0
-      )
-      ORDER BY completed ASC, priority ASC
-      LIMIT 50
-    `;
+    const result = await prisma.todos.findMany({
+      where: {
+        user_id: userId,
+        OR: [
+          { title: { contains: normalizedSearchText, mode: 'insensitive' } },
+          { description: { contains: normalizedSearchText, mode: 'insensitive' } }
+        ]
+      },
+      orderBy: [
+        { completed: 'asc' },
+        { priority: 'asc' }
+      ],
+      take: 50
+    });
 
 
 
     if (result.length > 0) {
       for (const task of result) {
-        const projectInfo = await sql`
-          SELECT p.name, p.color
-          FROM projects p
-          JOIN todo_projects tp ON p.id = tp.project_id
-          WHERE tp.todo_id = ${task.id}
-          LIMIT 1
-        `;
+        const projectInfo = await prisma.todo_projects.findFirst({
+          where: {
+            todo_id: task.id
+          },
+          include: {
+            projects: true
+          }
+        });
 
-        if (projectInfo.length > 0) {
-          task.project_name = projectInfo[0].name;
-          task.project_color = projectInfo[0].color;
+        if (projectInfo) {
+          task.project_name = projectInfo.projects?.name;
+          task.project_color = projectInfo.projects?.color;
         }
       }
     }
@@ -560,45 +677,72 @@ export async function getTasksForNotifications(
   futureDate.setDate(futureDate.getDate() + daysAhead);
 
   // Tasks vencidas (overdue)
-  const overdueTasks = await sql`
-    SELECT t.*, p.name as project_name, p.color as project_color
-    FROM todos t
-    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-    LEFT JOIN projects p ON tp.project_id = p.id
-    WHERE t.user_id = ${userId}
-    AND t.due_date IS NOT NULL
-    AND t.due_date < ${today.toISOString()}
-    AND t.completed = false
-    ORDER BY t.due_date ASC
-  `;
+  const overdueTasks = await prisma.todos.findMany({
+    where: {
+      user_id: userId,
+      due_date: {
+        not: null,
+        lt: today
+      },
+      completed: false
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    },
+    orderBy: [
+      { due_date: 'asc' }
+    ]
+  });
 
   // Tasks para hoje (due today)
-  const dueTodayTasks = await sql`
-    SELECT t.*, p.name as project_name, p.color as project_color
-    FROM todos t
-    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-    LEFT JOIN projects p ON tp.project_id = p.id
-    WHERE t.user_id = ${userId}
-    AND t.due_date IS NOT NULL
-    AND t.due_date >= ${today.toISOString()}
-    AND t.due_date < ${tomorrow.toISOString()}
-    AND t.completed = false
-    ORDER BY t.due_date ASC
-  `;
+  const dueTodayTasks = await prisma.todos.findMany({
+    where: {
+      user_id: userId,
+      due_date: {
+        not: null,
+        gte: today,
+        lt: tomorrow
+      },
+      completed: false
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    },
+    orderBy: [
+      { due_date: 'asc' }
+    ]
+  });
 
   // Tasks futuras (upcoming)
-  const upcomingTasks = await sql`
-    SELECT t.*, p.name as project_name, p.color as project_color
-    FROM todos t
-    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-    LEFT JOIN projects p ON tp.project_id = p.id
-    WHERE t.user_id = ${userId}
-    AND t.due_date IS NOT NULL
-    AND t.due_date >= ${tomorrow.toISOString()}
-    AND t.due_date < ${futureDate.toISOString()}
-    AND t.completed = false
-    ORDER BY t.due_date ASC
-  `;
+  const upcomingTasks = await prisma.todos.findMany({
+    where: {
+      user_id: userId,
+      due_date: {
+        not: null,
+        gte: tomorrow,
+        lt: futureDate
+      },
+      completed: false
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    },
+    orderBy: [
+      { due_date: 'asc' }
+    ]
+  });
 
   const safeOverdueTasks = Array.isArray(overdueTasks) ? overdueTasks : [];
   const safeDueTodayTasks = Array.isArray(dueTodayTasks) ? dueTodayTasks : [];
@@ -617,23 +761,55 @@ export async function getTasksForNotifications(
 export async function getAllTasksForUser(userId: number): Promise<Todo[]> {
   // Esta é uma representação da lógica que deve ser aplicada
   // na sua rota GET /api/tasks quando all=true
-  const tasks = await sql`
-    SELECT t.*, p.name as project_name, p.color as project_color
-    FROM todos t
-    LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-    LEFT JOIN projects p ON tp.project_id = p.id
-    WHERE t.user_id = ${userId}
-    ORDER BY
-      CASE t.kanban_column
-        WHEN 'backlog' THEN 1
-        WHEN 'planning' THEN 2
-        WHEN 'inProgress' THEN 3
-        WHEN 'validation' THEN 4
-        WHEN 'completed' THEN 5
-        ELSE 6
-      END,
-      t.kanban_order ASC NULLS LAST,
-      t.created_at DESC
-  `;
-  return tasks as Todo[];
+  const tasks = await prisma.todos.findMany({
+    where: {
+      user_id: userId
+    },
+    include: {
+      todo_projects: {
+        include: {
+          projects: true
+        }
+      }
+    },
+    orderBy: [
+      { kanban_order: 'asc' },
+      { created_at: 'desc' }
+    ]
+  });
+
+  // Definir ordem das colunas kanban
+  const kanbanColumnOrder = ['backlog', 'planning', 'inProgress', 'validation', 'completed'];
+
+  // Ordenar manualmente por coluna kanban e depois por kanban_order
+  const sortedTasks = tasks.sort((a, b) => {
+    // Primeiro, ordenar por coluna kanban
+    const aColumnIndex = a.kanban_column ? kanbanColumnOrder.indexOf(a.kanban_column) : kanbanColumnOrder.length;
+    const bColumnIndex = b.kanban_column ? kanbanColumnOrder.indexOf(b.kanban_column) : kanbanColumnOrder.length;
+    
+    if (aColumnIndex !== bColumnIndex) {
+      return aColumnIndex - bColumnIndex;
+    }
+    
+    // Se estão na mesma coluna, ordenar por kanban_order
+    const aOrder = a.kanban_order ?? 999999;
+    const bOrder = b.kanban_order ?? 999999;
+    
+    if (aOrder !== bOrder) {
+      return aOrder - bOrder;
+    }
+    
+    // Por último, ordenar por data de criação (mais recente primeiro)
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  return sortedTasks.map(task => ({
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  }));
 }

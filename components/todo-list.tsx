@@ -42,30 +42,32 @@ const TaskItem = memo(({
         "flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-all",
         task.completed && "opacity-60"
       )}
+      data-testid={`task-item-${task.id}`}
     >
       <div className="flex items-center space-x-3">
         <Checkbox
           checked={task.completed}
           onCheckedChange={() => onToggle(task.id)}
           className="h-5 w-5"
+          data-testid={`task-checkbox-${task.id}`}
         />
         <div>
-          <div className={cn("font-medium", task.completed && "line-through")}>
+          <div className={cn("font-medium", task.completed && "line-through")} data-testid={`task-title-${task.id}`}>
             {task.title}
           </div>
-          <div className="mt-1 flex items-center gap-2 flex-wrap">
+          <div className="mt-1 flex items-center gap-2 flex-wrap" data-testid={`task-metadata-${task.id}`}>
             {task.due_date && (
-              <div className="flex items-center text-xs text-muted-foreground">
+              <div className="flex items-center text-xs text-muted-foreground" data-testid={`task-due-date-${task.id}`}>
                 <Clock className="mr-1 h-3 w-3" />
                 <span>{formatDueDate(task.due_date)}</span>
               </div>
             )}
-            <div className="flex items-center text-xs">
+            <div className="flex items-center text-xs" data-testid={`task-priority-${task.id}`}>
               <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(task.priority)}`} />
               <span>P{task.priority}</span>
             </div>
             {task.points && (
-              <div className="flex items-center text-xs">
+              <div className="flex items-center text-xs" data-testid={`task-points-${task.id}`}>
                 <CircleDot className={`mr-1 h-3 w-3 ${getPointsColor(task.points)}`} />
                 <span>{task.points} pts</span>
               </div>
@@ -77,6 +79,7 @@ const TaskItem = memo(({
                   backgroundColor: `${task.project_color}20`,
                   color: task.project_color 
                 }}
+                data-testid={`task-project-${task.id}`}
               >
                 <span>{task.project_name}</span>
               </div>
@@ -89,6 +92,7 @@ const TaskItem = memo(({
         className="text-red-500 hover:text-red-700 p-1"
         title="Excluir tarefa"
         aria-label="Excluir tarefa"
+        data-testid={`task-delete-button-${task.id}`}
       >
         <Trash className="h-4 w-4" />
       </button>
@@ -253,7 +257,7 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
 
   if (tasks.length === 0) {
     return (
-      <Card className="border-dashed">
+      <Card className="border-dashed" data-testid="todo-list-empty">
         <CardContent className="flex flex-col items-center justify-center py-6">
           <div className="rounded-full bg-primary/10 p-3">
             <Check className="h-6 w-6 text-primary" />
@@ -266,36 +270,36 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-end mb-4">
+    <div className="space-y-4" data-testid="todo-list">
+      <div className="flex items-center justify-end mb-4" data-testid="todo-list-controls">
         <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px]" data-testid="todo-list-sort-trigger">
               <div className="flex items-center">
                 <ArrowUpDown className="mr-2 h-4 w-4" />
                 <SelectValue placeholder={t("Sort by") || "Ordenar por"} />
               </div>
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="priority">
+            <SelectContent data-testid="todo-list-sort-content">
+              <SelectItem value="priority" data-testid="todo-list-sort-priority">
                 <div className="flex items-center">
                   <Flag className="mr-2 h-4 w-4" />
                   {t("Prioridade") || "Prioridade"}
                 </div>
               </SelectItem>
-              <SelectItem value="title">
+              <SelectItem value="title" data-testid="todo-list-sort-title">
                 <div className="flex items-center">
                   <FileText className="mr-2 h-4 w-4" />
                   {t("Título") || "Título"}
                 </div>
               </SelectItem>
-              <SelectItem value="dueDate">
+              <SelectItem value="dueDate" data-testid="todo-list-sort-duedate">
                 <div className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
                   {t("Data de Vencimento") || "Data de Vencimento"}
                 </div>
               </SelectItem>
-              <SelectItem value="createdAt">
+              <SelectItem value="createdAt" data-testid="todo-list-sort-createdat">
                 <div className="flex items-center">
                   <Clock className="mr-2 h-4 w-4" />
                   {t("Data de Criação") || "Data de Criação"}
@@ -306,7 +310,7 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
         </div>
       </div>
 
-      <ul className="space-y-3">
+      <ul className="space-y-3" data-testid="todo-list-items">
         {sortedTasks.map((task) => (
           <TaskItem
             key={task.id}

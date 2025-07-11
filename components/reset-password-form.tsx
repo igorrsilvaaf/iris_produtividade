@@ -113,7 +113,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   if (isVerifying) {
     return (
-      <div className="flex justify-center items-center py-8">
+      <div className="flex justify-center items-center py-8" data-testid="reset-password-loading">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
@@ -121,15 +121,15 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   if (!isTokenValid) {
     return (
-      <div className="space-y-6">
-        <Alert variant="destructive">
+      <div className="space-y-6" data-testid="reset-password-invalid-token">
+        <Alert variant="destructive" data-testid="reset-password-invalid-token-alert">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>{t("Link inválido ou expirado")}</AlertTitle>
           <AlertDescription>
             {t("O link de redefinição de senha é inválido ou expirou. Por favor, solicite um novo.")}
           </AlertDescription>
         </Alert>
-        <Button variant="outline" asChild className="w-full">
+        <Button variant="outline" asChild className="w-full" data-testid="reset-password-back-to-forgot">
           <Link href="/forgot-password">
             <ArrowLeft className="mr-2 h-4 w-4" />
             {t("Voltar para Esqueci a Senha")}
@@ -141,15 +141,15 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   if (isSuccess) {
     return (
-      <div className="space-y-6">
-        <Alert className="border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-700">
+      <div className="space-y-6" data-testid="reset-password-success">
+        <Alert className="border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-700" data-testid="reset-password-success-alert">
           <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
           <AlertTitle>{t("Senha redefinida com sucesso")}</AlertTitle>
           <AlertDescription>
             {t("Sua senha foi redefinida com sucesso. Você já pode fazer login com sua nova senha.")}
           </AlertDescription>
         </Alert>
-        <Button className="w-full" asChild>
+        <Button className="w-full" asChild data-testid="reset-password-go-to-login">
           <Link href="/login">
             {t("Ir para Login")}
           </Link>
@@ -161,7 +161,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   return (
     <div className="space-y-6">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="reset-password-form">
           <FormField
             control={form.control}
             name="password"
@@ -171,6 +171,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                 <FormControl>
                   <div className="relative">
                     <Input 
+                      data-testid="reset-password-password-input"
                       type={showPassword ? "text" : "password"} 
                       placeholder="••••••••" 
                       {...field} 
@@ -178,6 +179,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                       aria-required="true"
                     />
                     <Button
+                      data-testid="reset-password-password-toggle"
                       type="button"
                       variant="ghost"
                       size="icon"
@@ -207,6 +209,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                 <FormControl>
                   <div className="relative">
                     <Input 
+                      data-testid="reset-password-confirm-password-input"
                       type={showConfirmPassword ? "text" : "password"} 
                       placeholder="••••••••" 
                       {...field} 
@@ -214,6 +217,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                       aria-required="true"
                     />
                     <Button
+                      data-testid="reset-password-confirm-password-toggle"
                       type="button"
                       variant="ghost"
                       size="icon"
@@ -235,13 +239,13 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             )}
           />
           <div className="flex justify-between">
-            <Button variant="outline" asChild>
+            <Button variant="outline" asChild data-testid="reset-password-back-to-login">
               <Link href="/login">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 {t("Voltar para Login")}
               </Link>
             </Button>
-            <Button type="submit" disabled={isResetting}>
+            <Button type="submit" disabled={isResetting} data-testid="reset-password-submit-button">
               {isResetting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Redefinindo...")}

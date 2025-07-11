@@ -102,7 +102,7 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="login-form">
         <FormField
           control={form.control}
           name="email"
@@ -111,6 +111,7 @@ export function LoginForm() {
               <FormLabel>{t("Email")}</FormLabel>
               <FormControl>
                 <Input 
+                  data-testid="login-email-input"
                   placeholder={t("Your email")} 
                   {...field} 
                   autoComplete="email"
@@ -130,6 +131,7 @@ export function LoginForm() {
               <FormControl>
                 <div className="relative">
                   <Input 
+                    data-testid="login-password-input"
                     type={showPassword ? "text" : "password"} 
                     placeholder="••••••••" 
                     {...field} 
@@ -137,6 +139,7 @@ export function LoginForm() {
                     aria-required="true"
                   />
                   <Button
+                    data-testid="login-password-toggle"
                     type="button"
                     variant="ghost"
                     size="icon"
@@ -163,7 +166,12 @@ export function LoginForm() {
             name="rememberMe"
             render={({ field }) => (
               <div className="flex items-center space-x-2">
-                <Checkbox id="rememberMe" checked={field.value} onCheckedChange={field.onChange} />
+                <Checkbox 
+                  data-testid="login-remember-checkbox"
+                  id="rememberMe" 
+                  checked={field.value} 
+                  onCheckedChange={field.onChange} 
+                />
                 <label
                   htmlFor="rememberMe"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -173,11 +181,21 @@ export function LoginForm() {
               </div>
             )}
           />
-          <Button variant="link" className="px-0 font-normal" asChild>
+          <Button 
+            data-testid="login-forgot-password-link"
+            variant="link" 
+            className="px-0 font-normal" 
+            asChild
+          >
             <a href="/forgot-password">{t("Forgot password?")}</a>
           </Button>
         </div>
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button 
+          data-testid="login-submit-button"
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading}
+        >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Sign In")}

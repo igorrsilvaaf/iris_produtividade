@@ -1,9 +1,8 @@
-import { neon } from "@neondatabase/serverless"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import * as bcrypt from "bcryptjs"
 import crypto from "crypto"
-const sql = neon(process.env.DATABASE_URL!)
+import prisma from "./prisma"
 
 export type User = {
   id: number
@@ -25,30 +24,35 @@ export async function getSession(): Promise<Session | null> {
   }
 
   try {
-    // Log para debug
+    const session = await prisma.sessions.findFirst({
+      where: {
+        session_token: sessionToken,
+        expires: {
+          gt: new Date()
+        }
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar_url: true
+          }
+        }
+      }
+    })
 
-    
-    const user = await sql`
-    SELECT u.id, u.name, u.email, u.avatar_url
-    FROM users u
-    JOIN sessions s ON u.id = s.user_id
-    WHERE s.session_token = ${sessionToken}
-    AND s.expires > NOW()
-  `
-
-    if (!user || user.length === 0) {
-
+    if (!session || !session.users) {
       return null
     }
 
-
-    
     return { 
       user: {
-        id: user[0].id, 
-        name: user[0].name, 
-        email: user[0].email,
-        avatar_url: user[0].avatar_url
+        id: session.users.id, 
+        name: session.users.name, 
+        email: session.users.email,
+        avatar_url: session.users.avatar_url
       } 
     }
   } catch (error) {
@@ -77,10 +81,13 @@ export async function createSession(userId: number, rememberMe: boolean = false)
     expires.setHours(expires.getHours() + 24)
   }
 
-  await sql`
-  INSERT INTO sessions (user_id, session_token, expires)
-  VALUES (${userId}, ${sessionToken}, ${expires.toISOString()})
-`
+  await prisma.sessions.create({
+    data: {
+      user_id: userId,
+      session_token: sessionToken,
+      expires: expires
+    }
+  })
 
   const cookieStore = await cookies()
   
@@ -106,24 +113,28 @@ export async function register(name: string, email: string, password: string): P
   const hashedPassword = await bcrypt.hash(password, 10)
 
   try {
-    const result = await sql`
-    INSERT INTO users (name, email, password)
-    VALUES (${name}, ${email}, ${hashedPassword})
-    RETURNING id, name, email, avatar_url
-  `
-
-    if (!result || result.length === 0) {
-      throw new Error("Failed to create user")
-    }
+    const result = await prisma.users.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar_url: true
+      }
+    })
 
     return {
-      id: result[0].id,
-      name: result[0].name,
-      email: result[0].email,
-      avatar_url: result[0].avatar_url
+      id: result.id,
+      name: result.name,
+      email: result.email,
+      avatar_url: result.avatar_url
     }
   } catch (error: any) {
-    if (error.message.includes("duplicate key")) {
+    if (error.code === 'P2002') {
       throw new Error("Email already exists")
     }
     throw error
@@ -131,17 +142,21 @@ export async function register(name: string, email: string, password: string): P
 }
 
 export async function login(email: string, password: string): Promise<User> {
-  const users = await sql`
-  SELECT id, name, email, password, avatar_url
-  FROM users
-  WHERE email = ${email}
-`
+  const user = await prisma.users.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      password: true,
+      avatar_url: true
+    }
+  })
 
-  if (!users || users.length === 0) {
+  if (!user) {
     throw new Error("Invalid email or password")
   }
 
-  const user = users[0]
   const passwordMatch = await bcrypt.compare(password, user.password)
 
   if (!passwordMatch) {
@@ -157,54 +172,65 @@ export async function logout() {
   const sessionToken = cookieStore.get("session_token")?.value
 
   if (sessionToken) {
-    await sql`
-    DELETE FROM sessions
-    WHERE session_token = ${sessionToken}
-  `
+    await prisma.sessions.deleteMany({
+      where: {
+        session_token: sessionToken
+      }
+    })
   }
 
   cookieStore.delete("session_token")
 }
 
 export async function createPasswordResetToken(email: string): Promise<string | null> {
-  const users = await sql`
-    SELECT id FROM users WHERE email = ${email}
-  `
+  const user = await prisma.users.findUnique({
+    where: { email },
+    select: { id: true }
+  })
 
-  if (!users || users.length === 0) {
+  if (!user) {
     return null
   }
 
-  const userId = users[0].id
+  const userId = user.id
   const resetToken = crypto.randomUUID()
   const expires = new Date()
   expires.setHours(expires.getHours() + 1)
 
-  await sql`
-    DELETE FROM password_reset_tokens WHERE user_id = ${userId}
-  `
+  await prisma.password_reset_tokens.deleteMany({
+    where: { user_id: userId }
+  })
 
-  await sql`
-    INSERT INTO password_reset_tokens (user_id, token, expires)
-    VALUES (${userId}, ${resetToken}, ${expires.toISOString()})
-  `
+  await prisma.password_reset_tokens.create({
+    data: {
+      user_id: userId,
+      token: resetToken,
+      expires: expires
+    }
+  })
 
   return resetToken
 }
 
 export async function verifyPasswordResetToken(token: string): Promise<number | null> {
   try {
-    const tokens = await sql`
-      SELECT user_id FROM password_reset_tokens
-      WHERE token = ${token}
-      AND expires > NOW()
-    `
+    const resetToken = await prisma.password_reset_tokens.findFirst({
+      where: {
+        token: token,
+        expires: {
+          gt: new Date()
+        }
+      },
+      select: {
+        user_id: true
+      }
+    })
 
-    if (!tokens || tokens.length === 0) {
+    if (!resetToken) {
       return null
     }
 
-    return tokens[0].user_id
+    return resetToken.user_id
   } catch (error) {
     console.error("Error verifying reset token:", error)
     return null
@@ -221,18 +247,18 @@ export async function resetPassword(token: string, newPassword: string): Promise
   const hashedPassword = await bcrypt.hash(newPassword, 10)
 
   try {
-    await sql`
-      UPDATE users SET password = ${hashedPassword}
-      WHERE id = ${userId}
-    `
+    await prisma.users.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    })
 
-    await sql`
-      DELETE FROM password_reset_tokens WHERE token = ${token}
-    `
+    await prisma.password_reset_tokens.deleteMany({
+      where: { token: token }
+    })
 
-    await sql`
-      DELETE FROM sessions WHERE user_id = ${userId}
-    `
+    await prisma.sessions.deleteMany({
+      where: { user_id: userId }
+    })
 
     return true
   } catch (error) {

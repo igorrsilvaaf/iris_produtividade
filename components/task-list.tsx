@@ -267,47 +267,47 @@ export function TaskList({ tasks, user }: TaskListProps) {
 
   if (tasks.length === 0) {
     return (
-      <Card className="border-dashed">
+      <Card className="border-dashed" data-testid="task-list-empty">
         <CardContent className="flex flex-col items-center justify-center py-10">
           <div className="rounded-full bg-primary/10 p-3">
             <Check className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="mt-4 text-xl font-medium">{t("allCaughtUp")}</h3>
-          <p className="mt-2 text-center text-sm text-muted-foreground">{t("noTasksMessage")}</p>
+          <h3 className="mt-4 text-xl font-medium" data-testid="task-list-empty-title">{t("allCaughtUp")}</h3>
+          <p className="mt-2 text-center text-sm text-muted-foreground" data-testid="task-list-empty-message">{t("noTasksMessage")}</p>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-end">
+    <div className="space-y-4" data-testid="task-list">
+      <div className="flex items-center justify-end" data-testid="task-list-controls">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">{t("Sort by")}:</span>
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px]" data-testid="task-list-sort-trigger">
               <SelectValue placeholder={t("Sort by")} />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="priority">
+            <SelectContent data-testid="task-list-sort-content">
+              <SelectItem value="priority" data-testid="task-list-sort-priority">
                 <div className="flex items-center">
                   <Flag className="mr-2 h-4 w-4" />
                   {t("Prioridade")}
                 </div>
               </SelectItem>
-              <SelectItem value="title">
+              <SelectItem value="title" data-testid="task-list-sort-title">
                 <div className="flex items-center">
                   <FileText className="mr-2 h-4 w-4" />
                   {t("Descrição")}
                 </div>
               </SelectItem>
-              <SelectItem value="dueDate">
+              <SelectItem value="dueDate" data-testid="task-list-sort-duedate">
                 <div className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
                   {t("Data de Vencimento")}
                 </div>
               </SelectItem>
-              <SelectItem value="createdAt">
+              <SelectItem value="createdAt" data-testid="task-list-sort-createdat">
                 <div className="flex items-center">
                   <Clock className="mr-2 h-4 w-4" />
                   {t("Data de Criação")}

@@ -100,7 +100,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="space-y-6">
+      <form onSubmit={onSubmit} className="space-y-6" data-testid="project-form">
         <FormField
           control={form.control}
           name="name"
@@ -109,6 +109,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
               <FormLabel htmlFor="project-name">{t("Name")}</FormLabel>
               <FormControl>
                 <Input
+                  data-testid="project-name-input"
                   placeholder={t("Project name")}
                   {...field}
                   id="project-name"
@@ -131,6 +132,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                   className="flex items-center gap-2"
                   role="group"
                   aria-label={t("Color picker")}
+                  data-testid="project-color-picker"
                 >
                   <div
                     className="h-6 w-6 rounded-full border"
@@ -138,6 +140,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                     aria-hidden="true"
                   />
                   <Input
+                    data-testid="project-color-input"
                     type="color"
                     {...field}
                     className="w-12 p-1"
@@ -145,6 +148,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
                     aria-label={t("Select color")}
                   />
                   <Input
+                    data-testid="project-color-text-input"
                     type="text"
                     value={field.value}
                     onChange={field.onChange}
@@ -166,6 +170,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
               <FormControl>
                 <Checkbox
+                  data-testid="project-favorite-checkbox"
                   checked={field.value}
                   onCheckedChange={field.onChange}
                   id="project-favorite"
@@ -181,7 +186,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading} data-testid="project-submit-button">
           {isLoading
             ? t("Saving...")
             : project

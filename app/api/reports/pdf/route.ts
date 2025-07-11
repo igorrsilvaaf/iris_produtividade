@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { neon } from "@neondatabase/serverless";
+import prisma from "../../../../lib/prisma";
 import { generatePDF } from "../pdf-generator";
 import type { ReportFilters } from "@/app/app/reports/utils";
-
-const sql = neon(process.env.DATABASE_URL!);
 
 const QUERY_TIMEOUT = 30000; // 30 segundos de timeout
 

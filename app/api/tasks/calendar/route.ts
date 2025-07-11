@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { neon } from "@neondatabase/serverless"
-
-const sql = neon(process.env.DATABASE_URL!)
+import prisma from "../../../../lib/prisma"
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,19 +18,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: "Start and end dates are required" }, { status: 400 })
     }
 
-    const tasks = await sql`
-      SELECT t.*, p.name as project_name, p.color as project_color
-      FROM todos t
-      LEFT JOIN todo_projects tp ON t.id = tp.todo_id
-      LEFT JOIN projects p ON tp.project_id = p.id
-      WHERE t.user_id = ${session.user.id}
-      AND t.due_date IS NOT NULL
-      AND t.due_date >= ${start}
-      AND t.due_date <= ${end}
-      ORDER BY t.due_date ASC, t.priority ASC
-    `
+    const startDate = new Date(start)
+    const endDate = new Date(end)
 
-    return NextResponse.json({ tasks })
+    const tasks = await prisma.todos.findMany({
+      where: {
+        user_id: session.user.id,
+        due_date: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      include: {
+        todo_projects: {
+          include: {
+            projects: true
+          }
+        }
+      },
+      orderBy: [
+        { due_date: 'asc' },
+        { priority: 'asc' }
+      ]
+    })
+
+    const formattedTasks = tasks.map(task => ({
+      ...task,
+      created_at: task.created_at.toISOString(),
+      updated_at: task.updated_at?.toISOString() || null,
+      due_date: task.due_date?.toISOString() || null,
+      project_name: task.todo_projects[0]?.projects?.name || undefined,
+      project_color: task.todo_projects[0]?.projects?.color || undefined,
+      attachments: task.attachments as any[]
+    }))
+
+    return NextResponse.json({ tasks: formattedTasks })
   } catch (error: any) {
     return NextResponse.json({ message: error.message || "Failed to fetch tasks" }, { status: 500 })
   }

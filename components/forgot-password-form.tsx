@@ -85,8 +85,8 @@ export function ForgotPasswordForm() {
 
   if (isSubmitted) {
     return (
-      <div className="space-y-6">
-        <Alert variant="default" className="border-blue-200 bg-blue-50 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300">
+      <div className="space-y-6" data-testid="forgot-password-success">
+        <Alert variant="default" className="border-blue-200 bg-blue-50 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300" data-testid="forgot-password-success-alert">
           <Mail className="h-5 w-5 mr-2" />
           <AlertTitle>{t("Informação")}</AlertTitle>
           <AlertDescription>
@@ -94,7 +94,7 @@ export function ForgotPasswordForm() {
           </AlertDescription>
         </Alert>
         
-        <Alert className="bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300">
+        <Alert className="bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300" data-testid="forgot-password-warning-alert">
           <AlertTriangle className="h-5 w-5 mr-2" />
           <AlertTitle>{t("Important")}</AlertTitle>
           <AlertDescription>
@@ -103,13 +103,13 @@ export function ForgotPasswordForm() {
         </Alert>
         
         <div className="flex justify-center items-center gap-4">
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild data-testid="forgot-password-back-to-login">
             <Link href="/login">
               <ArrowLeft className="mr-2 h-4 w-4" />
               {t("Back to Login")}
             </Link>
           </Button>
-          <Button onClick={() => setIsSubmitted(false)}>
+          <Button onClick={() => setIsSubmitted(false)} data-testid="forgot-password-try-another-email">
             {t("Try another email")}
           </Button>
         </div>
@@ -119,7 +119,7 @@ export function ForgotPasswordForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="forgot-password-form">
         <FormField
           control={form.control}
           name="email"
@@ -128,6 +128,7 @@ export function ForgotPasswordForm() {
               <FormLabel>{t("Email")}</FormLabel>
               <FormControl>
                 <Input 
+                  data-testid="forgot-password-email-input"
                   placeholder={t("Your email")} 
                   {...field} 
                   autoComplete="email"
@@ -138,7 +139,7 @@ export function ForgotPasswordForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full" disabled={isLoading} data-testid="forgot-password-submit-button">
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Sending...")}
@@ -148,7 +149,7 @@ export function ForgotPasswordForm() {
           )}
         </Button>
         <div className="text-center mt-4">
-          <Button variant="link" className="px-0 font-normal" asChild>
+          <Button variant="link" className="px-0 font-normal" asChild data-testid="forgot-password-back-link">
             <Link href="/login">
               <ArrowLeft className="mr-2 h-4 w-4" />
               {t("Back to Login")}

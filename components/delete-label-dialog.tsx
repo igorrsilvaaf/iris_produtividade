@@ -63,15 +63,15 @@ export function DeleteLabelDialog({ labelId, labelName, children }: DeleteLabelD
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogTrigger asChild data-testid="delete-label-dialog-trigger">{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]" data-testid="delete-label-dialog-content">
         <DialogHeader>
-          <DialogTitle>{t("deleteLabel")}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle data-testid="delete-label-dialog-title">{t("deleteLabel")}</DialogTitle>
+          <DialogDescription data-testid="delete-label-dialog-description">
             {t("deleteLabelConfirm")}
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
+        <div className="py-4" data-testid="delete-label-dialog-info">
           <p className="text-sm font-medium">
             {t("label")}: <span className="font-bold">{labelName}</span>
           </p>
@@ -80,10 +80,10 @@ export function DeleteLabelDialog({ labelId, labelName, children }: DeleteLabelD
           </p>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={isLoading} data-testid="delete-label-cancel-button">
             {t("Cancel")}
           </Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
+          <Button variant="destructive" onClick={handleDelete} disabled={isLoading} data-testid="delete-label-confirm-button">
             {isLoading ? t("Deleting...") : t("Delete Label")}
           </Button>
         </DialogFooter>

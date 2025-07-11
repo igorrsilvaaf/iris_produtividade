@@ -342,20 +342,20 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" data-testid="edit-task-dialog-content">
         <DialogHeader>
           <div className="flex items-center">
             <div className="md:hidden">
-              <BackButton onClick={() => onOpenChange(false)} className="mr-2" />
+              <BackButton onClick={() => onOpenChange(false)} className="mr-2" data-testid="edit-task-back-button" />
             </div>
-            <DialogTitle>{t("editTask")}</DialogTitle>
+            <DialogTitle data-testid="edit-task-dialog-title">{t("editTask")}</DialogTitle>
           </div>
-          <DialogDescription>
+          <DialogDescription data-testid="edit-task-dialog-description">
             {t("Make changes to the task.")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="edit-task-form">
             <FormField
               control={form.control}
               name="title"
@@ -364,6 +364,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                   <FormLabel>{t("title")}</FormLabel>
                   <FormControl>
                     <Textarea
+                      data-testid="edit-task-title-input"
                       placeholder={t("Task title")}
                       className="min-h-[80px] text-base"
                       rows={3}
@@ -381,7 +382,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                 <FormItem>
                   <FormLabel>{t("description")}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Add details about your task" className="resize-none" {...field} />
+                    <Textarea data-testid="edit-task-description-input" placeholder="Add details about your task" className="resize-none" {...field} />
                   </FormControl>
                   <div className="text-xs text-muted-foreground mt-1">
                     {t("Supports markdown formatting like **bold**, *italic*, lists, and [links](https://example.com)")}
@@ -401,6 +402,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
+                            data-testid="edit-task-due-date-button"
                             variant="outline"
                             className={`w-full justify-start text-left font-normal ${
                               !field.value && "text-muted-foreground"
@@ -416,7 +418,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start" side="bottom">
+                      <PopoverContent className="w-auto p-0" align="start" side="bottom" data-testid="edit-task-date-picker">
                         <div className="p-3">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm font-medium">{t("pickDate")}</span>
@@ -425,6 +427,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                               size="sm" 
                               className="h-7 w-7 p-0 rounded-full" 
                               onClick={() => setDatePickerOpen(false)}
+                              data-testid="edit-task-date-picker-close"
                             >
                               <X className="h-4 w-4" />
                               <span className="sr-only">{t("close")}</span>
@@ -440,6 +443,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                               }
                             }}
                             disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                            data-testid="edit-task-calendar"
                           />
                           <div className="pt-3 pb-2 border-t mt-3">
                             <FormField
@@ -449,6 +453,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                                 <FormItem className="flex flex-row items-center space-x-3 space-y-0 h-9">
                                   <FormControl>
                                     <Checkbox
+                                      data-testid="edit-task-all-day-checkbox"
                                       id="editTaskAllDay"
                                       checked={field.value}
                                       onCheckedChange={(checked) => {
@@ -482,6 +487,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                                   <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
                                   <FormControl>
                                     <Input 
+                                      data-testid="edit-task-due-time-input"
                                       type="text" 
                                       value={field.value || "00:00"}
                                       onChange={(e) => {
@@ -532,30 +538,30 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                     <FormLabel>{t("priority")}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger data-testid="edit-task-priority-select">
                           <SelectValue placeholder={t("Select priority")} />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="1">
+                      <SelectContent data-testid="edit-task-priority-content">
+                        <SelectItem value="1" data-testid="edit-task-priority-1">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-red-500" />
                             {t("priority1")}
                           </div>
                         </SelectItem>
-                        <SelectItem value="2">
+                        <SelectItem value="2" data-testid="edit-task-priority-2">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-orange-500" />
                             {t("priority2")}
                           </div>
                         </SelectItem>
-                        <SelectItem value="3">
+                        <SelectItem value="3" data-testid="edit-task-priority-3">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-blue-500" />
                             {t("priority3")}
                           </div>
                         </SelectItem>
-                        <SelectItem value="4">
+                        <SelectItem value="4" data-testid="edit-task-priority-4">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-gray-400" />
                             {t("priority4")}

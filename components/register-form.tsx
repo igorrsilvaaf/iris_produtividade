@@ -146,7 +146,7 @@ export function RegisterForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="register-form">
         <FormField
           control={form.control}
           name="name"
@@ -154,7 +154,13 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>{t("Name")}</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} autoComplete="name" aria-required="true" />
+                <Input 
+                  data-testid="register-name-input"
+                  placeholder="John Doe" 
+                  {...field} 
+                  autoComplete="name" 
+                  aria-required="true" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -168,6 +174,7 @@ export function RegisterForm() {
               <FormLabel>{t("Email")}</FormLabel>
               <FormControl>
                 <Input 
+                  data-testid="register-email-input"
                   placeholder="your.email@example.com" 
                   {...field} 
                   autoComplete="email" 
@@ -188,6 +195,7 @@ export function RegisterForm() {
               <FormControl>
                 <div className="relative">
                   <Input 
+                    data-testid="register-password-input"
                     type={showPassword ? "text" : "password"} 
                     placeholder="••••••••" 
                     {...field} 
@@ -195,6 +203,7 @@ export function RegisterForm() {
                     aria-required="true"
                   />
                   <Button
+                    data-testid="register-password-toggle"
                     type="button"
                     variant="ghost"
                     size="icon"
@@ -227,6 +236,7 @@ export function RegisterForm() {
               <FormControl>
                 <div className="relative">
                   <Input 
+                    data-testid="register-confirm-password-input"
                     type={showConfirmPassword ? "text" : "password"} 
                     placeholder="••••••••" 
                     {...field} 
@@ -234,6 +244,7 @@ export function RegisterForm() {
                     aria-required="true"
                   />
                   <Button
+                    data-testid="register-confirm-password-toggle"
                     type="button"
                     variant="ghost"
                     size="icon"
@@ -254,7 +265,12 @@ export function RegisterForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button 
+          data-testid="register-submit-button"
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading}
+        >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Sign Up")}
