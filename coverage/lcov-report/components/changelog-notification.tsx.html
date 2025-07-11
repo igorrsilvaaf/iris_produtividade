@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/91</span>
+                <span class='fraction'>0/87</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/83</span>
+                <span class='fraction'>0/79</span>
             </div>
         
             
@@ -375,26 +375,7 @@
 <a name='L310'></a><a href='#L310'>310</a>
 <a name='L311'></a><a href='#L311'>311</a>
 <a name='L312'></a><a href='#L312'>312</a>
-<a name='L313'></a><a href='#L313'>313</a>
-<a name='L314'></a><a href='#L314'>314</a>
-<a name='L315'></a><a href='#L315'>315</a>
-<a name='L316'></a><a href='#L316'>316</a>
-<a name='L317'></a><a href='#L317'>317</a>
-<a name='L318'></a><a href='#L318'>318</a>
-<a name='L319'></a><a href='#L319'>319</a>
-<a name='L320'></a><a href='#L320'>320</a>
-<a name='L321'></a><a href='#L321'>321</a>
-<a name='L322'></a><a href='#L322'>322</a>
-<a name='L323'></a><a href='#L323'>323</a>
-<a name='L324'></a><a href='#L324'>324</a>
-<a name='L325'></a><a href='#L325'>325</a>
-<a name='L326'></a><a href='#L326'>326</a>
-<a name='L327'></a><a href='#L327'>327</a>
-<a name='L328'></a><a href='#L328'>328</a>
-<a name='L329'></a><a href='#L329'>329</a>
-<a name='L330'></a><a href='#L330'>330</a>
-<a name='L331'></a><a href='#L331'>331</a>
-<a name='L332'></a><a href='#L332'>332</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L313'></a><a href='#L313'>313</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -471,32 +452,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -727,7 +689,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use client"
 &nbsp;
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Sparkles, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -800,35 +762,16 @@ export function <span class="fstat-no" title="function not covered" >ChangelogNo
       const changelogData = <span class="cstat-no" title="statement not covered" >getChangelogData()</span>
       const newChanges = <span class="cstat-no" title="statement not covered" >changelogData.filter(<span class="fstat-no" title="function not covered" >it</span>em =&gt; <span class="cstat-no" title="statement not covered" >item.isNew)</span></span>
       
-<span class="cstat-no" title="statement not covered" >      console.log('ChangelogNotification Debug:', {</span>
-        changelogData: changelogData.slice(0, 3),
-        newChanges,
-        isClient
-      })
-      
 <span class="cstat-no" title="statement not covered" >      if (newChanges.length === 0) <span class="cstat-no" title="statement not covered" >return</span></span>
       
       const latestNewVersion = <span class="cstat-no" title="statement not covered" >newChanges[0].version</span>
       const lastSeenVersion = <span class="cstat-no" title="statement not covered" >localStorage.getItem('lastSeenChangelogVersion')</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      console.log('Version check:', {</span>
-        latestNewVersion,
-        lastSeenVersion,
-        shouldShow: lastSeenVersion !== latestNewVersion
-      })
-&nbsp;
 <span class="cstat-no" title="statement not covered" >      if (lastSeenVersion !== latestNewVersion) {</span>
         const dismissedVersions = <span class="cstat-no" title="statement not covered" >localStorage.getItem('dismissedChangelogVersions')</span>
         const dismissedArray = <span class="cstat-no" title="statement not covered" >dismissedVersions ? JSON.parse(dismissedVersions) : []</span>
         
-<span class="cstat-no" title="statement not covered" >        console.log('Dismissed versions check:', {</span>
-          dismissedVersions,
-          dismissedArray,
-          isLatestDismissed: dismissedArray.includes(latestNewVersion)
-        })
-        
 <span class="cstat-no" title="statement not covered" >        if (!dismissedArray.includes(latestNewVersion)) {</span>
-<span class="cstat-no" title="statement not covered" >          console.log('Opening modal for version:', latestNewVersion)</span>
 <span class="cstat-no" title="statement not covered" >          setLatestChangelog(latestNewVersion)</span>
 <span class="cstat-no" title="statement not covered" >          setOpen(true)</span>
         }
@@ -1063,7 +1006,7 @@ export function <span class="fstat-no" title="function not covered" >ChangelogNo
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-27T16:35:02.089Z
+                at 2025-07-11T02:16:48.778Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -22,6 +22,8 @@ import {
   SelectValue 
 } from "@/components/ui/select"
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
+import { useTaskContext } from "@/contexts/task-context"
+import { useTaskUpdates } from "@/hooks/use-task-updates"
 
 type SortOption = "priority" | "title" | "dueDate" | "createdAt"
 
@@ -47,7 +49,7 @@ const processDescription = (text: string) => {
 };
 
 interface TaskListProps {
-  tasks: Todo[];
+  initialTasks?: Todo[];
   user?: {
     id: number;
     name: string;
@@ -56,23 +58,26 @@ interface TaskListProps {
   } | null;
 }
 
-export function TaskList({ tasks, user }: TaskListProps) {
+export function TaskList({ initialTasks, user }: TaskListProps) {
   const [expandedTask, setExpandedTask] = useState<number | null>(null)
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null)
   const [showTaskDetail, setShowTaskDetail] = useState(false)
   const [sortBy, setSortBy] = useState<SortOption>("priority")
-  const [optimisticTasks, setOptimisticTasks] = useState<Todo[]>(tasks)
+  const { state, setTasks } = useTaskContext()
+  const { notifyTaskCompleted, notifyTaskDeleted } = useTaskUpdates()
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
 
-  // Sincronizar com as props quando mudarem
+  // Inicializar tarefas no contexto quando o componente for montado
   useEffect(() => {
-    setOptimisticTasks(tasks)
-  }, [tasks])
+    if (initialTasks && initialTasks.length > 0) {
+      setTasks(initialTasks)
+    }
+  }, [initialTasks, setTasks])
 
   const sortedTasks = useMemo(() => {
-    const tasksCopy = [...optimisticTasks];
+    const tasksCopy = [...state.tasks];
     
     switch (sortBy) {
       case "priority":
@@ -92,18 +97,9 @@ export function TaskList({ tasks, user }: TaskListProps) {
       default:
         return tasksCopy;
     }
-  }, [optimisticTasks, sortBy]);
+  }, [state.tasks, sortBy]);
 
   const toggleTaskCompletion = async (taskId: number) => {
-    // Atualização otimista - atualizar UI imediatamente
-    const originalTasks = [...optimisticTasks]
-    const updatedTasks = optimisticTasks.map(task => 
-      task.id === taskId 
-        ? { ...task, completed: !task.completed }
-        : task
-    )
-    setOptimisticTasks(updatedTasks)
-
     try {
       const response = await fetch(`/api/tasks/toggle/${taskId}`, {
         method: "PATCH",
@@ -113,17 +109,17 @@ export function TaskList({ tasks, user }: TaskListProps) {
         throw new Error(`Failed to toggle task: ${response.statusText}`)
       }
 
+      const updatedTask = await response.json()
+
       toast({
         title: t("Task updated"),
         description: t("Task status has been updated."),
       })
 
-      // Sincronização silenciosa - sem refresh imediato para melhor UX
+      // Notificar sobre a atualização da task
+      notifyTaskCompleted(taskId, updatedTask)
 
     } catch (error) {
-      // Reverter mudanças otimistas em caso de erro
-      setOptimisticTasks(originalTasks)
-      
       toast({
         variant: "destructive",
         title: t("Failed to update task"),
@@ -146,6 +142,9 @@ export function TaskList({ tasks, user }: TaskListProps) {
         title: t("taskDeleted"),
         description: t("Task has been deleted successfully."),
       })
+
+      // Notificar sobre a remoção da task
+      notifyTaskDeleted(taskId)
 
     } catch (error) {
       toast({
@@ -265,7 +264,7 @@ export function TaskList({ tasks, user }: TaskListProps) {
     setShowTaskDetail(true)
   }
 
-  if (tasks.length === 0) {
+  if (state.tasks.length === 0) {
     return (
       <Card className="border-dashed" data-testid="task-list-empty">
         <CardContent className="flex flex-col items-center justify-center py-10">

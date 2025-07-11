@@ -9,6 +9,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
+import { useTaskContext } from "@/contexts/task-context"
+import { useTaskUpdates } from "@/hooks/use-task-updates"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import {
@@ -102,20 +104,23 @@ const TaskItem = memo(({
 
 TaskItem.displayName = "TaskItem"
 
-export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
+export const TodoList = memo(function TodoList({ initialTasks }: { initialTasks?: Todo[] }) {
   const [sortBy, setSortBy] = useState<SortOption>("priority")
-  const [optimisticTasks, setOptimisticTasks] = useState<Todo[]>(tasks)
+  const { state, setTasks } = useTaskContext()
+  const { notifyTaskCompleted, notifyTaskDeleted } = useTaskUpdates()
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
 
-  // Sincronizar com as props quando mudarem
+  // Inicializar tarefas no contexto quando o componente for montado
   useEffect(() => {
-    setOptimisticTasks(tasks)
-  }, [tasks])
+    if (initialTasks && initialTasks.length > 0) {
+      setTasks(initialTasks)
+    }
+  }, [initialTasks, setTasks])
 
   const sortedTasks = useMemo(() => {
-    const tasksCopy = [...optimisticTasks];
+    const tasksCopy = [...state.tasks];
     
     switch (sortBy) {
       case "priority":
@@ -135,18 +140,9 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
       default:
         return tasksCopy;
     }
-  }, [optimisticTasks, sortBy]);
+  }, [state.tasks, sortBy]);
 
   const toggleTaskCompletion = useCallback(async (taskId: number) => {
-    // Atualização otimista - atualizar UI imediatamente
-    const originalTasks = [...optimisticTasks]
-    const updatedTasks = optimisticTasks.map(task => 
-      task.id === taskId 
-        ? { ...task, completed: !task.completed }
-        : task
-    )
-    setOptimisticTasks(updatedTasks)
-
     try {
       const response = await fetch(`/api/tasks/toggle/${taskId}`, {
         method: "PATCH",
@@ -156,24 +152,24 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
         throw new Error(`Failed to toggle task: ${response.statusText}`)
       }
 
+      const updatedTask = await response.json()
+
       toast({
         title: t("Task updated"),
         description: t("Task status has been updated."),
       })
 
-      // Sincronização silenciosa - sem refresh imediato para melhor UX
+      // Notificar sobre a atualização da task
+      notifyTaskCompleted(taskId, updatedTask)
 
     } catch (error) {
-      // Reverter mudanças otimistas em caso de erro
-      setOptimisticTasks(originalTasks)
-      
       toast({
         variant: "destructive",
         title: t("Failed to update task"),
         description: t("Please try again."),
       })
     }
-  }, [optimisticTasks, toast, t, router])
+  }, [notifyTaskCompleted, toast, t])
 
   const deleteTask = useCallback(async (taskId: number) => {
     try {
@@ -190,7 +186,8 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
         description: t("Task has been deleted successfully."),
       })
 
-      router.refresh()
+      // Notificar sobre a remoção da task
+      notifyTaskDeleted(taskId)
 
     } catch (error) {
       toast({
@@ -199,7 +196,7 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
         description: t("Please try again."),
       })
     }
-  }, [toast, t, router])
+  }, [notifyTaskDeleted, toast, t])
 
   const getPriorityColor = useCallback((priority: number) => {
     switch (priority) {
@@ -255,7 +252,7 @@ export const TodoList = memo(function TodoList({ tasks }: { tasks: Todo[] }) {
     }
   }, [t])
 
-  if (tasks.length === 0) {
+  if (state.tasks.length === 0) {
     return (
       <Card className="border-dashed" data-testid="todo-list-empty">
         <CardContent className="flex flex-col items-center justify-center py-6">

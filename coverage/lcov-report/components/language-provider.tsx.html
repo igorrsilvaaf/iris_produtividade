@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/22</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/6</span>
+                <span class='fraction'>0/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>0/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>0/18</span>
             </div>
         
             
@@ -117,24 +117,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -144,12 +129,27 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -159,48 +159,48 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use client"
 &nbsp;
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { useLanguageStore } from "@/lib/i18n"
-&nbsp;
-function <span class="fstat-no" title="function not covered" >setCookie(</span>name: string, value: string) {
-<span class="cstat-no" title="statement not covered" >  document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Strict`</span>
-}
+import { useEffect, useState } from 'react'
+import { useTranslation, rehydrateLanguageStore } from '@/lib/i18n'
 &nbsp;
 interface LanguageProviderProps {
-  initialLanguage: "en" | "pt"
   children: React.ReactNode
+  initialLanguage?: string
 }
 &nbsp;
-export function <span class="fstat-no" title="function not covered" >LanguageProvider(</span>{ initialLanguage, children }: LanguageProviderProps) {
-  const router = <span class="cstat-no" title="statement not covered" >useRouter()</span>
-  const { language: currentLanguage, setLanguage, isHydrated } = <span class="cstat-no" title="statement not covered" >useLanguageStore()</span>
+export function <span class="fstat-no" title="function not covered" >LanguageProvider(</span>{ children, initialLanguage }: LanguageProviderProps) {
+  const { language, isHydrated, setLanguage } = <span class="cstat-no" title="statement not covered" >useTranslation()</span>
   const [isReady, setIsReady] = <span class="cstat-no" title="statement not covered" >useState(false)</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    document.cookie = `language-storage=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`</span>
-    
-<span class="cstat-no" title="statement not covered" >    setCookie('user-language', initialLanguage)</span>
-<span class="cstat-no" title="statement not covered" >    setLanguage(initialLanguage)</span>
-    
-<span class="cstat-no" title="statement not covered" >    document.documentElement.lang = initialLanguage === 'en' ? 'en' : 'pt-BR'</span>
-<span class="cstat-no" title="statement not covered" >    document.documentElement.setAttribute('data-language', initialLanguage)</span>
-    
-    const timer = <span class="cstat-no" title="statement not covered" >setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-      const cookies = <span class="cstat-no" title="statement not covered" >document.cookie.split(';').map(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >c.trim())</span></span>
-      const langCookie = <span class="cstat-no" title="statement not covered" >cookies.find(<span class="fstat-no" title="function not covered" >c </span>=&gt; <span class="cstat-no" title="statement not covered" >c.startsWith('user-language='))</span></span>
+    const initializeLanguage = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      if (typeof window === 'undefined') <span class="cstat-no" title="statement not covered" >return</span></span>
+      
+<span class="cstat-no" title="statement not covered" >      if (!isHydrated) {</span>
+<span class="cstat-no" title="statement not covered" >        rehydrateLanguageStore()</span>
+      }
+      
+<span class="cstat-no" title="statement not covered" >      if (initialLanguage &amp;&amp; initialLanguage !== language) {</span>
+<span class="cstat-no" title="statement not covered" >        setLanguage(initialLanguage)</span>
+      }
       
 <span class="cstat-no" title="statement not covered" >      setIsReady(true)</span>
-    }, 100)
-    
-<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >clearTimeout(timer)</span></span>
-  }, [initialLanguage, setLanguage, currentLanguage])
+    }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  if (!isHydrated || !isReady) {</span>
-<span class="cstat-no" title="statement not covered" >    console.log('LanguageProvider - Waiting for hydration and language setup...');</span>
-<span class="cstat-no" title="statement not covered" >    return null;</span>
+<span class="cstat-no" title="statement not covered" >    initializeLanguage()</span>
+  }, [initialLanguage, language, isHydrated, setLanguage])
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+    const timer = <span class="cstat-no" title="statement not covered" >setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      setIsReady(true)</span>
+    }, 100)
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >clearTimeout(timer)</span></span>
+  }, [])
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  if (!isReady) {</span>
+<span class="cstat-no" title="statement not covered" >    return null</span>
   }
-  
+&nbsp;
 <span class="cstat-no" title="statement not covered" >  return &lt;&gt;{children}&lt;/&gt;</span>
 }
 &nbsp;
@@ -211,7 +211,7 @@ export function <span class="fstat-no" title="function not covered" >LanguagePro
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-27T16:35:02.089Z
+                at 2025-07-11T02:16:48.778Z
             </div>
         <script src="../prettify.js"></script>
         <script>

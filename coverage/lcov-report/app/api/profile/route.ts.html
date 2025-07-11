@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/13</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/13</span>
             </div>
         
             
@@ -104,27 +104,16 @@
 <a name='L39'></a><a href='#L39'>39</a>
 <a name='L40'></a><a href='#L40'>40</a>
 <a name='L41'></a><a href='#L41'>41</a>
-<a name='L42'></a><a href='#L42'>42</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -132,8 +121,37 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -147,9 +165,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { type NextRequest, NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { neon } from "@neondatabase/serverless"
-&nbsp;
-const sql = <span class="cstat-no" title="statement not covered" >neon(process.env.DATABASE_URL!)</span>
+import prisma from "../../../lib/prisma"
 &nbsp;
 export async function <span class="fstat-no" title="function not covered" >PATCH(</span>request: NextRequest) {
 <span class="cstat-no" title="statement not covered" >  try {</span>
@@ -165,23 +181,34 @@ export async function <span class="fstat-no" title="function not covered" >PATCH
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ message: "Name and email are required" }, { status: 400 })</span>
     }
 &nbsp;
-    const existingUser = <span class="cstat-no" title="statement not covered" >await sql`</span>
-      SELECT id FROM users
-      WHERE email = ${email} AND id != ${session.user.id}
-    `
+    const existingUser = <span class="cstat-no" title="statement not covered" >await prisma.users.findFirst({</span>
+      where: {
+        email: email,
+        id: { not: session.user.id }
+      }
+    })
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    if (existingUser.length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >    if (existingUser) {</span>
 <span class="cstat-no" title="statement not covered" >      return NextResponse.json({ message: "Email is already in use" }, { status: 400 })</span>
     }
 &nbsp;
-    const updatedUser = <span class="cstat-no" title="statement not covered" >await sql`</span>
-      UPDATE users
-      SET name = ${name}, email = ${email}, avatar_url = ${avatar_url}
-      WHERE id = ${session.user.id}
-      RETURNING id, name, email, avatar_url
-    `
+    const updatedUser = <span class="cstat-no" title="statement not covered" >await prisma.users.update({</span>
+      where: { id: session.user.id },
+      data: {
+        name,
+        email,
+        avatar_url,
+        updated_at: new Date()
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar_url: true
+      }
+    })
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return NextResponse.json({ user: updatedUser[0] })</span>
+<span class="cstat-no" title="statement not covered" >    return NextResponse.json({ user: updatedUser })</span>
   } catch (error: any) {
 <span class="cstat-no" title="statement not covered" >    return NextResponse.json({ message: error.message || "Failed to update profile" }, { status: 500 })</span>
   }
@@ -193,7 +220,7 @@ export async function <span class="fstat-no" title="function not covered" >PATCH
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-27T16:35:02.089Z
+                at 2025-07-11T02:16:48.778Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

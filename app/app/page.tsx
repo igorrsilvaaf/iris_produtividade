@@ -115,7 +115,7 @@ async function TaskListWrapper({ userId }: { userId: number }) {
   
   return (
     <TaskList 
-      tasks={tasks} 
+      initialTasks={tasks} 
       user={{
         id: session.user.id,
         name: session.user.name || '',

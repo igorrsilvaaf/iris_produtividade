@@ -41,7 +41,7 @@ export default async function TodoPage() {
               <CardDescription>Aqui estão todas as suas tarefas pendentes.</CardDescription>
             </CardHeader>
             <CardContent>
-              <TodoList tasks={tasks} />
+              <TodoList initialTasks={tasks} />
             </CardContent>
             <CardFooter className="flex justify-between pt-6">
               <div className="text-sm text-muted-foreground">

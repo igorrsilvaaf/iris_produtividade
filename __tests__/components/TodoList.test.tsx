@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '../test-utils';
 import { TodoList } from '@/components/todo-list';
 import '@testing-library/jest-dom';
 
@@ -84,14 +84,14 @@ describe('Componente TodoList', () => {
   });
 
   test('deve mostrar mensagem quando não há tarefas', () => {
-    render(<TodoList tasks={[]} />);
+    render(<TodoList initialTasks={[]} />);
 
     expect(screen.getByText('Tudo em dia')).toBeInTheDocument();
     expect(screen.getByText('Não há tarefas pendentes')).toBeInTheDocument();
   });
 
   test('deve renderizar lista de tarefas corretamente', () => {
-    render(<TodoList tasks={mockTasks} />);
+    render(<TodoList initialTasks={mockTasks} />);
 
     expect(screen.getByText('Tarefa 1')).toBeInTheDocument();
     expect(screen.getByText('Tarefa 2')).toBeInTheDocument();
@@ -104,7 +104,7 @@ describe('Componente TodoList', () => {
   });
 
   test('deve chamar API para marcar tarefa como concluída quando checkbox é clicado', async () => {
-    render(<TodoList tasks={mockTasks} />);
+    render(<TodoList initialTasks={mockTasks} />);
 
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[0]);
@@ -118,7 +118,7 @@ describe('Componente TodoList', () => {
   });
 
   test('deve chamar API para excluir tarefa quando botão de excluir é clicado', async () => {
-    render(<TodoList tasks={mockTasks} />);
+    render(<TodoList initialTasks={mockTasks} />);
 
     const deleteButtons = screen.getAllByRole('button');
     fireEvent.click(deleteButtons[deleteButtons.length - 2]); // Botão de excluir da primeira tarefa
@@ -132,7 +132,7 @@ describe('Componente TodoList', () => {
   });
 
   test('deve alterar a ordenação das tarefas quando o select é alterado', () => {
-    render(<TodoList tasks={mockTasks} />);
+    render(<TodoList initialTasks={mockTasks} />);
 
     const selectTrigger = screen.getByRole('combobox');
     fireEvent.click(selectTrigger);
@@ -154,7 +154,7 @@ describe('Componente TodoList', () => {
   });
 
   test('deve exibir toast de sucesso ao marcar tarefa como concluída', async () => {
-    render(<TodoList tasks={mockTasks} />);
+    render(<TodoList initialTasks={mockTasks} />);
 
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[0]);
@@ -173,7 +173,7 @@ describe('Componente TodoList', () => {
       throw new Error('API Error');
     });
 
-    render(<TodoList tasks={mockTasks} />);
+    render(<TodoList initialTasks={mockTasks} />);
 
     const checkboxes = screen.getAllByRole('checkbox');
     fireEvent.click(checkboxes[0]);
@@ -192,7 +192,7 @@ describe('Componente TodoList', () => {
       throw new Error('API Error');
     });
 
-    render(<TodoList tasks={mockTasks} />);
+    render(<TodoList initialTasks={mockTasks} />);
 
     const deleteButtons = screen.getAllByRole('button');
     fireEvent.click(deleteButtons[deleteButtons.length - 2]);
@@ -222,7 +222,7 @@ describe('Componente TodoList', () => {
       }
     ];
 
-    render(<TodoList tasks={tasksWithDifferentDates} />);
+    render(<TodoList initialTasks={tasksWithDifferentDates} />);
 
     const selectTrigger = screen.getByRole('combobox');
     fireEvent.click(selectTrigger);
@@ -250,7 +250,7 @@ describe('Componente TodoList', () => {
       }
     ];
 
-    render(<TodoList tasks={tasksWithDifferentCreationDates} />);
+    render(<TodoList initialTasks={tasksWithDifferentCreationDates} />);
 
     const selectTrigger = screen.getByRole('combobox');
     fireEvent.click(selectTrigger);
@@ -270,7 +270,7 @@ describe('Componente TodoList', () => {
       { ...mockTasks[0], id: 10, priority: 4, title: 'Prioridade Padrão' }
     ];
 
-    render(<TodoList tasks={tasksWithDifferentPriorities} />);
+    render(<TodoList initialTasks={tasksWithDifferentPriorities} />);
 
     expect(screen.getByText('Prioridade Alta')).toBeInTheDocument();
     expect(screen.getByText('Prioridade Média')).toBeInTheDocument();
@@ -287,7 +287,7 @@ describe('Componente TodoList', () => {
       { ...mockTasks[0], id: 15, points: 5, title: 'Muito Difícil' }
     ];
 
-    render(<TodoList tasks={tasksWithDifferentPoints} />);
+    render(<TodoList initialTasks={tasksWithDifferentPoints} />);
 
     expect(screen.getByText('Muito Fácil')).toBeInTheDocument();
     expect(screen.getByText('Fácil')).toBeInTheDocument();
@@ -307,7 +307,7 @@ describe('Componente TodoList', () => {
       { ...mockTasks[0], id: 16, due_date: null, title: 'Sem Data' }
     ];
 
-    render(<TodoList tasks={taskWithoutDueDate} />);
+    render(<TodoList initialTasks={taskWithoutDueDate} />);
     expect(screen.getByText('Sem Data')).toBeInTheDocument();
     const taskItem = screen.getByRole('listitem');
     expect(taskItem).not.toHaveTextContent('Hoje');
@@ -319,7 +319,7 @@ describe('Componente TodoList', () => {
       { ...mockTasks[0], id: 17, project_name: null, project_color: null, title: 'Sem Projeto' }
     ];
 
-    render(<TodoList tasks={taskWithoutProject} />);
+    render(<TodoList initialTasks={taskWithoutProject} />);
     expect(screen.getByText('Sem Projeto')).toBeInTheDocument();
     const taskItem = screen.getByRole('listitem');
     expect(taskItem).not.toHaveTextContent('Projeto A');
@@ -330,7 +330,7 @@ describe('Componente TodoList', () => {
       { ...mockTasks[0], id: 18, points: null, title: 'Sem Pontuação' }
     ];
 
-    render(<TodoList tasks={taskWithoutPoints} />);
+    render(<TodoList initialTasks={taskWithoutPoints} />);
     expect(screen.getByText('Sem Pontuação')).toBeInTheDocument();
     const taskItem = screen.getByRole('listitem');
     expect(taskItem).not.toHaveTextContent('pts');
@@ -365,7 +365,7 @@ describe('Componente TodoList', () => {
       }
     ];
 
-    render(<TodoList tasks={tasksWithSpecificDates} />);
+    render(<TodoList initialTasks={tasksWithSpecificDates} />);
     
     expect(screen.getByText('Hoje')).toBeInTheDocument();
     expect(screen.getByText('Amanhã')).toBeInTheDocument();
@@ -384,13 +384,13 @@ describe('Componente TodoList', () => {
       { ...mockTasks[0], id: 22, points: 999, title: 'Pontuação Desconhecida' } // Pontuação não mapeada
     ];
 
-    render(<TodoList tasks={taskWithUnknownPoints} />);
+    render(<TodoList initialTasks={taskWithUnknownPoints} />);
     expect(screen.getByText('Pontuação Desconhecida')).toBeInTheDocument();
     expect(screen.getByText('999 pts')).toBeInTheDocument();
   });
 
   test('deve exibir corretamente as diferentes cores dos pontos', () => {
-    render(<TodoList tasks={[
+    render(<TodoList initialTasks={[
       { ...mockTasks[0], id: 23, points: 1, title: 'Verde' },
       { ...mockTasks[0], id: 24, points: 2, title: 'Azul' },
       { ...mockTasks[0], id: 25, points: 3, title: 'Amarelo' },

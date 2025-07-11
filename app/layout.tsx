@@ -16,6 +16,7 @@ import { getSession } from "@/lib/auth";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { TaskProvider } from "@/contexts/task-context";
 
 import "@/app/globals.css";
 
@@ -90,17 +91,19 @@ export default async function RootLayout({
               <AppWrapper>
                 <TranslationsLoader requiredKeys={["Create New Project"]}>
                   <ThemeInitializer>
-                    {pomodoroSettings ? (
-                      <PomodoroProvider initialSettings={pomodoroSettings}>
-                        <ServiceWorkerRegistration />
-                        <div className="flex-1">{children}</div>
-                      </PomodoroProvider>
-                    ) : (
-                      <>
-                        <ServiceWorkerRegistration />
-                        <div className="flex-1">{children}</div>
-                      </>
-                    )}
+                    <TaskProvider>
+                      {pomodoroSettings ? (
+                        <PomodoroProvider initialSettings={pomodoroSettings}>
+                          <ServiceWorkerRegistration />
+                          <div className="flex-1">{children}</div>
+                        </PomodoroProvider>
+                      ) : (
+                        <>
+                          <ServiceWorkerRegistration />
+                          <div className="flex-1">{children}</div>
+                        </>
+                      )}
+                    </TaskProvider>
                     <Toaster />
                   </ThemeInitializer>
                 </TranslationsLoader>
