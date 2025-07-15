@@ -794,13 +794,44 @@ export async function getTasksForNotifications(
   const safeDueTodayTasks = Array.isArray(dueTodayTasks) ? dueTodayTasks : [];
   const safeUpcomingTasks = Array.isArray(upcomingTasks) ? upcomingTasks : [];
 
+  // Transformar os dados para o formato esperado pelo frontend
+  const transformedOverdueTasks = safeOverdueTasks.map(task => ({
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  }));
+
+  const transformedDueTodayTasks = safeDueTodayTasks.map(task => ({
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  }));
+
+  const transformedUpcomingTasks = safeUpcomingTasks.map(task => ({
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  }));
+
   return {
-    overdueCount: safeOverdueTasks.length,
-    dueTodayCount: safeDueTodayTasks.length,
-    upcomingCount: safeUpcomingTasks.length,
-    overdueTasks: safeOverdueTasks as Todo[],
-    dueTodayTasks: safeDueTodayTasks as Todo[],
-    upcomingTasks: safeUpcomingTasks as Todo[],
+    overdueCount: transformedOverdueTasks.length,
+    dueTodayCount: transformedDueTodayTasks.length,
+    upcomingCount: transformedUpcomingTasks.length,
+    overdueTasks: transformedOverdueTasks as Todo[],
+    dueTodayTasks: transformedDueTodayTasks as Todo[],
+    upcomingTasks: transformedUpcomingTasks as Todo[],
   };
 }
 

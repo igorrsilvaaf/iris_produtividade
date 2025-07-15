@@ -66,6 +66,8 @@ export function TaskNotificationsMenu() {
     }
   })
 
+  const maxRetries = 3
+
   const fetchTaskNotifications = async (retryCount = 0, ignoreReadStatus = false) => {
     if (retryCount === 0) {
       setLoading(true)
@@ -88,14 +90,15 @@ export function TaskNotificationsMenu() {
       const data = await response.json()
       
       const validatedData = {
+        enabled: data.enabled || false,
         overdueCount: Number(data.overdueCount) || 0,
         dueTodayCount: Number(data.dueTodayCount) || 0,
         upcomingCount: Number(data.upcomingCount) || 0,
-        totalCount: Number(data.overdueCount || 0) + Number(data.dueTodayCount || 0) + Number(data.upcomingCount || 0),
+        totalCount: Number(data.totalCount) || 0,
         tasks: {
-          overdueTasks: Array.isArray(data.overdueTasks) ? data.overdueTasks : [],
-          dueTodayTasks: Array.isArray(data.dueTodayTasks) ? data.dueTodayTasks : [],
-          upcomingTasks: Array.isArray(data.upcomingTasks) ? data.upcomingTasks : []
+          overdueTasks: Array.isArray(data.tasks?.overdueTasks) ? data.tasks.overdueTasks : [],
+          dueTodayTasks: Array.isArray(data.tasks?.dueTodayTasks) ? data.tasks.dueTodayTasks : [],
+          upcomingTasks: Array.isArray(data.tasks?.upcomingTasks) ? data.tasks.upcomingTasks : []
         }
       }
 
