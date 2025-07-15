@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Tag, Plus, X } from "lucide-react"
 import type { Label } from "@/lib/labels"
 import { useTranslation } from "@/lib/i18n"
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates"
 import { Button } from "@/components/ui/button"
 
 // Função para calcular a cor de texto baseada na cor de fundo
@@ -51,7 +52,6 @@ interface TaskLabelsProps {
 
 export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
   const [labels, setLabels] = useState<Label[]>([])
-  const [allLabels, setAllLabels] = useState<Label[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showAddLabel, setShowAddLabel] = useState(false)
   const [showCreateLabel, setShowCreateLabel] = useState(false)
@@ -59,6 +59,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+  const { labels: allLabels, notifyLabelCreated } = useProjectsLabelsUpdates()
 
   useEffect(() => {
     const fetchLabels = async () => {
@@ -70,8 +71,6 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
       setIsLoading(true);
       
       try {
-
-        
         const taskLabelsResponse = await fetch(`/api/tasks/${taskId}/${taskId}/labels`);
         
         if (!taskLabelsResponse.ok) {
@@ -81,21 +80,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
         }
         
         const taskLabelsData = await taskLabelsResponse.json();
-
         setLabels(taskLabelsData.labels);
-
-        const allLabelsResponse = await fetch("/api/labels");
-        
-        if (!allLabelsResponse.ok) {
-          const errorData = await allLabelsResponse.json();
-          console.error(`[TaskLabels] Erro ao carregar todas as labels:`, errorData);
-          throw new Error("Failed to fetch all labels");
-        }
-        
-        const allLabelsData = await allLabelsResponse.json();
-
-        setAllLabels(allLabelsData.labels);
-        
         setIsFetched(true);
       } catch (error) {
         console.error(`[TaskLabels] Erro ao carregar labels:`, error);
@@ -110,7 +95,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
     };
 
     fetchLabels();
-  }, [taskId, toast, t, isFetched]);
+  }, [taskId, isFetched, toast, t]);
 
   useEffect(() => {
     setIsFetched(false);
@@ -178,23 +163,16 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
     }
   }
 
-  const handleCreateLabelSuccess = () => {
+  const handleCreateLabelSuccess = (newLabel: Label) => {
     setShowCreateLabel(false)
 
-    fetch("/api/labels")
-      .then((response) => response.json())
-      .then((data) => {
-        setAllLabels(data.labels);
+    // Atualizar contexto global
+    notifyLabelCreated(newLabel)
 
-      })
-      .catch((error) => {
-        console.error(`[TaskLabels] Erro ao atualizar labels após criação:`, error);
-        toast({
-          variant: "destructive",
-          title: t("Failed to refresh labels"),
-          description: t("Please try again later."),
-        })
-      })
+    toast({
+      title: t("Label created"),
+      description: t("Label has been created successfully."),
+    })
   }
 
   if (isLoading) {

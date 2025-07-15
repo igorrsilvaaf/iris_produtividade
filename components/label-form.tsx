@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import type { Label } from "@/lib/labels";
 import { useTranslation } from "@/lib/i18n";
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates";
 
 interface LabelFormProps {
   label?: Label;
@@ -30,6 +31,7 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { notifyLabelCreated, notifyLabelUpdated } = useProjectsLabelsUpdates();
 
   const formSchema = z.object({
     name: z.string().min(1, { message: t("Label name is required") }),
@@ -77,11 +79,16 @@ export function LabelForm({ label, onSuccess }: LabelFormProps) {
         ),
       });
 
+      // Atualizar contexto global
+      if (label) {
+        notifyLabelUpdated(label.id, responseData.label);
+      } else {
+        notifyLabelCreated(responseData.label);
+      }
+
       if (onSuccess) {
         onSuccess(responseData.label);
       }
-
-      router.refresh();
     } catch (error: any) {
       toast({
         variant: "destructive",

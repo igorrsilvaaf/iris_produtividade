@@ -2,10 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Star } from "lucide-react"
-import type { Project } from "@/lib/projects"
+import { Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslation } from "@/lib/i18n"
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates"
+import type { Project } from "@/lib/projects"
 
 interface ToggleProjectFavoriteProps {
   project: Project
@@ -16,32 +18,35 @@ export function ToggleProjectFavorite({ project }: ToggleProjectFavoriteProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslation()
+  const { notifyProjectUpdated } = useProjectsLabelsUpdates()
 
-  const toggleFavorite = async () => {
+  const handleToggleFavorite = async () => {
     setIsLoading(true)
-
     try {
       const response = await fetch(`/api/projects/${project.id}/favorite`, {
         method: "PATCH",
       })
 
       if (!response.ok) {
-        throw new Error("Failed to update project favorite status")
+        throw new Error("Failed to toggle favorite")
       }
 
-      const newStatus = !isFavorite
-      setIsFavorite(newStatus)
+      const updatedProject = await response.json()
+      setIsFavorite(!isFavorite)
+      
+      // Atualizar contexto global
+      notifyProjectUpdated(project.id, { ...project, is_favorite: !isFavorite })
 
       toast({
-        title: newStatus ? "Project added to favorites" : "Project removed from favorites",
+        title: !isFavorite ? t("Added to favorites") : t("Removed from favorites"),
+        description: !isFavorite ? t("Project added to favorites.") : t("Project removed from favorites."),
       })
-
-      router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to update favorite status",
-        description: "Please try again.",
+        title: t("Failed to toggle favorite"),
+        description: t("Please try again."),
       })
     } finally {
       setIsLoading(false)
@@ -50,14 +55,17 @@ export function ToggleProjectFavorite({ project }: ToggleProjectFavoriteProps) {
 
   return (
     <Button
-      variant="outline"
-      size="icon"
-      onClick={toggleFavorite}
+      variant="ghost"
+      size="sm"
+      onClick={handleToggleFavorite}
       disabled={isLoading}
-      title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+      className="h-8 w-8 p-0"
     >
-      <Star className={`h-4 w-4 ${isFavorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
-      <span className="sr-only">{isFavorite ? "Remove from favorites" : "Add to favorites"}</span>
+      <Heart
+        className={`h-4 w-4 ${
+          isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground"
+        }`}
+      />
     </Button>
   )
 }

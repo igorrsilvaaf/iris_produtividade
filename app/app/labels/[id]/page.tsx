@@ -8,9 +8,10 @@ import { EditLabelDialog } from "@/components/edit-label-dialog"
 import { DeleteLabelDialog } from "@/components/delete-label-dialog"
 import { LabelHeaderActions } from "@/components/label-header-actions"
 
-export default async function LabelPage({ params }: { params: { id: string } }) {
+export default async function LabelPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await requireAuth()
-  const labelId = Number.parseInt(params.id)
+  const { id } = await params
+  const labelId = Number.parseInt(id)
 
   const label = await getLabel(labelId, session.user.id)
   const tasks = await getLabelTasks(labelId, session.user.id)

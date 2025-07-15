@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import type { Project } from "@/lib/projects";
 import { useTranslation } from "@/lib/i18n";
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates";
 
 const formSchema = z
   .object({
@@ -47,6 +48,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const { notifyProjectCreated, notifyProjectUpdated } = useProjectsLabelsUpdates();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -82,11 +84,16 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
         description: project ? t("Project has been updated successfully.") : t("Project has been created successfully."),
       });
 
+      // Atualizar contexto global
+      if (project) {
+        notifyProjectUpdated(project.id, responseData.project);
+      } else {
+        notifyProjectCreated(responseData.project);
+      }
+
       if (onSuccess) {
         onSuccess(responseData.project);
       }
-
-      router.refresh();
     } catch (error: any) {
       toast({
         variant: "destructive",

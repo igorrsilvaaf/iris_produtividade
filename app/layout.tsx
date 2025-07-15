@@ -17,6 +17,7 @@ import { ServiceWorkerRegistration } from "@/components/service-worker-registrat
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { TaskProvider } from "@/contexts/task-context";
+import { ProjectsLabelsProvider } from "@/contexts/projects-labels-context";
 
 import "@/app/globals.css";
 
@@ -91,20 +92,22 @@ export default async function RootLayout({
               <AppWrapper>
                 <TranslationsLoader requiredKeys={["Create New Project"]}>
                   <ThemeInitializer>
-                    <TaskProvider>
-                      {pomodoroSettings ? (
-                        <PomodoroProvider initialSettings={pomodoroSettings}>
-                          <ServiceWorkerRegistration />
-                          <div className="flex-1">{children}</div>
-                        </PomodoroProvider>
-                      ) : (
-                        <>
-                          <ServiceWorkerRegistration />
-                          <div className="flex-1">{children}</div>
-                        </>
-                      )}
-                    </TaskProvider>
-                    <Toaster />
+                    <ProjectsLabelsProvider>
+                      <TaskProvider>
+                        {pomodoroSettings ? (
+                          <PomodoroProvider initialSettings={pomodoroSettings}>
+                            <ServiceWorkerRegistration />
+                            <div className="flex-1">{children}</div>
+                          </PomodoroProvider>
+                        ) : (
+                          <>
+                            <ServiceWorkerRegistration />
+                            <div className="flex-1">{children}</div>
+                          </>
+                        )}
+                      </TaskProvider>
+                      <Toaster />
+                    </ProjectsLabelsProvider>
                   </ThemeInitializer>
                 </TranslationsLoader>
               </AppWrapper>

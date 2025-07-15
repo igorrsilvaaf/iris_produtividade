@@ -4,37 +4,39 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates"
+import type { Project } from "@/lib/projects"
 
 interface DeleteProjectDialogProps {
-  projectId: number
-  projectName: string
+  project: Project
   children: React.ReactNode
 }
 
-export function DeleteProjectDialog({ projectId, projectName, children }: DeleteProjectDialogProps) {
+export function DeleteProjectDialog({ project, children }: DeleteProjectDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+  const { notifyProjectDeleted } = useProjectsLabelsUpdates()
 
   const handleDelete = async () => {
     setIsLoading(true)
-
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
+      const response = await fetch(`/api/projects/${project.id}`, {
         method: "DELETE",
       })
 
@@ -42,19 +44,20 @@ export function DeleteProjectDialog({ projectId, projectName, children }: Delete
         throw new Error("Failed to delete project")
       }
 
+      // Atualizar contexto global
+      notifyProjectDeleted(project.id)
+
       toast({
-        title: "Project deleted",
-        description: "Your project has been deleted successfully.",
+        title: t("projectDeleted"),
+        description: t("The project has been deleted successfully."),
       })
 
       setOpen(false)
-      router.push("/app")
-      router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Failed to delete project",
-        description: "Please try again.",
+        title: t("Failed to delete project"),
+        description: t("Please try again."),
       })
     } finally {
       setIsLoading(false)
@@ -62,31 +65,28 @@ export function DeleteProjectDialog({ projectId, projectName, children }: Delete
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild data-testid="delete-project-dialog-trigger">{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]" data-testid="delete-project-dialog-content">
-        <DialogHeader>
-          <DialogTitle data-testid="delete-project-dialog-title">{t("deleteProject")}</DialogTitle>
-          <DialogDescription data-testid="delete-project-dialog-description">
-            {t("deleteProjectConfirm")}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4" data-testid="delete-project-dialog-info">
-          <p className="text-sm font-medium">
-            {t("project")}: <span className="font-bold">{projectName}</span>
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            {t("projectDeleteInfo")}
-          </p>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} data-testid="delete-project-cancel-button">{t("cancel")}</Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={isLoading} data-testid="delete-project-confirm-button">
-            {t("delete")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild data-testid="delete-project-dialog-trigger">{children}</AlertDialogTrigger>
+      <AlertDialogContent data-testid="delete-project-dialog-content">
+        <AlertDialogHeader>
+          <AlertDialogTitle data-testid="delete-project-dialog-title">{t("deleteProject")}</AlertDialogTitle>
+          <AlertDialogDescription data-testid="delete-project-dialog-description">
+            {t("Are you sure you want to delete this project? This action cannot be undone.")}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel data-testid="delete-project-dialog-cancel">{t("Cancel")}</AlertDialogCancel>
+          <AlertDialogAction
+            data-testid="delete-project-dialog-confirm"
+            onClick={handleDelete}
+            disabled={isLoading}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {isLoading ? t("Deleting...") : t("Delete")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 

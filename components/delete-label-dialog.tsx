@@ -4,52 +4,55 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates"
+import type { Label } from "@/lib/labels"
 
 interface DeleteLabelDialogProps {
-  labelId: number
-  labelName: string
+  label: Label
   children: React.ReactNode
 }
 
-export function DeleteLabelDialog({ labelId, labelName, children }: DeleteLabelDialogProps) {
+export function DeleteLabelDialog({ label, children }: DeleteLabelDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+  const { notifyLabelDeleted } = useProjectsLabelsUpdates()
 
   const handleDelete = async () => {
     setIsLoading(true)
-
     try {
-      const response = await fetch(`/api/labels/${labelId}`, {
+      const response = await fetch(`/api/labels/${label.id}`, {
         method: "DELETE",
       })
 
       if (!response.ok) {
-        throw new Error(t("Failed to delete label"))
+        throw new Error("Failed to delete label")
       }
 
+      // Atualizar contexto global
+      notifyLabelDeleted(label.id)
+
       toast({
-        title: t("Label deleted"),
-        description: t("Your label has been deleted successfully."),
+        title: t("labelDeleted"),
+        description: t("The label has been deleted successfully."),
       })
 
       setOpen(false)
-      router.push("/app")
-      router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
@@ -62,33 +65,28 @@ export function DeleteLabelDialog({ labelId, labelName, children }: DeleteLabelD
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild data-testid="delete-label-dialog-trigger">{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]" data-testid="delete-label-dialog-content">
-        <DialogHeader>
-          <DialogTitle data-testid="delete-label-dialog-title">{t("deleteLabel")}</DialogTitle>
-          <DialogDescription data-testid="delete-label-dialog-description">
-            {t("deleteLabelConfirm")}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4" data-testid="delete-label-dialog-info">
-          <p className="text-sm font-medium">
-            {t("label")}: <span className="font-bold">{labelName}</span>
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t("labelDeleteInfo")}
-          </p>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={isLoading} data-testid="delete-label-cancel-button">
-            {t("Cancel")}
-          </Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={isLoading} data-testid="delete-label-confirm-button">
-            {isLoading ? t("Deleting...") : t("Delete Label")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild data-testid="delete-label-dialog-trigger">{children}</AlertDialogTrigger>
+      <AlertDialogContent data-testid="delete-label-dialog-content">
+        <AlertDialogHeader>
+          <AlertDialogTitle data-testid="delete-label-dialog-title">{t("deleteLabel")}</AlertDialogTitle>
+          <AlertDialogDescription data-testid="delete-label-dialog-description">
+            {t("Are you sure you want to delete this label? This action cannot be undone.")}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel data-testid="delete-label-dialog-cancel">{t("Cancel")}</AlertDialogCancel>
+          <AlertDialogAction
+            data-testid="delete-label-dialog-confirm"
+            onClick={handleDelete}
+            disabled={isLoading}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {isLoading ? t("Deleting...") : t("Delete")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 

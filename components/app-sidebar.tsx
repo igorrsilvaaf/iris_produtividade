@@ -31,6 +31,7 @@ import { AddProjectDialog } from "@/components/add-project-dialog"
 import { AddLabelDialog } from "@/components/add-label-dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates"
 import type { Project } from "@/lib/projects"
 import type { Label } from "@/lib/labels"
 import { Logo } from "@/components/logo"
@@ -98,11 +99,9 @@ export function AppSidebar({ user }: { user: User }) {
   const [projectsOpen, setProjectsOpen] = useState(true)
   const [labelsOpen, setLabelsOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
-  const [projects, setProjects] = useState<Project[]>([])
-  const [labels, setLabels] = useState<Label[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
   const { t, language } = useTranslation()
+  const { projects, labels, loading } = useProjectsLabelsUpdates()
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -116,35 +115,6 @@ export function AppSidebar({ user }: { user: User }) {
       window.removeEventListener("resize", checkIfMobile)
     }
   }, [])
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        const projectsResponse = await fetch("/api/projects")
-        if (projectsResponse.ok) {
-          const projectsData = await projectsResponse.json()
-          setProjects(projectsData.projects)
-        }
-
-        const labelsResponse = await fetch("/api/labels")
-        if (labelsResponse.ok) {
-          const labelsData = await labelsResponse.json()
-          setLabels(labelsData.labels)
-        }
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: t("Failed to load data"),
-          description: t("Please refresh the page to try again."),
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [toast])
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-background" data-testid="app-sidebar">
@@ -186,7 +156,7 @@ export function AppSidebar({ user }: { user: User }) {
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-1" data-testid="sidebar-projects-list">
-              {isLoading ? (
+              {loading ? (
                 <div className="flex items-center justify-center py-4">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
@@ -240,7 +210,7 @@ export function AppSidebar({ user }: { user: User }) {
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-1" data-testid="sidebar-labels-list">
-              {isLoading ? (
+              {loading ? (
                 <div className="flex items-center justify-center py-4">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>

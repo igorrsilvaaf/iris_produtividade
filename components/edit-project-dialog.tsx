@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import type { Project } from "@/lib/projects"
 import {
   Dialog,
   DialogContent,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { ProjectForm } from "@/components/project-form"
 import { useTranslation } from "@/lib/i18n"
+import type { Project } from "@/lib/projects"
 
 interface EditProjectDialogProps {
   project: Project
@@ -26,18 +26,18 @@ export function EditProjectDialog({ project, children }: EditProjectDialogProps)
   const router = useRouter()
   const { t } = useTranslation()
 
-  const handleSuccess = () => {
+  const handleSuccess = (updatedProject: Project) => {
     setOpen(false)
-    router.refresh()
+    // O contexto já foi atualizado pelo ProjectForm, não precisa chamar novamente
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogTrigger asChild data-testid="edit-project-dialog-trigger">{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]" data-testid="edit-project-dialog-content">
         <DialogHeader>
-          <DialogTitle>{t("editProject")}</DialogTitle>
-          <DialogDescription>{t("updateProjectDetails")}</DialogDescription>
+          <DialogTitle data-testid="edit-project-dialog-title">{t("Update Project")}</DialogTitle>
+          <DialogDescription data-testid="edit-project-dialog-description">{t("Update the project details below.")}</DialogDescription>
         </DialogHeader>
         <ProjectForm project={project} onSuccess={handleSuccess} />
       </DialogContent>
