@@ -67,17 +67,25 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
 
       const method = project ? "PATCH" : "POST";
 
+      console.log("Submitting form with values:", values);
+      console.log("Fetching URL:", url);
+      console.log("Fetch method:", method);
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
 
+      console.log("Fetch response:", response);
+
       if (!response.ok) {
         throw new Error(project ? t("Failed to update project") : t("Failed to create project"));
       }
 
       const responseData = await response.json();
+
+      console.log("Response data:", responseData);
 
       toast({
         title: project ? t("Project updated") : t("Project created"),
@@ -95,6 +103,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
         onSuccess(responseData.project);
       }
     } catch (error: any) {
+      console.error("Error submitting form:", error);
       toast({
         variant: "destructive",
         title: project ? t("Failed to update project") : t("Failed to create project"),

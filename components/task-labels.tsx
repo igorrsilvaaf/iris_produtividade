@@ -100,7 +100,6 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
   useEffect(() => {
     setIsFetched(false);
     setLabels([]);
-    setAllLabels([]);
   }, [taskId]);
 
   const addLabelToTask = async (labelId: number) => {

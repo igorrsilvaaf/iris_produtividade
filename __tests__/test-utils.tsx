@@ -1,13 +1,16 @@
 import React from 'react'
 import { render, RenderOptions } from '@testing-library/react'
 import { TaskProvider } from '@/contexts/task-context'
+import { ProjectsLabelsProvider } from '@/contexts/projects-labels-context'
 
 // Provider wrapper para testes
 const TestProviders = ({ children }: { children: React.ReactNode }) => {
   return (
-    <TaskProvider>
-      {children}
-    </TaskProvider>
+    <ProjectsLabelsProvider>
+      <TaskProvider>
+        {children}
+      </TaskProvider>
+    </ProjectsLabelsProvider>
   )
 }
 

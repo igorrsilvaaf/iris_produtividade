@@ -178,15 +178,22 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const [estimatedTimeUnit, setEstimatedTimeUnit] = useState<string>("min");
   const router = useRouter();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, language, setLanguage, isHydrated } = useTranslation();
   const { notifyTaskCompleted, notifyTaskUpdated } = useTaskUpdates();
   const { projects } = useProjectsLabelsUpdates();
 
-  useEffect(() => {
-    if (initialLanguage) {
-      setLanguage(initialLanguage as "en" | "pt");
+  const safeTranslate = (key: string) => {
+    if (!isHydrated) return key;
+    try {
+      return t(key);
+    } catch (error) {
+      return key;
     }
-  }, [initialLanguage, setLanguage]);
+  };
+
+  if (!isHydrated) {
+    return null;
+  }
 
   useEffect(() => {
     const fetchTaskProject = async () => {
@@ -321,8 +328,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
       toast({
         title: task.completed
-          ? t("Task marked as incomplete")
-          : t("Task marked as complete"),
+                  ? safeTranslate("Task marked as incomplete")
+        : safeTranslate("Task marked as complete"),
         variant: "success",
       });
 
@@ -335,8 +342,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
     } catch (error) {
       toast({
         variant: "destructive",
-        title: t("Failed to update task"),
-        description: t("Please try again."),
+        title: safeTranslate("Failed to update task"),
+        description: safeTranslate("Please try again."),
       });
     }
   };
@@ -382,17 +389,17 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const getPointsLabel = (points: number) => {
     switch (points) {
       case 1:
-        return t("Muito Fácil");
+        return safeTranslate("veryEasy");
       case 2:
-        return t("Fácil");
+        return safeTranslate("easy");
       case 3:
-        return t("Médio");
+        return safeTranslate("medium");
       case 4:
-        return t("Difícil");
+        return safeTranslate("hard");
       case 5:
-        return t("Muito Difícil");
+        return safeTranslate("veryHard");
       default:
-        return t("Médio");
+        return safeTranslate("medium");
     }
   };
 
@@ -501,8 +508,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       console.error("Error uploading file:", error);
       toast({
         variant: "destructive",
-        title: t("Failed to upload file"),
-        description: t("Please try again."),
+        title: safeTranslate("Failed to upload file"),
+        description: safeTranslate("Please try again."),
       });
     }
   };
@@ -564,8 +571,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       console.error("Error adding attachment:", error);
       toast({
         variant: "destructive",
-        title: t("Failed to add attachment"),
-        description: t("Please try again."),
+        title: safeTranslate("Failed to add attachment"),
+        description: safeTranslate("Please try again."),
       });
     }
   };
@@ -614,8 +621,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       task.attachments = updatedTask.attachments;
 
       toast({
-        title: t("Attachment removed"),
-        description: t("Your attachment has been removed successfully."),
+        title: safeTranslate("Attachment removed"),
+        description: safeTranslate("Your attachment has been removed successfully."),
       });
 
       router.refresh();
@@ -623,8 +630,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       console.error("Error removing attachment:", error);
       toast({
         variant: "destructive",
-        title: t("Failed to remove attachment"),
-        description: t("Please try again."),
+        title: safeTranslate("Failed to remove attachment"),
+        description: safeTranslate("Please try again."),
       });
     }
   };
@@ -689,24 +696,24 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-auto w-[95vw] sm:w-full" data-testid="task-detail-content">
         <DialogHeader>
           <DialogTitle data-testid="task-detail-title">
-            {isEditMode ? t("Editar Tarefa") : t("Detalhes da Tarefa")}
+            {isEditMode ? safeTranslate("editTask") : safeTranslate("taskDetails")}
           </DialogTitle>
           <DialogDescription data-testid="task-detail-description">
             {isEditMode
-              ? t("Edite os detalhes da sua tarefa.")
-              : t("Visualize os detalhes da sua tarefa.")}
+              ? safeTranslate("Edite os detalhes da sua tarefa.")
+              : safeTranslate("Visualize os detalhes da sua tarefa.")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4" data-testid="task-detail-form">
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t("title")}</label>
+            <label className="text-sm font-medium">{safeTranslate("title")}</label>
             <Textarea
               id="title"
               data-testid="task-detail-title-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={t("Task title")}
+                              placeholder={safeTranslate("Task title")}
               className="min-h-[80px] text-base"
               rows={3}
               readOnly={!isEditMode}
@@ -715,14 +722,14 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t("description")}</label>
+            <label className="text-sm font-medium">{safeTranslate("description")}</label>
             {isEditMode ? (
               <Textarea
                 id="description"
                 data-testid="task-detail-description-input"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder={t("Add details about your task")}
+                                  placeholder={safeTranslate("Add details about your task")}
                 className="min-h-[120px]"
                 rows={5}
               />
@@ -731,7 +738,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 {description ? (
                   <MarkdownRenderer content={description} />
                 ) : (
-                  <p className="text-muted-foreground">{t("No description")}</p>
+                  <p className="text-muted-foreground">{safeTranslate("No description")}</p>
                 )}
               </div>
             )}
@@ -739,7 +746,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t("dueDate")}</label>
+              <label className="text-sm font-medium">{safeTranslate("dueDate")}</label>
               <div className="flex flex-col space-y-2">
                 <Popover
                   open={isEditMode ? datePickerOpen : false}
@@ -765,7 +772,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                             `${format(dueDate, "dd/MM/yyyy")} ${dueTime}`
                           )
                         ) : (
-                          t("Pick a date")
+                          safeTranslate("Pick a date")
                         )}
                       </span>
                     </Button>
@@ -773,7 +780,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   <PopoverContent className="w-auto p-0" align="start" data-testid="task-detail-date-picker">
                     <div className="p-3">
                       <div className="flex justify-between items-center">
-                        <p className="text-sm font-medium">{t("Date")}</p>
+                        <p className="text-sm font-medium">{safeTranslate("Date")}</p>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -784,7 +791,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                           data-testid="task-detail-date-picker-close"
                         >
                           <X className="h-4 w-4" />
-                          <span className="sr-only">{t("close")}</span>
+                          <span className="sr-only">{safeTranslate("close")}</span>
                         </Button>
                       </div>
                       <Calendar
@@ -825,7 +832,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                             className="text-sm font-normal cursor-pointer"
                             htmlFor="taskDetailAllDay"
                           >
-                            {t("allDay")}
+                            {safeTranslate("allDay")}
                           </label>
                         </div>
                       </div>
@@ -866,7 +873,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t("priority")}</label>
+              <label className="text-sm font-medium">{safeTranslate("priority")}</label>
               <Select
                 value={priority}
                 onValueChange={setPriority}
@@ -875,39 +882,39 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 <SelectTrigger data-testid="task-detail-priority-select"
                   className={!isEditMode ? "cursor-not-allowed" : ""}
                 >
-                  <SelectValue placeholder={t("Select priority")} />
+                  <SelectValue placeholder={safeTranslate("Select priority")} />
                 </SelectTrigger>
                 <SelectContent data-testid="task-detail-priority-content">
                   <SelectItem value="1" data-testid="task-detail-priority-1">
                     <div className="flex items-center">
                       <Flag
-                        className={`mr-2 h-4 w-4 ${getPriorityColor("1")}`}
+                        className={`mr-2 h-4 w-4 ${getPointsColor(1)}`}
                       />
-                      {t("Grave")}
+                      {safeTranslate("priority1")}
                     </div>
                   </SelectItem>
                   <SelectItem value="2" data-testid="task-detail-priority-2">
                     <div className="flex items-center">
                       <Flag
-                        className={`mr-2 h-4 w-4 ${getPriorityColor("2")}`}
+                        className={`mr-2 h-4 w-4 ${getPointsColor(2)}`}
                       />
-                      {t("Alta")}
+                      {safeTranslate("priority2")}
                     </div>
                   </SelectItem>
                   <SelectItem value="3" data-testid="task-detail-priority-3">
                     <div className="flex items-center">
                       <Flag
-                        className={`mr-2 h-4 w-4 ${getPriorityColor("3")}`}
+                        className={`mr-2 h-4 w-4 ${getPointsColor(3)}`}
                       />
-                      {t("Média")}
+                      {safeTranslate("priority3")}
                     </div>
                   </SelectItem>
                   <SelectItem value="4" data-testid="task-detail-priority-4">
                     <div className="flex items-center">
                       <Flag
-                        className={`mr-2 h-4 w-4 ${getPriorityColor("4")}`}
+                        className={`mr-2 h-4 w-4 ${getPointsColor(4)}`}
                       />
-                      {t("Baixa")}
+                      {safeTranslate("priority4")}
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -918,7 +925,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                {t("points") || "Pontos"}
+                {safeTranslate("points") || "Pontos"}
               </label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -944,11 +951,11 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 <PopoverContent className="w-auto p-0" align="start" data-testid="task-detail-points-content">
                   <div className="grid grid-cols-1 gap-2 p-2">
                     {[
-                      { value: 1, label: t("Muito Fácil") },
-                      { value: 2, label: t("Fácil") },
-                      { value: 3, label: t("Médio") },
-                      { value: 4, label: t("Difícil") },
-                      { value: 5, label: t("Muito Difícil") },
+                      { value: 1, label: safeTranslate("veryEasy") },
+                      { value: 2, label: safeTranslate("easy") },
+                      { value: 3, label: safeTranslate("medium") },
+                      { value: 4, label: safeTranslate("hard") },
+                      { value: 5, label: safeTranslate("veryHard") },
                     ].map(({ value, label }) => (
                       <Button
                         key={value}
@@ -974,12 +981,12 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                {t("Tempo estimado")}
+                {safeTranslate("task.estimatedTime")}
               </label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <Input
                   type="number"
-                  placeholder={t("Tempo")}
+                  placeholder={safeTranslate("task.timeValue")}
                   className={`flex-1 ${
                     !isEditMode ? "cursor-not-allowed" : ""
                   }`}
@@ -1004,12 +1011,12 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                     }`}
                     data-testid="task-detail-estimated-time-unit-select"
                   >
-                    <SelectValue placeholder={t("Unidade")} />
+                    <SelectValue placeholder={safeTranslate("task.timeUnit")} />
                   </SelectTrigger>
                   <SelectContent data-testid="task-detail-estimated-time-unit-content">
-                    <SelectItem value="min" data-testid="task-detail-estimated-time-unit-minutes">{t("Minutos")}</SelectItem>
-                    <SelectItem value="h" data-testid="task-detail-estimated-time-unit-hours">{t("Horas")}</SelectItem>
-                    <SelectItem value="d" data-testid="task-detail-estimated-time-unit-days">{t("Dias")}</SelectItem>
+                    <SelectItem value="min" data-testid="task-detail-estimated-time-unit-minutes">{safeTranslate("timeUnit.minutes")}</SelectItem>
+                    <SelectItem value="h" data-testid="task-detail-estimated-time-unit-hours">{safeTranslate("timeUnit.hours")}</SelectItem>
+                    <SelectItem value="d" data-testid="task-detail-estimated-time-unit-days">{safeTranslate("timeUnit.days")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1017,7 +1024,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t("project")}</label>
+            <label className="text-sm font-medium">{safeTranslate("project")}</label>
             <div className={`${!isEditMode ? "cursor-not-allowed" : ""}`}>
               {projectId && projects.find((p) => p.id.toString() === projectId) ? (
                 <div
@@ -1049,13 +1056,13 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">{t("noProject")}</p>
+                <p className="text-sm text-muted-foreground">{safeTranslate("noProject")}</p>
               )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t("labels")}</label>
+            <label className="text-sm font-medium">{safeTranslate("labels")}</label>
             <div className={`${!isEditMode ? "cursor-not-allowed" : ""}`} data-testid="task-detail-labels-container">
               <TaskLabels
                 key={taskLabelsKey}
@@ -1067,7 +1074,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              {t("attachment.list")}
+              {safeTranslate("attachment.list")}
             </label>
             <div
               className={`space-y-2 ${!isEditMode ? "cursor-not-allowed" : ""}`}
@@ -1154,7 +1161,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         onClick={() => setAttachmentType("image")}
                         className="w-full"
                       >
-                        {t("Image")}
+                        {safeTranslate("Image")}
                       </Button>
                       <Button
                         type="button"
@@ -1165,7 +1172,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         onClick={() => setAttachmentType("file")}
                         className="w-full"
                       >
-                        {t("File")}
+                        {safeTranslate("File")}
                       </Button>
                     </div>
 
@@ -1178,7 +1185,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         />
 
                         <Input
-                          placeholder={t("Name (optional)")}
+                          placeholder={safeTranslate("Name (optional)")}
                           value={attachmentName}
                           onChange={(e) => setAttachmentName(e.target.value)}
                         />
@@ -1190,7 +1197,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                             disabled={!attachmentUrl.trim()}
                             size="sm"
                           >
-                            {t("Add")}
+                            {safeTranslate("Add")}
                           </Button>
                           <Button
                             type="button"
@@ -1202,7 +1209,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                               setAttachmentName("");
                             }}
                           >
-                            {t("Cancel")}
+                            {safeTranslate("Cancel")}
                           </Button>
                         </div>
                       </>
@@ -1220,7 +1227,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                               ? setImageUploadRef(node)
                               : setFileUploadRef(node)
                           }
-                          title={attachmentType === "image" ? t("Select Image") : t("Select File")}
+                          title={attachmentType === "image" ? safeTranslate("Select Image") : safeTranslate("Select File")}
                         />
                         <Button
                           type="button"
@@ -1229,8 +1236,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                           size="sm"
                         >
                           {attachmentType === "image"
-                            ? t("Select Image")
-                            : t("Select File")}
+                            ? safeTranslate("Select Image")
+                            : safeTranslate("Select File")}
                         </Button>
                         <Button
                           type="button"
@@ -1239,7 +1246,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                           onClick={() => setShowAddAttachment(false)}
                           className="w-full"
                         >
-                          {t("Cancel")}
+                          {safeTranslate("Cancel")}
                         </Button>
                       </>
                     )}
@@ -1253,7 +1260,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                     className="w-full"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    {t("attachment.add")}
+                    {safeTranslate("attachment.add")}
                   </Button>
                 )
               ) : null}
@@ -1305,7 +1312,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
             data-testid="task-detail-cancel-close-button"
           >
             <X className="mr-1 h-4 w-4" />
-            {isEditMode ? t("cancel") : t("close")}
+            {isEditMode ? safeTranslate("cancel") : safeTranslate("close")}
           </Button>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto" data-testid="task-detail-actions">
             {isEditMode ? (
@@ -1313,23 +1320,21 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={handleDelete}
                   disabled={isDeleting}
                   className="w-full sm:w-auto min-w-[100px]"
                   data-testid="task-detail-delete-button"
                 >
                   <Trash className="mr-1 h-4 w-4" />
-                  {isDeleting ? t("Deleting...") : t("delete")}
+                  {isDeleting ? safeTranslate("Deleting...") : safeTranslate("delete")}
                 </Button>
                 <Button
                   size="sm"
-                  onClick={handleSave}
                   disabled={isSaving}
                   className="w-full sm:w-auto min-w-[100px]"
                   data-testid="task-detail-save-button"
                 >
                   <Check className="mr-1 h-4 w-4" />
-                  {isSaving ? t("Saving...") : t("save")}
+                  {isSaving ? safeTranslate("Saving...") : safeTranslate("save")}
                 </Button>
               </>
             ) : (
@@ -1341,7 +1346,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   data-testid="task-detail-edit-button"
                 >
                   <Edit className="mr-1 h-4 w-4" />
-                  {t("edit")}
+                  {safeTranslate("edit")}
                 </Button>
               </>
             )}
