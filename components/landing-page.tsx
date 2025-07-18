@@ -90,23 +90,23 @@ export default function LandingPage() {
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-16 xl:gap-20 items-center max-w-[1920px] mx-auto">
               <div className="flex flex-col justify-center space-y-5 max-w-3xl">
                 <div className="space-y-3 sm:space-y-4">
-                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl xl:text-6xl">
+                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl xl:text-6xl" data-testid="landing-main-title">
                     {t("Organize suas tarefas com facilidade")}
                   </h1>
-                  <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-[600px]">
+                  <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-[600px]" data-testid="landing-main-subtitle">
                     {t("Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, notificações, modo escuro e muito mais.")}
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-3 sm:flex-row sm:items-center sm:space-x-4 text-xs sm:text-sm text-muted-foreground">
-                  <div className="flex items-center">
+                <div className="flex flex-wrap gap-3 sm:flex-row sm:items-center sm:space-x-4 text-xs sm:text-sm text-muted-foreground" data-testid="landing-features-list">
+                  <div className="flex items-center" data-testid="landing-feature-free">
                     <Check className="text-primary h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
                     {t("Gratuito")}
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center" data-testid="landing-feature-easy">
                     <Check className="text-primary h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
                     {t("Fácil de usar")}
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center" data-testid="landing-feature-secure">
                     <Check className="text-primary h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
                     {t("Seguro")}
                   </div>
@@ -149,66 +149,66 @@ export default function LandingPage() {
           <div className="container px-4 md:px-6 mx-auto relative">
             <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4 text-center mb-8 sm:mb-12">
               <div className="space-y-2 max-w-3xl">
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tighter md:text-4xl lg:text-5xl">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tighter md:text-4xl lg:text-5xl" data-testid="landing-features-title">
                   {t("Recursos avançados de produtividade")}
                 </h2>
-                <p className="max-w-[900px] text-muted-foreground text-sm sm:text-base md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="max-w-[900px] text-muted-foreground text-sm sm:text-base md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed" data-testid="landing-features-subtitle">
                   {t("Tudo o que você precisa para se manter organizado e produtivo em um só lugar")}
                 </p>
               </div>
             </div>
             <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 sm:gap-6 md:gap-8 py-4 sm:py-8 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-pomodoro">
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold">{t("Temporizador Pomodoro")}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
+                <h3 className="text-lg sm:text-xl font-bold" data-testid="landing-feature-pomodoro-title">{t("Temporizador Pomodoro")}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground" data-testid="landing-feature-pomodoro-description">
                   {t("Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.")}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-tasks">
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <List className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold">{t("Gerenciamento de Tarefas")}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
+                <h3 className="text-lg sm:text-xl font-bold" data-testid="landing-feature-tasks-title">{t("Gerenciamento de Tarefas")}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground" data-testid="landing-feature-tasks-description">
                   {t("Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.")}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-calendar">
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold">{t("Visualização de Calendário")}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
+                <h3 className="text-lg sm:text-xl font-bold" data-testid="landing-feature-calendar-title">{t("Visualização de Calendário")}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground" data-testid="landing-feature-calendar-description">
                   {t("Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.")}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-notifications">
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold">{t("Sistema de Notificações")}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
+                <h3 className="text-lg sm:text-xl font-bold" data-testid="landing-feature-notifications-title">{t("Sistema de Notificações")}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground" data-testid="landing-feature-notifications-description">
                   {t("Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.")}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-dark-mode">
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <Moon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold">{t("Modo Escuro")}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
+                <h3 className="text-lg sm:text-xl font-bold" data-testid="landing-feature-dark-mode-title">{t("Modo Escuro")}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground" data-testid="landing-feature-dark-mode-description">
                   {t("Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.")}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-customization">
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <Star className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold">{t("Personalização")}</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">
+                <h3 className="text-lg sm:text-xl font-bold" data-testid="landing-feature-customization-title">{t("Personalização")}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground" data-testid="landing-feature-customization-description">
                   {t("Adapte o aplicativo ao seu estilo com cores personalizáveis, diferentes sons de notificação e preferências de exibição.")}
                 </p>
               </div>
@@ -218,10 +218,10 @@ export default function LandingPage() {
         <section className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-background">
           <div className="container px-4 md:px-6 mx-auto">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-8 sm:mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tighter md:text-4xl lg:text-5xl">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tighter md:text-4xl lg:text-5xl" data-testid="landing-cta-title">
                 {t("Comece a usar hoje")}
               </h2>
-              <p className="max-w-[600px] text-sm sm:text-base text-muted-foreground sm:text-lg md:text-xl/relaxed">
+              <p className="max-w-[600px] text-sm sm:text-base text-muted-foreground sm:text-lg md:text-xl/relaxed" data-testid="landing-cta-subtitle">
                 {t("Registre-se gratuitamente e comece a organizar suas tarefas e aumentar sua produtividade")}
               </p>
               <div className="flex flex-row gap-3 sm:gap-4 mt-3 sm:mt-4">
