@@ -52,6 +52,8 @@ interface RichTextEditorProps {
   disabled?: boolean;
   className?: string;
   minHeight?: string;
+  dataTestid?: string;
+  showActions?: boolean;
 }
 
 export function RichTextEditor({
@@ -64,7 +66,9 @@ export function RichTextEditor({
   cancelLabel = "Cancelar",
   disabled = false,
   className = "",
-  minHeight = "120px"
+  minHeight = "120px",
+  dataTestid: testId,
+  showActions = true
 }: RichTextEditorProps) {
   const [showPreview, setShowPreview] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
@@ -167,15 +171,6 @@ export function RichTextEditor({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      onSubmit?.();
-    }
-
-    if (e.key === 'Escape') {
-      onCancel?.();
-    }
-
     // Atalhos de formatação
     if (e.ctrlKey || e.metaKey) {
       switch (e.key) {
@@ -195,6 +190,18 @@ export function RichTextEditor({
           e.preventDefault();
           setShowLinkDialog(true);
           break;
+      }
+    }
+
+    // Só processar Ctrl+Enter e Escape se showActions for true
+    if (showActions) {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        onSubmit?.();
+      }
+
+      if (e.key === 'Escape') {
+        onCancel?.();
       }
     }
   };
@@ -234,7 +241,7 @@ export function RichTextEditor({
   };
 
   return (
-    <div className={`border border-input rounded-lg bg-background ${className}`}>
+    <div className={`border border-input rounded-lg bg-background ${className}`} data-testid={testId}>
       <Tabs defaultValue="edit" value={showPreview ? "preview" : "edit"} className="w-full">
         {/* Barra de Ferramentas */}
         <div className="flex items-center justify-between border-b border-border p-2 bg-muted/30">
@@ -446,35 +453,37 @@ export function RichTextEditor({
       </Tabs>
 
       {/* Ações e Dicas */}
-      <div className="flex items-center justify-between p-3 bg-muted/20 border-t border-border">
-        <div className="text-xs text-muted-foreground">
-          <span className="hidden sm:inline">Ctrl+Enter para enviar • </span>
-          <span>Suporte a Markdown</span>
+      {showActions && (
+        <div className="flex items-center justify-between p-3 bg-muted/20 border-t border-border">
+          <div className="text-xs text-muted-foreground">
+            <span className="hidden sm:inline">Ctrl+Enter para enviar • </span>
+            <span>Suporte a Markdown</span>
+          </div>
+          <div className="flex gap-2">
+            {onCancel && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onCancel}
+                disabled={disabled}
+                className="h-7 px-3 text-xs"
+              >
+                {cancelLabel}
+              </Button>
+            )}
+            {onSubmit && (
+              <Button
+                onClick={onSubmit}
+                disabled={disabled || !value.trim()}
+                size="sm"
+                className="h-7 px-3 text-xs"
+              >
+                {submitLabel}
+              </Button>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
-          {onCancel && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onCancel}
-              disabled={disabled}
-              className="h-7 px-3 text-xs"
-            >
-              {cancelLabel}
-            </Button>
-          )}
-          {onSubmit && (
-            <Button
-              onClick={onSubmit}
-              disabled={disabled || !value.trim()}
-              size="sm"
-              className="h-7 px-3 text-xs"
-            >
-              {submitLabel}
-            </Button>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -115,6 +115,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import { TaskLabels } from "@/components/task-labels";
 import { ProjectForm } from "@/components/project-form";
+import { RichTextEditor } from "@/components/rich-text-editor";
 
 export type TodoWithEditMode = Todo & {
   isEditMode?: boolean;
@@ -724,14 +725,15 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           <div className="space-y-2">
             <label className="text-sm font-medium">{safeTranslate("description")}</label>
             {isEditMode ? (
-              <Textarea
-                id="description"
-                data-testid="task-detail-description-input"
+              <RichTextEditor
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                                  placeholder={safeTranslate("Add details about your task")}
-                className="min-h-[120px]"
-                rows={5}
+                onChange={setDescription}
+                placeholder={safeTranslate("Add details about your task")}
+                disabled={isSaving}
+                minHeight="200px"
+                className="w-full"
+                showActions={false}
+                dataTestid="task-detail-description-input"
               />
             ) : (
               <div className="p-3 border rounded-md min-h-[120px] cursor-not-allowed" data-testid="task-detail-description-display">
