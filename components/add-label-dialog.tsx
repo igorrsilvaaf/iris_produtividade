@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { LabelForm } from "@/components/label-form"
 import { useTranslation } from "@/lib/i18n"
+import type { Label } from "@/lib/labels"
 
 interface AddLabelDialogProps {
   children: React.ReactNode
@@ -24,9 +25,9 @@ export function AddLabelDialog({ children }: AddLabelDialogProps) {
   const router = useRouter()
   const { t } = useTranslation()
 
-  const handleSuccess = () => {
+  const handleSuccess = (newLabel: Label) => {
     setOpen(false)
-    router.refresh()
+    // O contexto já foi atualizado pelo LabelForm, não precisa chamar novamente
   }
 
   return (

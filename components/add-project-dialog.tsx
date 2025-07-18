@@ -22,6 +22,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates";
+import { Label } from "@/components/ui/label";
+import { HexColorPicker } from "react-colorful";
+import { colorPaletteHex } from "@/lib/colors";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Project name is required" }),
@@ -36,6 +40,7 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+  const { notifyProjectCreated } = useProjectsLabelsUpdates()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,6 +66,11 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
         throw new Error("Failed to create project")
       }
 
+      const responseData = await response.json()
+
+      // Atualizar contexto global
+      notifyProjectCreated(responseData.project)
+
       toast({
         title: t("projectCreated"),
         description: t("Your project has been created successfully."),
@@ -68,10 +78,6 @@ export function AddProjectDialog({ children }: { children: React.ReactNode }) {
 
       form.reset()
       setOpen(false)
-      
-      setTimeout(() => {
-        router.refresh()
-      }, 300);
       
     } catch (error) {
       toast({

@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import type { Label } from "@/lib/labels"
 import {
   Dialog,
   DialogContent,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { LabelForm } from "@/components/label-form"
 import { useTranslation } from "@/lib/i18n"
+import type { Label } from "@/lib/labels"
 
 interface EditLabelDialogProps {
   label: Label
@@ -26,18 +26,18 @@ export function EditLabelDialog({ label, children }: EditLabelDialogProps) {
   const router = useRouter()
   const { t } = useTranslation()
 
-  const handleSuccess = () => {
+  const handleSuccess = (updatedLabel: Label) => {
     setOpen(false)
-    router.refresh()
+    // O contexto já foi atualizado pelo LabelForm, não precisa chamar novamente
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogTrigger asChild data-testid="edit-label-dialog-trigger">{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]" data-testid="edit-label-dialog-content">
         <DialogHeader>
-          <DialogTitle>{t("editLabel")}</DialogTitle>
-          <DialogDescription>{t("updateLabelDetails")}</DialogDescription>
+          <DialogTitle data-testid="edit-label-dialog-title">{t("editLabel")}</DialogTitle>
+          <DialogDescription data-testid="edit-label-dialog-description">{t("updateLabelDetails")}</DialogDescription>
         </DialogHeader>
         <LabelForm label={label} onSuccess={handleSuccess} />
       </DialogContent>

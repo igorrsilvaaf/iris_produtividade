@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '../test-utils';
 import { TodoList } from '@/components/todo-list';
 import '@testing-library/jest-dom';
+import { Todo } from '@/lib/todos';
 
 const mockRefresh = jest.fn();
 jest.mock('next/navigation', () => ({
@@ -50,37 +51,116 @@ global.fetch = jest.fn(() =>
 );
 
 describe('Componente TodoList', () => {
-  const mockTasks = [
+  const mockTasks: Todo[] = [
     {
       id: 1,
-      title: 'Tarefa 1',
-      description: 'Descrição da tarefa 1',
-      due_date: new Date().toISOString(),
+      title: "Tarefa 1",
+      description: "Descrição da tarefa 1",
+      due_date: "2023-06-01",
       priority: 1,
       completed: false,
-      created_at: new Date().toISOString(),
+      created_at: "2023-05-01T00:00:00.000Z",
       updated_at: null,
-      project_name: 'Projeto A',
-      project_color: '#ff0000',
-      points: 2
+      project_name: "Projeto A",
+      project_color: "#ff0000",
+      points: 1,
+      user_id: 1,
     },
     {
       id: 2,
-      title: 'Tarefa 2',
-      description: 'Descrição da tarefa 2',
-      due_date: new Date(Date.now() + 86400000).toISOString(), // Amanhã
+      title: "Tarefa 2",
+      description: "Descrição da tarefa 2",
+      due_date: "2023-06-02",
       priority: 2,
       completed: true,
-      created_at: new Date().toISOString(),
+      created_at: "2023-05-02T00:00:00.000Z",
       updated_at: null,
-      project_name: 'Projeto B',
-      project_color: '#00ff00',
-      points: 3
-    }
+      project_name: "Projeto B",
+      project_color: "#00ff00",
+      points: 3,
+      user_id: 1,
+    },
+    {
+      id: 3,
+      title: "Tarefa 3",
+      description: "Descrição da tarefa 3",
+      due_date: "2023-06-03",
+      priority: 3,
+      completed: false,
+      created_at: "2023-05-03T00:00:00.000Z",
+      updated_at: null,
+      project_name: "Projeto C",
+      project_color: "#0000ff",
+      points: 5,
+      user_id: 1,
+    },
+  ];
+
+  const mockTasks2: Todo[] = [
+    {
+      id: 1,
+      title: "Tarefa 1",
+      description: "Descrição da tarefa 1",
+      due_date: "2023-06-01",
+      priority: 1,
+      completed: false,
+      created_at: "2023-05-01T00:00:00.000Z",
+      updated_at: null,
+      project_name: "Projeto A",
+      project_color: "#ff0000",
+      points: 1,
+      user_id: 1,
+    },
+    {
+      id: 2,
+      title: "Tarefa 2",
+      description: "Descrição da tarefa 2",
+      due_date: "2023-06-02",
+      priority: 2,
+      completed: true,
+      created_at: "2023-05-02T00:00:00.000Z",
+      updated_at: null,
+      project_name: "Projeto B",
+      project_color: "#00ff00",
+      points: 3,
+      user_id: 1,
+    },
+  ];
+
+  const mockTasks3: Todo[] = [
+    {
+      id: 1,
+      title: "Tarefa 1",
+      due_date: "2023-06-01",
+      description: "Descrição da tarefa 1",
+      priority: 1,
+      completed: false,
+      created_at: "2023-05-01T00:00:00.000Z",
+      updated_at: null,
+      project_name: "Projeto A",
+      project_color: "#ff0000",
+      points: 1,
+      user_id: 1,
+    },
+    {
+      id: 2,
+      priority: 2,
+      title: "Tarefa 2",
+      description: "Descrição da tarefa 2",
+      due_date: "2023-06-02",
+      completed: true,
+      created_at: "2023-05-02T00:00:00.000Z",
+      updated_at: null,
+      project_name: "Projeto B",
+      project_color: "#00ff00",
+      points: 3,
+      user_id: 1,
+    },
   ];
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (global.fetch as jest.Mock).mockImplementation(() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
   });
 
   test('deve mostrar mensagem quando não há tarefas', () => {
@@ -118,14 +198,16 @@ describe('Componente TodoList', () => {
   });
 
   test('deve chamar API para excluir tarefa quando botão de excluir é clicado', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+
     render(<TodoList initialTasks={mockTasks} />);
 
-    const deleteButtons = screen.getAllByRole('button');
-    fireEvent.click(deleteButtons[deleteButtons.length - 2]); // Botão de excluir da primeira tarefa
+    const deleteButton = screen.getByTestId('task-delete-button-1');
+    fireEvent.click(deleteButton);
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        '/api/tasks/1',
+        '/api/tasks/1/1',
         { method: 'DELETE' }
       );
     });
@@ -169,14 +251,27 @@ describe('Componente TodoList', () => {
   });
 
   test('deve exibir toast de erro quando falhar ao marcar tarefa como concluída', async () => {
-    (global.fetch as jest.Mock).mockImplementationOnce(() => {
-      throw new Error('API Error');
-    });
+    const mockTask = {
+      id: 1,
+      title: 'Tarefa 1',
+      completed: false,
+      user_id: 1,
+      description: 'Descrição da tarefa 1',
+      due_date: '2023-06-01',
+      priority: 1,
+      created_at: '2023-05-01T00:00:00.000Z',
+      updated_at: null,
+    };
 
-    render(<TodoList initialTasks={mockTasks} />);
+    (global.fetch as jest.Mock)
+      .mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ projects: {}, labels: {} }) }))
+      .mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ projects: {}, labels: {} }) }))
+      .mockImplementationOnce(() => Promise.resolve({ ok: false, statusText: 'Erro', json: () => Promise.resolve({}) }));
 
-    const checkboxes = screen.getAllByRole('checkbox');
-    fireEvent.click(checkboxes[0]);
+    render(<TodoList initialTasks={[mockTask]} />);
+
+    const checkbox = screen.getByTestId('task-checkbox-1');
+    fireEvent.click(checkbox);
 
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledWith({
@@ -188,14 +283,27 @@ describe('Componente TodoList', () => {
   });
 
   test('deve exibir toast de erro quando falhar ao excluir tarefa', async () => {
-    (global.fetch as jest.Mock).mockImplementationOnce(() => {
-      throw new Error('API Error');
-    });
+    const mockTask = {
+      id: 2,
+      title: 'Tarefa 2',
+      completed: true,
+      user_id: 1,
+      description: 'Descrição da tarefa 2',
+      due_date: '2023-06-02',
+      priority: 2,
+      created_at: '2023-05-02T00:00:00.000Z',
+      updated_at: null,
+    };
 
-    render(<TodoList initialTasks={mockTasks} />);
+    (global.fetch as jest.Mock)
+      .mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ projects: {}, labels: {} }) }))
+      .mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ projects: {}, labels: {} }) }))
+      .mockImplementationOnce(() => Promise.resolve({ ok: false, statusText: 'Erro', json: () => Promise.resolve({}) }));
 
-    const deleteButtons = screen.getAllByRole('button');
-    fireEvent.click(deleteButtons[deleteButtons.length - 2]);
+    render(<TodoList initialTasks={[mockTask]} />);
+
+    const deleteButton = screen.getByTestId('task-delete-button-2');
+    fireEvent.click(deleteButton);
 
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledWith({
@@ -316,7 +424,14 @@ describe('Componente TodoList', () => {
 
   test('deve renderizar tarefas sem project_name corretamente', () => {
     const taskWithoutProject = [
-      { ...mockTasks[0], id: 17, project_name: null, project_color: null, title: 'Sem Projeto' }
+      { 
+        ...mockTasks[0], 
+        id: 17, 
+        project_name: undefined, 
+        project_color: undefined, 
+        title: 'Sem Projeto',
+        points: 1,
+      }
     ];
 
     render(<TodoList initialTasks={taskWithoutProject} />);
@@ -327,7 +442,14 @@ describe('Componente TodoList', () => {
 
   test('deve renderizar tarefas sem points corretamente', () => {
     const taskWithoutPoints = [
-      { ...mockTasks[0], id: 18, points: null, title: 'Sem Pontuação' }
+      { 
+        ...mockTasks[0], 
+        id: 18, 
+        points: undefined, 
+        title: 'Sem Pontuação',
+        project_name: 'Projeto A',
+        project_color: '#ff0000',
+      }
     ];
 
     render(<TodoList initialTasks={taskWithoutPoints} />);

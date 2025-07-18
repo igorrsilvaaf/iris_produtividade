@@ -35,6 +35,11 @@ function taskReducer(state: TaskState, action: TaskAction): TaskState {
       return { ...state, tasks: action.payload, loading: false }
     
     case 'ADD_TASK':
+      // Verificar se a tarefa já existe para evitar duplicatas
+      const taskExists = state.tasks.some(task => task.id === action.payload.id)
+      if (taskExists) {
+        return state
+      }
       return { 
         ...state, 
         tasks: [action.payload, ...state.tasks],

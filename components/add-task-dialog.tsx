@@ -78,6 +78,7 @@ import { LabelForm } from "@/components/label-form";
 import { ProjectForm } from "@/components/project-form";
 import { BackButton } from "@/components/ui/back-button";
 import { useTaskUpdates } from "@/hooks/use-task-updates";
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates";
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -119,11 +120,7 @@ export function AddTaskDialog({
   initialColumn,
 }: AddTaskDialogProps) {
   const [open, setOpen] = useState(false);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [labels, setLabels] = useState<Label[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
-  const [isLoadingLabels, setIsLoadingLabels] = useState(false);
   const [showAddLabel, setShowAddLabel] = useState(false);
   const [showCreateLabel, setShowCreateLabel] = useState(false);
   const [showAddProject, setShowAddProject] = useState(false);
@@ -133,6 +130,7 @@ export function AddTaskDialog({
   const { toast } = useToast();
   const { t, setLanguage } = useTranslation();
   const { notifyTaskCreated } = useTaskUpdates();
+  const { projects, labels, loading: projectsLabelsLoading, notifyProjectCreated, notifyLabelCreated } = useProjectsLabelsUpdates();
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachmentUrl, setAttachmentUrl] = useState("");
@@ -167,42 +165,7 @@ export function AddTaskDialog({
     },
   });
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      setIsLoadingProjects(true);
-      try {
-        const response = await fetch("/api/projects");
-        if (response.ok) {
-          const data = await response.json();
-          setProjects(data.projects);
-        }
-      } catch (error) {
-        console.error("Failed to fetch projects:", error);
-      } finally {
-        setIsLoadingProjects(false);
-      }
-    };
 
-    const fetchLabels = async () => {
-      setIsLoadingLabels(true);
-      try {
-        const response = await fetch("/api/labels");
-        if (response.ok) {
-          const data = await response.json();
-          setLabels(data.labels);
-        }
-      } catch (error) {
-        console.error("Failed to fetch labels:", error);
-      } finally {
-        setIsLoadingLabels(false);
-      }
-    };
-
-    if (open) {
-      fetchProjects();
-      fetchLabels();
-    }
-  }, [open]);
 
   const toggleLabel = (label: Label) => {
     const labelIds = form.getValues("labelIds") || [];
@@ -226,47 +189,41 @@ export function AddTaskDialog({
 
   const handleCreateLabelSuccess = async (newLabel: Label) => {
     setShowCreateLabel(false);
-    try {
-      const response = await fetch("/api/labels");
-      const data = await response.json();
-      setLabels(data.labels);
+    
+    // Atualizar contexto global
+    notifyLabelCreated(newLabel);
 
-      if (newLabel) {
-        const currentLabelIds = form.getValues("labelIds") || [];
-        form.setValue("labelIds", [...currentLabelIds, newLabel.id], {
-          shouldValidate: true,
-          shouldDirty: true,
-        });
-        setSelectedLabels((prev) => [...prev, newLabel]);
-      }
-    } catch (error) {
-      console.error("Failed to refresh labels:", error);
+    // Auto-selecionar o label criado no contexto de task
+    if (newLabel) {
+      const currentLabelIds = form.getValues("labelIds") || [];
+      form.setValue("labelIds", [...currentLabelIds, newLabel.id], {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      setSelectedLabels((prev) => [...prev, newLabel]);
     }
   };
 
   const handleCreateProjectSuccess = async (newProject: Project) => {
     setShowCreateProject(false);
-    try {
-      const response = await fetch("/api/projects");
-      const data = await response.json();
-      setProjects(data.projects);
+    
+    // Atualizar contexto global
+    notifyProjectCreated(newProject);
 
-      if (newProject) {
-        form.setValue("projectId", newProject.id.toString(), {
-          shouldValidate: true,
-          shouldDirty: true,
-          shouldTouch: true,
-        });
-      }
-
-      setShowAddProject(false);
-
-      setTimeout(() => {
-        form.trigger("projectId");
-      }, 100);
-    } catch (error) {
-      console.error("Failed to refresh projects:", error);
+    // Auto-selecionar o projeto criado no contexto de task
+    if (newProject) {
+      form.setValue("projectId", newProject.id.toString(), {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
     }
+
+    setShowAddProject(false);
+
+    setTimeout(() => {
+      form.trigger("projectId");
+    }, 100);
   };
 
   const addAttachment = () => {
@@ -1027,7 +984,7 @@ export function AddTaskDialog({
                           </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-2 py-4">
-                          {isLoadingProjects ? (
+                          {projectsLabelsLoading ? (
                             <div className="flex items-center justify-center p-4">
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                             </div>
@@ -1168,7 +1125,7 @@ export function AddTaskDialog({
                           </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-2 py-4">
-                          {isLoadingLabels ? (
+                          {projectsLabelsLoading ? (
                             <div className="flex items-center justify-center p-4">
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                             </div>

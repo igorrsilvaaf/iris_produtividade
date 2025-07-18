@@ -71,8 +71,9 @@ import type { Project } from "@/lib/projects";
 
 // Hooks e utils locais
 import { useTranslation } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates";
 import { useTaskUpdates } from "@/hooks/use-task-updates";
+import { cn } from "@/lib/utils";
 
 // 6. Componentes UI (agrupados por funcionalidade)
 import { Button } from "@/components/ui/button";
@@ -155,10 +156,9 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [taskLabelsKey, setTaskLabelsKey] = useState(0);
-  const [projects, setProjects] = useState<Project[]>([]);
+
   const [showAddProject, setShowAddProject] = useState(false);
   const [showCreateProject, setShowCreateProject] = useState(false);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
   const [attachments, setAttachments] = useState<
     Array<{ type: string; url: string; name: string }>
   >(task.attachments || []);
@@ -178,8 +178,22 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const [estimatedTimeUnit, setEstimatedTimeUnit] = useState<string>("min");
   const router = useRouter();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, language, setLanguage, isHydrated } = useTranslation();
   const { notifyTaskCompleted, notifyTaskUpdated } = useTaskUpdates();
+  const { projects } = useProjectsLabelsUpdates();
+
+  const safeTranslate = (key: string) => {
+    if (!isHydrated) return key;
+    try {
+      return t(key);
+    } catch (error) {
+      return key;
+    }
+  };
+
+  if (!isHydrated) {
+    return null;
+  }
 
   useEffect(() => {
     const fetchTaskProject = async () => {
@@ -275,494 +289,6 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   }, [open, task]);
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      setIsLoadingProjects(true);
-      try {
-        const response = await fetch("/api/projects");
-        
-        if (response.ok) {
-          const data = await response.json();
-          setProjects(data.projects || []);
-
-          // Não precisa do setProjectName aqui - o nome do projeto é obtido dinamicamente
-        } else {
-          console.error("Failed to fetch projects - Status:", response.status);
-          const errorData = await response.text();
-          console.error("Error details:", errorData);
-          
-          if (response.status === 401) {
-            console.error("Unauthorized - user may not be logged in");
-          }
-          
-          setProjects([]);
-        }
-      } catch (error) {
-        console.error("Failed to fetch projects:", error);
-        setProjects([]);
-      } finally {
-        setIsLoadingProjects(false);
-      }
-    };
-
-    if (open) {
-      // Debug: verificar se usuário está autenticado
-      fetch('/api/auth/session')
-        .then(res => res.json())
-        .then(session => {
-          if (session?.user) {
-            fetchProjects();
-          } else {
-            console.error('User not authenticated - cannot fetch projects');
-            setProjects([]);
-            setIsLoadingProjects(false);
-          }
-        })
-        .catch(err => {
-          console.error('Session check failed:', err);
-          fetchProjects(); // Tenta buscar mesmo assim
-        });
-    }
-  }, [projectId, open]);
-
-  const handleCreateProjectSuccess = async () => {
-    setShowCreateProject(false);
-    
-    try {
-      const response = await fetch("/api/projects");
-      
-      if (response.ok) {
-        const data = await response.json();
-        setProjects(data.projects || []);
-        
-        if (data.projects && data.projects.length > 0) {
-          const newProject = data.projects[data.projects.length - 1];
-          setProjectId(newProject.id.toString());
-          setShowAddProject(false);
-
-          try {
-            const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                projectId: newProject.id,
-              }),
-            });
-
-            if (projectResponse.ok) {
-              setTimeout(() => {
-                router.refresh();
-              }, 100);
-            } else {
-              console.error("Failed to associate project with task - Status:", projectResponse.status);
-            }
-          } catch (error) {
-            console.error("Falha ao associar o projeto à tarefa:", error);
-          }
-        }
-      } else {
-        console.error("Failed to refresh projects - Status:", response.status);
-        const errorData = await response.text();
-        console.error("Error details:", errorData);
-      }
-    } catch (error) {
-      console.error("Failed to refresh projects:", error);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      setIsSaving(true);
-
-      let dueDateWithTime = null;
-
-      if (dueDate) {
-        if (isAllDay) {
-          const date = new Date(dueDate);
-          date.setHours(0, 0, 0, 0);
-          dueDateWithTime = date.toISOString();
-        } else if (dueTime) {
-          const date = new Date(dueDate);
-          const [hours, minutes] = dueTime.split(":").map(Number);
-          date.setHours(hours, minutes, 0, 0);
-          dueDateWithTime = date.toISOString();
-        }
-      }
-
-      const estimatedTimeInMinutes = convertTimeToMinutes(
-        estimatedTime,
-        estimatedTimeUnit
-      );
-
-      const taskResponse = await fetch(`/api/tasks/${task.id}/${task.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description: description || null,
-          due_date: dueDateWithTime,
-          priority: Number.parseInt(priority),
-          points,
-          attachments,
-          estimated_time: estimatedTimeInMinutes,
-        }),
-      });
-
-      if (!taskResponse.ok) {
-        throw new Error("Failed to update task details");
-      }
-
-      if (projectId) {
-        const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            projectId: Number.parseInt(projectId),
-          }),
-        });
-
-        if (!projectResponse.ok) {
-          throw new Error("Failed to update task project");
-        }
-      } else {
-        const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            projectId: null,
-          }),
-        });
-
-        if (!projectResponse.ok) {
-          throw new Error("Failed to remove task project");
-        }
-      }
-
-      toast({
-        title: t("taskUpdated"),
-        description: t("Your task has been updated successfully."),
-      });
-
-      onOpenChange(false);
-      setIsEditMode(false);
-      router.refresh();
-    } catch (error) {
-      console.error("[TaskDetail] Erro ao salvar tarefa:", error);
-      toast({
-        variant: "destructive",
-        title: t("Failed to update task"),
-        description: t("Please try again."),
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!task.id) return;
-
-    setIsDeleting(true);
-
-    try {
-      const response = await fetch(`/api/tasks/${task.id}/${task.id}`, {
-        method: "DELETE",
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Failed to delete task: ${errorData.error}`);
-      }
-
-      onOpenChange(false);
-
-      toast({
-        title: t("Task deleted"),
-        description: t("Your task has been deleted successfully."),
-        variant: "success",
-      });
-      
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("Failed to delete task"),
-        description: error instanceof Error ? error.message : t("Please try again."),
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const getPriorityColor = (p: string) => {
-    switch (p) {
-      case "1":
-        return "text-red-500";
-      case "2":
-        return "text-orange-500";
-      case "3":
-        return "text-blue-500";
-      default:
-        return "text-gray-400";
-    }
-  };
-
-  const getPriorityName = (p: string) => {
-    switch (p) {
-      case "1":
-        return t("priority1");
-      case "2":
-        return t("priority2");
-      case "3":
-        return t("priority3");
-      case "4":
-        return t("priority4");
-      default:
-        return t("priority4");
-    }
-  };
-
-  const toggleCheckboxInDescription = (index: number) => {
-    if (isEditMode) return;
-
-    const regex = /\[([x ])\]/g;
-    let match;
-    const checkboxPositions = [];
-
-    while ((match = regex.exec(description)) !== null) {
-      checkboxPositions.push({
-        position: match.index,
-        checked: match[1] === "x",
-      });
-    }
-
-    if (index >= checkboxPositions.length) {
-      return;
-    }
-
-    const position = checkboxPositions[index];
-    const newDescription =
-      description.substring(0, position.position + 1) +
-      (position.checked ? " " : "x") +
-      description.substring(position.position + 2);
-
-    setDescription(newDescription);
-
-    setTimeout(() => {
-      updateTaskDescription(newDescription);
-    }, 100);
-  };
-
-  const updateTaskDescription = async (newDescription: string) => {
-    try {
-      const response = await fetch(`/api/tasks/${task.id}/${task.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          description: newDescription,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error(`[TaskDetail] Erro ao atualizar descrição:`, errorData);
-        throw new Error("Failed to update task description");
-      }
-
-      const updatedData = await response.json();
-
-      toast({
-        title: t("Task updated"),
-        description: t("Checklist item has been updated."),
-      });
-
-      router.refresh();
-    } catch (error) {
-      console.error(`[TaskDetail] Erro ao atualizar descrição:`, error);
-      toast({
-        variant: "destructive",
-        title: t("Failed to update task"),
-        description: t("Please try again."),
-      });
-    }
-  };
-
-  const renderDescription = () => {
-    if (!description)
-      return <p className="text-muted-foreground">{t("No description")}</p>;
-
-    const allCheckboxes = [];
-    const checkboxRegex = /\[([ x]?)\]/g;
-    let match;
-    let tempDescription = description;
-
-    while ((match = checkboxRegex.exec(tempDescription)) !== null) {
-      allCheckboxes.push({
-        index: match.index,
-        checked: match[1] === "x" || match[1] === "X",
-      });
-    }
-
-    let globalCheckboxIndex = 0;
-    return description.split("\n").map((line, lineIndex) => {
-      if (line.trim() === "") {
-        return <br key={`empty-line-${lineIndex}`} />;
-      }
-
-      const isBullet = line.trim().match(/^-\s(.+)$/);
-      if (isBullet) {
-        const bulletContent = isBullet[1];
-        const processedContent = processBulletContent(
-          bulletContent,
-          lineIndex,
-          globalCheckboxIndex
-        );
-        globalCheckboxIndex += processedContent.checkboxCount;
-
-        return (
-          <p key={`bullet-line-${lineIndex}`} className="mb-2 flex">
-            <span className="mr-2">•</span>
-            <span>{processedContent.content}</span>
-          </p>
-        );
-      }
-
-      const processedLine = processLineContent(
-        line,
-        lineIndex,
-        globalCheckboxIndex
-      );
-      globalCheckboxIndex += processedLine.checkboxCount;
-
-      return (
-        <p key={`regular-line-${lineIndex}`} className="mb-2">
-          {processedLine.content}
-        </p>
-      );
-    });
-  };
-
-  const processBulletContent = (
-    content: string,
-    lineIndex: number,
-    startCheckboxIndex: number
-  ) => {
-    return processLineContent(content, lineIndex, startCheckboxIndex);
-  };
-
-  const processLineContent = (
-    line: string,
-    lineIndex: number,
-    startCheckboxIndex: number
-  ) => {
-    let segments = [];
-    let lastIndex = 0;
-    let checkboxCount = 0;
-    let segmentIndex = 0;
-
-    const combinedRegex = /(\[([ x]?)\]|https?:\/\/[^\s]+)/g;
-    let match;
-    let lastCheckbox = null;
-
-    while ((match = combinedRegex.exec(line)) !== null) {
-      if (match.index > lastIndex) {
-        const textSegment = line.substring(lastIndex, match.index);
-        if (lastCheckbox && lastCheckbox.isChecked) {
-          segments.push(
-            <span
-              key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}
-              className="line-through text-muted-foreground"
-            >
-              {textSegment}
-            </span>
-          );
-        } else {
-          segments.push(
-            <span key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}>
-              {textSegment}
-            </span>
-          );
-        }
-        lastCheckbox = null;
-      }
-
-      if (match[0].startsWith("[")) {
-        const isChecked = match[2] === "x" || match[2] === "X";
-        const currentCheckboxIndex = startCheckboxIndex + checkboxCount;
-
-        segments.push(
-          <span
-            key={`checkbox-${lineIndex}-${match.index}-${segmentIndex++}`}
-            className="inline-flex items-center align-middle"
-          >
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                toggleCheckboxInDescription(currentCheckboxIndex);
-              }}
-              disabled={isEditMode}
-              className="inline-flex items-center justify-center w-[18px] h-[18px] rounded mr-2 border border-input hover:bg-accent hover:text-accent-foreground"
-              role="checkbox"
-              data-state={isChecked ? "checked" : "unchecked"}
-              aria-checked="false"
-            >
-              {isChecked && <Check className="h-3 w-3" />}
-            </button>
-          </span>
-        );
-
-        lastCheckbox = { isChecked };
-        checkboxCount++;
-      } else if (match[0].match(/https?:\/\//)) {
-        segments.push(
-          <a
-            key={`url-${lineIndex}-${match.index}-${segmentIndex++}`}
-            href={match[0]}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`text-blue-500 hover:underline inline-flex items-center ${
-              lastCheckbox && lastCheckbox.isChecked ? "line-through" : ""
-            }`}
-          >
-            {match[0]}
-          </a>
-        );
-      }
-
-      lastIndex = match.index + match[0].length;
-    }
-
-    if (lastIndex < line.length) {
-      const restText = line.substring(lastIndex);
-      if (lastCheckbox && lastCheckbox.isChecked) {
-        segments.push(
-          <span
-            key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}
-            className="line-through text-muted-foreground"
-          >
-            {restText}
-          </span>
-        );
-      } else {
-        segments.push(
-          <span key={`text-${lineIndex}-${lastIndex}-${segmentIndex++}`}>
-            {restText}
-          </span>
-        );
-      }
-    }
-
-    return {
-      content: segments.length > 0 ? segments : line,
-      checkboxCount,
-    };
-  };
-
-  useEffect(() => {
     if (dueTimeUpdate) {
       setDueTimeUpdate(false);
     }
@@ -802,8 +328,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
       toast({
         title: task.completed
-          ? t("Task marked as incomplete")
-          : t("Task marked as complete"),
+                  ? safeTranslate("Task marked as incomplete")
+        : safeTranslate("Task marked as complete"),
         variant: "success",
       });
 
@@ -816,8 +342,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
     } catch (error) {
       toast({
         variant: "destructive",
-        title: t("Failed to update task"),
-        description: t("Please try again."),
+        title: safeTranslate("Failed to update task"),
+        description: safeTranslate("Please try again."),
       });
     }
   };
@@ -863,17 +389,17 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const getPointsLabel = (points: number) => {
     switch (points) {
       case 1:
-        return t("Muito Fácil");
+        return safeTranslate("veryEasy");
       case 2:
-        return t("Fácil");
+        return safeTranslate("easy");
       case 3:
-        return t("Médio");
+        return safeTranslate("medium");
       case 4:
-        return t("Difícil");
+        return safeTranslate("hard");
       case 5:
-        return t("Muito Difícil");
+        return safeTranslate("veryHard");
       default:
-        return t("Médio");
+        return safeTranslate("medium");
     }
   };
 
@@ -982,8 +508,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       console.error("Error uploading file:", error);
       toast({
         variant: "destructive",
-        title: t("Failed to upload file"),
-        description: t("Please try again."),
+        title: safeTranslate("Failed to upload file"),
+        description: safeTranslate("Please try again."),
       });
     }
   };
@@ -1045,8 +571,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       console.error("Error adding attachment:", error);
       toast({
         variant: "destructive",
-        title: t("Failed to add attachment"),
-        description: t("Please try again."),
+        title: safeTranslate("Failed to add attachment"),
+        description: safeTranslate("Please try again."),
       });
     }
   };
@@ -1095,8 +621,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       task.attachments = updatedTask.attachments;
 
       toast({
-        title: t("Attachment removed"),
-        description: t("Your attachment has been removed successfully."),
+        title: safeTranslate("Attachment removed"),
+        description: safeTranslate("Your attachment has been removed successfully."),
       });
 
       router.refresh();
@@ -1104,8 +630,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       console.error("Error removing attachment:", error);
       toast({
         variant: "destructive",
-        title: t("Failed to remove attachment"),
-        description: t("Please try again."),
+        title: safeTranslate("Failed to remove attachment"),
+        description: safeTranslate("Please try again."),
       });
     }
   };
@@ -1170,24 +696,24 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-auto w-[95vw] sm:w-full" data-testid="task-detail-content">
         <DialogHeader>
           <DialogTitle data-testid="task-detail-title">
-            {isEditMode ? t("Editar Tarefa") : t("Detalhes da Tarefa")}
+            {isEditMode ? safeTranslate("editTask") : safeTranslate("taskDetails")}
           </DialogTitle>
           <DialogDescription data-testid="task-detail-description">
             {isEditMode
-              ? t("Edite os detalhes da sua tarefa.")
-              : t("Visualize os detalhes da sua tarefa.")}
+              ? safeTranslate("Edite os detalhes da sua tarefa.")
+              : safeTranslate("Visualize os detalhes da sua tarefa.")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4" data-testid="task-detail-form">
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t("title")}</label>
+            <label className="text-sm font-medium">{safeTranslate("title")}</label>
             <Textarea
               id="title"
               data-testid="task-detail-title-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={t("Task title")}
+                              placeholder={safeTranslate("Task title")}
               className="min-h-[80px] text-base"
               rows={3}
               readOnly={!isEditMode}
@@ -1196,14 +722,14 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t("description")}</label>
+            <label className="text-sm font-medium">{safeTranslate("description")}</label>
             {isEditMode ? (
               <Textarea
                 id="description"
                 data-testid="task-detail-description-input"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder={t("Add details about your task")}
+                                  placeholder={safeTranslate("Add details about your task")}
                 className="min-h-[120px]"
                 rows={5}
               />
@@ -1212,7 +738,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 {description ? (
                   <MarkdownRenderer content={description} />
                 ) : (
-                  <p className="text-muted-foreground">{t("No description")}</p>
+                  <p className="text-muted-foreground">{safeTranslate("No description")}</p>
                 )}
               </div>
             )}
@@ -1220,7 +746,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t("dueDate")}</label>
+              <label className="text-sm font-medium">{safeTranslate("dueDate")}</label>
               <div className="flex flex-col space-y-2">
                 <Popover
                   open={isEditMode ? datePickerOpen : false}
@@ -1246,7 +772,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                             `${format(dueDate, "dd/MM/yyyy")} ${dueTime}`
                           )
                         ) : (
-                          t("Pick a date")
+                          safeTranslate("Pick a date")
                         )}
                       </span>
                     </Button>
@@ -1254,7 +780,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   <PopoverContent className="w-auto p-0" align="start" data-testid="task-detail-date-picker">
                     <div className="p-3">
                       <div className="flex justify-between items-center">
-                        <p className="text-sm font-medium">{t("Date")}</p>
+                        <p className="text-sm font-medium">{safeTranslate("Date")}</p>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -1265,7 +791,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                           data-testid="task-detail-date-picker-close"
                         >
                           <X className="h-4 w-4" />
-                          <span className="sr-only">{t("close")}</span>
+                          <span className="sr-only">{safeTranslate("close")}</span>
                         </Button>
                       </div>
                       <Calendar
@@ -1306,7 +832,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                             className="text-sm font-normal cursor-pointer"
                             htmlFor="taskDetailAllDay"
                           >
-                            {t("allDay")}
+                            {safeTranslate("allDay")}
                           </label>
                         </div>
                       </div>
@@ -1347,7 +873,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t("priority")}</label>
+              <label className="text-sm font-medium">{safeTranslate("priority")}</label>
               <Select
                 value={priority}
                 onValueChange={setPriority}
@@ -1356,39 +882,39 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 <SelectTrigger data-testid="task-detail-priority-select"
                   className={!isEditMode ? "cursor-not-allowed" : ""}
                 >
-                  <SelectValue placeholder={t("Select priority")} />
+                  <SelectValue placeholder={safeTranslate("Select priority")} />
                 </SelectTrigger>
                 <SelectContent data-testid="task-detail-priority-content">
                   <SelectItem value="1" data-testid="task-detail-priority-1">
                     <div className="flex items-center">
                       <Flag
-                        className={`mr-2 h-4 w-4 ${getPriorityColor("1")}`}
+                        className={`mr-2 h-4 w-4 ${getPointsColor(1)}`}
                       />
-                      {t("Grave")}
+                      {safeTranslate("priority1")}
                     </div>
                   </SelectItem>
                   <SelectItem value="2" data-testid="task-detail-priority-2">
                     <div className="flex items-center">
                       <Flag
-                        className={`mr-2 h-4 w-4 ${getPriorityColor("2")}`}
+                        className={`mr-2 h-4 w-4 ${getPointsColor(2)}`}
                       />
-                      {t("Alta")}
+                      {safeTranslate("priority2")}
                     </div>
                   </SelectItem>
                   <SelectItem value="3" data-testid="task-detail-priority-3">
                     <div className="flex items-center">
                       <Flag
-                        className={`mr-2 h-4 w-4 ${getPriorityColor("3")}`}
+                        className={`mr-2 h-4 w-4 ${getPointsColor(3)}`}
                       />
-                      {t("Média")}
+                      {safeTranslate("priority3")}
                     </div>
                   </SelectItem>
                   <SelectItem value="4" data-testid="task-detail-priority-4">
                     <div className="flex items-center">
                       <Flag
-                        className={`mr-2 h-4 w-4 ${getPriorityColor("4")}`}
+                        className={`mr-2 h-4 w-4 ${getPointsColor(4)}`}
                       />
-                      {t("Baixa")}
+                      {safeTranslate("priority4")}
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -1399,7 +925,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                {t("points") || "Pontos"}
+                {safeTranslate("points") || "Pontos"}
               </label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -1425,11 +951,11 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 <PopoverContent className="w-auto p-0" align="start" data-testid="task-detail-points-content">
                   <div className="grid grid-cols-1 gap-2 p-2">
                     {[
-                      { value: 1, label: t("Muito Fácil") },
-                      { value: 2, label: t("Fácil") },
-                      { value: 3, label: t("Médio") },
-                      { value: 4, label: t("Difícil") },
-                      { value: 5, label: t("Muito Difícil") },
+                      { value: 1, label: safeTranslate("veryEasy") },
+                      { value: 2, label: safeTranslate("easy") },
+                      { value: 3, label: safeTranslate("medium") },
+                      { value: 4, label: safeTranslate("hard") },
+                      { value: 5, label: safeTranslate("veryHard") },
                     ].map(({ value, label }) => (
                       <Button
                         key={value}
@@ -1455,12 +981,12 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                {t("Tempo estimado")}
+                {safeTranslate("task.estimatedTime")}
               </label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <Input
                   type="number"
-                  placeholder={t("Tempo")}
+                  placeholder={safeTranslate("task.timeValue")}
                   className={`flex-1 ${
                     !isEditMode ? "cursor-not-allowed" : ""
                   }`}
@@ -1485,12 +1011,12 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                     }`}
                     data-testid="task-detail-estimated-time-unit-select"
                   >
-                    <SelectValue placeholder={t("Unidade")} />
+                    <SelectValue placeholder={safeTranslate("task.timeUnit")} />
                   </SelectTrigger>
                   <SelectContent data-testid="task-detail-estimated-time-unit-content">
-                    <SelectItem value="min" data-testid="task-detail-estimated-time-unit-minutes">{t("Minutos")}</SelectItem>
-                    <SelectItem value="h" data-testid="task-detail-estimated-time-unit-hours">{t("Horas")}</SelectItem>
-                    <SelectItem value="d" data-testid="task-detail-estimated-time-unit-days">{t("Dias")}</SelectItem>
+                    <SelectItem value="min" data-testid="task-detail-estimated-time-unit-minutes">{safeTranslate("timeUnit.minutes")}</SelectItem>
+                    <SelectItem value="h" data-testid="task-detail-estimated-time-unit-hours">{safeTranslate("timeUnit.hours")}</SelectItem>
+                    <SelectItem value="d" data-testid="task-detail-estimated-time-unit-days">{safeTranslate("timeUnit.days")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1498,136 +1024,45 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t("project")}</label>
+            <label className="text-sm font-medium">{safeTranslate("project")}</label>
             <div className={`${!isEditMode ? "cursor-not-allowed" : ""}`}>
-              {isLoadingProjects ? (
-                <div className="flex items-center justify-center p-4">{t("Loading projects...")}</div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {projectId && projects.find((p) => p.id.toString() === projectId) ? (
-                      <div
-                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                        style={{
-                          backgroundColor: projects.find((p) => p.id.toString() === projectId)?.color || "#ccc",
-                          color: "#fff",
-                        }}
-                      >
-                        <div
-                          className="w-3 h-3 rounded-full mr-1"
-                          style={{
-                            backgroundColor: "rgba(255,255,255,0.3)",
-                          }}
-                        />
-                        <span>
-                          {projects.find((p) => p.id.toString() === projectId)?.name}
-                        </span>
-                        {isEditMode && (
-                          <button
-                            type="button"
-                            onClick={() => setProjectId(null)}
-                            className="ml-1 hover:bg-black/10 rounded-full p-0.5"
-                            aria-label={`Remove project`}
-                            title="Remove project"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">{t("noProject")}</p>
-                    )}
-                  </div>
-                  
+              {projectId && projects.find((p) => p.id.toString() === projectId) ? (
+                <div
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                  style={{
+                    backgroundColor: projects.find((p) => p.id.toString() === projectId)?.color || "#ccc",
+                    color: "#fff",
+                  }}
+                >
+                  <div
+                    className="w-3 h-3 rounded-full mr-1"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.3)",
+                    }}
+                  />
+                  <span>
+                    {projects.find((p) => p.id.toString() === projectId)?.name}
+                  </span>
                   {isEditMode && (
-                    <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="mt-2">
-                          <Plus className="mr-1 h-3 w-3" />
-                          {t("Add Project")}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>{t("Add Project")}</DialogTitle>
-                          <DialogDescription>
-                            {t("Select a project or create a new one.")}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-2 py-4">
-                          {isLoadingProjects ? (
-                            <div className="flex items-center justify-center p-4">{t("Loading projects...")}</div>
-                          ) : projects.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                              {t("No projects found.")}
-                            </p>
-                          ) : (
-                            projects.map((project) => (
-                              <button
-                                key={project.id}
-                                type="button"
-                                className="flex items-center justify-between p-2 border rounded hover:bg-accent"
-                                onClick={() => {
-                                  setProjectId(project.id.toString());
-                                  setShowAddProject(false);
-                                }}
-                              >
-                                <div className="flex items-center">
-                                  <div
-                                    style={{ backgroundColor: project.color }}
-                                    className="w-4 h-4 rounded-full mr-2"
-                                  />
-                                  <span>{project.name}</span>
-                                </div>
-                              </button>
-                            ))
-                          )}
-                        </div>
-                        <div className="mt-4 border-t pt-4 flex justify-between">
-                          <Button
-                            variant="outline"
-                            onClick={() => setShowAddProject(false)}
-                          >
-                            {t("Cancel")}
-                          </Button>
-                          <Dialog
-                            open={showCreateProject}
-                            onOpenChange={setShowCreateProject}
-                          >
-                            <DialogTrigger asChild>
-                              <Button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setShowCreateProject(true);
-                                }}
-                              >
-                                {t("Create New Project")}
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent
-                              className="z-[70]"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <DialogHeader>
-                                <DialogTitle>{t("Create New Project")}</DialogTitle>
-                                <DialogDescription>
-                                  {t("Fill in the details to create a new project.")}
-                                </DialogDescription>
-                              </DialogHeader>
-                              <ProjectForm onSuccess={handleCreateProjectSuccess} />
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <button
+                      type="button"
+                      onClick={() => setProjectId(null)}
+                      className="ml-1 hover:bg-black/10 rounded-full p-0.5"
+                      aria-label={`Remove project`}
+                      title="Remove project"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   )}
                 </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">{safeTranslate("noProject")}</p>
               )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t("labels")}</label>
+            <label className="text-sm font-medium">{safeTranslate("labels")}</label>
             <div className={`${!isEditMode ? "cursor-not-allowed" : ""}`} data-testid="task-detail-labels-container">
               <TaskLabels
                 key={taskLabelsKey}
@@ -1639,7 +1074,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              {t("attachment.list")}
+              {safeTranslate("attachment.list")}
             </label>
             <div
               className={`space-y-2 ${!isEditMode ? "cursor-not-allowed" : ""}`}
@@ -1726,7 +1161,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         onClick={() => setAttachmentType("image")}
                         className="w-full"
                       >
-                        {t("Image")}
+                        {safeTranslate("Image")}
                       </Button>
                       <Button
                         type="button"
@@ -1737,7 +1172,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         onClick={() => setAttachmentType("file")}
                         className="w-full"
                       >
-                        {t("File")}
+                        {safeTranslate("File")}
                       </Button>
                     </div>
 
@@ -1750,7 +1185,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         />
 
                         <Input
-                          placeholder={t("Name (optional)")}
+                          placeholder={safeTranslate("Name (optional)")}
                           value={attachmentName}
                           onChange={(e) => setAttachmentName(e.target.value)}
                         />
@@ -1762,7 +1197,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                             disabled={!attachmentUrl.trim()}
                             size="sm"
                           >
-                            {t("Add")}
+                            {safeTranslate("Add")}
                           </Button>
                           <Button
                             type="button"
@@ -1774,7 +1209,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                               setAttachmentName("");
                             }}
                           >
-                            {t("Cancel")}
+                            {safeTranslate("Cancel")}
                           </Button>
                         </div>
                       </>
@@ -1792,7 +1227,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                               ? setImageUploadRef(node)
                               : setFileUploadRef(node)
                           }
-                          title={attachmentType === "image" ? t("Select Image") : t("Select File")}
+                          title={attachmentType === "image" ? safeTranslate("Select Image") : safeTranslate("Select File")}
                         />
                         <Button
                           type="button"
@@ -1801,8 +1236,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                           size="sm"
                         >
                           {attachmentType === "image"
-                            ? t("Select Image")
-                            : t("Select File")}
+                            ? safeTranslate("Select Image")
+                            : safeTranslate("Select File")}
                         </Button>
                         <Button
                           type="button"
@@ -1811,7 +1246,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                           onClick={() => setShowAddAttachment(false)}
                           className="w-full"
                         >
-                          {t("Cancel")}
+                          {safeTranslate("Cancel")}
                         </Button>
                       </>
                     )}
@@ -1825,7 +1260,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                     className="w-full"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    {t("attachment.add")}
+                    {safeTranslate("attachment.add")}
                   </Button>
                 )
               ) : null}
@@ -1877,7 +1312,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
             data-testid="task-detail-cancel-close-button"
           >
             <X className="mr-1 h-4 w-4" />
-            {isEditMode ? t("cancel") : t("close")}
+            {isEditMode ? safeTranslate("cancel") : safeTranslate("close")}
           </Button>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto" data-testid="task-detail-actions">
             {isEditMode ? (
@@ -1885,23 +1320,21 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={handleDelete}
                   disabled={isDeleting}
                   className="w-full sm:w-auto min-w-[100px]"
                   data-testid="task-detail-delete-button"
                 >
                   <Trash className="mr-1 h-4 w-4" />
-                  {isDeleting ? t("Deleting...") : t("delete")}
+                  {isDeleting ? safeTranslate("Deleting...") : safeTranslate("delete")}
                 </Button>
                 <Button
                   size="sm"
-                  onClick={handleSave}
                   disabled={isSaving}
                   className="w-full sm:w-auto min-w-[100px]"
                   data-testid="task-detail-save-button"
                 >
                   <Check className="mr-1 h-4 w-4" />
-                  {isSaving ? t("Saving...") : t("save")}
+                  {isSaving ? safeTranslate("Saving...") : safeTranslate("save")}
                 </Button>
               </>
             ) : (
@@ -1913,7 +1346,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   data-testid="task-detail-edit-button"
                 >
                   <Edit className="mr-1 h-4 w-4" />
-                  {t("edit")}
+                  {safeTranslate("edit")}
                 </Button>
               </>
             )}

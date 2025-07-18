@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import type { Project } from "@/lib/projects";
 import { useTranslation } from "@/lib/i18n";
+import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates";
 
 const formSchema = z
   .object({
@@ -47,6 +48,7 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const { notifyProjectCreated, notifyProjectUpdated } = useProjectsLabelsUpdates();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -65,11 +67,17 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
 
       const method = project ? "PATCH" : "POST";
 
+      console.log("Submitting form with values:", values);
+      console.log("Fetching URL:", url);
+      console.log("Fetch method:", method);
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
+
+      console.log("Fetch response:", response);
 
       if (!response.ok) {
         throw new Error(project ? t("Failed to update project") : t("Failed to create project"));
@@ -77,17 +85,25 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
 
       const responseData = await response.json();
 
+      console.log("Response data:", responseData);
+
       toast({
         title: project ? t("Project updated") : t("Project created"),
         description: project ? t("Project has been updated successfully.") : t("Project has been created successfully."),
       });
 
+      // Atualizar contexto global
+      if (project) {
+        notifyProjectUpdated(project.id, responseData.project);
+      } else {
+        notifyProjectCreated(responseData.project);
+      }
+
       if (onSuccess) {
         onSuccess(responseData.project);
       }
-
-      router.refresh();
     } catch (error: any) {
+      console.error("Error submitting form:", error);
       toast({
         variant: "destructive",
         title: project ? t("Failed to update project") : t("Failed to create project"),
