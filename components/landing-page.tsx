@@ -47,7 +47,7 @@ export default function LandingPage() {
   }, [setLanguage, isClient]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background" data-testid="landing-page">
       <header className="w-full border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2 font-bold">
@@ -58,24 +58,24 @@ export default function LandingPage() {
             <ModeToggle />
             <div className="hidden sm:flex gap-4">
               <Link href="/login">
-                <Button variant="outline">
+                <Button variant="outline" data-testid="landing-login-button">
                   {t("Entrar")}
                 </Button>
               </Link>
               <Link href="/register">
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" data-testid="landing-register-button">
                   {t("Cadastrar")}
                 </Button>
               </Link>
             </div>
             <div className="flex sm:hidden gap-3">
               <Link href="/login">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" data-testid="landing-login-button-mobile">
                   {t("Entrar")}
                 </Button>
               </Link>
               <Link href="/register">
-                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground" data-testid="landing-register-button-mobile">
                   {t("Cadastrar")}
                 </Button>
               </Link>
@@ -226,12 +226,12 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-row gap-3 sm:gap-4 mt-3 sm:mt-4">
                 <Link href="/register">
-                  <Button size="default" className="px-4 sm:px-8 bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Button size="default" className="px-4 sm:px-8 bg-primary hover:bg-primary/90 text-primary-foreground" data-testid="landing-create-account-button">
                     {t("Criar conta grátis")}
                   </Button>
                 </Link>
                 <Link href="/login">
-                  <Button size="default" variant="outline" className="px-4 sm:px-8">
+                  <Button size="default" variant="outline" className="px-4 sm:px-8" data-testid="landing-login-cta-button">
                     {t("Fazer login")}
                   </Button>
                 </Link>

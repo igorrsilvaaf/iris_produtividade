@@ -79,6 +79,7 @@ import { ProjectForm } from "@/components/project-form";
 import { BackButton } from "@/components/ui/back-button";
 import { useTaskUpdates } from "@/hooks/use-task-updates";
 import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates";
+import { RichTextEditor } from "@/components/rich-text-editor";
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -532,19 +533,20 @@ export function AddTaskDialog({
                 <FormItem>
                   <FormLabel>{t("description")}</FormLabel>
                   <FormControl>
-                    <Textarea
-                      data-testid="add-task-description-input"
+                    <RichTextEditor
+                      value={field.value || ""}
+                      onChange={(value) => {
+                        field.onChange(value);
+                        form.setValue('description', value);
+                      }}
                       placeholder={t("Add details about your task")}
-                      className="min-h-[200px] text-base"
-                      rows={8}
-                      {...field}
+                      disabled={isLoading}
+                      minHeight="200px"
+                      className="w-full"
+                      showActions={false}
+                      dataTestid="add-task-description-input"
                     />
                   </FormControl>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {t(
-                      "Supports markdown formatting like **bold**, *italic*, lists, and [links](https://example.com)",
-                    )}
-                  </div>
                   <FormMessage />
                 </FormItem>
               )}

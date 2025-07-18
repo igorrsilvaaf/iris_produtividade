@@ -31,6 +31,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ProjectForm } from "@/components/project-form"
 import { BackButton } from "@/components/ui/back-button"
+import { RichTextEditor } from "@/components/rich-text-editor"
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -382,11 +383,20 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                 <FormItem>
                   <FormLabel>{t("description")}</FormLabel>
                   <FormControl>
-                    <Textarea data-testid="edit-task-description-input" placeholder="Add details about your task" className="resize-none" {...field} />
+                    <RichTextEditor
+                      value={field.value || ""}
+                      onChange={(value) => {
+                        field.onChange(value);
+                        form.setValue('description', value);
+                      }}
+                      placeholder={t("Add details about your task")}
+                      disabled={isLoading}
+                      minHeight="200px"
+                      className="w-full"
+                      showActions={false}
+                      dataTestid="edit-task-description-input"
+                    />
                   </FormControl>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {t("Supports markdown formatting like **bold**, *italic*, lists, and [links](https://example.com)")}
-                  </div>
                   <FormMessage />
                 </FormItem>
               )}
