@@ -4,7 +4,6 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { TaskStatusIndicator } from "@/components/ui/task-status-indicator"
 import type { Todo } from "@/lib/todos"
 
 interface TaskTooltipProps {
@@ -16,18 +15,6 @@ interface TaskTooltipProps {
 export function TaskTooltip({ task, language, className }: TaskTooltipProps) {
   const formatOptions = language === "pt" ? { locale: ptBR } : undefined
   
-  const getStatus = () => {
-    if (task.completed) return "completed"
-    if (!task.due_date) return "default"
-    
-    const dueDate = new Date(task.due_date)
-    const today = new Date()
-    
-    if (dueDate.toDateString() === today.toDateString()) return "today"
-    if (dueDate < today) return "overdue"
-    return "upcoming"
-  }
-
   const getPriorityColor = (priority: number) => {
     switch (priority) {
       case 1: return "bg-red-500 text-red-50"
@@ -44,7 +31,6 @@ export function TaskTooltip({ task, language, className }: TaskTooltipProps) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <TaskStatusIndicator status={getStatus()} size="sm" />
           <h4 className="font-semibold text-sm leading-tight">
             {task.title}
           </h4>

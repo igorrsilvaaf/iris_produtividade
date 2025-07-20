@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import {
   format,
   startOfMonth,
@@ -19,6 +18,7 @@ import {
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from "lucide-react";
 import type { Todo } from "@/lib/todos";
+import type { Project } from "@/lib/projects";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AddTaskDialog } from "@/components/add-task-dialog";
@@ -28,6 +28,15 @@ import { useTranslation } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { CalendarSkeleton } from "@/components/ui/calendar-skeleton";
+import { CalendarFilters } from "@/components/ui/calendar-filters";
+import { CalendarActions } from "@/components/ui/calendar-actions";
+import { TaskTooltip } from "@/components/ui/task-tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CalendarViewProps {
   userId: number;
@@ -43,12 +52,15 @@ interface TaskCache {
 export function CalendarView({ userId }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [tasks, setTasks] = useState<Todo[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [hoveredDay, setHoveredDay] = useState<Date | null>(null);
-  const router = useRouter();
+  const [selectedProject, setSelectedProject] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [showCompleted, setShowCompleted] = useState(true);
   const { toast } = useToast();
   const { language, t } = useTranslation();
 
@@ -71,6 +83,22 @@ export function CalendarView({ userId }: CalendarViewProps) {
       window.removeEventListener("resize", checkIfMobile);
     };
   }, []);
+
+  const fetchProjects = useCallback(async () => {
+    try {
+      const response = await fetch("/api/projects");
+      if (response.ok) {
+        const data = await response.json();
+        setProjects(data.projects || []);
+      }
+    } catch (error) {
+      console.error("[calendar] Erro ao buscar projetos:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const fetchTasksForMonth = useCallback(
     async (date: Date) => {
@@ -139,7 +167,51 @@ export function CalendarView({ userId }: CalendarViewProps) {
 
   useEffect(() => {
     fetchTasksForMonth(currentMonth);
-  }, [currentMonth, fetchTasksForMonth]);
+  }, [currentMonth]);
+
+  const filteredTasks = useCallback(() => {
+    let filtered = tasks;
+
+    if (!showCompleted) {
+      filtered = filtered.filter(task => !task.completed);
+    }
+
+    if (selectedProject && selectedProject !== "all") {
+      
+      filtered = filtered.filter(task => {
+        const taskProjectId = task.project_id?.toString();
+        const selectedProjectId = selectedProject.toString();
+        return taskProjectId === selectedProjectId;
+      });
+    }
+
+    if (selectedStatus && selectedStatus !== "all") {
+      filtered = filtered.filter(task => {
+        if (selectedStatus === "completed") return task.completed;
+        if (selectedStatus === "pending") return !task.completed;
+        if (selectedStatus === "overdue") {
+          return !task.completed && task.due_date && 
+            parseISO(task.due_date) < new Date();
+        }
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [tasks, selectedProject, selectedStatus, showCompleted]);
+
+  const handleProjectChange = useCallback((projectId: string) => {
+    setSelectedProject(projectId);
+  }, []);
+
+  const handleStatusChange = useCallback((status: string) => {
+    setSelectedStatus(status);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSelectedProject("all");
+    setSelectedStatus("all");
+  }, []);
 
   const nextMonth = useCallback(() => {
     setCurrentMonth((prevMonth) => addMonths(prevMonth, 1));
@@ -155,51 +227,72 @@ export function CalendarView({ userId }: CalendarViewProps) {
     const isCurrentMonth = isSameMonth(currentMonth, today);
     
     return (
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={prevMonth}
-            className="transition-all duration-200 hover:scale-105"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={nextMonth}
-            className="transition-all duration-200 hover:scale-105"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={prevMonth}
+              className="transition-all duration-200 hover:scale-105"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={nextMonth}
+              className="transition-all duration-200 hover:scale-105"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg sm:text-xl font-bold">
+              {format(currentMonth, "MMMM yyyy", formatOptions)}
+            </h2>
+            {isCurrentMonth && (
+              <Badge variant="secondary" className="text-xs">
+                {t("current")}
+              </Badge>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentMonth(new Date())}
+              className="text-xs transition-all duration-200 hover:scale-105"
+            >
+              {t("today")}
+            </Button>
+          </div>
         </div>
-        
-        <div className="flex items-center gap-3">
-          <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-lg sm:text-xl font-bold">
-            {format(currentMonth, "MMMM yyyy", formatOptions)}
-          </h2>
-          {isCurrentMonth && (
-            <Badge variant="secondary" className="text-xs">
-              {t("current")}
-            </Badge>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentMonth(new Date())}
-            className="text-xs transition-all duration-200 hover:scale-105"
-          >
-            {t("today")}
-          </Button>
-        </div>
+
+        {/* Actions */}
+        <CalendarActions
+          tasks={filteredTasks()}
+          currentMonth={currentMonth}
+          onMonthChange={setCurrentMonth}
+          showCompleted={showCompleted}
+          onToggleCompleted={setShowCompleted}
+        />
+
+        {/* Filters */}
+        <CalendarFilters
+          projects={projects}
+          selectedProject={selectedProject}
+          selectedStatus={selectedStatus}
+          onProjectChange={handleProjectChange}
+          onStatusChange={handleStatusChange}
+          onClearFilters={handleClearFilters}
+        />
       </div>
     );
-  }, [currentMonth, language, nextMonth, prevMonth, t]);
+  }, [currentMonth, language, nextMonth, prevMonth, t, projects, selectedProject, selectedStatus, showCompleted, filteredTasks, handleProjectChange, handleStatusChange, handleClearFilters]);
 
   const renderDays = useCallback(() => {
     const getDaysOfWeek = () => {
@@ -268,9 +361,10 @@ export function CalendarView({ userId }: CalendarViewProps) {
     let formattedDays = [];
 
     const formatOptions = language === "pt" ? { locale: ptBR } : undefined;
+    const filteredTasksList = filteredTasks();
 
     for (const day of days) {
-      const tasksForDay = tasks.filter((task) => {
+      const tasksForDay = filteredTasksList.filter((task) => {
         if (!task.due_date) return false;
         const taskDate = new Date(task.due_date);
         return isSameDay(taskDate, day);
@@ -282,7 +376,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
 
       formattedDays.push(
         <div
-          key={day.toString()}
+          key={day.getTime()}
           className={cn(
             "min-h-[80px] sm:min-h-[120px] p-2 border rounded-lg transition-all duration-200",
             isCurrentMonth
@@ -323,24 +417,31 @@ export function CalendarView({ userId }: CalendarViewProps) {
           
           <div className="space-y-1 overflow-y-auto max-h-[60px] sm:max-h-[100px]">
             {tasksForDay.slice(0, 3).map((task) => (
-              <div
-                key={task.id}
-                className={cn(
-                  "text-[10px] sm:text-xs p-1.5 rounded-md truncate border-l-2 cursor-pointer transition-all duration-200 hover:opacity-80 hover:scale-[1.02]",
-                  getTaskStatusClass(task)
-                )}
-                onClick={() => openTaskDetail(task)}
-                title={task.title}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="truncate flex-1">{task.title}</span>
-                  {task.due_date && new Date(task.due_date).getHours() !== 0 && (
-                    <span className="ml-1 font-medium text-[9px] opacity-75">
-                      {format(new Date(task.due_date), "HH:mm", formatOptions)}
-                    </span>
-                  )}
-                </div>
-              </div>
+              <TooltipProvider key={task.id}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={cn(
+                        "text-[10px] sm:text-xs p-1.5 rounded-md truncate border-l-2 cursor-pointer transition-all duration-200 hover:opacity-80 hover:scale-[1.02]",
+                        getTaskStatusClass(task)
+                      )}
+                      onClick={() => openTaskDetail(task)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="truncate flex-1">{task.title}</span>
+                        {task.due_date && new Date(task.due_date).getHours() !== 0 && (
+                          <span className="ml-1 font-medium text-[9px] opacity-75">
+                            {format(new Date(task.due_date), "HH:mm", formatOptions)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="p-0">
+                    <TaskTooltip task={task} language={language} />
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ))}
             {tasksForDay.length > 3 && (
               <div className="text-[9px] text-muted-foreground text-center py-1">
@@ -348,12 +449,12 @@ export function CalendarView({ userId }: CalendarViewProps) {
               </div>
             )}
           </div>
-        </div>,
+        </div>
       );
 
       if (formattedDays.length === 7) {
         rows.push(
-          <div key={day.toString()} className="grid grid-cols-7 gap-2">
+          <div key={`row-${day.getTime()}`} className="grid grid-cols-7 gap-2">
             {formattedDays}
           </div>,
         );
@@ -362,7 +463,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
     }
 
     return <div className="space-y-2">{rows}</div>;
-  }, [currentMonth, tasks, language, getTaskStatusClass, openTaskDetail, hoveredDay, t]);
+  }, [currentMonth, filteredTasks, language, getTaskStatusClass, openTaskDetail, hoveredDay, t]);
 
   return (
     <>

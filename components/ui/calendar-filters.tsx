@@ -47,7 +47,6 @@ export function CalendarFilters({
   className
 }: CalendarFiltersProps) {
   const { t } = useTranslation()
-  const [isOpen, setIsOpen] = useState(false)
 
   const hasActiveFilters = selectedProject || selectedStatus
 
@@ -61,12 +60,12 @@ export function CalendarFilters({
   return (
     <div className={cn("flex items-center gap-2", className)}>
       {/* Project Filter */}
-      <Select value={selectedProject} onValueChange={onProjectChange}>
+      <Select value={selectedProject || ""} onValueChange={onProjectChange}>
         <SelectTrigger className="w-[180px] h-8 text-xs">
           <SelectValue placeholder={t("allProjects")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">{t("allProjects")}</SelectItem>
+          <SelectItem value="all">{t("allProjects")}</SelectItem>
           {projects.map((project) => (
             <SelectItem key={project.id} value={project.id.toString()}>
               <div className="flex items-center gap-2">
@@ -82,7 +81,7 @@ export function CalendarFilters({
       </Select>
 
       {/* Status Filter */}
-      <Select value={selectedStatus} onValueChange={onStatusChange}>
+      <Select value={selectedStatus || "all"} onValueChange={onStatusChange}>
         <SelectTrigger className="w-[140px] h-8 text-xs">
           <SelectValue placeholder={t("allStatus")} />
         </SelectTrigger>

@@ -249,6 +249,7 @@ export function RichTextEditor({
             {/* Formatação de Texto */}
             <div className="flex items-center gap-1 mr-2">
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0"
@@ -259,6 +260,7 @@ export function RichTextEditor({
                 <Bold className="h-4 w-4" />
               </Button>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0"
@@ -269,6 +271,7 @@ export function RichTextEditor({
                 <Italic className="h-4 w-4" />
               </Button>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0"
@@ -283,6 +286,7 @@ export function RichTextEditor({
             {/* Listas */}
             <div className="flex items-center gap-1 mr-2 border-l border-border pl-2">
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0"
@@ -293,6 +297,7 @@ export function RichTextEditor({
                 <List className="h-4 w-4" />
               </Button>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0"
@@ -309,6 +314,7 @@ export function RichTextEditor({
               <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
                 <DialogTrigger asChild>
                   <Button
+                    type="button"
                     variant="ghost"
                     size="sm"
                     className="h-7 w-7 p-0"
@@ -362,8 +368,10 @@ export function RichTextEditor({
                 className="hidden"
                 onChange={handleFileUpload}
                 accept="image/*,.pdf,.doc,.docx,.txt"
+                aria-label="Anexar arquivo"
               />
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="h-7 w-7 p-0"
@@ -379,6 +387,7 @@ export function RichTextEditor({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="sm"
                   className="h-7 w-7 p-0 border-l border-border ml-2 pl-2"

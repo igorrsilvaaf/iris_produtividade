@@ -1451,6 +1451,38 @@ export const translations: Translations = {
     en: "Filtered",
     pt: "Filtrado",
   },
+  quickNav: {
+    en: "Quick Nav",
+    pt: "Navegação Rápida",
+  },
+  export: {
+    en: "Export",
+    pt: "Exportar",
+  },
+  exportCalendar: {
+    en: "Export Calendar",
+    pt: "Exportar Calendário",
+  },
+  exportCalendarDescription: {
+    en: "Export your tasks as an iCal file that can be imported into other calendar applications.",
+    pt: "Exporte suas tarefas como um arquivo iCal que pode ser importado em outros aplicativos de calendário.",
+  },
+  calendarName: {
+    en: "Calendar Name",
+    pt: "Nome do Calendário",
+  },
+  includeCompleted: {
+    en: "Include Completed Tasks",
+    pt: "Incluir Tarefas Concluídas",
+  },
+  includeDescription: {
+    en: "Include Descriptions",
+    pt: "Incluir Descrições",
+  },
+  cancel: {
+    en: "Cancel",
+    pt: "Cancelar",
+  },
   "pomodoroSettings": {
     en: "Pomodoro Settings",
     pt: "Configurações do Pomodoro",
@@ -2120,6 +2152,10 @@ export const translations: Translations = {
   Tasks: {
     en: "Tasks",
     pt: "Tarefas",
+  },
+  tasks: {
+    en: "tasks",
+    pt: "tarefas",
   },
   Productivity: {
     en: "Productivity",
@@ -2848,6 +2884,26 @@ export const translations: Translations = {
   "Estimated Time": {
     en: "Estimated Time",
     pt: "Tempo Estimado"
+  },
+  "Task moved successfully": {
+    en: "Task moved successfully",
+    pt: "Tarefa movida com sucesso",
+  },
+  "Task due date has been updated.": {
+    en: "Task due date has been updated.",
+    pt: "Data de vencimento da tarefa foi atualizada.",
+  },
+  "Failed to move task": {
+    en: "Failed to move task",
+    pt: "Falha ao mover tarefa",
+  },
+  hideCompleted: {
+    en: "Hide Completed",
+    pt: "Ocultar Concluídas",
+  },
+  showCompleted: {
+    en: "Show Completed",
+    pt: "Mostrar Concluídas",
   },
 }
 
