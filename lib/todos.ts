@@ -32,7 +32,7 @@ function determineKanbanColumnByDate(dueDate: Date | null, completed: boolean): 
   }
   
   if (!dueDate) {
-    return "backlog";
+    return "inProgress"; // Tarefas sem data vão para "Caixa de entrada"
   }
 
   const now = new Date();
@@ -45,11 +45,11 @@ function determineKanbanColumnByDate(dueDate: Date | null, completed: boolean): 
   const todayTime = today.getTime();
   
   if (taskTime === todayTime) {
-    return "planning";
+    return "planning"; // Tarefas para hoje vão para "planning"
   } else if (taskTime < todayTime) {
     return "planning"; // Tasks atrasadas vão para planning para serem priorizadas
   } else {
-    return "backlog";
+    return "backlog"; // Tarefas futuras vão para "backlog" (seção "Próximos")
   }
 }
 
@@ -87,11 +87,16 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
   const tasks = await prisma.todos.findMany({
     where: {
       user_id: userId,
-      due_date: {
-        gte: today,
-        lt: tomorrow
-      },
-      completed: false
+      completed: false,
+      OR: [
+        {
+          due_date: {
+            gte: today,
+            lt: tomorrow
+          }
+        },
+        { kanban_column: "planning" } // Tarefas marcadas como "planning"
+      ]
     },
     include: {
       todo_projects: {
@@ -152,7 +157,10 @@ export async function getCompletedTasks(userId: number): Promise<Todo[]> {
   const tasks = await prisma.todos.findMany({
     where: {
       user_id: userId,
-      completed: true
+      OR: [
+        { completed: true },
+        { kanban_column: "completed" }
+      ]
     },
     include: {
       todo_projects: {
@@ -584,15 +592,22 @@ export async function setTaskProject(
 export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Início do dia de hoje
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1); // Início do dia de amanhã
 
   const tasks = await prisma.todos.findMany({
     where: {
       user_id: userId,
-      due_date: {
-        not: null,
-        gte: today
-      },
-      completed: false
+      completed: false,
+      OR: [
+        {
+          due_date: {
+            not: null,
+            gte: tomorrow // Apenas tarefas com data futura (excluindo hoje)
+          }
+        },
+        { kanban_column: "backlog" } // Tarefas marcadas como "backlog"
+      ]
     },
     include: {
       todo_projects: {
@@ -606,10 +621,6 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
       { due_date: 'asc' },
       { priority: 'asc' }
     ]
-  });
-
-  tasks.forEach((task: any) => {
-;
   });
 
   return tasks.map(task => ({

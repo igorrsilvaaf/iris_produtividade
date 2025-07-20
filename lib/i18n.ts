@@ -133,15 +133,15 @@ export const translations: Translations = {
   },
   backlog: {
     en: "Backlog",
-    pt: "Backlog",
+    pt: "Próximos",
   },
   planning: {
     en: "Planning",
-    pt: "Planejamento",
+    pt: "Hoje",
   },
   inProgress: {
     en: "In Progress",
-    pt: "Em Andamento",
+    pt: "Caixa de Entrada",
   },
   validation: {
     en: "Validation",
