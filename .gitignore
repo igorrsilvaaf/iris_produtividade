@@ -64,6 +64,7 @@ Thumbs.db
 
 # Local development
 setup-local.sh
+docs/
 
 # Temporary files
 temp_icons/

@@ -157,6 +157,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [taskLabelsKey, setTaskLabelsKey] = useState(0);
+  const [status, setStatus] = useState(task.kanban_column || "inProgress");
 
   const [showAddProject, setShowAddProject] = useState(false);
   const [showCreateProject, setShowCreateProject] = useState(false);
@@ -235,6 +236,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       setTitle(task.title);
       setDescription(task.description || "");
       setPoints(task.points || 3);
+      setStatus(task.kanban_column || "inProgress");
 
       if (task.due_date) {
         try {
@@ -667,89 +669,107 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
     }
   };
 
+  const getStatusConfig = (status: string) => {
+    const configs = {
+      backlog: {
+        label: safeTranslate("backlog") || "Backlog",
+        color: "bg-gray-500",
+        icon: "📋"
+      },
+      planning: {
+        label: safeTranslate("planning") || "Planejamento", 
+        color: "bg-blue-500",
+        icon: "🕐"
+      },
+      inProgress: {
+        label: safeTranslate("inProgress") || "Em Progresso",
+        color: "bg-yellow-500", 
+        icon: "▶️"
+      },
+      validation: {
+        label: safeTranslate("validation") || "Validação",
+        color: "bg-orange-500",
+        icon: "⚠️"
+      },
+      completed: {
+        label: safeTranslate("completed") || "Concluída",
+        color: "bg-green-500",
+        icon: "✅"
+      }
+    };
+    return configs[status as keyof typeof configs] || configs.inProgress;
+  };
+
   const handleSave = async () => {
+    if (!title.trim()) {
+      toast({
+        variant: "destructive",
+        title: safeTranslate("Error"),
+        description: safeTranslate("Title is required"),
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
     try {
-      setIsSaving(true);
-
-      let dueDateWithTime = null;
-
+      let normalizedDueDate: Date | null = null;
       if (dueDate) {
         if (isAllDay) {
-          const date = new Date(dueDate);
-          date.setHours(0, 0, 0, 0);
-          dueDateWithTime = date.toISOString();
-        } else if (dueTime) {
-          const date = new Date(dueDate);
-          const [hours, minutes] = dueTime.split(":").map(Number);
-          date.setHours(hours, minutes, 0, 0);
-          dueDateWithTime = date.toISOString();
+          normalizedDueDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+        } else {
+          const [hours, minutes] = dueTime!.split(":").map(Number);
+          normalizedDueDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate(), hours, minutes);
         }
       }
 
-      const estimatedTimeInMinutes = convertTimeToMinutes(
-        estimatedTime,
-        estimatedTimeUnit
-      );
+      const updateData: any = {
+        title: title.trim(),
+        description: description.trim() || null,
+        due_date: normalizedDueDate?.toISOString() || null,
+        priority: parseInt(priority),
+        points,
+        estimated_time: convertTimeToMinutes(estimatedTime, estimatedTimeUnit),
+        attachments,
+        kanban_column: status
+      };
 
-      const taskResponse = await fetch(`/api/tasks/${task.id}/${task.id}`, {
+      const response = await fetch(`/api/tasks/${task.id}/${task.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description: description || null,
-          due_date: dueDateWithTime,
-          priority: Number.parseInt(priority),
-          points,
-          attachments,
-          estimated_time: estimatedTimeInMinutes,
-        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
       });
 
-      if (!taskResponse.ok) {
-        throw new Error("Failed to update task details");
-      }
-
-      const updatedTask = await taskResponse.json();
-
-      if (projectId) {
-        const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            projectId: Number.parseInt(projectId),
-          }),
+      if (response.ok) {
+        const updatedTask = await response.json();
+        notifyTaskUpdated(updatedTask.task);
+        
+        toast({
+          title: safeTranslate("Task updated"),
+          description: title,
         });
-
-        if (!projectResponse.ok) {
-          throw new Error("Failed to update task project");
-        }
+        
+        setIsEditMode(false);
+        onOpenChange(false);
       } else {
-        const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            projectId: null,
-          }),
+        const errorText = await response.text();
+        console.error(`Erro ao atualizar tarefa: Status ${response.status}, Detalhes: ${errorText}`);
+        
+        toast({
+          variant: "destructive",
+          title: safeTranslate("Failed to update task"),
+          description: safeTranslate("Please try again"),
         });
-
-        if (!projectResponse.ok) {
-          throw new Error("Failed to remove task project");
-        }
       }
-
-      toast({
-        title: safeTranslate("taskUpdated"),
-        description: safeTranslate("Your task has been updated successfully."),
-      });
-
-      notifyTaskUpdated(task.id, updatedTask);
-      setIsEditMode(false);
     } catch (error) {
-      console.error("[TaskDetail] Erro ao salvar tarefa:", error);
+      console.error("Erro ao atualizar tarefa:", error);
+      
       toast({
         variant: "destructive",
         title: safeTranslate("Failed to update task"),
-        description: safeTranslate("Please try again."),
+        description: safeTranslate("An unexpected error occurred"),
       });
     } finally {
       setIsSaving(false);
@@ -817,14 +837,70 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
     >
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-auto w-[95vw] sm:w-full" data-testid="task-detail-content">
         <DialogHeader>
-          <DialogTitle data-testid="task-detail-title">
-            {isEditMode ? safeTranslate("editTask") : safeTranslate("taskDetails")}
-          </DialogTitle>
-          <DialogDescription data-testid="task-detail-description">
-            {isEditMode
-              ? safeTranslate("Edite os detalhes da sua tarefa.")
-              : safeTranslate("Visualize os detalhes da sua tarefa.")}
-          </DialogDescription>
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <DialogTitle data-testid="task-detail-title" className="text-lg sm:text-xl">
+                  {isEditMode ? safeTranslate("editTask") : safeTranslate("taskDetails")}
+                </DialogTitle>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0 mr-8">
+                {isEditMode ? (
+                  <Select
+                    value={status}
+                    onValueChange={setStatus}
+                    data-testid="task-detail-status-select"
+                  >
+                    <SelectTrigger className="w-[120px] sm:w-[140px] text-xs sm:text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="backlog">
+                        <div className="flex items-center gap-2">
+                          <span>📋</span>
+                          <span className="text-sm">{safeTranslate("backlog") || "Backlog"}</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="planning">
+                        <div className="flex items-center gap-2">
+                          <span>🕐</span>
+                          <span className="text-sm">{safeTranslate("planning") || "Planejamento"}</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="inProgress">
+                        <div className="flex items-center gap-2">
+                          <span>▶️</span>
+                          <span className="text-sm">{safeTranslate("inProgress") || "Em Progresso"}</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="validation">
+                        <div className="flex items-center gap-2">
+                          <span>⚠️</span>
+                          <span className="text-sm">{safeTranslate("validation") || "Validação"}</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="completed">
+                        <div className="flex items-center gap-2">
+                          <span>✅</span>
+                          <span className="text-sm">{safeTranslate("completed") || "Concluída"}</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-md bg-muted text-xs sm:text-sm">
+                    <span>{getStatusConfig(status).icon}</span>
+                    <span className="font-medium truncate max-w-[80px] sm:max-w-none">{getStatusConfig(status).label}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <DialogDescription data-testid="task-detail-description" className="text-sm">
+              {isEditMode
+                ? safeTranslate("Edite os detalhes da sua tarefa.")
+                : safeTranslate("Visualize os detalhes da sua tarefa.")}
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4 py-4" data-testid="task-detail-form">
@@ -1410,6 +1486,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 setDescription(task.description || "");
                 setPriority(task.priority.toString());
                 setPoints(task.points || 3);
+                setStatus(task.kanban_column || "inProgress");
                 if (task.due_date) {
                   setDueDate(new Date(task.due_date));
                   setDueTime(
