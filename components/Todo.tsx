@@ -97,7 +97,7 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
-  const { notifyTaskCompleted } = useTaskUpdates()
+  const { notifyTaskCompleted, notifyTaskDeleted } = useTaskUpdates()
   
   // Usar ref para rastrear a primeira renderização
   const initialLoadDone = useRef(false)
@@ -218,7 +218,7 @@ export function Todo({ todo, onComplete, onDelete, onClick }: TodoProps) {
           description: t ? t("Task has been deleted successfully.") : "A tarefa foi excluída com sucesso.",
         })
         
-        router.refresh()
+        notifyTaskDeleted(todoData.id)
       } catch (error) {
         toast({
           variant: "destructive",

@@ -180,7 +180,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const router = useRouter();
   const { toast } = useToast();
   const { t, language, setLanguage, isHydrated } = useTranslation();
-  const { notifyTaskCompleted, notifyTaskUpdated } = useTaskUpdates();
+  const { notifyTaskCompleted, notifyTaskUpdated, notifyTaskDeleted } = useTaskUpdates();
   const { projects } = useProjectsLabelsUpdates();
 
   const safeTranslate = (key: string) => {
@@ -782,6 +782,8 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         description: safeTranslate("Your task has been deleted successfully."),
         variant: "success",
       });
+
+      notifyTaskDeleted(task.id);
       
     } catch (error) {
       toast({
