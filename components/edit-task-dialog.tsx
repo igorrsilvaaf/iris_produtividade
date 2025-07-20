@@ -789,12 +789,12 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                           )}
                         </div>
                         <div className="mt-4 border-t pt-4 flex justify-between">
-                          <Button variant="outline" onClick={() => setShowAddProject(false)}>
+                          <Button type="button" variant="outline" onClick={() => setShowAddProject(false)}>
                             {t("Cancel")}
                           </Button>
                           <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
                             <DialogTrigger asChild>
-                              <Button onClick={(e) => {
+                              <Button type="button" onClick={(e) => {
                                 e.stopPropagation();
                                 setShowCreateProject(true);
                               }}>
@@ -928,6 +928,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                         className="hidden"
                         onChange={handleFileUpload}
                         ref={node => attachmentType === "image" ? setImageUploadRef(node) : setFileUploadRef(node)}
+                        aria-label="Selecionar arquivo"
                       />
                       <Button
                         type="button"
@@ -969,6 +970,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                 ref={(el) => setFileUploadRef(el)}
                 style={{ display: 'none' }}
                 onChange={handleFileUpload}
+                aria-label="Upload de arquivo"
               />
             )}
             
@@ -979,6 +981,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                 accept="image/*"
                 style={{ display: 'none' }}
                 onChange={handleFileUpload}
+                aria-label="Upload de imagem"
               />
             )}
             

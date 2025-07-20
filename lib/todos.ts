@@ -6,10 +6,11 @@ export type Todo = {
   title: string;
   description: string | null;
   due_date: string | null;
-  priority: number;
+  priority: number | null;
   completed: boolean;
   created_at: string;
   updated_at: string | null;
+  project_id?: number | null;
   project_name?: string;
   project_color?: string;
   kanban_column?:
@@ -20,7 +21,7 @@ export type Todo = {
     | "completed"
     | null;
   kanban_order?: number | null;
-  points?: number;
+  points?: number | null;
   attachments?: any[];
   estimated_time?: number | null;
 };
@@ -32,7 +33,7 @@ function determineKanbanColumnByDate(dueDate: Date | null, completed: boolean): 
   }
   
   if (!dueDate) {
-    return "backlog";
+    return "inProgress"; // Tarefas sem data vão para "Caixa de entrada"
   }
 
   const now = new Date();
@@ -45,11 +46,11 @@ function determineKanbanColumnByDate(dueDate: Date | null, completed: boolean): 
   const todayTime = today.getTime();
   
   if (taskTime === todayTime) {
-    return "planning";
+    return "planning"; // Tarefas para hoje vão para "planning"
   } else if (taskTime < todayTime) {
     return "planning"; // Tasks atrasadas vão para planning para serem priorizadas
   } else {
-    return "backlog";
+    return "backlog"; // Tarefas futuras vão para "backlog" (seção "Próximos")
   }
 }
 
@@ -87,11 +88,16 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
   const tasks = await prisma.todos.findMany({
     where: {
       user_id: userId,
-      due_date: {
-        gte: today,
-        lt: tomorrow
-      },
-      completed: false
+      completed: false,
+      OR: [
+        {
+          due_date: {
+            gte: today,
+            lt: tomorrow
+          }
+        },
+        { kanban_column: "planning" } // Tarefas marcadas como "planning"
+      ]
     },
     include: {
       todo_projects: {
@@ -152,7 +158,10 @@ export async function getCompletedTasks(userId: number): Promise<Todo[]> {
   const tasks = await prisma.todos.findMany({
     where: {
       user_id: userId,
-      completed: true
+      OR: [
+        { completed: true },
+        { kanban_column: "completed" }
+      ]
     },
     include: {
       todo_projects: {
@@ -321,7 +330,7 @@ export async function updateTask(
         }
       }
 
-      attachmentsToSave = incomingAttachments.map(att => ({
+      attachmentsToSave = incomingAttachments.map((att: any) => ({
         id: att.id || undefined,
         type: att.type,
         url: att.url,
@@ -341,14 +350,14 @@ export async function updateTask(
   if (updates.title !== undefined) updateData.title = updates.title;
   if (updates.description !== undefined) updateData.description = updates.description;
   if (updates.due_date !== undefined) updateData.due_date = normalizedDueDate;
-  if (updates.priority !== undefined) updateData.priority = updates.priority;
+  if (updates.priority !== undefined) updateData.priority = updates.priority ? Number(updates.priority) : undefined;
   if (updates.completed !== undefined) updateData.completed = updates.completed;
   if (updates.kanban_column !== undefined) updateData.kanban_column = updates.kanban_column;
-  if (updates.kanban_order !== undefined) updateData.kanban_order = updates.kanban_order;
-  if (updates.points !== undefined) updateData.points = updates.points;
+  if (updates.kanban_order !== undefined) updateData.kanban_order = updates.kanban_order ? Number(updates.kanban_order) : undefined;
+  if (updates.points !== undefined) updateData.points = updates.points ? Number(updates.points) : undefined;
   
   if (updates.attachments !== undefined) updateData.attachments = attachmentsToSave;
-  if (updates.estimated_time !== undefined) updateData.estimated_time = updates.estimated_time;
+  if (updates.estimated_time !== undefined) updateData.estimated_time = updates.estimated_time ? Number(updates.estimated_time) : undefined;
 
   if (updates.completed !== undefined && updates.kanban_column === undefined) {
     const finalDueDate = normalizedDueDate !== null ? normalizedDueDate : (existingTask.due_date || null);
@@ -431,7 +440,15 @@ export async function toggleTaskCompletion(
     throw new Error("Failed to update task completion status");
   }
 
-  return task as Todo;
+  return {
+    ...task,
+    created_at: task.created_at.toISOString(),
+    updated_at: task.updated_at?.toISOString() || null,
+    due_date: task.due_date?.toISOString() || null,
+    project_name: task.todo_projects[0]?.projects?.name || undefined,
+    project_color: task.todo_projects[0]?.projects?.color || undefined,
+    attachments: task.attachments as any[]
+  };
 }
 
 export async function deleteTask(
@@ -584,15 +601,22 @@ export async function setTaskProject(
 export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Início do dia de hoje
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1); // Início do dia de amanhã
 
   const tasks = await prisma.todos.findMany({
     where: {
       user_id: userId,
-      due_date: {
-        not: null,
-        gte: today
-      },
-      completed: false
+      completed: false,
+      OR: [
+        {
+          due_date: {
+            not: null,
+            gte: tomorrow // Apenas tarefas com data futura (excluindo hoje)
+          }
+        },
+        { kanban_column: "backlog" } // Tarefas marcadas como "backlog"
+      ]
     },
     include: {
       todo_projects: {
@@ -606,10 +630,6 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
       { due_date: 'asc' },
       { priority: 'asc' }
     ]
-  });
-
-  tasks.forEach((task: any) => {
-;
   });
 
   return tasks.map(task => ({
@@ -691,7 +711,15 @@ export async function searchTasks(
       }
     }
 
-    return result as Todo[];
+    return result.map(task => ({
+      ...task,
+      created_at: task.created_at.toISOString(),
+      updated_at: task.updated_at?.toISOString() || null,
+      due_date: task.due_date?.toISOString() || null,
+      project_name: (task as any).project_name || undefined,
+      project_color: (task as any).project_color || undefined,
+      attachments: task.attachments as any[]
+    }));
   } catch (error) {
     console.error("[searchTasks] Erro:", error);
     return [];

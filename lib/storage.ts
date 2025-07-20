@@ -94,10 +94,10 @@ export class StorageService {
         tomorrow.setDate(tomorrow.getDate() + 1)
         whereClause = {
           ...whereClause,
-          OR: [
-            { due_date: null },
-            { due_date: { lte: tomorrow } }
-          ],
+          due_date: {
+            gte: today,
+            lt: tomorrow
+          },
           completed: false
         }
       } else if (filter === "upcoming") {
@@ -105,7 +105,10 @@ export class StorageService {
         tomorrow.setDate(tomorrow.getDate() + 1)
         whereClause = {
           ...whereClause,
-          due_date: { gt: tomorrow },
+          due_date: {
+            not: null,
+            gte: tomorrow
+          },
           completed: false
         }
       } else if (filter === "inbox") {

@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
       created_at: task.created_at.toISOString(),
       updated_at: task.updated_at?.toISOString() || null,
       due_date: task.due_date?.toISOString() || null,
+      project_id: task.todo_projects[0]?.projects?.id || null,
       project_name: task.todo_projects[0]?.projects?.name || undefined,
       project_color: task.todo_projects[0]?.projects?.color || undefined,
       attachments: task.attachments as any[]

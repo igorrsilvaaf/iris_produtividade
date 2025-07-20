@@ -453,7 +453,7 @@ export function KanbanBoard() {
     };
   }, [cards]); // Dependência em cards para garantir acesso aos dados mais recentes
 
-  const updateTasksOnServer = async (tasksToUpdate: Array<{ id: number; column?: KanbanColumn; completed?: boolean; kanban_order?: number }>) => {
+  const updateTasksOnServer = useCallback(async (tasksToUpdate: Array<{ id: number; column?: KanbanColumn; completed?: boolean; kanban_order?: number }>) => {
     if (tasksToUpdate.length === 0) return;
 
     try {
@@ -467,8 +467,6 @@ export function KanbanBoard() {
           ...(kanban_order !== undefined && { kanban_order })
         };
 
-
-
         const response = await fetch(`/api/tasks/${id}/${id}`, {
           method: "PATCH",
           headers: {
@@ -478,12 +476,9 @@ export function KanbanBoard() {
         });
       
         if (response.ok) {
-
           try {
             const responseData = await response.json();
-
           } catch (e) {
-
           }
         } else {
           console.error(`Erro ao atualizar tarefa ID ${id}: ${response.status}`);
@@ -498,7 +493,6 @@ export function KanbanBoard() {
             title: t("Failed to update some tasks"),
             description: t("Please try refreshing"),
           });
-
         }
       }
 
@@ -524,9 +518,8 @@ export function KanbanBoard() {
         description: t("An unexpected error occurred"),
       });
       console.error(`Erro ao atualizar tarefas no servidor:`, error);
-      setShouldRefetch(prev => prev + 1);
     }
-  };
+  }, [toast, t]);
 
   const updateColumnOnServer = async (taskId: number, column: KanbanColumn, completed: boolean, order?: number) => {
     await updateTasksOnServer([{ 
@@ -542,7 +535,6 @@ export function KanbanBoard() {
     const cacheTime = 5000; 
     
     if (now - lastFetchTimeRef.current < cacheTime && initialLoadDoneRef.current) {
-
       return Promise.resolve();
     }
     
@@ -551,7 +543,6 @@ export function KanbanBoard() {
     try {
       setIsLoading(true);
 
-      
       const tasksResponse = await fetch("/api/tasks?all=true", {
         method: "GET",
         signal,
@@ -574,48 +565,6 @@ export function KanbanBoard() {
         return;
       }
       
-      let todayData = { tasks: [] };
-      try {
-        const todayResponse = await fetch("/api/tasks/today", {
-          method: "GET",
-          signal,
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            'x-timestamp': Date.now().toString()
-          }
-        });
-        
-        if (todayResponse.ok) {
-          todayData = await todayResponse.json();
-        } else {
-          console.error(`Erro ao buscar tarefas de hoje: ${todayResponse.status}`);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar tarefas de hoje:", error);
-      }
-      
-      let upcomingData = { tasks: [] };
-      try {
-        const upcomingResponse = await fetch("/api/tasks/upcoming", {
-          method: "GET",
-          signal,
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            'x-timestamp': Date.now().toString()
-          }
-        });
-        
-        if (upcomingResponse.ok) {
-          upcomingData = await upcomingResponse.json();
-        } else {
-          console.error(`Erro ao buscar tarefas próximas: ${upcomingResponse.status}`);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar tarefas próximas:", error);
-      }
-      
       const tasksData = await tasksResponse.json();
       
       if (!tasksData.tasks || !Array.isArray(tasksData.tasks)) {
@@ -625,19 +574,6 @@ export function KanbanBoard() {
       }
       
       const allTasks = tasksData.tasks as Todo[];
-      const todayList = Array.isArray(todayData.tasks) ? todayData.tasks : [];
-      const upcomingList = Array.isArray(upcomingData.tasks) ? upcomingData.tasks : [];
-      
-
-      
-      if (upcomingList.length > 0) {
-
-        upcomingList.forEach((task: any) => {
-
-        });
-      } else {
-
-      }
       let orderCounter = 0;
       const tasksToUpdateOnServer: Array<{ id: number; column?: KanbanColumn; completed?: boolean; kanban_order?: number }> = [];
 
@@ -646,35 +582,45 @@ export function KanbanBoard() {
         let needsServerUpdate = false;
         let currentKanbanOrder = task.kanban_order;
 
+        // Se a tarefa já tem uma coluna kanban definida, use ela
         if (task.kanban_column && 
             ["backlog", "planning", "inProgress", "validation", "completed"].includes(task.kanban_column)) {
           column = task.kanban_column as KanbanColumn;
-
         } 
+        // Se não tem coluna definida, determine baseado na data
         else {
           needsServerUpdate = true;
           if (task.completed) {
             column = "completed";
-
           } 
-          else if (todayList.some((t: any) => t.id === task.id)) {
-            column = "planning";
-
-          } 
-          else if (upcomingList.some((t: any) => t.id === task.id)) {
-            column = "backlog";
-
+          else if (task.due_date) {
+            const taskDate = new Date(task.due_date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+            const todayTime = today.getTime();
+            const tomorrowTime = tomorrow.getTime();
+            const taskTime = taskDateOnly.getTime();
+            
+            if (taskTime === todayTime) {
+              column = "planning"; // Hoje
+            } else if (taskTime >= tomorrowTime) {
+              column = "backlog"; // Futuro
+            } else {
+              column = "planning"; // Atrasado
+            }
           }
           else {
-            column = "backlog"; 
-
+            column = "inProgress"; // Sem data
           }
         }
 
         if (currentKanbanOrder == null) {
           currentKanbanOrder = orderCounter++;
           needsServerUpdate = true;
-
         }
         
         if (needsServerUpdate) {
@@ -694,28 +640,12 @@ export function KanbanBoard() {
       }).sort((a, b) => {
         return (a.kanban_order || 0) - (b.kanban_order || 0);
       });
-      
 
       if (tasksToUpdateOnServer.length > 0) {
-
         updateTasksOnServer(tasksToUpdateOnServer);
       }
       
       setCards(kanbanCards);
-      setTimeout(() => {
-        const backlog = kanbanCards.filter(c => c.column === "backlog").length;
-        const planning = kanbanCards.filter(c => c.column === "planning").length;
-        const inProgress = kanbanCards.filter(c => c.column === "inProgress").length;
-        const validation = kanbanCards.filter(c => c.column === "validation").length;
-        const completed = kanbanCards.filter(c => c.column === "completed").length;
-        
-
-        
-        if (kanbanCards.length === 0) {
-
-        }
-      }, 100);
-      
       initialLoadDoneRef.current = true;
     } catch (error: any) {
       if (error.name !== 'AbortError') {
@@ -730,7 +660,7 @@ export function KanbanBoard() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast, t, updateColumnOnServer]);
+  }, [toast, t, updateTasksOnServer]);
   
   useEffect(() => {
     if (!isClient) return;
@@ -784,7 +714,7 @@ export function KanbanBoard() {
       controller.abort();
       clearInterval(intervalId);
     };
-  }, [fetchAndDistributeTasks, shouldRefetch, isClient]);
+  }, [fetchAndDistributeTasks, isClient]);
   
   useEffect(() => {
     if (!isClient || isLoading || cards.length === 0) return;
