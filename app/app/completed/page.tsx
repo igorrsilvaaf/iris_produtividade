@@ -48,7 +48,7 @@ export default async function CompletedPage() {
         <h1 className="text-2xl font-bold">{translatedTitle}</h1>
       </div>
 
-      <TaskList initialTasks={tasks} />
+      <TaskList initialTasks={tasks} showCompleted={true} />
     </div>
   );
 }

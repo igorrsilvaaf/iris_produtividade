@@ -65,8 +65,8 @@ const TaskItem = memo(({
               </div>
             )}
             <div className="flex items-center text-xs" data-testid={`task-priority-${task.id}`}>
-              <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(task.priority)}`} />
-              <span>P{task.priority}</span>
+              <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(task.priority ?? 0)}`} />
+              <span>P{task.priority ?? 0}</span>
             </div>
             {task.points && (
               <div className="flex items-center text-xs" data-testid={`task-points-${task.id}`}>
@@ -104,43 +104,56 @@ const TaskItem = memo(({
 
 TaskItem.displayName = "TaskItem"
 
-export const TodoList = memo(function TodoList({ initialTasks }: { initialTasks?: Todo[] }) {
+export const TodoList = memo(function TodoList({ initialTasks, showCompleted = false }: { initialTasks?: Todo[], showCompleted?: boolean }) {
   const [sortBy, setSortBy] = useState<SortOption>("priority")
-  const { state, setTasks } = useTaskContext()
+  const [localTasks, setLocalTasks] = useState<Todo[]>(initialTasks || [])
   const { notifyTaskCompleted, notifyTaskDeleted } = useTaskUpdates()
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
 
-  // Inicializar tarefas no contexto quando o componente for montado
+  // Atualizar tarefas locais quando initialTasks mudar
   useEffect(() => {
-    if (initialTasks && initialTasks.length > 0) {
-      setTasks(initialTasks)
+    if (initialTasks) {
+      setLocalTasks(initialTasks)
     }
-  }, [initialTasks, setTasks])
+  }, [initialTasks])
+
+  // Usar tarefas locais em vez do contexto global
+  const tasks = localTasks
 
   const sortedTasks = useMemo(() => {
-    const tasksCopy = [...state.tasks];
+    const tasksCopy = [...tasks];
+    
+    // Filtrar tarefas baseado na prop showCompleted
+    let filteredTasks = tasksCopy;
+    if (!showCompleted) {
+      // Se não deve mostrar concluídas, filtra apenas incompletas
+      filteredTasks = tasksCopy.filter(task => !task.completed);
+    } else {
+      // Se deve mostrar concluídas, filtra apenas concluídas
+      filteredTasks = tasksCopy.filter(task => task.completed);
+    }
     
     switch (sortBy) {
       case "priority":
-        return tasksCopy.sort((a, b) => a.priority - b.priority);
+        return filteredTasks.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
       case "title":
-        return tasksCopy.sort((a, b) => a.title.localeCompare(b.title));
+        return filteredTasks.sort((a, b) => a.title.localeCompare(b.title));
       case "dueDate":
-        return tasksCopy.sort((a, b) => {
+        return filteredTasks.sort((a, b) => {
           if (!a.due_date) return 1;
           if (!b.due_date) return -1;
           return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
         });
       case "createdAt":
-        return tasksCopy.sort((a, b) => {
+        return filteredTasks.sort((a, b) => {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
       default:
-        return tasksCopy;
+        return filteredTasks;
     }
-  }, [state.tasks, sortBy]);
+  }, [tasks, sortBy, showCompleted]);
 
   const toggleTaskCompletion = useCallback(async (taskId: number) => {
     try {
@@ -154,12 +167,19 @@ export const TodoList = memo(function TodoList({ initialTasks }: { initialTasks?
 
       const result = await response.json()
 
+      // Atualizar estado local
+      setLocalTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === taskId ? result.task : task
+        )
+      )
+
       toast({
         title: t("Task updated"),
         description: t("Task status has been updated."),
       })
 
-      // Notificar sobre a atualização da task
+      // Notificar sobre a atualização da task (para outras funcionalidades)
       if (result.task) {
         notifyTaskCompleted(taskId, result.task)
       }
@@ -183,12 +203,17 @@ export const TodoList = memo(function TodoList({ initialTasks }: { initialTasks?
         throw new Error(`Failed to delete task: ${response.statusText}`)
       }
 
+      // Atualizar estado local
+      setLocalTasks(prevTasks => 
+        prevTasks.filter(task => task.id !== taskId)
+      )
+
       toast({
         title: t("taskDeleted"),
         description: t("Task has been deleted successfully."),
       })
 
-      // Notificar sobre a remoção da task
+      // Notificar sobre a remoção da task (para outras funcionalidades)
       notifyTaskDeleted(taskId)
 
     } catch (error) {
@@ -254,7 +279,7 @@ export const TodoList = memo(function TodoList({ initialTasks }: { initialTasks?
     }
   }, [t])
 
-  if (state.tasks.length === 0) {
+  if (tasks.length === 0) {
     return (
       <Card className="border-dashed" data-testid="todo-list-empty">
         <CardContent className="flex flex-col items-center justify-center py-6">
