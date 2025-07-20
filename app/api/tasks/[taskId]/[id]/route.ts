@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { getTaskById, updateTask, deleteTask } from "@/lib/todos";
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 export async function GET(
   request: NextRequest,
@@ -111,9 +112,18 @@ export async function PATCH(
     const updatedTask = await updateTask(taskId, userId, body);
 
     return NextResponse.json(updatedTask);
-  } catch (error) {
+  } catch (error: any) {
+    console.error("[PATCH /api/tasks] Erro ao atualizar tarefa:", error);
+    let errorMessage = "Unknown error";
+    if (error instanceof PrismaClientKnownRequestError) {
+        console.error("Código do erro Prisma:", error.code);
+        console.error("Mensagem do erro Prisma:", error.message);
+        errorMessage = `Prisma Error: ${error.code} - ${error.message}`;
+    } else if (error instanceof Error) {
+        errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to update task" },
+      { error: "Failed to update task", details: errorMessage },
       { status: 500 }
     );
   }
