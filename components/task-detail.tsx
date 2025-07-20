@@ -313,16 +313,13 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
   const toggleCompletion = async () => {
     try {
-      const response = await fetch(`/api/tasks/complete/${task.id}`, {
+      const response = await fetch(`/api/tasks/toggle/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          completed: !task.completed,
-        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update task completion status");
+        throw new Error("Failed to toggle task completion");
       }
 
       const responseData = await response.json();
@@ -334,12 +331,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         variant: "success",
       });
 
-      // Notificar sobre a atualização da task
-      if (!task.completed) {
-        notifyTaskCompleted(task.id, responseData.task);
-      }
-
-      router.refresh();
+      notifyTaskCompleted(task.id, responseData.task);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -504,7 +496,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         description: t("Your attachment has been added successfully."),
       });
 
-      router.refresh();
+      notifyTaskUpdated(task.id, updatedTaskData);
     } catch (error) {
       console.error("Error uploading file:", error);
       toast({
@@ -567,7 +559,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         description: t("Your attachment has been added successfully."),
       });
 
-      router.refresh();
+      notifyTaskUpdated(task.id, updatedTask);
     } catch (error) {
       console.error("Error adding attachment:", error);
       toast({
@@ -626,7 +618,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         description: safeTranslate("Your attachment has been removed successfully."),
       });
 
-      router.refresh();
+      notifyTaskUpdated(task.id, updatedTask);
     } catch (error) {
       console.error("Error removing attachment:", error);
       toast({
@@ -672,6 +664,133 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         return timeValue * 60 * 8;
       default:
         return timeValue;
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      let dueDateWithTime = null;
+
+      if (dueDate) {
+        if (isAllDay) {
+          const date = new Date(dueDate);
+          date.setHours(0, 0, 0, 0);
+          dueDateWithTime = date.toISOString();
+        } else if (dueTime) {
+          const date = new Date(dueDate);
+          const [hours, minutes] = dueTime.split(":").map(Number);
+          date.setHours(hours, minutes, 0, 0);
+          dueDateWithTime = date.toISOString();
+        }
+      }
+
+      const estimatedTimeInMinutes = convertTimeToMinutes(
+        estimatedTime,
+        estimatedTimeUnit
+      );
+
+      const taskResponse = await fetch(`/api/tasks/${task.id}/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description: description || null,
+          due_date: dueDateWithTime,
+          priority: Number.parseInt(priority),
+          points,
+          attachments,
+          estimated_time: estimatedTimeInMinutes,
+        }),
+      });
+
+      if (!taskResponse.ok) {
+        throw new Error("Failed to update task details");
+      }
+
+      const updatedTask = await taskResponse.json();
+
+      if (projectId) {
+        const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId: Number.parseInt(projectId),
+          }),
+        });
+
+        if (!projectResponse.ok) {
+          throw new Error("Failed to update task project");
+        }
+      } else {
+        const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId: null,
+          }),
+        });
+
+        if (!projectResponse.ok) {
+          throw new Error("Failed to remove task project");
+        }
+      }
+
+      toast({
+        title: safeTranslate("taskUpdated"),
+        description: safeTranslate("Your task has been updated successfully."),
+      });
+
+      notifyTaskUpdated(task.id, updatedTask);
+      setIsEditMode(false);
+    } catch (error) {
+      console.error("[TaskDetail] Erro ao salvar tarefa:", error);
+      toast({
+        variant: "destructive",
+        title: safeTranslate("Failed to update task"),
+        description: safeTranslate("Please try again."),
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!task.id) return;
+
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(`/api/tasks/${task.id}/${task.id}`, {
+        method: "DELETE",
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to delete task: ${errorData.error}`);
+      }
+
+      onOpenChange(false);
+
+      toast({
+        title: safeTranslate("Task deleted"),
+        description: safeTranslate("Your task has been deleted successfully."),
+        variant: "success",
+      });
+      
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: safeTranslate("Failed to delete task"),
+        description: error instanceof Error ? error.message : safeTranslate("Please try again."),
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1322,6 +1441,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 <Button
                   variant="destructive"
                   size="sm"
+                  onClick={handleDelete}
                   disabled={isDeleting}
                   className="w-full sm:w-auto min-w-[100px]"
                   data-testid="task-detail-delete-button"
@@ -1331,6 +1451,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                 </Button>
                 <Button
                   size="sm"
+                  onClick={handleSave}
                   disabled={isSaving}
                   className="w-full sm:w-auto min-w-[100px]"
                   data-testid="task-detail-save-button"

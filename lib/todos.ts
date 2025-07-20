@@ -280,7 +280,6 @@ export async function updateTask(
   userId: number,
   updates: Partial<Todo>,
 ): Promise<Todo> {
-  // Verificar se a tarefa existe e pertence ao usuário
   const existingTask = await prisma.todos.findFirst({
     where: {
       id: taskId,
@@ -306,20 +305,32 @@ export async function updateTask(
     }
   }
 
-  let normalizedAttachments = undefined;
+  let attachmentsToSave: Array<any> | undefined = undefined;
+
   if (updates.attachments !== undefined) {
     try {
+      let incomingAttachments = [];
       if (Array.isArray(updates.attachments)) {
-        normalizedAttachments = updates.attachments;
+        incomingAttachments = updates.attachments;
       } else if (typeof updates.attachments === "string") {
         try {
-          normalizedAttachments = JSON.parse(updates.attachments);
+          incomingAttachments = JSON.parse(updates.attachments);
         } catch (e) {
-          normalizedAttachments = [];
+          console.error(`[updateTask] Erro ao parsear anexos como string: ${e}`);
+          incomingAttachments = [];
         }
       }
+
+      attachmentsToSave = incomingAttachments.map(att => ({
+        id: att.id || undefined,
+        type: att.type,
+        url: att.url,
+        name: att.name
+      }));
+
     } catch (error) {
-      normalizedAttachments = [];
+      console.error(`[updateTask] Erro ao processar anexos para salvar:`, error);
+      attachmentsToSave = [];
     }
   }
 
@@ -335,16 +346,15 @@ export async function updateTask(
   if (updates.kanban_column !== undefined) updateData.kanban_column = updates.kanban_column;
   if (updates.kanban_order !== undefined) updateData.kanban_order = updates.kanban_order;
   if (updates.points !== undefined) updateData.points = updates.points;
-  if (normalizedAttachments !== undefined) updateData.attachments = normalizedAttachments;
+  
+  if (updates.attachments !== undefined) updateData.attachments = attachmentsToSave;
   if (updates.estimated_time !== undefined) updateData.estimated_time = updates.estimated_time;
 
-  // Atualizar o board automaticamente quando o status de completion mudar
   if (updates.completed !== undefined && updates.kanban_column === undefined) {
     const finalDueDate = normalizedDueDate !== null ? normalizedDueDate : (existingTask.due_date || null);
     updateData.kanban_column = determineKanbanColumnByDate(finalDueDate, updates.completed);
   }
   
-  // Atualizar o board automaticamente quando a data mudar
   if (updates.due_date !== undefined && updates.kanban_column === undefined && updates.completed === undefined) {
     const finalCompleted = existingTask.completed;
     updateData.kanban_column = determineKanbanColumnByDate(normalizedDueDate, finalCompleted);
@@ -478,11 +488,6 @@ export async function getTaskById(
         include: {
           projects: true
         }
-      },
-      attachments: {
-        orderBy: {
-          created_at: 'desc'
-        }
       }
     }
   });
@@ -498,13 +503,7 @@ export async function getTaskById(
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments.map(att => ({
-      id: att.id,
-      type: att.mime_type.startsWith('image/') ? 'image' : 'file',
-      url: att.file_path,
-      name: att.file_name,
-      size: Number(att.file_size)
-    }))
+    attachments: task.attachments as any[]
   };
 }
 
