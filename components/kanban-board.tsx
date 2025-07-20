@@ -17,6 +17,7 @@ import { format } from "date-fns"
 import { ptBR, enUS } from "date-fns/locale"
 import { AddTaskDialog } from "@/components/add-task-dialog"
 import { TaskDetail } from "@/components/task-detail"
+import { useTaskUpdates } from "@/hooks/use-task-updates"
 
 type TranslationFunction = (key: string) => string;
 
@@ -374,6 +375,7 @@ const DroppableColumn = ({
 export function KanbanBoard() {
   const { t, language } = useTranslation();
   const { toast } = useToast();
+  const { notifyTaskDeleted } = useTaskUpdates();
   const [cards, setCards] = useState<KanbanCard[]>([]);
   const [newCardTitle, setNewCardTitle] = useState("");
   const [activeColumn, setActiveColumn] = useState<KanbanColumn | null>(null);
@@ -856,6 +858,9 @@ export function KanbanBoard() {
         toast({
           title: t("Task deleted successfully"),
         });
+        
+        // Notificar sobre a remoção da task
+        notifyTaskDeleted(cardId);
       } else {
         toast({
           variant: "destructive",

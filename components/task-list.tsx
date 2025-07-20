@@ -64,20 +64,23 @@ export function TaskList({ initialTasks, user }: TaskListProps) {
   const [showTaskDetail, setShowTaskDetail] = useState(false)
   const [sortBy, setSortBy] = useState<SortOption>("priority")
   const { notifyTaskCompleted, notifyTaskDeleted } = useTaskUpdates()
+  const { state, setTasks } = useTaskContext()
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
 
-  // Usar apenas as initialTasks, não o contexto global
-  const [localTasks, setLocalTasks] = useState<Todo[]>(initialTasks || [])
-
-  // Atualizar tarefas locais quando initialTasks mudar
+  // Inicializar o contexto com as tasks iniciais
   useEffect(() => {
-    setLocalTasks(initialTasks || [])
-  }, [initialTasks])
+    if (initialTasks && initialTasks.length > 0) {
+      setTasks(initialTasks)
+    }
+  }, [initialTasks, setTasks])
+
+  // Usar tasks do contexto global
+  const tasks = state.tasks.length > 0 ? state.tasks : (initialTasks || [])
 
   const sortedTasks = useMemo(() => {
-    const tasksCopy = [...localTasks];
+    const tasksCopy = [...tasks];
     
     switch (sortBy) {
       case "priority":
@@ -97,7 +100,7 @@ export function TaskList({ initialTasks, user }: TaskListProps) {
       default:
         return tasksCopy;
     }
-  }, [localTasks, sortBy]);
+  }, [tasks, sortBy]);
 
   const toggleTaskCompletion = async (taskId: number) => {
     try {
@@ -116,11 +119,8 @@ export function TaskList({ initialTasks, user }: TaskListProps) {
         description: t("Task status has been updated."),
       })
 
-      // Atualizar tarefa local
+      // Notificar sobre a atualização da task
       if (result.task) {
-        setLocalTasks(prev => prev.map(task => 
-          task.id === taskId ? result.task : task
-        ))
         notifyTaskCompleted(taskId, result.task)
       }
 
@@ -148,8 +148,7 @@ export function TaskList({ initialTasks, user }: TaskListProps) {
         description: t("Task has been deleted successfully."),
       })
 
-      // Remover tarefa local
-      setLocalTasks(prev => prev.filter(task => task.id !== taskId))
+      // Notificar sobre a remoção da task
       notifyTaskDeleted(taskId)
 
     } catch (error) {
@@ -270,7 +269,7 @@ export function TaskList({ initialTasks, user }: TaskListProps) {
     setShowTaskDetail(true)
   }
 
-  if (localTasks.length === 0) {
+  if (tasks.length === 0) {
     return (
       <Card className="border-dashed" data-testid="task-list-empty">
         <CardContent className="flex flex-col items-center justify-center py-10">
