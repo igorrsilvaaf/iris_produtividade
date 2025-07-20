@@ -18,6 +18,8 @@ interface DatePickerProps {
   selected?: Date | DateRange
   onSelect?: (value: Date | DateRange | undefined) => void
   numberOfMonths?: number
+  disabled?: boolean
+  placeholder?: string
 }
 
 export function DatePicker({
@@ -28,8 +30,11 @@ export function DatePicker({
   selected,
   onSelect,
   numberOfMonths = 1,
+  disabled = false,
+  placeholder,
 }: DatePickerProps) {
   const { t } = useTranslation()
+  const [isOpen, setIsOpen] = React.useState(false)
   
   const handleSelect = React.useCallback(
     (value: Date | DateRange | undefined) => {
@@ -38,6 +43,8 @@ export function DatePicker({
       } else if (setDate && mode === "single" && value instanceof Date) {
         setDate(value);
       }
+      // Fechar popover após seleção
+      setTimeout(() => setIsOpen(false), 150);
     },
     [onSelect, setDate, mode]
   );
@@ -57,26 +64,34 @@ export function DatePicker({
       return format(selected, "PP");
     }
     
-    return t("Pick a date");
+    return placeholder || t("Pick a date");
   };
 
   return (
     <div className={cn("grid gap-2", className)}>
-      <Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
             variant={"outline"}
+            disabled={disabled}
             className={cn(
-              "w-full justify-start text-left font-normal",
-              !selected && "text-muted-foreground"
+              "w-full justify-start text-left font-normal transition-all duration-200 hover:bg-accent/50",
+              !selected && "text-muted-foreground",
+              disabled && "opacity-50 cursor-not-allowed",
+              isOpen && "ring-2 ring-primary/20 bg-accent/50"
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {getDisplayValue()}
+            <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+            <span className="truncate">{getDisplayValue()}</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent 
+          className="w-auto p-0 shadow-lg border-0" 
+          align="start"
+          side="bottom"
+          sideOffset={4}
+        >
           {mode === "range" ? (
             <Calendar
               mode="range"

@@ -1411,6 +1411,46 @@ export const translations: Translations = {
     en: "More",
     pt: "Mais",
   },
+  current: {
+    en: "Current",
+    pt: "Atual",
+  },
+  loading: {
+    en: "Loading...",
+    pt: "Carregando...",
+  },
+  more: {
+    en: "more",
+    pt: "mais",
+  },
+  all: {
+    en: "All",
+    pt: "Todos",
+  },
+  allProjects: {
+    en: "All Projects",
+    pt: "Todos os Projetos",
+  },
+  allStatus: {
+    en: "All Status",
+    pt: "Todos os Status",
+  },
+  pending: {
+    en: "Pending",
+    pt: "Pendente",
+  },
+  overdue: {
+    en: "Overdue",
+    pt: "Atrasado",
+  },
+  clear: {
+    en: "Clear",
+    pt: "Limpar",
+  },
+  filtered: {
+    en: "Filtered",
+    pt: "Filtrado",
+  },
   "pomodoroSettings": {
     en: "Pomodoro Settings",
     pt: "Configurações do Pomodoro",
