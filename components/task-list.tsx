@@ -66,6 +66,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
   const [sortBy, setSortBy] = useState<SortOption>("priority")
   const [localTasks, setLocalTasks] = useState<Todo[]>(initialTasks || [])
   const { notifyTaskCompleted, notifyTaskDeleted } = useTaskUpdates()
+  const { state } = useTaskContext()
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
@@ -76,6 +77,29 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
       setLocalTasks(initialTasks)
     }
   }, [initialTasks])
+
+  // Escutar notificações de criação de tarefas
+  useEffect(() => {
+    if (state.tasks.length > 0) {
+      const lastTask = state.tasks[0] // A tarefa mais recente
+      const taskExists = localTasks.some(task => task.id === lastTask.id)
+      
+      // Só adicionar se a tarefa não existe e é apropriada para esta página
+      if (!taskExists) {
+        if (showCompleted) {
+          // Na página de concluídos, só adicionar se a tarefa estiver concluída
+          if (lastTask.completed) {
+            setLocalTasks(prevTasks => [lastTask, ...prevTasks])
+          }
+        } else {
+          // Nas páginas ativas, só adicionar se a tarefa NÃO estiver concluída
+          if (!lastTask.completed) {
+            setLocalTasks(prevTasks => [lastTask, ...prevTasks])
+          }
+        }
+      }
+    }
+  }, [state.lastUpdate, state.tasks, localTasks, showCompleted])
 
   // Usar tarefas locais em vez do contexto global
   const tasks = localTasks
@@ -125,12 +149,40 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
 
       const result = await response.json()
 
-      // Atualizar estado local
-      setLocalTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === taskId ? result.task : task
-        )
-      )
+      // Atualizar estado local baseado no novo status
+      setLocalTasks(prevTasks => {
+        if (showCompleted) {
+          // Na página de concluídos: adicionar se concluída, remover se não concluída
+          if (result.task.completed) {
+            // Adicionar se não existe
+            const exists = prevTasks.some(task => task.id === taskId)
+            if (!exists) {
+              return [result.task, ...prevTasks]
+            } else {
+              // Atualizar se existe
+              return prevTasks.map(task => task.id === taskId ? result.task : task)
+            }
+          } else {
+            // Remover se não está mais concluída
+            return prevTasks.filter(task => task.id !== taskId)
+          }
+        } else {
+          // Nas páginas ativas: remover se concluída, adicionar se não concluída
+          if (result.task.completed) {
+            // Remover se foi concluída
+            return prevTasks.filter(task => task.id !== taskId)
+          } else {
+            // Adicionar se não está mais concluída
+            const exists = prevTasks.some(task => task.id === taskId)
+            if (!exists) {
+              return [result.task, ...prevTasks]
+            } else {
+              // Atualizar se existe
+              return prevTasks.map(task => task.id === taskId ? result.task : task)
+            }
+          }
+        }
+      })
 
       toast({
         title: t("Task updated"),
