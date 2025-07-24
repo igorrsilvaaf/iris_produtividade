@@ -108,6 +108,7 @@ export function LoginForm() {
         title: t("Erro login"),
         description: error.message,
         duration: 5000,
+        dataTestId: "toast-login-error",
       });
     } finally {
       setIsLoading(false);
