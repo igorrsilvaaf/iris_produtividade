@@ -1,38 +1,47 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/hooks/use-toast"
-import { useTranslation } from "@/lib/i18n"
-import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/lib/i18n";
+import { Card, CardContent } from "@/components/ui/card";
 import { LanguageProvider } from "@/components/language-provider";
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [loginAttempts, setLoginAttempts] = useState(0)
-  const router = useRouter()
-  const { toast } = useToast()
-  const { t, language } = useTranslation()
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const router = useRouter();
+  const { toast } = useToast();
+  const { t, language } = useTranslation();
 
   const formSchema = z.object({
-    email: z.string()
+    email: z
+      .string()
       .min(1, { message: t("Email is required") })
       .email({ message: t("Please enter a valid email address") }),
-    password: z.string()
+    password: z
+      .string()
       .min(1, { message: t("Password is required") })
       .min(6, { message: t("Password must be at least 6 characters") }),
-    rememberMe: z.boolean().default(false),
-  })
+    rememberMe: z.boolean().catch(false),
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,68 +50,77 @@ export function LoginForm() {
       password: "",
       rememberMe: false,
     },
-  })
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const currentLanguage = (language && ["pt", "en"].includes(language)) ? language : "pt"
-      
+      const currentLanguage =
+        language && ["pt", "en"].includes(language) ? language : "pt";
 
-      
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
-          preferredLanguage: currentLanguage
+          preferredLanguage: currentLanguage,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        setLoginAttempts(prev => prev + 1)
-        
+        setLoginAttempts((prev) => prev + 1);
+
         let errorMessage = "";
         if (data.message.includes("Invalid email or password")) {
-          errorMessage = loginAttempts >= 2 
-            ? t("Multiple failed login attempts. Make sure your credentials are correct or reset your password.")
-            : t("Invalid email or password. Please check your credentials and try again.");
+          errorMessage =
+            loginAttempts >= 2
+              ? t(
+                  "Multiple failed login attempts. Make sure your credentials are correct or reset your password.",
+                )
+              : t(
+                  "Invalid email or password. Please check your credentials and try again.",
+                );
         } else {
           errorMessage = t(data.message) || t("Failed to login");
         }
-        
+
         throw new Error(errorMessage);
       }
 
-      setLoginAttempts(0)
-      
+      setLoginAttempts(0);
+
       toast({
         variant: "success",
         title: t("Sucesso login"),
         description: t("Redirecionando login"),
         duration: 3000,
-      })
+        dataTestId: "toast-login-success",
+      });
 
-      router.push("/app")
-      router.refresh()
+      router.push("/app");
+      router.refresh();
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: t("Erro login"),
         description: error.message,
         duration: 5000,
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" data-testid="login-form">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6"
+        data-testid="login-form"
+      >
         <FormField
           control={form.control}
           name="email"
@@ -110,10 +128,10 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>{t("Email")}</FormLabel>
               <FormControl>
-                <Input 
+                <Input
                   data-testid="login-email-input"
-                  placeholder={t("Your email")} 
-                  {...field} 
+                  placeholder={t("Your email")}
+                  {...field}
                   autoComplete="email"
                   aria-required="true"
                 />
@@ -130,11 +148,11 @@ export function LoginForm() {
               <FormLabel>{t("Password")}</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input 
+                  <Input
                     data-testid="login-password-input"
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="••••••••" 
-                    {...field} 
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...field}
                     autoComplete="current-password"
                     aria-required="true"
                   />
@@ -145,14 +163,18 @@ export function LoginForm() {
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? t("Hide password") : t("Show password")}
+                    aria-label={
+                      showPassword ? t("Hide password") : t("Show password")
+                    }
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-muted-foreground" />
                     ) : (
                       <Eye className="h-4 w-4 text-muted-foreground" />
                     )}
-                    <span className="sr-only">{showPassword ? t("Hide password") : t("Show password")}</span>
+                    <span className="sr-only">
+                      {showPassword ? t("Hide password") : t("Show password")}
+                    </span>
                   </Button>
                 </div>
               </FormControl>
@@ -166,11 +188,11 @@ export function LoginForm() {
             name="rememberMe"
             render={({ field }) => (
               <div className="flex items-center space-x-2">
-                <Checkbox 
+                <Checkbox
                   data-testid="login-remember-checkbox"
-                  id="rememberMe" 
-                  checked={field.value} 
-                  onCheckedChange={field.onChange} 
+                  id="rememberMe"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
                 />
                 <label
                   htmlFor="rememberMe"
@@ -181,19 +203,19 @@ export function LoginForm() {
               </div>
             )}
           />
-          <Button 
+          <Button
             data-testid="login-forgot-password-link"
-            variant="link" 
-            className="px-0 font-normal" 
+            variant="link"
+            className="px-0 font-normal"
             asChild
           >
             <a href="/forgot-password">{t("Forgot password?")}</a>
           </Button>
         </div>
-        <Button 
+        <Button
           data-testid="login-submit-button"
-          type="submit" 
-          className="w-full" 
+          type="submit"
+          className="w-full"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -206,6 +228,5 @@ export function LoginForm() {
         </Button>
       </form>
     </Form>
-  )
+  );
 }
-
