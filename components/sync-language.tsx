@@ -20,5 +20,5 @@ export function SyncLanguage({ initialLanguage }: SyncLanguageProps) {
     }
   }, [initialLanguage, language, isHydrated, setLanguage]);
 
-  return null;
+  return <div data-testid="sync-language" style={{ display: 'none' }} />;
 }

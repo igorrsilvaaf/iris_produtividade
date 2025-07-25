@@ -27,5 +27,5 @@ export const AppWrapper = memo(function AppWrapper({ children }: AppWrapperProps
     return null
   }
 
-  return <>{children}</>
+  return <div data-testid="app-wrapper">{children}</div>
 })

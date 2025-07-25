@@ -148,7 +148,7 @@ export function BackupRestore({ initialLanguage }: BackupRestoreProps) {
           <p className="text-sm text-muted-foreground">
             {t("Download a backup of all your tasks, projects, labels, and settings.")}
           </p>
-          <Button onClick={handleExport} disabled={isExporting} className="w-full sm:w-auto">
+          <Button onClick={handleExport} disabled={isExporting} className="w-full sm:w-auto" data-testid="export-button">
             {isExporting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Exporting...")}
@@ -166,11 +166,11 @@ export function BackupRestore({ initialLanguage }: BackupRestoreProps) {
           <p className="text-sm text-muted-foreground">{t("Restore your data from a previously exported backup file.")}</p>
           <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto" data-testid="import-button">
                 <Upload className="mr-2 h-4 w-4" /> {t("Import Data")}
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent data-testid="import-dialog">
               <DialogHeader>
                 <DialogTitle>{t("Import Data")}</DialogTitle>
                 <DialogDescription>
@@ -193,15 +193,16 @@ export function BackupRestore({ initialLanguage }: BackupRestoreProps) {
                     type="file"
                     accept=".json"
                     onChange={handleFileChange}
+                    data-testid="backup-file-input"
                     className="w-full cursor-pointer rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowImportDialog(false)} disabled={isImporting}>
+                <Button variant="outline" onClick={() => setShowImportDialog(false)} disabled={isImporting} data-testid="cancel-import-button">
                   {t("Cancel")}
                 </Button>
-                <Button onClick={handleImport} disabled={!importFile || isImporting}>
+                <Button onClick={handleImport} disabled={!importFile || isImporting} data-testid="confirm-import-button">
                   {isImporting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("Importing...")}

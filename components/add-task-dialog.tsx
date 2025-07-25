@@ -719,30 +719,30 @@ export function AddTaskDialog({
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger data-testid="add-task-priority-select">
                           <SelectValue placeholder={t("Select priority")} />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="1">
+                      <SelectContent data-testid="add-task-priority-content">
+                        <SelectItem value="1" data-testid="add-task-priority-1">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-red-500" />
                             {t("priority1")}
                           </div>
                         </SelectItem>
-                        <SelectItem value="2">
+                        <SelectItem value="2" data-testid="add-task-priority-2">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-orange-500" />
                             {t("priority2")}
                           </div>
                         </SelectItem>
-                        <SelectItem value="3">
+                        <SelectItem value="3" data-testid="add-task-priority-3">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-blue-500" />
                             {t("priority3")}
                           </div>
                         </SelectItem>
-                        <SelectItem value="4">
+                        <SelectItem value="4" data-testid="add-task-priority-4">
                           <div className="flex items-center">
                             <Flag className="mr-2 h-4 w-4 text-gray-400" />
                             {t("priority4")}
@@ -761,7 +761,7 @@ export function AddTaskDialog({
                   <FormItem className="flex flex-col">
                     <FormLabel>{t("points") || "Pontos"}</FormLabel>
                     <Popover>
-                      <PopoverTrigger asChild>
+                      <PopoverTrigger asChild data-testid="add-task-points-trigger">
                         <Button
                           variant="outline"
                           className="w-full justify-between text-left font-normal"
@@ -802,11 +802,12 @@ export function AddTaskDialog({
                           <ChevronDown className="h-4 w-4 opacity-50" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0" align="start" data-testid="add-task-points-content">
                         <div className="p-1">
                           {[1, 2, 3, 4, 5].map((value) => (
                             <div
                               key={value}
+                              data-testid={`add-task-points-${value}`}
                               className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                               onClick={() => field.onChange(value)}
                             >
@@ -905,10 +906,10 @@ export function AddTaskDialog({
                             <SelectItem value="min">
                               {t("timeUnit.minutes")}
                             </SelectItem>
-                            <SelectItem value="h">
+                            <SelectItem value="h" data-testid="add-task-estimated-time-unit-hours">
                               {t("timeUnit.hours")}
                             </SelectItem>
-                            <SelectItem value="d">
+                            <SelectItem value="d" data-testid="add-task-estimated-time-unit-days">
                               {t("timeUnit.days")}
                             </SelectItem>
                           </SelectContent>
@@ -964,7 +965,7 @@ export function AddTaskDialog({
                       open={showAddProject}
                       onOpenChange={setShowAddProject}
                     >
-                      <DialogTrigger asChild>
+                      <DialogTrigger asChild data-testid="add-task-add-project-button">
                         <Button
                           type="button"
                           variant="outline"
@@ -978,6 +979,7 @@ export function AddTaskDialog({
                       <DialogContent
                         className="z-[60]"
                         onClick={(e) => e.stopPropagation()}
+                        data-testid="add-task-add-project-dialog"
                       >
                         <DialogHeader>
                           <DialogTitle>{t("Add Project")}</DialogTitle>
@@ -999,6 +1001,7 @@ export function AddTaskDialog({
                               <button
                                 key={project.id}
                                 type="button"
+                                data-testid={`add-task-project-${project.id}`}
                                 className="flex items-center justify-between p-2 border rounded hover:bg-accent"
                                 onClick={() => {
                                   field.onChange(project.id.toString());
@@ -1020,6 +1023,7 @@ export function AddTaskDialog({
                           <Button
                             variant="outline"
                             onClick={() => setShowAddProject(false)}
+                            data-testid="add-task-cancel-add-project-button"
                           >
                             {t("Cancel")}
                           </Button>
@@ -1027,7 +1031,7 @@ export function AddTaskDialog({
                             open={showCreateProject}
                             onOpenChange={setShowCreateProject}
                           >
-                            <DialogTrigger asChild>
+                            <DialogTrigger asChild data-testid="add-task-create-new-project-button">
                               <Button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1105,7 +1109,7 @@ export function AddTaskDialog({
                       )}
                     </div>
                     <Dialog open={showAddLabel} onOpenChange={setShowAddLabel}>
-                      <DialogTrigger asChild>
+                      <DialogTrigger asChild data-testid="add-task-add-label-button">
                         <Button
                           variant="outline"
                           size="sm"
@@ -1119,6 +1123,7 @@ export function AddTaskDialog({
                       <DialogContent
                         className="z-[60]"
                         onClick={(e) => e.stopPropagation()}
+                        data-testid="add-task-add-label-dialog"
                       >
                         <DialogHeader>
                           <DialogTitle>{t("Add Label")}</DialogTitle>
@@ -1147,6 +1152,7 @@ export function AddTaskDialog({
                                 <button
                                   key={label.id}
                                   type="button"
+                                  data-testid={`add-task-label-${label.id}`}
                                   className="flex items-center justify-between p-2 border rounded hover:bg-accent"
                                   onClick={() => {
                                     toggleLabel(label);
@@ -1168,6 +1174,7 @@ export function AddTaskDialog({
                           <Button
                             variant="outline"
                             onClick={() => setShowAddLabel(false)}
+                            data-testid="add-task-cancel-add-label-button"
                           >
                             {t("Cancel")}
                           </Button>
@@ -1175,7 +1182,7 @@ export function AddTaskDialog({
                             open={showCreateLabel}
                             onOpenChange={setShowCreateLabel}
                           >
-                            <DialogTrigger asChild>
+                            <DialogTrigger asChild data-testid="add-task-create-new-label-button">
                               <Button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1245,6 +1252,7 @@ export function AddTaskDialog({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeAttachment(index)}
+                        data-testid={`remove-attachment-${index}`}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -1265,6 +1273,7 @@ export function AddTaskDialog({
                       size="sm"
                       onClick={() => setAttachmentType("link")}
                       className="w-full"
+                      data-testid="attachment-type-link-button"
                     >
                       Link
                     </Button>
@@ -1276,6 +1285,7 @@ export function AddTaskDialog({
                       size="sm"
                       onClick={() => setAttachmentType("image")}
                       className="w-full"
+                      data-testid="attachment-type-image-button"
                     >
                       Imagem
                     </Button>
@@ -1287,6 +1297,7 @@ export function AddTaskDialog({
                       size="sm"
                       onClick={() => setAttachmentType("file")}
                       className="w-full"
+                      data-testid="attachment-type-file-button"
                     >
                       Arquivo
                     </Button>
@@ -1298,12 +1309,14 @@ export function AddTaskDialog({
                         placeholder="URL"
                         value={attachmentUrl}
                         onChange={(e) => setAttachmentUrl(e.target.value)}
+                        data-testid="attachment-url-input"
                       />
 
                       <Input
                         placeholder="Nome (opcional)"
                         value={attachmentName}
                         onChange={(e) => setAttachmentName(e.target.value)}
+                        data-testid="attachment-name-input"
                       />
 
                       <div className="flex space-x-2">
@@ -1312,6 +1325,7 @@ export function AddTaskDialog({
                           onClick={addAttachment}
                           disabled={!attachmentUrl.trim()}
                           size="sm"
+                          data-testid="add-attachment-button"
                         >
                           Adicionar
                         </Button>
@@ -1324,6 +1338,7 @@ export function AddTaskDialog({
                             setAttachmentUrl("");
                             setAttachmentName("");
                           }}
+                          data-testid="cancel-attachment-button"
                         >
                           Cancelar
                         </Button>
@@ -1357,6 +1372,7 @@ export function AddTaskDialog({
                         onClick={triggerFileUpload}
                         className="w-full"
                         size="sm"
+                        data-testid="select-attachment-file-button"
                       >
                         {attachmentType === "image"
                           ? "Selecionar Imagem"
@@ -1368,6 +1384,7 @@ export function AddTaskDialog({
                         size="sm"
                         onClick={() => setShowAddAttachment(false)}
                         className="w-full"
+                        data-testid="cancel-attachment-upload-button"
                       >
                         Cancelar
                       </Button>
@@ -1381,6 +1398,7 @@ export function AddTaskDialog({
                   size="sm"
                   onClick={() => setShowAddAttachment(true)}
                   className="w-full"
+                  data-testid="add-attachment-button"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   {t("attachment.add")}
@@ -1389,7 +1407,7 @@ export function AddTaskDialog({
             </div>
 
             <DialogFooter className="pt-2 sm:pt-0">
-              <Button type="submit" className="ml-auto" disabled={isLoading}>
+              <Button type="submit" className="ml-auto" disabled={isLoading} data-testid="create-task-button">
                 {isLoading ? t("creating") : t("createTask")}
               </Button>
             </DialogFooter>

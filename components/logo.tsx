@@ -33,14 +33,21 @@ export function Logo({ className = "", asLink = true, href = "/", showVersion = 
 
   if (asLink) {
     return (
-      <Link href={href} className={`inline-flex items-center gap-2 ${className}`}>
+      <Link 
+        href={href} 
+        className={`inline-flex items-center gap-2 ${className}`}
+        data-testid="logo-link"
+      >
         {logoContent}
       </Link>
     );
   }
 
   return (
-    <div className={`inline-flex items-center gap-2 ${className}`}>
+    <div 
+      className={`inline-flex items-center gap-2 ${className}`}
+      data-testid="logo"
+    >
       {logoContent}
     </div>
   );
