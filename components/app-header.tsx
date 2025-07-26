@@ -78,7 +78,12 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
       {/* Mobile menu button (positioned to the left of search) */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="mr-2 md:hidden" data-testid="header-mobile-menu-button">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="mr-2 md:hidden"
+            data-testid="sidebar-menu-button"
+          >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle menu</span>
           </Button>
@@ -92,16 +97,22 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
       </Sheet>
       
       {/* Search area - always visible on all devices */}
-      <div className="flex flex-1 justify-center transition-all duration-200" data-testid="header-search-area">
+      <div className="flex flex-1 justify-center transition-all duration-200">
         <div className="w-full max-w-md relative">
           <SearchTasks />
         </div>
       </div>
       
       {/* Primary navigation */}
-      <nav className="flex items-center gap-1 ml-auto md:ml-4" data-testid="header-navigation">
+      <nav className="flex items-center gap-1 ml-auto md:ml-4">
         <div className="hidden md:flex items-center mr-1 border-r pr-2 border-muted">
-          <Button variant="ghost" size="sm" className="rounded-full h-9 px-3 text-sm font-medium" asChild data-testid="header-calendar-button">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full h-9 px-3 text-sm font-medium"
+            asChild
+            data-testid="calendar-button"
+          >
             <a href="/app/calendar" className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />
               {t("calendar")}
@@ -113,12 +124,12 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
           <TaskNotificationsMenu />
           
           {/* Calendar button for mobile */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="md:hidden rounded-full h-9 w-9 hover:bg-accent/50 hover:text-accent-foreground transition-colors" 
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden rounded-full h-9 w-9 hover:bg-accent/50 hover:text-accent-foreground transition-colors"
             asChild
-            data-testid="header-calendar-mobile-button"
+            data-testid="calendar-button-mobile"
           >
             <a href="/app/calendar">
               <Calendar className="h-4.5 w-4.5" />
@@ -126,12 +137,12 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
             </a>
           </Button>
           
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full h-9 w-9 hover:bg-accent/50 hover:text-accent-foreground transition-colors" 
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full h-9 w-9 hover:bg-accent/50 hover:text-accent-foreground transition-colors"
             asChild
-            data-testid="header-settings-button"
+            data-testid="settings-button"
           >
             <a href="/app/settings">
               <Settings className="h-4.5 w-4.5" />
@@ -141,79 +152,110 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
           
           <ModeToggle className="rounded-full h-9 w-9 hover:bg-accent/50 hidden md:flex" />
           
-                <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full h-9 w-9 ml-1 p-0 overflow-hidden ring-2 ring-primary/10 hover:ring-primary/20"
-            data-testid="header-user-menu-trigger"
-          >
-            <Avatar className="h-9 w-9" data-testid="header-user-avatar">
-              <AvatarImage src={user.avatar_url || ""} alt={user.name} data-testid="header-user-avatar-image" />
-              <AvatarFallback className="bg-primary/10 text-primary text-sm" key={`header-avatar-${user.id}`} data-testid="header-user-avatar-fallback">
-                {getInitials(user.name)}
-              </AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5 border-muted/50 shadow-lg" data-testid="header-user-menu">
-              <div className="flex items-center gap-3 p-2.5 mb-1 rounded-lg" data-testid="header-user-info">
-                <Avatar className="h-10 w-10 border-2 border-muted" data-testid="header-dropdown-avatar">
-                  <AvatarImage src={user.avatar_url || ""} alt={user.name} data-testid="header-dropdown-avatar-image" />
-                  <AvatarFallback className="bg-primary/10 text-primary" key={`dropdown-avatar-${user.id}`} data-testid="header-dropdown-avatar-fallback">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-9 w-9 ml-1 p-0 overflow-hidden ring-2 ring-primary/10 hover:ring-primary/20"
+                data-testid="user-menu-trigger"
+              >
+                <Avatar className="h-9 w-9" data-testid="header-user-avatar">
+                  <AvatarImage src={user.avatar_url || ""} alt={user.name} />
+                  <AvatarFallback
+                    className="bg-primary/10 text-primary text-sm"
+                    key={`header-avatar-${user.id}`}
+                  >
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col" data-testid="header-user-details">
-                  <span className="font-medium leading-none" data-testid="header-user-name">{user.name}</span>
-                  <span className="text-xs text-muted-foreground mt-1" data-testid="header-user-email">{user.email}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-56 rounded-xl p-1.5 border-muted/50 shadow-lg"
+            >
+              <div className="flex items-center gap-3 p-2.5 mb-1 rounded-lg">
+                <Avatar className="h-10 w-10 border-2 border-muted">
+                  <AvatarImage src={user.avatar_url || ""} alt={user.name} />
+                  <AvatarFallback
+                    className="bg-primary/10 text-primary"
+                    key={`dropdown-avatar-${user.id}`}
+                  >
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="font-medium leading-none">{user.name}</span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    {user.email}
+                  </span>
                 </div>
               </div>
               
               <DropdownMenuSeparator className="my-1" />
               
               <div className="p-1">
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-profile">
+                <DropdownMenuItem
+                  asChild
+                  className="rounded-lg cursor-pointer h-9 px-2 py-1.5"
+                  data-testid="profile-menu-item"
+                >
                   <a href="/app/profile" className="flex items-center">
                     <User className="mr-2 h-4 w-4" />
                     {t("profile")}
                   </a>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-settings">
+                <DropdownMenuItem
+                  asChild
+                  className="rounded-lg cursor-pointer h-9 px-2 py-1.5"
+                  data-testid="settings-menu-item"
+                >
                   <a href="/app/settings" className="flex items-center">
                     <Settings className="mr-2 h-4 w-4" />
                     {t("settings")}
                   </a>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-storage">
+                <DropdownMenuItem
+                  asChild
+                  className="rounded-lg cursor-pointer h-9 px-2 py-1.5"
+                  data-testid="storage-menu-item"
+                >
                   <a href="/app/storage" className="flex items-center">
                     <Database className="mr-2 h-4 w-4" />
                     {t("storage")}
                   </a>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-changelog">
+                <DropdownMenuItem
+                  asChild
+                  className="rounded-lg cursor-pointer h-9 px-2 py-1.5"
+                  data-testid="changelog-menu-item"
+                >
                   <a href="/app/changelog" className="flex items-center">
                     <FileText className="mr-2 h-4 w-4" />
                     {t("changelog")}
                   </a>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-reports">
+                <DropdownMenuItem
+                  asChild
+                  className="rounded-lg cursor-pointer h-9 px-2 py-1.5"
+                  data-testid="reports-menu-item"
+                >
                   <a href="/app/reports" className="flex items-center">
-                    <svg 
+                    <svg
                       className="mr-2 h-4 w-4"
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="24" 
-                      height="24" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
                       strokeLinejoin="round"
                     >
                       <path d="M14 2v4a2 2 0 0 0 2 2h4" />
@@ -234,7 +276,11 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
                 {/* Theme toggle for mobile */}
                 <div className="md:hidden">
                   <DropdownMenuSeparator className="my-1" />
-                  <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 px-2 py-1.5" data-testid="header-menu-theme">
+                  <DropdownMenuItem
+                    asChild
+                    className="rounded-lg cursor-pointer h-9 px-2 py-1.5"
+                    data-testid="theme-menu-item"
+                  >
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center">
                         <svg
@@ -266,10 +312,10 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
                   </DropdownMenuItem>
                 </div>
                 
-                <DropdownMenuItem 
-                  onClick={handleLogout} 
+                <DropdownMenuItem
+                  onClick={handleLogout}
                   className="rounded-lg cursor-pointer h-9 px-2 py-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20"
-                  data-testid="header-menu-logout"
+                  data-testid="logout-menu-item"
                 >
                   {t("logout")}
                 </DropdownMenuItem>
