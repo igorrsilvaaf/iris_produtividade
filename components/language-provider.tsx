@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslation, rehydrateLanguageStore } from '@/lib/i18n'
+import type { Language } from '@/lib/i18n'
 
 interface LanguageProviderProps {
   children: React.ReactNode
-  initialLanguage?: string
+  initialLanguage?: Language | string
 }
 
 export function LanguageProvider({ children, initialLanguage }: LanguageProviderProps) {
@@ -21,7 +22,10 @@ export function LanguageProvider({ children, initialLanguage }: LanguageProvider
       }
       
       if (initialLanguage && initialLanguage !== language) {
-        setLanguage(initialLanguage)
+        // Garante que apenas valores válidos de Language sejam passados
+        if (initialLanguage === 'en' || initialLanguage === 'pt') {
+          setLanguage(initialLanguage)
+        }
       }
       
       setIsReady(true)
@@ -42,6 +46,6 @@ export function LanguageProvider({ children, initialLanguage }: LanguageProvider
     return null
   }
 
-  return <>{children}</>
+  return <div data-testid="language-provider">{children}</div>
 }
 

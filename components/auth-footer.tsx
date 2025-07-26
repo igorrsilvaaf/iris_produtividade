@@ -17,12 +17,14 @@ export function AuthFooter() {
           <Link
             href="/terms"
             className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+            data-testid="auth-footer-terms-link"
           >
             {t("Terms")}
           </Link>
           <Link
             href="/privacy"
             className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+            data-testid="auth-footer-privacy-link"
           >
             {t("Privacy")}
           </Link>

@@ -235,6 +235,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
               size="icon" 
               onClick={prevMonth}
               className="transition-all duration-200 hover:scale-105"
+              data-testid="calendar-prev-month-button"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -243,6 +244,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
               size="icon" 
               onClick={nextMonth}
               className="transition-all duration-200 hover:scale-105"
+              data-testid="calendar-next-month-button"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -266,6 +268,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
               size="sm"
               onClick={() => setCurrentMonth(new Date())}
               className="text-xs transition-all duration-200 hover:scale-105"
+              data-testid="calendar-today-button"
             >
               {t("today")}
             </Button>
@@ -409,6 +412,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
                 variant="ghost"
                 size="icon"
                 className="h-5 w-5 sm:h-6 sm:w-6 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+                data-testid={`calendar-add-task-${day.toISOString().split('T')[0]}`}
               >
                 <Plus className="h-3 w-3" />
               </Button>
@@ -421,6 +425,7 @@ export function CalendarView({ userId }: CalendarViewProps) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div
+                      data-testid={`calendar-task-${task.id}`}
                       className={cn(
                         "text-[10px] sm:text-xs p-1.5 rounded-md truncate border-l-2 cursor-pointer transition-all duration-200 hover:opacity-80 hover:scale-[1.02]",
                         getTaskStatusClass(task)

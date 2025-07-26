@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-type Language = "en" | "pt"
+export type Language = "en" | "pt"
 
 type Translations = {
   [key: string]: {
@@ -335,7 +335,7 @@ export const translations: Translations = {
     en: "Save",
     pt: "Salvar",
   },
-  cancel: {
+  cancelButton: {
     en: "Cancel",
     pt: "Cancelar",
   },
@@ -1479,7 +1479,7 @@ export const translations: Translations = {
     en: "Include Descriptions",
     pt: "Incluir Descrições",
   },
-  cancel: {
+  cancelButton: {
     en: "Cancel",
     pt: "Cancelar",
   },
@@ -1718,7 +1718,7 @@ export const translations: Translations = {
     en: "due today",
     pt: "que vencem hoje"
   },
-  "overdue": {
+  "overdueStatus": {
     en: "overdue",
     pt: "vencidas"
   },

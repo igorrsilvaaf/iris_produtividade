@@ -37,5 +37,5 @@ export function LanguageInitializer({ children, initialLanguage }: LanguageIniti
     return null
   }
 
-  return <>{children}</>
+  return <div data-testid="language-initializer">{children}</div>
 }

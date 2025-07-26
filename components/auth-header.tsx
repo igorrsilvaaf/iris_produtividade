@@ -24,24 +24,24 @@ export function AuthHeader() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          <ModeToggle />
+          <ModeToggle data-testid="auth-header-mode-toggle" />
           <div className="hidden sm:flex gap-4">
             {isLoginPage && (
-              <Link href="/register">
+              <Link href="/register" data-testid="auth-header-register-link">
                 <Button>{t("Sign Up")}</Button>
               </Link>
             )}
             {isRegisterPage && (
-              <Link href="/login">
+              <Link href="/login" data-testid="auth-header-login-link">
                 <Button variant="default">{t("Login")}</Button>
               </Link>
             )}
             {!isLoginPage && !isRegisterPage && (
               <>
-                <Link href="/login">
+                <Link href="/login" data-testid="auth-header-login-link">
                   <Button variant="outline">{t("Login")}</Button>
                 </Link>
-                <Link href="/register">
+                <Link href="/register" data-testid="auth-header-register-link">
                   <Button>{t("Sign Up")}</Button>
                 </Link>
               </>
@@ -49,17 +49,17 @@ export function AuthHeader() {
           </div>
           <div className="sm:hidden">
             {isLoginPage && (
-              <Link href="/register">
+              <Link href="/register" data-testid="auth-header-register-link-mobile">
                 <Button size="sm">{t("Sign Up")}</Button>
               </Link>
             )}
             {isRegisterPage && (
-              <Link href="/login">
+              <Link href="/login" data-testid="auth-header-login-link-mobile">
                 <Button size="sm" variant="default">{t("Login")}</Button>
               </Link>
             )}
             {!isLoginPage && !isRegisterPage && (
-              <Link href="/login">
+              <Link href="/login" data-testid="auth-header-login-link-mobile">
                 <Button size="sm">{t("Login")}</Button>
               </Link>
             )}

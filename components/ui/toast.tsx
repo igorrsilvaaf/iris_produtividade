@@ -19,6 +19,7 @@ const ToastViewport = React.forwardRef<
       "fixed top-4 right-4 z-[100] flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:right-4 sm:top-4 sm:flex-col md:max-w-[420px]",
       className,
     )}
+    data-testid="toast-viewport"
     {...props}
   />
 ));
@@ -61,14 +62,15 @@ Toast.displayName = ToastPrimitives.Root.displayName;
 
 const ToastAction = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Action>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Action>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Action> & { 'data-testid'?: string }
+>(({ className, 'data-testid': testId, ...props }, ref) => (
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
       "inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive",
       className,
     )}
+    data-testid={testId || 'toast-action'}
     {...props}
   />
 ));
@@ -85,20 +87,22 @@ const ToastClose = React.forwardRef<
       className,
     )}
     toast-close=""
+    data-testid="toast-close-button"
     {...props}
   >
-    <X className="h-4 w-4" />
+    <X className="h-4 w-4" data-testid="toast-close-icon" />
   </ToastPrimitives.Close>
 ));
 ToastClose.displayName = ToastPrimitives.Close.displayName;
 
 const ToastTitle = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Title>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title> & { 'data-testid'?: string }
+>(({ className, 'data-testid': testId, ...props }, ref) => (
   <ToastPrimitives.Title
     ref={ref}
     className={cn("text-sm font-semibold", className)}
+    data-testid={testId || 'toast-title'}
     {...props}
   />
 ));
@@ -106,11 +110,12 @@ ToastTitle.displayName = ToastPrimitives.Title.displayName;
 
 const ToastDescription = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Description>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description> & { 'data-testid'?: string }
+>(({ className, 'data-testid': testId, ...props }, ref) => (
   <ToastPrimitives.Description
     ref={ref}
     className={cn("text-sm opacity-90", className)}
+    data-testid={testId || 'toast-description'}
     {...props}
   />
 ));

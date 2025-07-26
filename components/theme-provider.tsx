@@ -22,8 +22,11 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
       enableSystem
       disableTransitionOnChange
       {...props}
+      data-testid="theme-provider"
     >
-      {children}
+      <div data-testid="theme-provider-content">
+        {children}
+      </div>
     </NextThemesProvider>
   )
 }

@@ -28,5 +28,9 @@ export function ThemeInitializer({ children, initialTheme }: ThemeInitializerPro
     return null
   }
 
-  return <>{children}</>
+  return (
+    <div data-testid="theme-initializer" data-theme={resolvedTheme}>
+      {children}
+    </div>
+  )
 }
