@@ -12,21 +12,32 @@ const SelectGroup = SelectPrimitive.Group
 
 const SelectValue = SelectPrimitive.Value
 
+interface SelectTriggerProps 
+  extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> {
+  'data-testid'?: string
+  'data-testid-icon'?: string
+}
+
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
+  SelectTriggerProps
+>(({ className, children, 'data-testid': testId, 'data-testid-icon': testIdIcon, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
       "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       className
     )}
+    data-testid={testId || 'select-trigger'}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
+      <ChevronDown 
+        className="h-4 w-4 opacity-50" 
+        data-testid={testIdIcon || 'select-chevron'}
+        aria-hidden="true"
+      />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -67,10 +78,25 @@ const SelectScrollDownButton = React.forwardRef<
 SelectScrollDownButton.displayName =
   SelectPrimitive.ScrollDownButton.displayName
 
+interface SelectContentProps 
+  extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> {
+  'data-testid'?: string
+  'data-testid-scroll-up'?: string
+  'data-testid-scroll-down'?: string
+}
+
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
+  SelectContentProps
+>(({ 
+  className, 
+  children, 
+  position = "popper", 
+  'data-testid': testId,
+  'data-testid-scroll-up': testIdScrollUp,
+  'data-testid-scroll-down': testIdScrollDown,
+  ...props 
+}, ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
@@ -81,19 +107,27 @@ const SelectContent = React.forwardRef<
         className
       )}
       position={position}
+      data-testid={testId || 'select-content'}
       {...props}
     >
-      <SelectScrollUpButton />
+      <SelectScrollUpButton 
+        data-testid={testIdScrollUp || 'select-scroll-up'}
+        aria-label="Scroll up"
+      />
       <SelectPrimitive.Viewport
         className={cn(
           "p-1",
           position === "popper" &&
             "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
         )}
+        data-testid="select-viewport"
       >
         {children}
       </SelectPrimitive.Viewport>
-      <SelectScrollDownButton />
+      <SelectScrollDownButton 
+        data-testid={testIdScrollDown || 'select-scroll-down'}
+        aria-label="Scroll down"
+      />
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
 ))
