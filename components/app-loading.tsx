@@ -11,7 +11,7 @@ interface AppLoadingProps {
 
 export function AppLoading({ children }: AppLoadingProps) {
   const { resolvedTheme } = useTheme()
-  const { isHydrated } = useTranslation()
+  const { isHydrated, t } = useTranslation()
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
