@@ -141,33 +141,33 @@ export function AppHeader({ user }: { user: AppHeaderUser }) {
           
           <ModeToggle className="rounded-full h-9 w-9 hover:bg-accent/50 hidden md:flex" />
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="rounded-full h-9 w-9 ml-1 p-0 overflow-hidden ring-2 ring-primary/10 hover:ring-primary/20"
-                data-testid="header-user-menu-trigger"
-              >
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={user.avatar_url || ""} alt={user.name} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm" key={`header-avatar-${user.id}`}>
-                    {getInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
+                <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full h-9 w-9 ml-1 p-0 overflow-hidden ring-2 ring-primary/10 hover:ring-primary/20"
+            data-testid="header-user-menu-trigger"
+          >
+            <Avatar className="h-9 w-9" data-testid="header-user-avatar">
+              <AvatarImage src={user.avatar_url || ""} alt={user.name} data-testid="header-user-avatar-image" />
+              <AvatarFallback className="bg-primary/10 text-primary text-sm" key={`header-avatar-${user.id}`} data-testid="header-user-avatar-fallback">
+                {getInitials(user.name)}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5 border-muted/50 shadow-lg" data-testid="header-user-menu">
-              <div className="flex items-center gap-3 p-2.5 mb-1 rounded-lg">
-                <Avatar className="h-10 w-10 border-2 border-muted">
-                  <AvatarImage src={user.avatar_url || ""} alt={user.name} />
-                  <AvatarFallback className="bg-primary/10 text-primary" key={`dropdown-avatar-${user.id}`}>
+              <div className="flex items-center gap-3 p-2.5 mb-1 rounded-lg" data-testid="header-user-info">
+                <Avatar className="h-10 w-10 border-2 border-muted" data-testid="header-dropdown-avatar">
+                  <AvatarImage src={user.avatar_url || ""} alt={user.name} data-testid="header-dropdown-avatar-image" />
+                  <AvatarFallback className="bg-primary/10 text-primary" key={`dropdown-avatar-${user.id}`} data-testid="header-dropdown-avatar-fallback">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col">
-                  <span className="font-medium leading-none">{user.name}</span>
-                  <span className="text-xs text-muted-foreground mt-1">{user.email}</span>
+                <div className="flex flex-col" data-testid="header-user-details">
+                  <span className="font-medium leading-none" data-testid="header-user-name">{user.name}</span>
+                  <span className="text-xs text-muted-foreground mt-1" data-testid="header-user-email">{user.email}</span>
                 </div>
               </div>
               
