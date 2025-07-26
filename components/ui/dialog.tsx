@@ -75,56 +75,78 @@ const DialogContent = React.forwardRef<
 })
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
+interface DialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+  'data-testid'?: string
+}
+
 const DialogHeader = ({
   className,
+  'data-testid': testId,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
+}: DialogHeaderProps) => (
   <div
     className={cn(
       "flex flex-col space-y-1.5 text-center sm:text-left",
       className
     )}
+    data-testid={testId || 'dialog-header'}
     {...props}
   />
 )
 DialogHeader.displayName = "DialogHeader"
 
+interface DialogFooterProps extends React.HTMLAttributes<HTMLDivElement> {
+  'data-testid'?: string
+}
+
 const DialogFooter = ({
   className,
+  'data-testid': testId,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
+}: DialogFooterProps) => (
   <div
     className={cn(
       "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
       className
     )}
+    data-testid={testId || 'dialog-footer'}
     {...props}
   />
 )
 DialogFooter.displayName = "DialogFooter"
 
+interface DialogTitleProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title> {
+  'data-testid'?: string
+}
+
 const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(({ className, ...props }, ref) => (
+  DialogTitleProps
+>(({ className, 'data-testid': testId, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
       "text-lg font-semibold leading-none tracking-tight",
       className
     )}
+    data-testid={testId || 'dialog-title'}
     {...props}
   />
 ))
 DialogTitle.displayName = DialogPrimitive.Title.displayName
 
+interface DialogDescriptionProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description> {
+  'data-testid'?: string
+}
+
 const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
->(({ className, ...props }, ref) => (
+  DialogDescriptionProps
+>(({ className, 'data-testid': testId, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
     className={cn("text-sm text-muted-foreground", className)}
+    data-testid={testId || 'dialog-description'}
     {...props}
   />
 ))
