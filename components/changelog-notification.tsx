@@ -194,7 +194,7 @@ export function ChangelogNotification() {
         
         <div className="p-5">
           <div className="border-l-4 border-primary/30 pl-3 py-2 mb-4 rounded-sm bg-primary/5">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground" data-testid="changelog-notification-message">
               {latestChangelog === '2.8.2' ? (
                 <>
                   <span className="font-medium text-primary">Sistema de Comentários em Tarefas</span>
