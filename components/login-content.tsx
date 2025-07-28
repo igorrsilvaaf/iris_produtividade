@@ -26,45 +26,46 @@ export function LoginContent() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="flex min-h-screen flex-col" data-testid="login-content">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" data-testid="header">
         <div className="container flex h-14 items-center justify-between">
-          <div className="flex items-center gap-2 font-bold">
+          <div className="flex items-center gap-2 font-bold" data-testid="logo-container">
             <Logo />
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4" data-testid="actions-container">
             <ModeToggle />
             <div className="hidden sm:flex gap-4">
               <Link href="/register">
-                <Button>{t("Sign Up")}</Button>
+                <Button data-testid="signup-button-desktop">{t("Sign Up")}</Button>
               </Link>
             </div>
             <div className="sm:hidden">
               <Link href="/register">
-                <Button size="sm">{t("Sign Up")}</Button>
+                <Button size="sm" data-testid="signup-button-mobile">{t("Sign Up")}</Button>
               </Link>
             </div>
           </div>
         </div>
       </header>
-      <main className="flex-1 flex items-center justify-center px-4 py-4 sm:px-6 sm:py-6 md:py-8 lg:py-10">
+      <main className="flex-1 flex items-center justify-center px-4 py-4 sm:px-6 sm:py-6 md:py-8 lg:py-10" data-testid="main-content">
         <div className="mx-auto w-full max-w-md space-y-6 sm:space-y-8">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("Welcome back")}</h1>
-            <p className="text-sm text-muted-foreground sm:text-base">
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl" data-testid="welcome-back-title">{t("Welcome back")}</h1>
+            <p className="text-sm text-muted-foreground sm:text-base" data-testid="sign-in-subtitle">
               {t("Sign in to your account to continue")}
             </p>
           </div>
-          <div className="bg-card p-6 rounded-lg border shadow-sm">
+          <div className="bg-card p-6 rounded-lg border shadow-sm" data-testid="login-form-container">
             <LoginForm />
           </div>
           <div className="text-center text-sm">
-            <p>
+            <p data-testid="no-account-text">
               {t("Don't have an account?")}{" "}
               <a
                 href="/register"
                 className="font-medium text-primary hover:underline"
+                data-testid="signup-link"
               >
                 {t("Sign Up")}
               </a>
