@@ -115,10 +115,10 @@ export function FlipClock({
   const textColor = getContrastColor(clockColor);
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full" data-testid="flip-clock">
       <div className={`flex items-center justify-center gap-2 flex-wrap ${selectedSize.container}`}>
         {/* Hours */}
-        <div className="flex flex-col items-center m-2">
+        <div className="flex flex-col items-center m-2" data-testid="flip-clock-hours">
           <span className={`${selectedSize.tickMark} text-gray-500 mb-1`}>{t.tick}</span>
           <Card className={`${selectedSize.card} flex items-center justify-center relative overflow-hidden shadow-md mb-1`} 
                 style={{ backgroundColor: clockColor, color: textColor }}>
@@ -130,7 +130,7 @@ export function FlipClock({
         </div>
 
         {/* Minutes */}
-        <div className="flex flex-col items-center m-2">
+        <div className="flex flex-col items-center m-2" data-testid="flip-clock-minutes">
           <span className={`${selectedSize.tickMark} text-gray-500 mb-1`}>{t.tick}</span>
           <Card className={`${selectedSize.card} flex items-center justify-center relative overflow-hidden shadow-md mb-1`}
                 style={{ backgroundColor: clockColor, color: textColor }}>
@@ -143,15 +143,15 @@ export function FlipClock({
 
         {/* Seconds (optional) */}
         {showSeconds && (
-          <div className="flex flex-col items-center m-2">
-            <span className={`${selectedSize.tickMark} text-gray-500 mb-1`}>{t.tick}</span>
+          <div className="flex flex-col items-center m-2" data-testid="flip-clock-seconds">
+            <span className={`${selectedSize.tickMark} text-gray-500 mb-1`} data-testid="flip-clock-seconds-tick">{t.tick}</span>
             <Card className={`${selectedSize.card} flex items-center justify-center relative overflow-hidden shadow-md mb-1`}
                   style={{ backgroundColor: clockColor, color: textColor }}>
               <CardContent className="p-0 flex items-center justify-center w-full h-full">
                 <div className="text-center">{time.seconds}</div>
               </CardContent>
             </Card>
-            <span className={`${selectedSize.tickMark} text-gray-500 mt-1`}>{t.seconds}</span>
+            <span className={`${selectedSize.tickMark} text-gray-500 mt-1`} data-testid="flip-clock-seconds-label">{t.seconds}</span>
           </div>
         )}
       </div>

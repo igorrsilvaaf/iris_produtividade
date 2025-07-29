@@ -50,11 +50,11 @@ export default async function AppPage() {
 
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-testid="today-page">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{translatedTitle}</h1>
+        <h1 className="text-2xl font-bold" data-testid="today-title">{translatedTitle}</h1>
         <AddTaskDialog initialLanguage={initialLanguage}>
-          <Button>
+          <Button data-testid="add-task-button">
             <Plus className="mr-2 h-4 w-4" />
             {getServerTranslation("addTask", initialLanguage as "en" | "pt")}
           </Button>
@@ -62,7 +62,7 @@ export default async function AppPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="md:col-span-2">
+        <div className="md:col-span-2" data-testid="task-list-container">
           <Suspense
             fallback={
               <div className="space-y-4">
@@ -86,7 +86,7 @@ export default async function AppPage() {
             <TaskListWrapper userId={session.user.id} />
           </Suspense>
         </div>
-        <div>
+        <div data-testid="right-column-container">
           <RightColumn
             initialSettings={{
               pomodoro_work_minutes: settings.pomodoro_work_minutes,
