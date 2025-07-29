@@ -53,7 +53,7 @@ export function RightColumn({ initialSettings }: RightColumnProps) {
   const transitionClasses = "transition-colors duration-300 ease-in-out";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="right-column">
       <PomodoroTimer 
         selectedTaskId={null}
         fullScreen={false}

@@ -362,7 +362,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
     <div className="space-y-4" data-testid="task-list">
       <div className="flex items-center justify-end" data-testid="task-list-controls">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">{t("Sort by")}:</span>
+          <span className="text-sm text-muted-foreground" data-testid="sort-by-label">{t("Sort by")}:</span>
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
             <SelectTrigger className="w-[180px]" data-testid="task-list-sort-trigger">
               <SelectValue placeholder={t("Sort by")} />
@@ -401,6 +401,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
         {sortedTasks.map((task) => (
           <div
             key={task.id}
+            data-testid={`task-item-${task.id}`}
             className={cn(
               "flex flex-col rounded-lg border p-3 text-left text-sm transition-all duration-300 ease-in-out hover:bg-accent hover:shadow-md cursor-pointer",
               task.completed && "opacity-50 bg-muted/30"
@@ -410,6 +411,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Checkbox
+                  data-testid={`task-checkbox-${task.id}`}
                   checked={task.completed}
                   onCheckedChange={() => toggleTaskCompletion(task.id)}
                   className={cn(
@@ -420,6 +422,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
                 />
                 <div>
                   <div
+                    data-testid={`task-title-${task.id}`}
                     className={cn(
                       "font-medium cursor-pointer transition-colors duration-300 ease-in-out",
                       task.completed && "line-through text-muted-foreground"
@@ -429,6 +432,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
                   </div>
                   {!expandedTask && task.description && (
                     <div
+                      data-testid={`task-description-${task.id}`}
                       className="text-xs text-muted-foreground line-clamp-1 cursor-pointer transition-opacity duration-300 ease-in-out"
                     >
                       {processDescription(task.description)}
@@ -436,23 +440,24 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
                   )}
                   <div className="mt-1 flex items-center gap-2">
                     {task.due_date && (
-                      <div className="flex items-center text-xs text-muted-foreground">
+                      <div data-testid={`task-duedate-${task.id}`} className="flex items-center text-xs text-muted-foreground">
                         <Clock className="mr-1 h-3 w-3" />
                         <span>{formatDueDate(task.due_date)}</span>
                       </div>
                     )}
-                    <div className="flex items-center text-xs">
+                    <div data-testid={`task-priority-${task.id}`} className="flex items-center text-xs">
                       <Flag className={`mr-1 h-3 w-3 ${getPriorityColor(task.priority ?? 0)}`} />
                       <span>{getPriorityLabel(task.priority ?? 0)}</span>
                     </div>
                     {task.points && (
-                      <div className="flex items-center text-xs">
+                      <div data-testid={`task-points-${task.id}`} className="flex items-center text-xs">
                         <CircleDot className={`mr-1 h-3 w-3 ${getPointsColor(task.points)}`} />
                         <span>{task.points} - {getPointsLabel(task.points)}</span>
                       </div>
                     )}
                     {task.project_name && (
                       <div
+                        data-testid={`task-project-${task.id}`}
                         className="flex items-center text-xs rounded-full px-2 py-0.5 whitespace-nowrap"
                         style={{ 
                           backgroundColor: `${task.project_color}10`,
@@ -469,6 +474,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
+                      data-testid={`task-options-button-${task.id}`}
                       variant="ghost" 
                       size="icon" 
                       className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
@@ -480,6 +486,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenuItem 
+                      data-testid={`task-edit-button-${task.id}`}
                       onSelect={(e) => {
                         e.preventDefault();
                         openTaskDetailInEditMode(task);
@@ -490,6 +497,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
                       {t("edit")}
                     </DropdownMenuItem>
                     <DropdownMenuItem 
+                      data-testid={`task-pomodoro-button-${task.id}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/app/pomodoro?taskId=${task.id}`);
@@ -500,6 +508,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
                       {t("startPomodoro")}
                     </DropdownMenuItem>
                     <DropdownMenuItem 
+                      data-testid={`task-delete-button-${task.id}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteTask(task.id);
@@ -512,6 +521,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
+                  data-testid={`task-expand-button-${task.id}`}
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
@@ -528,27 +538,10 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
             
             {expandedTask === task.id && task.description && (
               <div 
+                data-testid={`task-expanded-description-${task.id}`}
                 className="mt-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-md"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MarkdownRenderer content={task.description} />
               </div>
             )}
-          </div>
-        ))}
-      </div>
-
-      {selectedTask && (
-        <TaskDetail
-          task={selectedTask}
-          open={showTaskDetail}
-          onOpenChange={(open) => {
-            setShowTaskDetail(open)
-            if (!open) setSelectedTask(null)
-          }}
-          user={user}
-        />
-      )}
-    </div>
-  )
-}
