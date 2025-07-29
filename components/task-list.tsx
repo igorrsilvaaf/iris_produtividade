@@ -545,3 +545,17 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
                 <MarkdownRenderer content={task.description} />
               </div>
             )}
+          </div>
+        ))}
+      </div>
+      {selectedTask && (
+        <TaskDetail
+          task={selectedTask}
+          open={showTaskDetail}
+          onOpenChange={setShowTaskDetail}
+          user={user}
+        />
+      )}
+    </div>
+  )
+}
