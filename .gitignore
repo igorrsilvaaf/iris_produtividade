@@ -57,6 +57,7 @@ workspace.xml
 *.swp
 *.swo
 .cursorrules
+.GEMINI.md
 
 # OS
 .DS_Store
