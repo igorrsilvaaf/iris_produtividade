@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from './ui/button';
@@ -309,13 +309,26 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
     setReplyContent('');
   }, []);
 
+  const flatComments = useMemo(() => {
+    const ordered: Comment[] = [];
+    const walk = (node: Comment) => {
+      const copy: Comment = { ...node, replies: [] };
+      ordered.push(copy);
+      if (node.replies && node.replies.length > 0) {
+        node.replies.forEach(walk);
+      }
+    };
+    comments.forEach(walk);
+    return ordered;
+  }, [comments]);
+
   const renderComment = useCallback((comment: Comment, isReply: boolean = false) => {
     const isOwner = user?.id === comment.user_id;
     const isEditing = editingCommentId === comment.id;
     const isReplying = replyingToId === comment.id;
     
     return (
-      <div key={comment.id} className={`group comment-hover ${isReply ? 'ml-8 sm:ml-12' : ''}`} data-testid={`task-comment-${comment.id}`}>
+      <div key={comment.id} className={`group comment-hover`} data-testid={`task-comment-${comment.id}`}>
         <div className="flex gap-2 sm:gap-3">
           <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0" data-testid={`task-comment-avatar-${comment.id}`}>
             <AvatarImage src={comment.author_avatar || ''} alt={comment.author_name} />
@@ -405,7 +418,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
             
             {/* Ações do comentário */}
             {!isEditing && (
-              <div className="flex items-center gap-3 sm:gap-4 mt-1 ml-1 sm:ml-2" data-comment-id={comment.id} data-testid={`task-comment-reactions-${comment.id}`}>
+              <div className="flex items-center gap-3 sm:gap-4 mt-1" data-comment-id={comment.id} data-testid={`task-comment-reactions-${comment.id}`}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -427,7 +440,6 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                   <TooltipContent>{comment.is_liked ? 'Descurtir' : 'Curtir'}</TooltipContent>
                 </Tooltip>
                 
-                {!isReply && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -443,13 +455,12 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
                     </TooltipTrigger>
                     <TooltipContent>Responder comentário</TooltipContent>
                   </Tooltip>
-                )}
               </div>
             )}
 
             {/* Caixa de resposta */}
-            {isReplying && !isReply && (
-              <div className="mt-3 ml-1 sm:ml-2">
+            {isReplying && (
+              <div className="mt-3">
                 <RichCommentEditor
                   user={user}
                   value={replyContent}
@@ -464,12 +475,6 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
               </div>
             )}
 
-            {/* Renderizar respostas */}
-            {comment.replies && comment.replies.length > 0 && (
-              <div className="mt-3 space-y-3">
-                {comment.replies.map((reply) => renderComment(reply, true))}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -544,7 +549,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
               </p>
             </div>
           ) : (
-            comments.map((comment) => renderComment(comment))
+            flatComments.map((comment) => renderComment(comment))
           )}
         </div>
       </div>

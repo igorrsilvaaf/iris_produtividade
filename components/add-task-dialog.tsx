@@ -989,8 +989,9 @@ export function AddTaskDialog({
                         </DialogHeader>
                         <div className="grid gap-2 py-4">
                           {projectsLabelsLoading ? (
-                            <div className="flex items-center justify-center p-4">
+                            <div className="flex items-center justify-center p-4 gap-2">
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                              <span className="text-sm text-muted-foreground">{t("Loading projects...")}</span>
                             </div>
                           ) : projects.length === 0 ? (
                             <p className="text-sm text-muted-foreground">

@@ -1,0 +1,14 @@
+---
+description: Regras para autenticação baseada em sessão
+---
+### Autenticação
+
+- Sessões gerenciadas em `@/lib/auth` com cookie `session_token`
+- Criar sessão via `createSession(userId, rememberMe?)`; cookies `httpOnly`, `sameSite: lax`
+- Validar usuário autenticado com `getSession` em rotas
+- Logout deve apagar sessão no banco e cookie
+
+### Prisma Client
+
+- Importar Prisma de `@/lib/prisma`
+- Usar uma única instância global; não criar novos clientes dentro de handlers

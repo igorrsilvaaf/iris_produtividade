@@ -1,0 +1,10 @@
+---
+globs: components/**/*.tsx,app/**/*.tsx
+description: Padrões de UI, Tailwind e Radix
+---
+### UI
+
+- Tailwind: usar tokens definidos em [tailwind.config.ts](mdc:tailwind.config.ts)
+- Radix UI: componentes de `@/components/ui/*` como building blocks
+- Temas: respeitar `darkMode: class`; não inserir estilos inline desnecessários
+- Acessibilidade: utilizar props de acessibilidade dos componentes UI

@@ -1,0 +1,8 @@
+---
+description: Regras de internacionalização e mensagens
+---
+### i18n
+
+- i18next presente em `@/lib/i18n` e `@/lib/server-i18n`
+- Preferir chaves de tradução; evitar strings hardcoded em componentes críticos
+- Para APIs, manter mensagens curtas e consistentes; idioma padrão inglês
