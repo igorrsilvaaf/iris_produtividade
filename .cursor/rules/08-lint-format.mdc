@@ -1,0 +1,9 @@
+---
+alwaysApply: true
+description: Regras de lint e formatação
+---
+### Lint/Format
+
+- Usar ESLint padrão Next (`eslint-config-next`); ver script `lint` em [package.json](mdc:package.json)
+- Não introduzir dependências de lint novas
+- Seguir formatação automática do projeto; não alterar padrões globais

@@ -1,0 +1,12 @@
+---
+globs: app/api/**/route.ts
+description: Padrões para rotas de API Next.js
+---
+### Rotas de API (App Router)
+
+- Importar `NextRequest` e `NextResponse` de `next/server`
+- Autenticação via `getSession` de `@/lib/auth`; retornar `401` quando ausente
+- Validar entrada com verificações simples ou `zod` (se já usado no módulo)
+- Utilizar serviços de `@/lib/*` (ex.: `@/lib/todos`, `@/lib/projects`)
+- Responder com `NextResponse.json({ ... }, { status })`
+- Manter mensagens de erro consistentes e em inglês para API pública

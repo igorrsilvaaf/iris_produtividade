@@ -53,6 +53,7 @@ export function DeleteProjectDialog({ project, children }: DeleteProjectDialogPr
       })
 
       setOpen(false)
+      router.push("/app")
     } catch (error) {
       toast({
         variant: "destructive",
