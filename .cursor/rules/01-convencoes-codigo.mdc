@@ -1,0 +1,12 @@
+---
+globs: *.ts,*.tsx
+description: Convenções de código para TypeScript/React
+---
+### Convenções de Código (TS/TSX)
+
+- **Tipos**: `strict` habilitado; evitar `any`; anotar funções exportadas
+- **Nomenclatura**: PascalCase para componentes, camelCase para funções/variáveis
+- **Imports**: priorizar `@/` e manter ordem consistente (libs externas, `@/lib`, `@/components`, locais)
+- **Estilo**: seguir ESLint/Prettier do Next (`eslint-config-next`); nunca adicionar comentários explicativos no código
+- **Controle de fluxo**: early-returns, tratar erros primeiro, evitar aninhamento profundo
+- **Estado/UI**: preferir componentes puros e hooks; Zustand apenas em `lib/stores/*`

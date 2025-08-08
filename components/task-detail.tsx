@@ -151,7 +151,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   );
   const [priority, setPriority] = useState(task.priority.toString());
   const [points, setPoints] = useState(task.points || 3);
-  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectIds, setProjectIds] = useState<string[]>([]);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -182,7 +182,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const { toast } = useToast();
   const { t, language, setLanguage, isHydrated } = useTranslation();
   const { notifyTaskCompleted, notifyTaskUpdated, notifyTaskDeleted } = useTaskUpdates();
-  const { projects } = useProjectsLabelsUpdates();
+  const { projects, loading: projectsLabelsLoading, notifyProjectCreated } = useProjectsLabelsUpdates();
 
   const safeTranslate = (key: string) => {
     if (!isHydrated) return key;
@@ -206,10 +206,10 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         
         if (response.ok) {
           const data = await response.json();
-          if (data.projectId) {
-            setProjectId(data.projectId.toString());
+          if (Array.isArray(data.projectIds)) {
+            setProjectIds(data.projectIds.map((id: number) => id.toString()));
           } else {
-            setProjectId(null);
+            setProjectIds([]);
           }
         } else {
           console.error(`[TaskDetail] Erro ao buscar projeto - Status: ${response.status}`);
@@ -311,6 +311,18 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const startPomodoro = () => {
     router.push(`/app/pomodoro?taskId=${task.id}`);
     onOpenChange(false);
+  };
+
+  const handleCreateProjectSuccess = async (newProject: Project) => {
+    setShowCreateProject(false);
+    notifyProjectCreated(newProject);
+    if (newProject) {
+      setProjectIds((prev) => Array.from(new Set([...
+        prev,
+        newProject.id.toString()
+      ])));
+    }
+    setShowAddProject(false);
   };
 
   const toggleCompletion = async () => {
@@ -744,7 +756,25 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
 
       if (response.ok) {
         const updatedTask = await response.json();
-        notifyTaskUpdated(updatedTask.task);
+        notifyTaskUpdated(task.id, updatedTask);
+        try {
+          const projectIdNumbers = projectIds.map((id) => parseInt(id)).filter((n) => !isNaN(n));
+          const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ projectIds: projectIdNumbers }),
+          });
+          if (!projectResponse.ok) {
+            throw new Error("Failed to update task project");
+          }
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: safeTranslate("Failed to update task"),
+            description: safeTranslate("Please try again"),
+          });
+          return;
+        }
         
         toast({
           title: safeTranslate("Task updated"),
@@ -1225,39 +1255,125 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           <div className="space-y-2">
             <label className="text-sm font-medium">{safeTranslate("project")}</label>
             <div className={`${!isEditMode ? "cursor-not-allowed" : ""}`}>
-              {projectId && projects.find((p) => p.id.toString() === projectId) ? (
-                <div
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                  style={{
-                    backgroundColor: projects.find((p) => p.id.toString() === projectId)?.color || "#ccc",
-                    color: "#fff",
-                  }}
-                >
-                  <div
-                    className="w-3 h-3 rounded-full mr-1"
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.3)",
-                    }}
-                  />
-                  <span>
-                    {projects.find((p) => p.id.toString() === projectId)?.name}
-                  </span>
-                  {isEditMode && (
-                    <button
-                      type="button"
-                      onClick={() => setProjectId(null)}
-                      className="ml-1 hover:bg-black/10 rounded-full p-0.5"
-                      aria-label={`Remove project`}
-                      title="Remove project"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  )}
+              {projectIds.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {projectIds.map((pid) => {
+                    const proj = projects.find((p) => p.id.toString() === pid);
+                    if (!proj) return null;
+                    return (
+                      <div
+                        key={pid}
+                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                        style={{ backgroundColor: proj.color || "#ccc", color: "#fff" }}
+                      >
+                        <div className="w-3 h-3 rounded-full mr-1" style={{ backgroundColor: "rgba(255,255,255,0.3)" }} />
+                        <span>{proj.name}</span>
+                        {isEditMode && (
+                          <button
+                            type="button"
+                            onClick={() => setProjectIds((prev) => prev.filter((id) => id !== pid))}
+                            className="ml-1 hover:bg-black/10 rounded-full p-0.5"
+                            aria-label={`Remove project`}
+                            title="Remove project"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">{safeTranslate("noProject")}</p>
               )}
             </div>
+
+            {isEditMode && (
+              <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
+                <DialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    data-testid="task-detail-add-project-button"
+                  >
+                    <Plus className="mr-1 h-3 w-3" />
+                    {safeTranslate("Add Project")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="z-[60]" onClick={(e) => e.stopPropagation()} data-testid="task-detail-add-project-dialog">
+                  <DialogHeader>
+                    <DialogTitle>{safeTranslate("Add Project")}</DialogTitle>
+                    <DialogDescription>{safeTranslate("Select a project or create a new one.")}</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-2 py-4">
+                    {projectsLabelsLoading ? (
+                      <div className="flex items-center justify-center p-4 gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                        <span className="text-sm text-muted-foreground">{safeTranslate("Loading projects...")}</span>
+                      </div>
+                    ) : projects.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">{safeTranslate("No projects found.")}</p>
+                    ) : (
+                      projects.map((project) => {
+                        const selected = projectIds.includes(project.id.toString());
+                        return (
+                          <button
+                            key={project.id}
+                            type="button"
+                            className="flex items-center justify-between p-2 border rounded hover:bg-accent"
+                            onClick={() => {
+                              setProjectIds((prev) => {
+                                const id = project.id.toString();
+                                return prev.includes(id)
+                                  ? prev.filter((x) => x !== id)
+                                  : [...prev, id];
+                              });
+                            }}
+                            data-testid={`task-detail-project-${project.id}`}
+                          >
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: project.color }} />
+                              <span>{project.name}</span>
+                            </div>
+                            {selected && <Check className="h-4 w-4" />}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                  <div className="mt-4 border-t pt-4 flex justify-between">
+                    <Button variant="outline" onClick={() => setShowAddProject(false)} data-testid="task-detail-cancel-add-project-button">
+                      {safeTranslate("Cancel")}
+                    </Button>
+                    <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
+                      <DialogTrigger asChild>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowCreateProject(true);
+                          }}
+                          data-testid="task-detail-create-new-project-button"
+                        >
+                          {safeTranslate("Create New Project")}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="z-[70]" onClick={(e) => e.stopPropagation()}>
+                        <DialogHeader>
+                          <DialogTitle>{safeTranslate("Create New Project")}</DialogTitle>
+                          <DialogDescription>{safeTranslate("Fill in the details to create a new project.")}</DialogDescription>
+                        </DialogHeader>
+                        <ProjectForm onSuccess={handleCreateProjectSuccess} />
+                      </DialogContent>
+                    </Dialog>
+                    <Button onClick={() => setShowAddProject(false)} data-testid="task-detail-done-add-project-button">
+                      {safeTranslate("save")}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           <div className="space-y-2">

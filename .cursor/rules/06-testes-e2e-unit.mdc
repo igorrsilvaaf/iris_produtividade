@@ -1,0 +1,9 @@
+---
+description: Diretrizes para testes Jest e Playwright
+---
+### Testes
+
+- Unit/Component: Jest + Testing Library; ver `__tests__/**`
+- E2E: Playwright; ver `__tests__/e2e/**` e [playwright.config.ts](mdc:playwright.config.ts)
+- Scripts: `test`, `test:e2e`, `test:ci` em [package.json](mdc:package.json)
+- Não validar auth em testes de módulos que não são de auth; apenas logar e seguir

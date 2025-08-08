@@ -1,0 +1,9 @@
+---
+description: Diretrizes para uso do Prisma e schema
+---
+### Banco de Dados
+
+- Provedor: PostgreSQL; ver [prisma/schema.prisma](mdc:prisma/schema.prisma)
+- Acesse via `@/lib/prisma` e modelos gerados (ex.: `prisma.todos`)
+- Evitar consultas não indexadas; use índices existentes do schema
+- Rodar `prisma generate` no postinstall já configurado em [package.json](mdc:package.json)

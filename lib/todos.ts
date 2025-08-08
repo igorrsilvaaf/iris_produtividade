@@ -1,4 +1,4 @@
-import prisma from './prisma';
+import prisma from "./prisma";
 
 export type Todo = {
   id: number;
@@ -27,24 +27,31 @@ export type Todo = {
 };
 
 // Função auxiliar para determinar o board correto baseado na data
-function determineKanbanColumnByDate(dueDate: Date | null, completed: boolean): string {
+function determineKanbanColumnByDate(
+  dueDate: Date | null,
+  completed: boolean
+): string {
   if (completed) {
     return "completed";
   }
-  
+
   if (!dueDate) {
     return "inProgress"; // Tarefas sem data vão para "Caixa de entrada"
   }
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
+
   const taskDate = new Date(dueDate);
-  const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
-  
+  const taskDateOnly = new Date(
+    taskDate.getFullYear(),
+    taskDate.getMonth(),
+    taskDate.getDate()
+  );
+
   const taskTime = taskDateOnly.getTime();
   const todayTime = today.getTime();
-  
+
   if (taskTime === todayTime) {
     return "planning"; // Tarefas para hoje vão para "planning"
   } else if (taskTime < todayTime) {
@@ -58,23 +65,23 @@ function determineKanbanColumnByDate(dueDate: Date | null, completed: boolean): 
 // Considera data e horário para determinar se ainda não venceu
 function isTaskValidForToday(task: any): boolean {
   if (!task.due_date) return false;
-  
+
   const now = new Date();
   const taskDueDate = new Date(task.due_date);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
+
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  
+
   // Verifica se é para hoje (mesmo dia)
   const isToday = taskDueDate >= today && taskDueDate < tomorrow;
-  
+
   // Verifica se o horário ainda não passou
   const notExpired = taskDueDate >= now;
-  
+
   // Verifica se não está concluída
   const notCompleted = !task.completed;
-  
+
   return isToday && notExpired && notCompleted;
 }
 
@@ -93,34 +100,34 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
         {
           due_date: {
             gte: today,
-            lt: tomorrow
-          }
+            lt: tomorrow,
+          },
         },
-        { kanban_column: "planning" } // Tarefas marcadas como "planning"
-      ]
+        { kanban_column: "planning" }, // Tarefas marcadas como "planning"
+      ],
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
+          projects: true,
+        },
+      },
     },
     orderBy: [
-      { kanban_order: 'asc' },
-      { priority: 'asc' },
-      { due_date: 'asc' }
-    ]
+      { kanban_order: "asc" },
+      { priority: "asc" },
+      { due_date: "asc" },
+    ],
   });
 
-  return tasks.map(task => ({
+  return tasks.map((task) => ({
     ...task,
     created_at: task.created_at.toISOString(),
     updated_at: task.updated_at?.toISOString() || null,
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   }));
 }
 
@@ -128,29 +135,26 @@ export async function getInboxTasks(userId: number): Promise<Todo[]> {
   const tasks = await prisma.todos.findMany({
     where: {
       user_id: userId,
-      completed: false
+      completed: false,
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
+          projects: true,
+        },
+      },
     },
-    orderBy: [
-      { kanban_order: 'asc' },
-      { created_at: 'desc' }
-    ]
+    orderBy: [{ kanban_order: "asc" }, { created_at: "desc" }],
   });
 
-  return tasks.map(task => ({
+  return tasks.map((task) => ({
     ...task,
     created_at: task.created_at.toISOString(),
     updated_at: task.updated_at?.toISOString() || null,
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   }));
 }
 
@@ -158,33 +162,27 @@ export async function getCompletedTasks(userId: number): Promise<Todo[]> {
   const tasks = await prisma.todos.findMany({
     where: {
       user_id: userId,
-      OR: [
-        { completed: true },
-        { kanban_column: "completed" }
-      ]
+      OR: [{ completed: true }, { kanban_column: "completed" }],
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
+          projects: true,
+        },
+      },
     },
-    orderBy: [
-      { kanban_order: 'asc' },
-      { updated_at: 'desc' }
-    ],
-    take: 50
+    orderBy: [{ kanban_order: "asc" }, { updated_at: "desc" }],
+    take: 50,
   });
 
-  return tasks.map(task => ({
+  return tasks.map((task) => ({
     ...task,
     created_at: task.created_at.toISOString(),
     updated_at: task.updated_at?.toISOString() || null,
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   }));
 }
 
@@ -214,7 +212,7 @@ export async function createTask({
   estimatedTime?: number | null;
 }): Promise<Todo> {
   let normalizedDueDate: Date | null = null;
-  
+
   if (dueDate) {
     try {
       const date = new Date(dueDate);
@@ -242,7 +240,8 @@ export async function createTask({
   }
 
   // Determinar o board correto automaticamente se não foi especificado
-  const finalKanbanColumn = kanbanColumn || determineKanbanColumnByDate(normalizedDueDate, false);
+  const finalKanbanColumn =
+    kanbanColumn || determineKanbanColumnByDate(normalizedDueDate, false);
 
   const task = await prisma.todos.create({
     data: {
@@ -259,18 +258,18 @@ export async function createTask({
       ...(projectId && {
         todo_projects: {
           create: {
-            project_id: projectId
-          }
-        }
-      })
+            project_id: projectId,
+          },
+        },
+      }),
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
-    }
+          projects: true,
+        },
+      },
+    },
   });
 
   return {
@@ -280,20 +279,20 @@ export async function createTask({
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: normalizedAttachments
+    attachments: normalizedAttachments,
   };
 }
 
 export async function updateTask(
   taskId: number,
   userId: number,
-  updates: Partial<Todo>,
+  updates: Partial<Todo>
 ): Promise<Todo> {
   const existingTask = await prisma.todos.findFirst({
     where: {
       id: taskId,
-      user_id: userId
-    }
+      user_id: userId,
+    },
   });
 
   if (!existingTask) {
@@ -325,7 +324,9 @@ export async function updateTask(
         try {
           incomingAttachments = JSON.parse(updates.attachments);
         } catch (e) {
-          console.error(`[updateTask] Erro ao parsear anexos como string: ${e}`);
+          console.error(
+            `[updateTask] Erro ao parsear anexos como string: ${e}`
+          );
           incomingAttachments = [];
         }
       }
@@ -334,11 +335,13 @@ export async function updateTask(
         id: att.id || undefined,
         type: att.type,
         url: att.url,
-        name: att.name
+        name: att.name,
       }));
-
     } catch (error) {
-      console.error(`[updateTask] Erro ao processar anexos para salvar:`, error);
+      console.error(
+        `[updateTask] Erro ao processar anexos para salvar:`,
+        error
+      );
       attachmentsToSave = [];
     }
   }
@@ -348,39 +351,65 @@ export async function updateTask(
   };
 
   if (updates.title !== undefined) updateData.title = updates.title;
-  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.description !== undefined)
+    updateData.description = updates.description;
   if (updates.due_date !== undefined) updateData.due_date = normalizedDueDate;
-  if (updates.priority !== undefined) updateData.priority = updates.priority ? Number(updates.priority) : undefined;
+  if (updates.priority !== undefined)
+    updateData.priority = updates.priority
+      ? Number(updates.priority)
+      : undefined;
   if (updates.completed !== undefined) updateData.completed = updates.completed;
-  if (updates.kanban_column !== undefined) updateData.kanban_column = updates.kanban_column;
-  if (updates.kanban_order !== undefined) updateData.kanban_order = updates.kanban_order ? Number(updates.kanban_order) : undefined;
-  if (updates.points !== undefined) updateData.points = updates.points ? Number(updates.points) : undefined;
-  
-  if (updates.attachments !== undefined) updateData.attachments = attachmentsToSave;
-  if (updates.estimated_time !== undefined) updateData.estimated_time = updates.estimated_time ? Number(updates.estimated_time) : undefined;
+  if (updates.kanban_column !== undefined)
+    updateData.kanban_column = updates.kanban_column;
+  if (updates.kanban_order !== undefined)
+    updateData.kanban_order = updates.kanban_order
+      ? Number(updates.kanban_order)
+      : undefined;
+  if (updates.points !== undefined)
+    updateData.points = updates.points ? Number(updates.points) : undefined;
+
+  if (updates.attachments !== undefined)
+    updateData.attachments = attachmentsToSave;
+  if (updates.estimated_time !== undefined)
+    updateData.estimated_time = updates.estimated_time
+      ? Number(updates.estimated_time)
+      : undefined;
 
   if (updates.completed !== undefined && updates.kanban_column === undefined) {
-    const finalDueDate = normalizedDueDate !== null ? normalizedDueDate : (existingTask.due_date || null);
-    updateData.kanban_column = determineKanbanColumnByDate(finalDueDate, updates.completed);
+    const finalDueDate =
+      normalizedDueDate !== null
+        ? normalizedDueDate
+        : existingTask.due_date || null;
+    updateData.kanban_column = determineKanbanColumnByDate(
+      finalDueDate,
+      updates.completed
+    );
   }
-  
-  if (updates.due_date !== undefined && updates.kanban_column === undefined && updates.completed === undefined) {
+
+  if (
+    updates.due_date !== undefined &&
+    updates.kanban_column === undefined &&
+    updates.completed === undefined
+  ) {
     const finalCompleted = existingTask.completed;
-    updateData.kanban_column = determineKanbanColumnByDate(normalizedDueDate, finalCompleted);
+    updateData.kanban_column = determineKanbanColumnByDate(
+      normalizedDueDate,
+      finalCompleted
+    );
   }
 
   const task = await prisma.todos.update({
     where: {
-      id: taskId
+      id: taskId,
     },
     data: updateData,
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
-    }
+          projects: true,
+        },
+      },
+    },
   });
 
   return {
@@ -390,13 +419,13 @@ export async function updateTask(
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   };
 }
 
 export async function toggleTaskCompletion(
   taskId: number,
-  userId: number,
+  userId: number
 ): Promise<Todo> {
   const now = new Date().toISOString();
 
@@ -404,8 +433,8 @@ export async function toggleTaskCompletion(
   const existingTask = await prisma.todos.findFirst({
     where: {
       id: taskId,
-      user_id: userId
-    }
+      user_id: userId,
+    },
   });
 
   if (!existingTask) {
@@ -414,26 +443,29 @@ export async function toggleTaskCompletion(
 
   // Determinar o board correto baseado no novo status
   const newCompletedStatus = !existingTask.completed;
-  const newKanbanColumn = determineKanbanColumnByDate(existingTask.due_date, newCompletedStatus);
+  const newKanbanColumn = determineKanbanColumnByDate(
+    existingTask.due_date,
+    newCompletedStatus
+  );
 
   // Executar a atualização
   const task = await prisma.todos.update({
     where: {
       id: taskId,
-      user_id: userId
+      user_id: userId,
     },
     data: {
       completed: newCompletedStatus,
       kanban_column: newKanbanColumn,
-      updated_at: now
+      updated_at: now,
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
-    }
+          projects: true,
+        },
+      },
+    },
   });
 
   if (!task) {
@@ -447,45 +479,43 @@ export async function toggleTaskCompletion(
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   };
 }
 
 export async function deleteTask(
   taskId: number,
-  userId: number,
+  userId: number
 ): Promise<void> {
-  
   try {
     // Primeiro verificar se a tarefa existe e pertence ao usuário
     const existingTask = await prisma.todos.findFirst({
       where: {
         id: taskId,
-        user_id: userId
-      }
+        user_id: userId,
+      },
     });
-    
+
     if (!existingTask) {
       throw new Error("Task not found or not owned by user");
     }
-    
+
     // Deletar anexos relacionados
     await prisma.attachments.deleteMany({
       where: {
-        entity_type: 'task',
+        entity_type: "task",
         entity_id: taskId,
-        user_id: userId
-      }
+        user_id: userId,
+      },
     });
-    
+
     // Deletar a tarefa
     await prisma.todos.delete({
       where: {
         id: taskId,
-        user_id: userId
-      }
+        user_id: userId,
+      },
     });
-    
   } catch (error) {
     throw error;
   }
@@ -493,20 +523,20 @@ export async function deleteTask(
 
 export async function getTaskById(
   taskId: number,
-  userId: number,
+  userId: number
 ): Promise<Todo | null> {
   const task = await prisma.todos.findFirst({
     where: {
       id: taskId,
-      user_id: userId
+      user_id: userId,
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
-    }
+          projects: true,
+        },
+      },
+    },
   });
 
   if (!task) {
@@ -520,43 +550,43 @@ export async function getTaskById(
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   };
 }
 
 export async function getTaskProject(
   taskId: number,
-  userId: number,
-): Promise<number | null> {
+  userId: number
+): Promise<number[]> {
   // Verificar primeiro se a tarefa pertence ao usuário
   const taskCheck = await prisma.todos.findFirst({
     where: {
       id: taskId,
-      user_id: userId
-    }
+      user_id: userId,
+    },
   });
 
-  // Se a tarefa não pertencer ao usuário, retorne null
+  // Se a tarefa não pertencer ao usuário, retorne vazio
   if (!taskCheck) {
-    return null;
+    return [];
   }
 
-  const project = await prisma.todo_projects.findFirst({
+  const projects = await prisma.todo_projects.findMany({
     where: {
-      todo_id: taskId
+      todo_id: taskId,
     },
-    include: {
-      projects: true
-    }
+    select: {
+      project_id: true,
+    },
   });
 
-  return project?.project_id || null;
+  return projects.map((p) => p.project_id);
 }
 
 export async function setTaskProject(
   taskId: number,
   userId: number,
-  projectId: number | null,
+  projectIds: number[] | null
 ): Promise<void> {
   if (!taskId || isNaN(taskId) || taskId <= 0) {
     throw new Error("Invalid task ID");
@@ -567,8 +597,8 @@ export async function setTaskProject(
     const taskCheck = await prisma.todos.findFirst({
       where: {
         id: taskId,
-        user_id: userId
-      }
+        user_id: userId,
+      },
     });
 
     // Se a tarefa não pertencer ao usuário, lançar erro
@@ -578,20 +608,21 @@ export async function setTaskProject(
 
     await prisma.todo_projects.deleteMany({
       where: {
-        todo_id: taskId
-      }
+        todo_id: taskId,
+      },
     });
 
-    if (projectId !== null && projectId > 0) {
-      await prisma.todo_projects.create({
-        data: {
-          todo_id: taskId,
-          project_id: projectId
-        }
-      });
+    if (projectIds && Array.isArray(projectIds) && projectIds.length > 0) {
+      const validIds = projectIds.filter(
+        (id) => typeof id === "number" && !isNaN(id) && id > 0
+      );
+      if (validIds.length > 0) {
+        await prisma.todo_projects.createMany({
+          data: validIds.map((pid) => ({ todo_id: taskId, project_id: pid })),
+          skipDuplicates: true,
+        });
+      }
     }
-
-
   } catch (error) {
     console.error(`[setTaskProject] Erro ao definir projeto da tarefa:`, error);
     throw error;
@@ -612,40 +643,40 @@ export async function getUpcomingTasks(userId: number): Promise<Todo[]> {
         {
           due_date: {
             not: null,
-            gte: tomorrow // Apenas tarefas com data futura (excluindo hoje)
-          }
+            gte: tomorrow, // Apenas tarefas com data futura (excluindo hoje)
+          },
         },
-        { kanban_column: "backlog" } // Tarefas marcadas como "backlog"
-      ]
+        { kanban_column: "backlog" }, // Tarefas marcadas como "backlog"
+      ],
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
+          projects: true,
+        },
+      },
     },
     orderBy: [
-      { kanban_order: 'asc' },
-      { due_date: 'asc' },
-      { priority: 'asc' }
-    ]
+      { kanban_order: "asc" },
+      { due_date: "asc" },
+      { priority: "asc" },
+    ],
   });
 
-  return tasks.map(task => ({
+  return tasks.map((task) => ({
     ...task,
     created_at: task.created_at.toISOString(),
     updated_at: task.updated_at?.toISOString() || null,
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   }));
 }
 
 export async function searchTasks(
   userId: number,
-  searchText: string,
+  searchText: string
 ): Promise<Todo[]> {
   if (!searchText || searchText.length < 2) {
     return [];
@@ -655,53 +686,47 @@ export async function searchTasks(
     const normalizedSearchText = searchText.toLowerCase().trim();
     const pattern = `%${normalizedSearchText}%`;
 
-
-
-    const userCheck =
-      await prisma.users.findFirst({
-        where: {
-          id: userId
-        }
-      });
+    const userCheck = await prisma.users.findFirst({
+      where: {
+        id: userId,
+      },
+    });
     if (!userCheck) {
-
       return [];
     }
 
-    const taskCount =
-      await prisma.todos.count({
-        where: {
-          user_id: userId
-        }
-      });
-
+    const taskCount = await prisma.todos.count({
+      where: {
+        user_id: userId,
+      },
+    });
 
     const result = await prisma.todos.findMany({
       where: {
         user_id: userId,
         OR: [
-          { title: { contains: normalizedSearchText, mode: 'insensitive' } },
-          { description: { contains: normalizedSearchText, mode: 'insensitive' } }
-        ]
+          { title: { contains: normalizedSearchText, mode: "insensitive" } },
+          {
+            description: {
+              contains: normalizedSearchText,
+              mode: "insensitive",
+            },
+          },
+        ],
       },
-      orderBy: [
-        { completed: 'asc' },
-        { priority: 'asc' }
-      ],
-      take: 50
+      orderBy: [{ completed: "asc" }, { priority: "asc" }],
+      take: 50,
     });
-
-
 
     if (result.length > 0) {
       for (const task of result) {
         const projectInfo = await prisma.todo_projects.findFirst({
           where: {
-            todo_id: task.id
+            todo_id: task.id,
           },
           include: {
-            projects: true
-          }
+            projects: true,
+          },
         });
 
         if (projectInfo) {
@@ -711,14 +736,14 @@ export async function searchTasks(
       }
     }
 
-    return result.map(task => ({
+    return result.map((task) => ({
       ...task,
       created_at: task.created_at.toISOString(),
       updated_at: task.updated_at?.toISOString() || null,
       due_date: task.due_date?.toISOString() || null,
       project_name: (task as any).project_name || undefined,
       project_color: (task as any).project_color || undefined,
-      attachments: task.attachments as any[]
+      attachments: task.attachments as any[],
     }));
   } catch (error) {
     console.error("[searchTasks] Erro:", error);
@@ -729,7 +754,7 @@ export async function searchTasks(
 export async function getTasksForNotifications(
   userId: number,
   daysAhead: number = 3,
-  ignoreReadStatus: boolean = false,
+  ignoreReadStatus: boolean = false
 ): Promise<{
   overdueCount: number;
   dueTodayCount: number;
@@ -738,7 +763,6 @@ export async function getTasksForNotifications(
   dueTodayTasks: Todo[];
   upcomingTasks: Todo[];
 }> {
-  
   const now = new Date();
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
@@ -755,20 +779,18 @@ export async function getTasksForNotifications(
       user_id: userId,
       due_date: {
         not: null,
-        lt: today
+        lt: today,
       },
-      completed: false
+      completed: false,
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
+          projects: true,
+        },
+      },
     },
-    orderBy: [
-      { due_date: 'asc' }
-    ]
+    orderBy: [{ due_date: "asc" }],
   });
 
   // Tasks para hoje (due today)
@@ -778,20 +800,18 @@ export async function getTasksForNotifications(
       due_date: {
         not: null,
         gte: today,
-        lt: tomorrow
+        lt: tomorrow,
       },
-      completed: false
+      completed: false,
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
+          projects: true,
+        },
+      },
     },
-    orderBy: [
-      { due_date: 'asc' }
-    ]
+    orderBy: [{ due_date: "asc" }],
   });
 
   // Tasks futuras (upcoming)
@@ -801,20 +821,18 @@ export async function getTasksForNotifications(
       due_date: {
         not: null,
         gte: tomorrow,
-        lt: futureDate
+        lt: futureDate,
       },
-      completed: false
+      completed: false,
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
+          projects: true,
+        },
+      },
     },
-    orderBy: [
-      { due_date: 'asc' }
-    ]
+    orderBy: [{ due_date: "asc" }],
   });
 
   const safeOverdueTasks = Array.isArray(overdueTasks) ? overdueTasks : [];
@@ -822,34 +840,34 @@ export async function getTasksForNotifications(
   const safeUpcomingTasks = Array.isArray(upcomingTasks) ? upcomingTasks : [];
 
   // Transformar os dados para o formato esperado pelo frontend
-  const transformedOverdueTasks = safeOverdueTasks.map(task => ({
+  const transformedOverdueTasks = safeOverdueTasks.map((task) => ({
     ...task,
     created_at: task.created_at.toISOString(),
     updated_at: task.updated_at?.toISOString() || null,
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   }));
 
-  const transformedDueTodayTasks = safeDueTodayTasks.map(task => ({
+  const transformedDueTodayTasks = safeDueTodayTasks.map((task) => ({
     ...task,
     created_at: task.created_at.toISOString(),
     updated_at: task.updated_at?.toISOString() || null,
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   }));
 
-  const transformedUpcomingTasks = safeUpcomingTasks.map(task => ({
+  const transformedUpcomingTasks = safeUpcomingTasks.map((task) => ({
     ...task,
     created_at: task.created_at.toISOString(),
     updated_at: task.updated_at?.toISOString() || null,
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   }));
 
   return {
@@ -867,53 +885,60 @@ export async function getAllTasksForUser(userId: number): Promise<Todo[]> {
   // na sua rota GET /api/tasks quando all=true
   const tasks = await prisma.todos.findMany({
     where: {
-      user_id: userId
+      user_id: userId,
     },
     include: {
       todo_projects: {
         include: {
-          projects: true
-        }
-      }
+          projects: true,
+        },
+      },
     },
-    orderBy: [
-      { kanban_order: 'asc' },
-      { created_at: 'desc' }
-    ]
+    orderBy: [{ kanban_order: "asc" }, { created_at: "desc" }],
   });
 
   // Definir ordem das colunas kanban
-  const kanbanColumnOrder = ['backlog', 'planning', 'inProgress', 'validation', 'completed'];
+  const kanbanColumnOrder = [
+    "backlog",
+    "planning",
+    "inProgress",
+    "validation",
+    "completed",
+  ];
 
   // Ordenar manualmente por coluna kanban e depois por kanban_order
   const sortedTasks = tasks.sort((a, b) => {
     // Primeiro, ordenar por coluna kanban
-    const aColumnIndex = a.kanban_column ? kanbanColumnOrder.indexOf(a.kanban_column) : kanbanColumnOrder.length;
-    const bColumnIndex = b.kanban_column ? kanbanColumnOrder.indexOf(b.kanban_column) : kanbanColumnOrder.length;
-    
+    const aColumnIndex = a.kanban_column
+      ? kanbanColumnOrder.indexOf(a.kanban_column)
+      : kanbanColumnOrder.length;
+    const bColumnIndex = b.kanban_column
+      ? kanbanColumnOrder.indexOf(b.kanban_column)
+      : kanbanColumnOrder.length;
+
     if (aColumnIndex !== bColumnIndex) {
       return aColumnIndex - bColumnIndex;
     }
-    
+
     // Se estão na mesma coluna, ordenar por kanban_order
     const aOrder = a.kanban_order ?? 999999;
     const bOrder = b.kanban_order ?? 999999;
-    
+
     if (aOrder !== bOrder) {
       return aOrder - bOrder;
     }
-    
+
     // Por último, ordenar por data de criação (mais recente primeiro)
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
-  return sortedTasks.map(task => ({
+  return sortedTasks.map((task) => ({
     ...task,
     created_at: task.created_at.toISOString(),
     updated_at: task.updated_at?.toISOString() || null,
     due_date: task.due_date?.toISOString() || null,
     project_name: task.todo_projects[0]?.projects?.name || undefined,
     project_color: task.todo_projects[0]?.projects?.color || undefined,
-    attachments: task.attachments as any[]
+    attachments: task.attachments as any[],
   }));
 }

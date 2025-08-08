@@ -1,0 +1,25 @@
+---
+alwaysApply: true
+---
+### Guia de Estrutura do Projeto
+
+- **Stack**: Next.js App Router, TypeScript, Prisma (PostgreSQL), Tailwind CSS, Radix UI, Zustand
+- **Scripts**: ver [package.json](mdc:package.json)
+- **Aliases**: `@/*` configurado em [tsconfig.json](mdc:tsconfig.json)
+- **Build/Runtime**: ver [next.config.mjs](mdc:next.config.mjs)
+- **Estilos**: ver [tailwind.config.ts](mdc:tailwind.config.ts) e [postcss.config.mjs](mdc:postcss.config.mjs)
+- **DB/ORM**: ver [prisma/schema.prisma](mdc:prisma/schema.prisma)
+
+### Layout de pastas
+
+- `app/`: páginas e rotas App Router (`page.tsx`, `layout.tsx`) e APIs em `app/api/**/route.ts`
+- `components/`: componentes compartilhados e `components/ui/*`
+- `lib/`: utilitários de domínio (`auth`, `prisma`, `todos`, `projects`, `settings`)
+- `__tests__/` e `__tests__/e2e`: testes unitários e E2E
+- `prisma/`: `schema.prisma` e migrações
+
+### Convenções rápidas
+
+- Importações absolutas com `@/` sempre que possível
+- Funções de rota exportam `GET`, `POST`, etc. tipadas de `next/server`
+- Respostas de API via `NextResponse.json({ ... }, { status })`

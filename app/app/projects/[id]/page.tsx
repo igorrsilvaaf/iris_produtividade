@@ -1,13 +1,6 @@
 import { requireAuth } from "@/lib/auth"
 import { getProject, getProjectTasks } from "@/lib/projects"
-import { TaskList } from "@/components/task-list"
-import { Button } from "@/components/ui/button"
-import { Edit, Plus, Trash } from "lucide-react"
-import { AddTaskDialog } from "@/components/add-task-dialog"
-import { EditProjectDialog } from "@/components/edit-project-dialog"
-import { DeleteProjectDialog } from "@/components/delete-project-dialog"
-import { ToggleProjectFavorite } from "@/components/toggle-project-favorite"
-import { ProjectHeaderActions } from "@/components/project-header-actions"
+import { ProjectPageClient } from "./project-page-client"
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await requireAuth()
@@ -30,18 +23,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     )
   }
 
-  return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-5 w-5 rounded-full" style={{ backgroundColor: project.color }}></div>
-          <h1 className="text-2xl font-bold">{project.name}</h1>
-        </div>
-        <ProjectHeaderActions project={project} />
-      </div>
-
-      <TaskList initialTasks={tasks} />
-    </div>
-  )
+  return <ProjectPageClient project={project} tasks={tasks} />
 }
 
