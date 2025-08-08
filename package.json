@@ -88,7 +88,7 @@
     "remark-gfm": "^4.0.1",
     "sonner": "^1.7.1",
     "swagger-ui-dist": "^5.21.0",
-    "swagger-ui-react": "^5.21.0",
+    "swagger-ui-react": "^5.26.0",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "use-sync-external-store": "latest",
