@@ -375,6 +375,27 @@ export const translations: Translations = {
     en: "Save",
     pt: "Salvar",
   },
+  "Delete snippet": {
+    en: "Delete snippet",
+    pt: "Excluir snippet",
+  },
+  "Snippet deleted": {
+    en: "Snippet deleted",
+    pt: "Snippet excluído",
+  },
+  "The snippet has been deleted successfully.": {
+    en: "The snippet has been deleted successfully.",
+    pt: "O snippet foi excluído com sucesso.",
+  },
+  "Failed to delete snippet": {
+    en: "Failed to delete snippet",
+    pt: "Falha ao excluir snippet",
+  },
+  "Are you sure you want to delete this snippet? This action cannot be undone.":
+    {
+      en: "Are you sure you want to delete this snippet? This action cannot be undone.",
+      pt: "Tem certeza que deseja excluir este snippet? Esta ação não pode ser desfeita.",
+    },
   cancelButton: {
     en: "Cancel",
     pt: "Cancelar",
@@ -392,6 +413,10 @@ export const translations: Translations = {
   description: {
     en: "Description",
     pt: "Descrição",
+  },
+  plainText: {
+    en: "Plain Text",
+    pt: "Texto Simples",
   },
   dueDate: {
     en: "Due Date",

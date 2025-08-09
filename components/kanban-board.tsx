@@ -661,6 +661,11 @@ export function KanbanBoard() {
     }
   }, [toast, t, updateTasksOnServer]);
   
+  const fetchTasksRef = useRef(fetchAndDistributeTasks);
+  useEffect(() => {
+    fetchTasksRef.current = fetchAndDistributeTasks;
+  }, [fetchAndDistributeTasks]);
+  
   useEffect(() => {
     if (!isClient) return;
     
@@ -687,7 +692,7 @@ export function KanbanBoard() {
     loadFromLocalStorage();
     
 
-    fetchAndDistributeTasks(controller.signal)
+    fetchTasksRef.current(controller.signal)
       .then(() => {
         if (mounted) {
 
@@ -701,7 +706,7 @@ export function KanbanBoard() {
     
     const intervalId = setInterval(() => {
       if (mounted && document.visibilityState === 'visible') {
-        fetchAndDistributeTasks(undefined, { silent: true }).catch(err => {
+        fetchTasksRef.current(undefined, { silent: true }).catch(err => {
           console.error("Erro na atualização automática:", err);
         });
       }
@@ -712,7 +717,7 @@ export function KanbanBoard() {
       controller.abort();
       clearInterval(intervalId);
     };
-  }, [fetchAndDistributeTasks, isClient]);
+  }, [isClient]);
   
   useEffect(() => {
     if (!isClient || isLoading || cards.length === 0) return;
@@ -737,8 +742,7 @@ export function KanbanBoard() {
       if (document.visibilityState === 'visible' && !isRefreshing) {
         isRefreshing = true;
 
-        
-        fetchAndDistributeTasks(undefined, { silent: true })
+        fetchTasksRef.current(undefined, { silent: true })
           .finally(() => {
             isRefreshing = false;
           });
@@ -748,9 +752,8 @@ export function KanbanBoard() {
     const handleFocus = () => {
       if (!isRefreshing) {
         isRefreshing = true;
-
         
-        fetchAndDistributeTasks(undefined, { silent: true })
+        fetchTasksRef.current(undefined, { silent: true })
           .finally(() => {
             isRefreshing = false;
           });
@@ -764,7 +767,7 @@ export function KanbanBoard() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [fetchAndDistributeTasks]);
+  }, []);
   
   const createNewCard = async (column: KanbanColumn) => {
     if (!newCardTitle.trim()) return;

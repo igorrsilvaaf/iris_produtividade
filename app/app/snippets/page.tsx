@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Project } from "@/lib/projects"
 import { CodeEditor } from "@/components/ui/code-editor"
+import { DeleteSnippetDialog } from "@/components/delete-snippet-dialog"
 
 type Snippet = {
   id: number
@@ -129,8 +130,8 @@ export default function SnippetsPage() {
             <SelectTrigger>
               <SelectValue placeholder={t("snippets.form.language")} />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">{t("snippets.form.language")}</SelectItem>
+              <SelectContent>
+               <SelectItem value="none">{t("plainText")}</SelectItem>
               <SelectItem value="ts">TypeScript</SelectItem>
               <SelectItem value="tsx">TSX</SelectItem>
               <SelectItem value="js">JavaScript</SelectItem>
@@ -197,7 +198,7 @@ export default function SnippetsPage() {
                           <SelectValue placeholder={t("snippets.form.language")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">{t("snippets.form.language")}</SelectItem>
+                          <SelectItem value="none">{t("plainText")}</SelectItem>
                           <SelectItem value="ts">TypeScript</SelectItem>
                           <SelectItem value="tsx">TSX</SelectItem>
                           <SelectItem value="js">JavaScript</SelectItem>
@@ -247,6 +248,12 @@ export default function SnippetsPage() {
                       <div className="flex items-center gap-2">
                         {s.language && <div className="text-xs text-muted-foreground">{s.language}</div>}
                         <Button size="sm" variant="outline" onClick={() => startEdit(s)}>{t("edit")}</Button>
+                        <DeleteSnippetDialog
+                          snippetId={s.id}
+                          onDeleted={(id) => setSnippets((prev) => prev.filter((it) => it.id !== id))}
+                        >
+                          <Button size="sm" variant="destructive">{t("Delete")}</Button>
+                        </DeleteSnippetDialog>
                       </div>
                     </div>
                     <CodeEditor value={s.content} onChange={() => {}} language={s.language ?? undefined} height="240px" readOnly />

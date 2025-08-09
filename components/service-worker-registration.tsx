@@ -14,6 +14,7 @@ export function ServiceWorkerRegistration() {
   const { toast } = useToast()
   const { t } = useTranslation()
   const [isClient, setIsClient] = useState(false)
+  const isProduction = process.env.NODE_ENV === 'production'
 
   // Detectar quando está no cliente
   useEffect(() => {
@@ -22,22 +23,27 @@ export function ServiceWorkerRegistration() {
 
   useEffect(() => {
     if (!isClient) return
+    if (!('serviceWorker' in navigator)) return
     
-    if ("serviceWorker" in navigator) {
+    if (isProduction && window.isSecureContext) {
       try {
         navigator.serviceWorker
-          .register("/service-worker.js")
-          .then((registration) => {
-
-          })
+          .register('/service-worker.js')
           .catch((error) => {
-            console.error("Erro ao registrar Service Worker:", error);
-          });
+            console.error('Erro ao registrar Service Worker:', error)
+          })
       } catch (error) {
-        console.error("Erro ao inicializar Service Worker:", error);
+        console.error('Erro ao inicializar Service Worker:', error)
       }
     } else {
-
+      navigator.serviceWorker.getRegistrations()
+        .then((registrations) => {
+          registrations.forEach((registration) => registration.unregister())
+        })
+        .catch(() => {})
+      if (window.caches && caches.keys) {
+        caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).catch(() => {})
+      }
     }
 
     const safeClipboardWrite = async (text: string): Promise<void> => {
@@ -69,7 +75,7 @@ export function ServiceWorkerRegistration() {
     return () => {
       window.removeEventListener('load', () => {})
     }
-  }, [isClient])
+  }, [isClient, isProduction])
 
   return null
 } 
