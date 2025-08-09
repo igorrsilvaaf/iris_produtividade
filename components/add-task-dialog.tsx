@@ -1135,16 +1135,19 @@ export function AddTaskDialog({
                                 >
                                   <div className="flex items-center">
                                     <div
-                                    className={`w-4 h-4 rounded-full mr-2`}
-                                    data-color={label.color}
+                                      className="w-4 h-4 rounded-full mr-2"
+                                      style={{ backgroundColor: label.color }}
                                     />
-                                    <span>{label.name}</span>
+                                    <span className="flex items-center gap-1">
+                                      <Tag className="h-3 w-3" />
+                                      {label.name}
+                                    </span>
                                   </div>
                                 </button>
                               ))
                           )}
                         </div>
-                        <div className="mt-4 border-t pt-4 flex justify-between">
+                        <div className="mt-4 border-t pt-4 flex justify-end gap-2">
                           <Button
                             variant="outline"
                             onClick={() => setShowAddLabel(false)}

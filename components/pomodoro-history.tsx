@@ -39,9 +39,10 @@ interface PaginationInfo {
 interface PomodoroHistoryProps {
   taskId?: string | null
   className?: string
+  hideWhenEmpty?: boolean
 }
 
-export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHistoryProps) {
+export function PomodoroHistory({ taskId = null, className = "", hideWhenEmpty = false }: PomodoroHistoryProps) {
   const { t } = useTranslation()
   const [sessions, setSessions] = useState<PomodoroSession[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -211,6 +212,10 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
     return null
   }
 
+  if (!isLoading && !error && hideWhenEmpty && sessions.length === 0) {
+    return null
+  }
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -218,9 +223,11 @@ export function PomodoroHistory({ taskId = null, className = "" }: PomodoroHisto
       </CardHeader>
       <CardContent>
         {sessions.length === 0 ? (
-          <div className="text-center py-10 text-muted-foreground">
-            {t("noSessionsFound")}
-          </div>
+          hideWhenEmpty ? null : (
+            <div className="text-center py-10 text-muted-foreground">
+              {t("noSessionsFound")}
+            </div>
+          )
         ) : (
           <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
             <Table>

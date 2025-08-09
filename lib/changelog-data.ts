@@ -15,6 +15,60 @@ interface ChangelogData {
 export const CHANGELOG_DATA: ChangelogData[] = [
   {
     date: new Date(),
+    version: '2.8.8',
+    author: {
+      name: 'Igor Silva',
+      role: 'Desenvolvedor',
+      initials: 'IS'
+    },
+    entries: [
+      {
+        id: 'tasks-kanban-realtime',
+        title: 'Tarefas, Kanban e Atualizações em Tempo Real',
+        description: 'Melhorias de produtividade e consistência na experiência de tarefas, com status, filtros e sincronização.',
+        items: [
+          { type: 'improvement', content: 'Seleção e atualização do status da tarefa com ícones e cores consistentes' },
+          { type: 'improvement', content: 'Exibição e filtragem de tarefas concluídas na lista de tarefas' },
+          { type: 'improvement', content: 'Atualizações de criação, conclusão e exclusão refletidas automaticamente no Kanban e nas listas' },
+          { type: 'improvement', content: 'Melhorias de desempenho e estabilidade ao arrastar e reorganizar no Kanban' },
+          { type: 'improvement', content: 'Notificação local ao criar novas tarefas para sincronizar outras visões' },
+          { type: 'bugfix', content: 'Correções em loops de atualização e remoção de código obsoleto em listas de tarefas e Kanban' }
+        ]
+      },
+      {
+        id: 'calendar-filters',
+        title: 'Calendário com Filtros por Projeto e Melhorias Visuais',
+        description: 'Novo poder de filtragem e UI refinada na visão de calendário.',
+        items: [
+          { type: 'feature', content: 'Filtros de projetos na visão de calendário com seleção rápida' },
+          { type: 'improvement', content: 'Badges, ícones e responsividade aprimorados no calendário' },
+          { type: 'improvement', content: 'Renderização otimizada de células e dias para melhor desempenho' }
+        ]
+      },
+      {
+        id: 'attachments-and-api',
+        title: 'Anexos e Robustez de API',
+        description: 'Rotas de upload/download e APIs de tarefas/comentários mais seguras e resilientes.',
+        items: [
+          { type: 'improvement', content: 'Validações e tratamento de erros aprimorados nas rotas de upload e download de anexos' },
+          { type: 'improvement', content: 'Aprimorada a manipulação de projetos nas rotas de tarefas e comentários' },
+          { type: 'improvement', content: 'Respostas mais consistentes e previsíveis nas APIs' }
+        ]
+      },
+      {
+        id: 'editing-experience',
+        title: 'Editor de Texto Rico nas Tarefas',
+        description: 'Editor unificado com barra avançada aplicado em diálogos e detalhes de tarefas.',
+        items: [
+          { type: 'feature', content: 'Substituição do campo de texto por editor de texto rico nos diálogos e detalhes de tarefas' },
+          { type: 'improvement', content: 'Padronização de data-testid em componentes para suporte a testes automatizados' }
+        ]
+      }
+    ],
+    isNew: true
+  },
+  {
+    date: new Date(),
     version: '2.8.4',
     author: {
       name: 'Igor Silva',

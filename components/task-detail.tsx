@@ -114,6 +114,7 @@ import { Calendar } from "@/components/ui/calendar";
 // Componentes específicos do domínio
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import { TaskLabels } from "@/components/task-labels";
+import { PomodoroHistory } from "@/components/pomodoro-history";
 import { ProjectForm } from "@/components/project-form";
 import { RichTextEditor } from "@/components/rich-text-editor";
 
@@ -1680,6 +1681,8 @@ export function TaskDetail({ task, open, onOpenChange, onDeleted, user }: TaskDe
               ) : null}
             </div>
           </div>
+
+          <PomodoroHistory taskId={String(task.id)} hideWhenEmpty={true} className="mt-6" />
 
           {/* Seção de Comentários */}
           <div className="border-t pt-4 mt-6" data-testid="task-detail-comments-section">
