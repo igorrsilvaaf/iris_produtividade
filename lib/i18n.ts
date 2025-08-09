@@ -1,36 +1,36 @@
-"use client"
+"use client";
 
-import { useEffect } from 'react'
+import { useEffect } from "react";
 
-export type Language = "en" | "pt"
+export type Language = "en" | "pt";
 
 type Translations = {
   [key: string]: {
-    [key in Language]: string
-  }
-}
+    [key in Language]: string;
+  };
+};
 
 // Função para definir cookies
 function setCookie(name: string, value: string) {
-  if (typeof document !== 'undefined') {
-    document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Strict`
+  if (typeof document !== "undefined") {
+    document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Strict`;
   }
 }
 
 // Função para obter cookies
 function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null
-  
-  const cookies = document.cookie.split(';').map(c => c.trim())
-  const cookie = cookies.find(c => c.startsWith(`${name}=`))
-  return cookie ? cookie.split('=')[1] : null
+  if (typeof document === "undefined") return null;
+
+  const cookies = document.cookie.split(";").map((c) => c.trim());
+  const cookie = cookies.find((c) => c.startsWith(`${name}=`));
+  return cookie ? cookie.split("=")[1] : null;
 }
 
 // Função para obter idioma do sistema
 function getSystemLanguage(): Language {
-  if (typeof navigator === 'undefined') return 'pt'
-  const browserLang = navigator.language.split('-')[0]
-  return browserLang === 'pt' ? 'pt' : 'en'
+  if (typeof navigator === "undefined") return "pt";
+  const browserLang = navigator.language.split("-")[0];
+  return browserLang === "pt" ? "pt" : "en";
 }
 
 export const translations: Translations = {
@@ -63,57 +63,57 @@ export const translations: Translations = {
     pt: "Menu de Navegação",
   },
   // Project Form
-  "Name": {
+  Name: {
     en: "Name",
-    pt: "Nome"
+    pt: "Nome",
   },
   "Project name": {
     en: "Project name",
-    pt: "Nome do projeto"
+    pt: "Nome do projeto",
   },
   "Project Color": {
     en: "Color",
-    pt: "Cor do projeto"
+    pt: "Cor do projeto",
   },
   "Color picker": {
     en: "Color picker",
-    pt: "Seletor de cor"
+    pt: "Seletor de cor",
   },
   "Select color": {
     en: "Select color",
-    pt: "Selecionar cor"
+    pt: "Selecionar cor",
   },
   "Color value": {
     en: "Color value",
-    pt: "Valor da cor"
+    pt: "Valor da cor",
   },
   "Mark as favorite": {
     en: "Mark as favorite",
-    pt: "Marcar como favorito"
+    pt: "Marcar como favorito",
   },
   "Project created": {
     en: "Project created",
-    pt: "Projeto criado"
+    pt: "Projeto criado",
   },
   "Project updated": {
     en: "Project updated",
-    pt: "Projeto atualizado"
+    pt: "Projeto atualizado",
   },
   "Project has been created successfully.": {
     en: "Project has been created successfully.",
-    pt: "O projeto foi criado com sucesso."
+    pt: "O projeto foi criado com sucesso.",
   },
   "Project has been updated successfully.": {
     en: "Project has been updated successfully.",
-    pt: "O projeto foi atualizado com sucesso."
+    pt: "O projeto foi atualizado com sucesso.",
   },
   "Failed to create project": {
     en: "Failed to create project",
-    pt: "Falha ao criar o projeto"
+    pt: "Falha ao criar o projeto",
   },
   "Failed to update project": {
     en: "Failed to update project",
-    pt: "Falha ao atualizar o projeto"
+    pt: "Falha ao atualizar o projeto",
   },
   storage: {
     en: "Storage & Backup",
@@ -126,6 +126,46 @@ export const translations: Translations = {
   kanban: {
     en: "Kanban",
     pt: "Kanban",
+  },
+  "snippets.title": {
+    en: "Snippets",
+    pt: "Snippets",
+  },
+  "snippets.subtitle": {
+    en: "Quick notes and code",
+    pt: "Anotações rápidas e código",
+  },
+  "snippets.form.title": {
+    en: "Title",
+    pt: "Título",
+  },
+  "snippets.form.language": {
+    en: "Language",
+    pt: "Idioma",
+  },
+  "snippets.form.project": {
+    en: "Project",
+    pt: "Projeto",
+  },
+  "snippets.form.noProject": {
+    en: "No Project",
+    pt: "Sem Projeto",
+  },
+  "snippets.form.save": {
+    en: "Save",
+    pt: "Salvar",
+  },
+  "snippets.search.placeholder": {
+    en: "Search",
+    pt: "Buscar",
+  },
+  "snippets.search.cta": {
+    en: "Search",
+    pt: "Buscar",
+  },
+  "snippets.empty": {
+    en: "No snippets found",
+    pt: "Nenhum snippet encontrado",
   },
   apiDocs: {
     en: "API Documentation",
@@ -215,7 +255,7 @@ export const translations: Translations = {
   },
   defaultSound: {
     en: "Default",
-    pt: "Padrão", 
+    pt: "Padrão",
   },
   bell: {
     en: "Bell",
@@ -253,7 +293,7 @@ export const translations: Translations = {
   },
   "Update Project": {
     en: "Update Project",
-    pt: "Atualizar Projeto"
+    pt: "Atualizar Projeto",
   },
   "Create New Project": {
     en: "Create New Project",
@@ -404,7 +444,7 @@ export const translations: Translations = {
     pt: "Média",
   },
   Baixa: {
-    en: "Low", 
+    en: "Low",
     pt: "Baixa",
   },
 
@@ -451,7 +491,8 @@ export const translations: Translations = {
     en: "Pomodoro Timer",
     pt: "Cronômetro Pomodoro",
   },
-  cycleStage: { // Nova chave adicionada
+  cycleStage: {
+    // Nova chave adicionada
     en: "Cycle Stage",
     pt: "Ciclo",
   },
@@ -832,10 +873,11 @@ export const translations: Translations = {
     en: "Organize your tasks with ease",
     pt: "Organize suas tarefas com facilidade",
   },
-  "Stay organized and productive with our Íris task manager. Includes Pomodoro timer, dark mode, and more.": {
-    en: "Stay organized and productive with our Íris task manager. Includes Pomodoro timer, dark mode, and more.",
-    pt: "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, modo escuro e muito mais.",
-  },
+  "Stay organized and productive with our Íris task manager. Includes Pomodoro timer, dark mode, and more.":
+    {
+      en: "Stay organized and productive with our Íris task manager. Includes Pomodoro timer, dark mode, and more.",
+      pt: "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, modo escuro e muito mais.",
+    },
   "Get Started": {
     en: "Get Started",
     pt: "Começar",
@@ -1010,91 +1052,91 @@ export const translations: Translations = {
   },
   "Welcome back": {
     en: "Welcome back",
-    pt: "Bem-vindo de volta"
+    pt: "Bem-vindo de volta",
   },
   "Sign in to your account to continue": {
     en: "Sign in to your account to continue",
-    pt: "Entre na sua conta para continuar"
+    pt: "Entre na sua conta para continuar",
   },
   "Don't have an account?": {
     en: "Don't have an account?",
-    pt: "Não tem uma conta?"
+    pt: "Não tem uma conta?",
   },
   "Sign Up": {
     en: "Sign Up",
-    pt: "Cadastrar"
+    pt: "Cadastrar",
   },
   "Sign In": {
     en: "Sign In",
-    pt: "Entrar"
+    pt: "Entrar",
   },
   "Sign in": {
     en: "Sign in",
-    pt: "Entrar"
+    pt: "Entrar",
   },
-  "Email": {
+  Email: {
     en: "Email",
-    pt: "Email"
+    pt: "Email",
   },
-  "Password": {
+  Password: {
     en: "Password",
-    pt: "Senha"
+    pt: "Senha",
   },
   "Remember me": {
     en: "Remember me",
-    pt: "Lembrar de mim"
+    pt: "Lembrar de mim",
   },
   "Forgot password?": {
     en: "Forgot password?",
-    pt: "Esqueceu a senha?"
+    pt: "Esqueceu a senha?",
   },
   "Please wait": {
     en: "Please wait",
-    pt: "Por favor, aguarde"
+    pt: "Por favor, aguarde",
   },
   "Login successful": {
     en: "Login successful",
-    pt: "Login bem-sucedido"
+    pt: "Login bem-sucedido",
   },
   "Redirecting to your dashboard...": {
     en: "Redirecting to your dashboard...",
-    pt: "Redirecionando para seu painel..."
+    pt: "Redirecionando para seu painel...",
   },
   "Login failed": {
     en: "Login failed",
-    pt: "Falha no login"
+    pt: "Falha no login",
   },
   "Something went wrong. Please try again.": {
     en: "Something went wrong. Please try again.",
-    pt: "Algo deu errado. Por favor, tente novamente."
+    pt: "Algo deu errado. Por favor, tente novamente.",
   },
   "Create an account": {
     en: "Create an account",
-    pt: "Criar uma conta"
+    pt: "Criar uma conta",
   },
   "Sign up to get started with Íris": {
     en: "Sign up to get started with Íris",
-    pt: "Cadastre-se para começar a usar o Íris"
+    pt: "Cadastre-se para começar a usar o Íris",
   },
   "Already have an account?": {
     en: "Already have an account?",
-    pt: "Já tem uma conta?"
+    pt: "Já tem uma conta?",
   },
   "Hide password": {
     en: "Hide password",
-    pt: "Ocultar senha"
+    pt: "Ocultar senha",
   },
   "Show password": {
     en: "Show password",
-    pt: "Mostrar senha"
+    pt: "Mostrar senha",
   },
   "Your name": {
     en: "Your name",
-    pt: "Seu nome"
+    pt: "Seu nome",
   },
   "Your email": {
     en: "Your email",
-    pt: "Seu email"
+    pt: "Seu email",
   },
   "Registration successful": {
     en: "Registration successful",
@@ -1118,207 +1160,211 @@ export const translations: Translations = {
   },
   "Backup & Restore": {
     en: "Backup & Restore",
-    pt: "Backup & Restauração"
+    pt: "Backup & Restauração",
   },
   "Export your data or restore from a backup file.": {
     en: "Export your data or restore from a backup file.",
-    pt: "Exporte seus dados ou restaure a partir de um arquivo de backup."
+    pt: "Exporte seus dados ou restaure a partir de um arquivo de backup.",
   },
   "Export Data": {
     en: "Export Data",
-    pt: "Exportar Dados"
+    pt: "Exportar Dados",
   },
   "Download a backup of all your tasks, projects, labels, and settings.": {
     en: "Download a backup of all your tasks, projects, labels, and settings.",
-    pt: "Baixe um backup de todas as suas tarefas, projetos, etiquetas e configurações."
+    pt: "Baixe um backup de todas as suas tarefas, projetos, etiquetas e configurações.",
   },
   "Exporting...": {
     en: "Exporting...",
-    pt: "Exportando..."
+    pt: "Exportando...",
   },
   "Import Data": {
     en: "Import Data",
-    pt: "Importar Dados"
+    pt: "Importar Dados",
   },
   "Restore your data from a previously exported backup file.": {
     en: "Restore your data from a previously exported backup file.",
-    pt: "Restaure seus dados a partir de um arquivo de backup exportado anteriormente."
+    pt: "Restaure seus dados a partir de um arquivo de backup exportado anteriormente.",
   },
-  "Upload a backup file to restore your data. This will not delete your existing data, but may overwrite items with the same name.": {
-    en: "Upload a backup file to restore your data. This will not delete your existing data, but may overwrite items with the same name.",
-    pt: "Envie um arquivo de backup para restaurar seus dados. Isso não excluirá seus dados existentes, mas pode sobrescrever itens com o mesmo nome."
-  },
-  "Warning": {
+  "Upload a backup file to restore your data. This will not delete your existing data, but may overwrite items with the same name.":
+    {
+      en: "Upload a backup file to restore your data. This will not delete your existing data, but may overwrite items with the same name.",
+      pt: "Envie um arquivo de backup para restaurar seus dados. Isso não excluirá seus dados existentes, mas pode sobrescrever itens com o mesmo nome.",
+    },
+  Warning: {
     en: "Warning",
-    pt: "Aviso"
+    pt: "Aviso",
   },
-  "Importing data will merge with your existing data. Make sure to export your current data first if you want to keep it.": {
-    en: "Importing data will merge with your existing data. Make sure to export your current data first if you want to keep it.",
-    pt: "A importação de dados será mesclada com seus dados existentes. Certifique-se de exportar seus dados atuais primeiro se quiser mantê-los."
-  },
+  "Importing data will merge with your existing data. Make sure to export your current data first if you want to keep it.":
+    {
+      en: "Importing data will merge with your existing data. Make sure to export your current data first if you want to keep it.",
+      pt: "A importação de dados será mesclada com seus dados existentes. Certifique-se de exportar seus dados atuais primeiro se quiser mantê-los.",
+    },
   "Backup File": {
     en: "Backup File",
-    pt: "Arquivo de Backup"
+    pt: "Arquivo de Backup",
   },
   "Importing...": {
     en: "Importing...",
-    pt: "Importando..."
+    pt: "Importando...",
   },
-  "Import": {
+  Import: {
     en: "Import",
-    pt: "Importar"
+    pt: "Importar",
   },
-  "Note: Backup files contain all your tasks, projects, labels, and settings. They do not include your account information.": {
-    en: "Note: Backup files contain all your tasks, projects, labels, and settings. They do not include your account information.",
-    pt: "Nota: Os arquivos de backup contêm todas as suas tarefas, projetos, etiquetas e configurações. Eles não incluem suas informações de conta."
-  },
+  "Note: Backup files contain all your tasks, projects, labels, and settings. They do not include your account information.":
+    {
+      en: "Note: Backup files contain all your tasks, projects, labels, and settings. They do not include your account information.",
+      pt: "Nota: Os arquivos de backup contêm todas as suas tarefas, projetos, etiquetas e configurações. Eles não incluem suas informações de conta.",
+    },
   "Export successful": {
     en: "Export successful",
-    pt: "Exportação bem-sucedida"
+    pt: "Exportação bem-sucedida",
   },
   "Your data has been exported successfully.": {
     en: "Your data has been exported successfully.",
-    pt: "Seus dados foram exportados com sucesso."
+    pt: "Seus dados foram exportados com sucesso.",
   },
   "Export failed": {
     en: "Export failed",
-    pt: "Falha na exportação"
+    pt: "Falha na exportação",
   },
   "Failed to export your data. Please try again.": {
     en: "Failed to export your data. Please try again.",
-    pt: "Falha ao exportar seus dados. Por favor, tente novamente."
+    pt: "Falha ao exportar seus dados. Por favor, tente novamente.",
   },
   "No file selected": {
     en: "No file selected",
-    pt: "Nenhum arquivo selecionado"
+    pt: "Nenhum arquivo selecionado",
   },
   "Please select a backup file to import.": {
     en: "Please select a backup file to import.",
-    pt: "Por favor, selecione um arquivo de backup para importar."
+    pt: "Por favor, selecione um arquivo de backup para importar.",
   },
   "Invalid backup file format": {
     en: "Invalid backup file format",
-    pt: "Formato de arquivo de backup inválido"
+    pt: "Formato de arquivo de backup inválido",
   },
   "Failed to import data": {
     en: "Failed to import data",
-    pt: "Falha ao importar dados"
+    pt: "Falha ao importar dados",
   },
   "Import successful": {
     en: "Import successful",
-    pt: "Importação bem-sucedida"
+    pt: "Importação bem-sucedida",
   },
   "Your data has been imported successfully.": {
     en: "Your data has been imported successfully.",
-    pt: "Seus dados foram importados com sucesso."
+    pt: "Seus dados foram importados com sucesso.",
   },
   "Import failed": {
     en: "Import failed",
-    pt: "Falha na importação"
+    pt: "Falha na importação",
   },
   "Failed to import your data. Please try again.": {
     en: "Failed to import your data. Please try again.",
-    pt: "Falha ao importar seus dados. Por favor, tente novamente."
+    pt: "Falha ao importar seus dados. Por favor, tente novamente.",
   },
   "Name must be at least 2 characters": {
     en: "Name must be at least 2 characters",
-    pt: "O nome deve ter pelo menos 2 caracteres"
+    pt: "O nome deve ter pelo menos 2 caracteres",
   },
   "Please enter a valid email address": {
     en: "Please enter a valid email address",
-    pt: "Por favor, insira um endereço de email válido"
+    pt: "Por favor, insira um endereço de email válido",
   },
   "Password must be at least 6 characters": {
     en: "Password must be at least 6 characters",
-    pt: "A senha deve ter pelo menos 6 caracteres"
+    pt: "A senha deve ter pelo menos 6 caracteres",
   },
-  "Password must be at least 6 characters with one uppercase letter and one number.": {
-    en: "Password must be at least 6 characters with one uppercase letter and one number.",
-    pt: "A senha deve ter pelo menos 6 caracteres com uma letra maiúscula e um número.",
-  },
+  "Password must be at least 6 characters with one uppercase letter and one number.":
+    {
+      en: "Password must be at least 6 characters with one uppercase letter and one number.",
+      pt: "A senha deve ter pelo menos 6 caracteres com uma letra maiúscula e um número.",
+    },
   "Password is required": {
     en: "Password is required",
     pt: "A senha é obrigatória",
   },
   "Passwords do not match": {
     en: "Passwords do not match",
-    pt: "As senhas não coincidem"
+    pt: "As senhas não coincidem",
   },
   "Missing required fields": {
     en: "Missing required fields",
-    pt: "Campos obrigatórios faltando"
+    pt: "Campos obrigatórios faltando",
   },
   "Failed to login": {
     en: "Failed to login",
-    pt: "Falha ao fazer login"
+    pt: "Falha ao fazer login",
   },
   "Label name is required": {
     en: "Label name is required",
-    pt: "O nome da etiqueta é obrigatório"
+    pt: "O nome da etiqueta é obrigatório",
   },
   "Color must be a valid hex code": {
     en: "Color must be a valid hex code",
-    pt: "A cor deve ser um código hexadecimal válido"
+    pt: "A cor deve ser um código hexadecimal válido",
   },
   "Failed to update profile": {
     en: "Failed to update profile",
-    pt: "Falha ao atualizar perfil"
+    pt: "Falha ao atualizar perfil",
   },
   "Profile updated": {
     en: "Profile updated",
-    pt: "Perfil atualizado"
+    pt: "Perfil atualizado",
   },
   "Your profile has been updated successfully.": {
     en: "Your profile has been updated successfully.",
-    pt: "Seu perfil foi atualizado com sucesso."
+    pt: "Seu perfil foi atualizado com sucesso.",
   },
   "Manage your account information.": {
     en: "Manage your account information.",
-    pt: "Gerencie suas informações de conta."
+    pt: "Gerencie suas informações de conta.",
   },
   "This is your public display name.": {
     en: "This is your public display name.",
-    pt: "Este é seu nome de exibição público."
+    pt: "Este é seu nome de exibição público.",
   },
   "This is the email associated with your account.": {
     en: "This is the email associated with your account.",
-    pt: "Este é o email associado à sua conta."
+    pt: "Este é o email associado à sua conta.",
   },
   "Label name": {
     en: "Label name",
-    pt: "Nome da etiqueta"
+    pt: "Nome da etiqueta",
   },
-  "Color": {
+  Color: {
     en: "Color",
-    pt: "Cor"
+    pt: "Cor",
   },
   "Update Label": {
     en: "Update Label",
-    pt: "Atualizar Etiqueta"
+    pt: "Atualizar Etiqueta",
   },
   "Failed to update label": {
     en: "Failed to update label",
-    pt: "Falha ao atualizar etiqueta"
+    pt: "Falha ao atualizar etiqueta",
   },
   "Failed to create label": {
     en: "Failed to create label",
-    pt: "Falha ao criar etiqueta"
+    pt: "Falha ao criar etiqueta",
   },
   "Label updated": {
     en: "Label updated",
-    pt: "Etiqueta atualizada"
+    pt: "Etiqueta atualizada",
   },
   "Label created": {
     en: "Label created",
-    pt: "Etiqueta criada"
+    pt: "Etiqueta criada",
   },
   "Label has been updated successfully.": {
     en: "Label has been updated successfully.",
-    pt: "A etiqueta foi atualizada com sucesso."
+    pt: "A etiqueta foi atualizada com sucesso.",
   },
   "Label has been created successfully.": {
     en: "Label has been created successfully.",
-    pt: "A etiqueta foi criada com sucesso."
+    pt: "A etiqueta foi criada com sucesso.",
   },
   Personal: {
     en: "Personal",
@@ -1335,63 +1381,64 @@ export const translations: Translations = {
   // Mensagens de erro e sucesso
   "Invalid email or password": {
     en: "Invalid email or password",
-    pt: "Email ou senha inválidos"
+    pt: "Email ou senha inválidos",
   },
   "Invalid email or password. Please check your credentials and try again.": {
     en: "Invalid email or password. Please check your credentials and try again.",
-    pt: "Email ou senha inválidos. Por favor, verifique suas credenciais e tente novamente."
+    pt: "Email ou senha inválidos. Por favor, verifique suas credenciais e tente novamente.",
   },
-  "Multiple failed login attempts. Make sure your credentials are correct or reset your password.": {
-    en: "Multiple failed login attempts. Make sure your credentials are correct or reset your password.",
-    pt: "Múltiplas tentativas de login malsucedidas. Certifique-se de que suas credenciais estão corretas ou redefina sua senha."
-  },
+  "Multiple failed login attempts. Make sure your credentials are correct or reset your password.":
+    {
+      en: "Multiple failed login attempts. Make sure your credentials are correct or reset your password.",
+      pt: "Múltiplas tentativas de login malsucedidas. Certifique-se de que suas credenciais estão corretas ou redefina sua senha.",
+    },
   "Failed to register": {
     en: "Failed to register",
-    pt: "Falha ao registrar"
+    pt: "Falha ao registrar",
   },
   "Erro login": {
     en: "Login failed",
-    pt: "Falha no login"
+    pt: "Falha no login",
   },
   "Erro registro": {
     en: "Registration failed",
-    pt: "Falha no registro"
+    pt: "Falha no registro",
   },
   "Sucesso login": {
     en: "Login successful",
-    pt: "Login bem-sucedido"
+    pt: "Login bem-sucedido",
   },
   "Sucesso registro": {
     en: "Registration successful",
-    pt: "Registro bem-sucedido"
+    pt: "Registro bem-sucedido",
   },
   "Redirecionando login": {
     en: "Redirecting to your dashboard...",
-    pt: "Redirecionando para seu painel..."
+    pt: "Redirecionando para seu painel...",
   },
   "Erro email existe": {
     en: "This email is already registered. Please use a different email or try logging in.",
-    pt: "Este email já está registrado. Por favor, use um email diferente ou tente fazer login."
+    pt: "Este email já está registrado. Por favor, use um email diferente ou tente fazer login.",
   },
   "Mensagem conta criada": {
     en: "Your account has been created. Redirecting to login...",
-    pt: "Sua conta foi criada. Redirecionando para o login..."
+    pt: "Sua conta foi criada. Redirecionando para o login...",
   },
-  
+
   // Adicionando textos de ordenação
   "Sort by": {
     en: "Sort by",
     pt: "Ordenar por",
   },
-  "Prioridade": {
+  Prioridade: {
     en: "Priority",
     pt: "Prioridade",
   },
-  "Título": {
+  Título: {
     en: "Title",
     pt: "Título",
   },
-  "Descrição": {
+  Descrição: {
     en: "Description",
     pt: "Descrição",
   },
@@ -1407,7 +1454,7 @@ export const translations: Translations = {
     en: "View all",
     pt: "Ver todos",
   },
-  "More": {
+  More: {
     en: "More",
     pt: "Mais",
   },
@@ -1483,19 +1530,19 @@ export const translations: Translations = {
     en: "Cancel",
     pt: "Cancelar",
   },
-  "pomodoroSettings": {
+  pomodoroSettings: {
     en: "Pomodoro Settings",
     pt: "Configurações do Pomodoro",
   },
-  "pomodoroSettingsDescription": {
+  pomodoroSettingsDescription: {
     en: "Customize your Pomodoro timer settings",
-    pt: "Personalize as configurações do temporizador Pomodoro", 
+    pt: "Personalize as configurações do temporizador Pomodoro",
   },
-  "Refresh": {
+  Refresh: {
     en: "Refresh Page",
     pt: "Atualizar Página",
   },
-  "Cancel": {
+  Cancel: {
     en: "Cancel",
     pt: "Cancelar",
   },
@@ -1509,10 +1556,11 @@ export const translations: Translations = {
     en: "Forgot your password?",
     pt: "Esqueceu sua senha?",
   },
-  "Enter your email address and we'll send you a link to reset your password.": {
-    en: "Enter your email address and we'll send you a link to reset your password.",
-    pt: "Digite seu endereço de e-mail e enviaremos um link para redefinir sua senha.",
-  },
+  "Enter your email address and we'll send you a link to reset your password.":
+    {
+      en: "Enter your email address and we'll send you a link to reset your password.",
+      pt: "Digite seu endereço de e-mail e enviaremos um link para redefinir sua senha.",
+    },
   "Send Reset Link": {
     en: "Send Reset Link",
     pt: "Enviar Link de Redefinição",
@@ -1525,10 +1573,11 @@ export const translations: Translations = {
     en: "Check your email",
     pt: "Verifique seu e-mail",
   },
-  "We've sent you an email with instructions to reset your password. If you don't see it, check your spam folder.": {
-    en: "We've sent you an email with instructions to reset your password. If you don't see it, check your spam folder.",
-    pt: "Enviamos um e-mail com instruções para redefinir sua senha. Se não o encontrar, verifique sua pasta de spam.",
-  },
+  "We've sent you an email with instructions to reset your password. If you don't see it, check your spam folder.":
+    {
+      en: "We've sent you an email with instructions to reset your password. If you don't see it, check your spam folder.",
+      pt: "Enviamos um e-mail com instruções para redefinir sua senha. Se não o encontrar, verifique sua pasta de spam.",
+    },
   "Try another email": {
     en: "Try another email",
     pt: "Tentar outro e-mail",
@@ -1545,7 +1594,7 @@ export const translations: Translations = {
     en: "Email is required",
     pt: "O email é obrigatório",
   },
-  
+
   // Reset de senha
   "Reset Password": {
     en: "Reset Password",
@@ -1583,10 +1632,11 @@ export const translations: Translations = {
     en: "Your password has been successfully reset.",
     pt: "Sua senha foi redefinida com sucesso.",
   },
-  "Your password has been successfully reset. You can now log in with your new password.": {
-    en: "Your password has been successfully reset. You can now log in with your new password.",
-    pt: "Sua senha foi redefinida com sucesso. Agora você pode fazer login com sua nova senha.",
-  },
+  "Your password has been successfully reset. You can now log in with your new password.":
+    {
+      en: "Your password has been successfully reset. You can now log in with your new password.",
+      pt: "Sua senha foi redefinida com sucesso. Agora você pode fazer login com sua nova senha.",
+    },
   "Go to Login": {
     en: "Go to Login",
     pt: "Ir para Login",
@@ -1595,10 +1645,11 @@ export const translations: Translations = {
     en: "Invalid or expired token",
     pt: "Token inválido ou expirado",
   },
-  "The password reset link is invalid or has expired. Please request a new one.": {
-    en: "The password reset link is invalid or has expired. Please request a new one.",
-    pt: "O link de redefinição de senha é inválido ou expirou. Por favor, solicite um novo.",
-  },
+  "The password reset link is invalid or has expired. Please request a new one.":
+    {
+      en: "The password reset link is invalid or has expired. Please request a new one.",
+      pt: "O link de redefinição de senha é inválido ou expirou. Por favor, solicite um novo.",
+    },
   "Back to Forgot Password": {
     en: "Back to Forgot Password",
     pt: "Voltar para Esqueci a Senha",
@@ -1612,14 +1663,16 @@ export const translations: Translations = {
     en: "Development Mode",
     pt: "Modo de Desenvolvimento",
   },
-  "In development, we use Ethereal Email for testing. Look for a line in the server console that says 'LINK PARA VISUALIZAR O EMAIL:' and click that URL to see the email.": {
-    en: "In development, we use Ethereal Email for testing. Look for a line in the server console that says 'LINK PARA VISUALIZAR O EMAIL:' and click that URL to see the email.",
-    pt: "No modo de desenvolvimento, usamos o Ethereal Email para testes. Procure uma linha no console do servidor que diz 'LINK PARA VISUALIZAR O EMAIL:' e clique nessa URL para ver o email.",
-  },
-  "In development mode, please check the server console for the email preview link. A test email has been generated and you can view it by clicking on the preview URL in the console.": {
-    en: "In development mode, please check the server console for the email preview link. A test email has been generated and you can view it by clicking on the preview URL in the console.",
-    pt: "No modo de desenvolvimento, verifique o console do servidor para obter o link de visualização do email. Um email de teste foi gerado e você pode visualizá-lo clicando na URL de visualização no console.",
-  },
+  "In development, we use Ethereal Email for testing. Look for a line in the server console that says 'LINK PARA VISUALIZAR O EMAIL:' and click that URL to see the email.":
+    {
+      en: "In development, we use Ethereal Email for testing. Look for a line in the server console that says 'LINK PARA VISUALIZAR O EMAIL:' and click that URL to see the email.",
+      pt: "No modo de desenvolvimento, usamos o Ethereal Email para testes. Procure uma linha no console do servidor que diz 'LINK PARA VISUALIZAR O EMAIL:' e clique nessa URL para ver o email.",
+    },
+  "In development mode, please check the server console for the email preview link. A test email has been generated and you can view it by clicking on the preview URL in the console.":
+    {
+      en: "In development mode, please check the server console for the email preview link. A test email has been generated and you can view it by clicking on the preview URL in the console.",
+      pt: "No modo de desenvolvimento, verifique o console do servidor para obter o link de visualização do email. Um email de teste foi gerado e você pode visualizá-lo clicando na URL de visualização no console.",
+    },
   "Check the console for the email preview link": {
     en: "Check the console for the email preview link",
     pt: "Verifique o console para o link de visualização do email",
@@ -1644,7 +1697,7 @@ export const translations: Translations = {
   },
   latestUpdateInfo: {
     en: "Our latest update includes Pomodoro history tracking and Deezer music integration.",
-    pt: "Nossa mais recente atualização inclui histórico de Pomodoro e integração com Deezer."
+    pt: "Nossa mais recente atualização inclui histórico de Pomodoro e integração com Deezer.",
   },
   viewChangelog: {
     en: "View Updates",
@@ -1670,129 +1723,129 @@ export const translations: Translations = {
     en: "Bug Fixes",
     pt: "Correções de Bugs",
   },
-  "taskNotifications": {
+  taskNotifications: {
     en: "Task Notifications",
-    pt: "Notificações de Tarefas"
+    pt: "Notificações de Tarefas",
   },
-  "showNotificationsForUpcomingTasks": {
+  showNotificationsForUpcomingTasks: {
     en: "Show notifications for upcoming and overdue tasks",
-    pt: "Mostrar notificações para tarefas próximas e vencidas"
+    pt: "Mostrar notificações para tarefas próximas e vencidas",
   },
-  "notificationDays": {
+  notificationDays: {
     en: "Notification Days",
-    pt: "Dias de Notificação"
+    pt: "Dias de Notificação",
   },
-  "numberOfDaysBeforeToShowNotifications": {
+  numberOfDaysBeforeToShowNotifications: {
     en: "Number of days before due date to show notifications",
-    pt: "Número de dias antes do vencimento para mostrar notificações"
+    pt: "Número de dias antes do vencimento para mostrar notificações",
   },
-  "dueTasks": {
+  dueTasks: {
     en: "Due Tasks",
-    pt: "Tarefas a Vencer"
+    pt: "Tarefas a Vencer",
   },
-  "overdueTasks": {
+  overdueTasks: {
     en: "Overdue Tasks",
-    pt: "Tarefas Vencidas"
+    pt: "Tarefas Vencidas",
   },
-  "taskDueToday": {
+  taskDueToday: {
     en: "Due today",
-    pt: "Vence hoje"
+    pt: "Vence hoje",
   },
-  "taskDueTomorrow": {
+  taskDueTomorrow: {
     en: "Due tomorrow",
-    pt: "Vence amanhã"
+    pt: "Vence amanhã",
   },
-  "taskOverdue": {
+  taskOverdue: {
     en: "Overdue by {days}",
-    pt: "Vencido há {days}"
+    pt: "Vencido há {days}",
   },
-  "taskDueInDays": {
+  taskDueInDays: {
     en: "Due in {days}",
-    pt: "Vence em {days}"
+    pt: "Vence em {days}",
   },
-  "youHaveNTasks": {
+  youHaveNTasks: {
     en: "You have {count} tasks",
-    pt: "Você tem {count} tarefas"
+    pt: "Você tem {count} tarefas",
   },
-  "dueToday": {
+  dueToday: {
     en: "due today",
-    pt: "que vencem hoje"
+    pt: "que vencem hoje",
   },
-  "overdueStatus": {
+  overdueStatus: {
     en: "overdue",
-    pt: "vencidas"
+    pt: "vencidas",
   },
-  "dueInNextDays": {
+  dueInNextDays: {
     en: "due in the next {days} days",
-    pt: "que vencem nos próximos {days} dias"
+    pt: "que vencem nos próximos {days} dias",
   },
-  "viewAllNotifications": {
+  viewAllNotifications: {
     en: "View all notifications",
-    pt: "Ver todas as notificações"
+    pt: "Ver todas as notificações",
   },
   "Next {days} days": {
     en: "Next {days} days",
-    pt: "Próximos {days} dias"
+    pt: "Próximos {days} dias",
   },
-  "Today": {
+  Today: {
     en: "Today",
-    pt: "Hoje"
+    pt: "Hoje",
   },
   "No task notifications": {
     en: "No task notifications",
-    pt: "Sem notificações de tarefas"
+    pt: "Sem notificações de tarefas",
   },
   "You don't have any tasks due in the next {days} days.": {
     en: "You don't have any tasks due in the next {days} days.",
-    pt: "Você não tem tarefas que vencem nos próximos {days} dias."
+    pt: "Você não tem tarefas que vencem nos próximos {days} dias.",
   },
   "Task completed": {
     en: "Task completed",
-    pt: "Tarefa concluída"
+    pt: "Tarefa concluída",
   },
   "The task has been marked as complete.": {
     en: "The task has been marked as complete.",
-    pt: "A tarefa foi marcada como concluída."
+    pt: "A tarefa foi marcada como concluída.",
   },
   "Failed to complete task": {
     en: "Failed to complete task",
-    pt: "Falha ao concluir tarefa"
+    pt: "Falha ao concluir tarefa",
   },
-  "Complete": {
+  Complete: {
     en: "Complete",
-    pt: "Concluir"
+    pt: "Concluir",
   },
   "System Notifications": {
     en: "System Notifications",
-    pt: "Notificações do Sistema"
+    pt: "Notificações do Sistema",
   },
   "Task Notifications": {
     en: "Task Notifications",
-    pt: "Notificações de Tarefas"
+    pt: "Notificações de Tarefas",
   },
   "No tasks available": {
     en: "No tasks available",
-    pt: "Nenhuma tarefa disponível"
+    pt: "Nenhuma tarefa disponível",
   },
   "Invalid response format": {
     en: "Invalid response format",
-    pt: "Formato de resposta inválido"
+    pt: "Formato de resposta inválido",
   },
   "Task uncompleted": {
     en: "Task uncompleted",
-    pt: "Tarefa desmarcada"
+    pt: "Tarefa desmarcada",
   },
   "The task has been marked as incomplete.": {
     en: "The task has been marked as incomplete.",
-    pt: "A tarefa foi desmarcada como concluída."
+    pt: "A tarefa foi desmarcada como concluída.",
   },
   "Failed to update task": {
     en: "Failed to update task",
-    pt: "Falha ao atualizar tarefa"
+    pt: "Falha ao atualizar tarefa",
   },
   "Please try again later.": {
     en: "Please try again later.",
-    pt: "Por favor, tente novamente mais tarde."
+    pt: "Por favor, tente novamente mais tarde.",
   },
   workMinutes: {
     en: "Work Minutes",
@@ -1878,11 +1931,12 @@ export const translations: Translations = {
     en: "Organize your workflow",
     pt: "Organize seu fluxo de trabalho",
   },
-  "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, notificações, modo escuro e muito mais.": {
-    en: "Stay organized and productive with our Íris task manager. Includes Pomodoro timer, notifications, dark mode, and more.",
-    pt: "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, notificações, modo escuro e muito mais.",
-  },
-  "Gratuito": {
+  "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, notificações, modo escuro e muito mais.":
+    {
+      en: "Stay organized and productive with our Íris task manager. Includes Pomodoro timer, notifications, dark mode, and more.",
+      pt: "Mantenha-se organizado e produtivo com nosso gerenciador de tarefas Íris. Inclui temporizador Pomodoro, notificações, modo escuro e muito mais.",
+    },
+  Gratuito: {
     en: "Free",
     pt: "Gratuito",
   },
@@ -1890,7 +1944,7 @@ export const translations: Translations = {
     en: "Easy to use",
     pt: "Fácil de usar",
   },
-  "Seguro": {
+  Seguro: {
     en: "Secure",
     pt: "Seguro",
   },
@@ -1898,66 +1952,74 @@ export const translations: Translations = {
     en: "Advanced productivity features",
     pt: "Recursos avançados de produtividade",
   },
-  "Tudo o que você precisa para se manter organizado e produtivo em um só lugar": {
-    en: "Everything you need to stay organized and productive in one place",
-    pt: "Tudo o que você precisa para se manter organizado e produtivo em um só lugar",
-  },
+  "Tudo o que você precisa para se manter organizado e produtivo em um só lugar":
+    {
+      en: "Everything you need to stay organized and productive in one place",
+      pt: "Tudo o que você precisa para se manter organizado e produtivo em um só lugar",
+    },
   "Temporizador Pomodoro": {
     en: "Pomodoro Timer",
     pt: "Temporizador Pomodoro",
   },
-  "Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.": {
-    en: "Stay focused with integrated Pomodoro timer to increase your productivity and manage work and rest periods.",
-    pt: "Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.",
-  },
+  "Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.":
+    {
+      en: "Stay focused with integrated Pomodoro timer to increase your productivity and manage work and rest periods.",
+      pt: "Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.",
+    },
   "Gerenciamento de Tarefas": {
     en: "Task Management",
     pt: "Gerenciamento de Tarefas",
   },
-  "Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.": {
-    en: "Organize tasks with custom projects, priority levels, and due dates to keep your workflow organized.",
-    pt: "Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.",
-  },
+  "Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.":
+    {
+      en: "Organize tasks with custom projects, priority levels, and due dates to keep your workflow organized.",
+      pt: "Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.",
+    },
   "Visualização de Calendário": {
     en: "Calendar View",
     pt: "Visualização de Calendário",
   },
-  "Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.": {
-    en: "View your tasks in a calendar view to efficiently plan your week and never miss important deadlines.",
-    pt: "Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.",
-  },
+  "Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.":
+    {
+      en: "View your tasks in a calendar view to efficiently plan your week and never miss important deadlines.",
+      pt: "Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.",
+    },
   "Sistema de Notificações": {
     en: "Notification System",
     pt: "Sistema de Notificações",
   },
-  "Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.": {
-    en: "Receive alerts about upcoming, overdue tasks and important events to never miss a deadline.",
-    pt: "Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.",
-  },
+  "Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.":
+    {
+      en: "Receive alerts about upcoming, overdue tasks and important events to never miss a deadline.",
+      pt: "Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.",
+    },
   "Modo Escuro": {
     en: "Dark Mode",
     pt: "Modo Escuro",
   },
-  "Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.": {
-    en: "Switch between light and dark themes to reduce eye strain and adapt the interface to your preferences.",
-    pt: "Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.",
-  },
-  "Personalização": {
+  "Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.":
+    {
+      en: "Switch between light and dark themes to reduce eye strain and adapt the interface to your preferences.",
+      pt: "Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.",
+    },
+  Personalização: {
     en: "Customization",
     pt: "Personalização",
   },
-  "Adapte o aplicativo ao seu estilo com cores personalizáveis, diferentes sons de notificação e preferências de exibição.": {
-    en: "Adapt the app to your style with customizable colors, different notification sounds, and display preferences.",
-    pt: "Adapte o aplicativo ao seu estilo com cores personalizáveis, diferentes sons de notificação e preferências de exibição.",
-  },
+  "Adapte o aplicativo ao seu estilo com cores personalizáveis, diferentes sons de notificação e preferências de exibição.":
+    {
+      en: "Adapt the app to your style with customizable colors, different notification sounds, and display preferences.",
+      pt: "Adapte o aplicativo ao seu estilo com cores personalizáveis, diferentes sons de notificação e preferências de exibição.",
+    },
   "Comece a usar hoje": {
     en: "Start using today",
     pt: "Comece a usar hoje",
   },
-  "Registre-se gratuitamente e comece a organizar suas tarefas e aumentar sua produtividade": {
-    en: "Sign up for free and start organizing your tasks and increasing your productivity",
-    pt: "Registre-se gratuitamente e comece a organizar suas tarefas e aumentar sua produtividade",
-  },
+  "Registre-se gratuitamente e comece a organizar suas tarefas e aumentar sua produtividade":
+    {
+      en: "Sign up for free and start organizing your tasks and increasing your productivity",
+      pt: "Registre-se gratuitamente e comece a organizar suas tarefas e aumentar sua produtividade",
+    },
   "Criar conta grátis": {
     en: "Create free account",
     pt: "Criar conta grátis",
@@ -1991,7 +2053,7 @@ export const translations: Translations = {
     en: "No tasks",
     pt: "Sem tarefas",
   },
-  
+
   // Relatórios
   reports: {
     en: "Reports",
@@ -2033,7 +2095,7 @@ export const translations: Translations = {
     en: "Pick a date",
     pt: "Escolha uma data",
   },
-  "Reports": {
+  Reports: {
     en: "Reports",
     pt: "Relatórios",
   },
@@ -2113,23 +2175,23 @@ export const translations: Translations = {
     en: "There was an error exporting your report",
     pt: "Ocorreu um erro ao exportar seu relatório",
   },
-  "Type": {
+  Type: {
     en: "Type",
     pt: "Tipo",
   },
-  "Format": {
+  Format: {
     en: "Format",
     pt: "Formato",
   },
-  "Date": {
+  Date: {
     en: "Date",
     pt: "Data",
   },
-  "Action": {
+  Action: {
     en: "Action",
     pt: "Ação",
   },
-  "Download": {
+  Download: {
     en: "Download",
     pt: "Baixar",
   },
@@ -2137,11 +2199,11 @@ export const translations: Translations = {
     en: "Report Configuration",
     pt: "Configuração do Relatório",
   },
-  "Period": {
+  Period: {
     en: "Period",
     pt: "Período",
   },
-  "Generate": {
+  Generate: {
     en: "Generate",
     pt: "Gerar",
   },
@@ -2240,52 +2302,52 @@ export const translations: Translations = {
   },
   "No labels selected": {
     en: "No labels selected",
-    pt: "Nenhuma etiqueta selecionada"
+    pt: "Nenhuma etiqueta selecionada",
   },
-  
+
   // Traduções para anexos e tempo estimado
   "attachment.list": {
     en: "Attachments",
-    pt: "Anexos"
+    pt: "Anexos",
   },
   "attachment.add": {
     en: "Add attachment",
-    pt: "Adicionar anexo"
+    pt: "Adicionar anexo",
   },
   "task.estimatedTime": {
     en: "Estimated time",
-    pt: "Tempo estimado"
+    pt: "Tempo estimado",
   },
   "task.timeValue": {
     en: "Time",
-    pt: "Tempo"
+    pt: "Tempo",
   },
   "task.timeUnit": {
     en: "Unit",
-    pt: "Unidade"
+    pt: "Unidade",
   },
   "timeUnit.minutes": {
     en: "Minutes",
-    pt: "Minutos"
+    pt: "Minutos",
   },
   "timeUnit.hours": {
     en: "Hours",
-    pt: "Horas"
+    pt: "Horas",
   },
   "timeUnit.days": {
     en: "Days",
-    pt: "Dias"
+    pt: "Dias",
   },
   "task.updating": {
     en: "Updating...",
-    pt: "Atualizando..."
+    pt: "Atualizando...",
   },
   "task.update": {
     en: "Update",
-    pt: "Atualizar"
+    pt: "Atualizar",
   },
-  
-  "Error": {
+
+  Error: {
     en: "Error",
     pt: "Erro",
   },
@@ -2313,7 +2375,7 @@ export const translations: Translations = {
     en: "Adding...",
     pt: "Adicionando...",
   },
-  "Add": {
+  Add: {
     en: "Add",
     pt: "Adicionar",
   },
@@ -2390,15 +2452,15 @@ export const translations: Translations = {
     en: "Remove attachment",
     pt: "Remover anexo",
   },
-  "minutes": {
+  minutes: {
     en: "minutes",
     pt: "minutos",
   },
-  "hours": {
+  hours: {
     en: "hours",
     pt: "horas",
   },
-  "days": {
+  days: {
     en: "days",
     pt: "dias",
   },
@@ -2486,23 +2548,23 @@ export const translations: Translations = {
     en: "Try again",
     pt: "Tentar novamente",
   },
-  "flip_clock_size": {
+  flip_clock_size: {
     en: "Flip Clock Size",
     pt: "Tamanho do Relógio",
   },
-  "Small": {
+  Small: {
     en: "Small",
     pt: "Pequeno",
   },
-  "Medium": {
+  Medium: {
     en: "Medium",
     pt: "Médio",
   },
-  "Large": {
+  Large: {
     en: "Large",
     pt: "Grande",
   },
-  "Attachments": {
+  Attachments: {
     en: "Attachments",
     pt: "Anexos",
   },
@@ -2514,23 +2576,23 @@ export const translations: Translations = {
     en: "Estimated time",
     pt: "Tempo estimado",
   },
-  "Unit": {
+  Unit: {
     en: "Unit",
     pt: "Unidade",
   },
-  "min": {
+  min: {
     en: "min",
     pt: "min",
   },
-  "hr": {
+  hr: {
     en: "hr",
     pt: "h",
   },
-  "hrs": {
+  hrs: {
     en: "hrs",
     pt: "h",
   },
-  "day": {
+  day: {
     en: "day",
     pt: "dia",
   },
@@ -2542,15 +2604,15 @@ export const translations: Translations = {
     en: "No labels",
     pt: "Sem etiquetas",
   },
-  "Favorite": {
+  Favorite: {
     en: "Favorite",
     pt: "Favorito",
   },
-  "Unfavorite": {
+  Unfavorite: {
     en: "Unfavorite",
     pt: "Remover dos favoritos",
   },
-  "Favorited": {
+  Favorited: {
     en: "Favorited",
     pt: "Favoritado",
   },
@@ -2574,15 +2636,15 @@ export const translations: Translations = {
     en: "Enter file name",
     pt: "Digite o nome do arquivo",
   },
-  "Link": {
+  Link: {
     en: "Link",
     pt: "Link",
   },
-  "File": {
+  File: {
     en: "File",
     pt: "Arquivo",
   },
-  "Image": {
+  Image: {
     en: "Image",
     pt: "Imagem",
   },
@@ -2614,11 +2676,11 @@ export const translations: Translations = {
     en: "This action cannot be undone.",
     pt: "Esta ação não pode ser desfeita.",
   },
-  "Remove": {
+  Remove: {
     en: "Remove",
     pt: "Remover",
   },
-  "Keep": {
+  Keep: {
     en: "Keep",
     pt: "Manter",
   },
@@ -2694,15 +2756,15 @@ export const translations: Translations = {
     en: "Allowed file types",
     pt: "Tipos de arquivo permitidos",
   },
-  "Images": {
+  Images: {
     en: "Images",
     pt: "Imagens",
   },
-  "Documents": {
+  Documents: {
     en: "Documents",
     pt: "Documentos",
   },
-  "Spreadsheets": {
+  Spreadsheets: {
     en: "Spreadsheets",
     pt: "Planilhas",
   },
@@ -2710,27 +2772,29 @@ export const translations: Translations = {
     en: "Text files",
     pt: "Arquivos de texto",
   },
-  "PDFs": {
+  PDFs: {
     en: "PDFs",
     pt: "PDFs",
   },
-  "Archives": {
+  Archives: {
     en: "Archives",
     pt: "Arquivos compactados",
   },
   // Novas traduções para a funcionalidade de recuperação de senha
-  "Important": {
+  Important: {
     en: "Important",
     pt: "Importante",
   },
-  "The password reset link will expire after 1 hour. If you don't receive the email, please verify that you entered the correct email address and check your spam folder before trying again.": {
-    en: "The password reset link will expire after 1 hour. If you don't receive the email, please verify that you entered the correct email address and check your spam folder before trying again.",
-    pt: "O link de redefinição de senha expirará após 1 hora. Se você não receber o e-mail, verifique se inseriu o endereço de e-mail correto e verifique sua pasta de spam antes de tentar novamente.",
-  },
-  "We've sent a password reset link to ${submittedEmail}. The email should arrive within a few minutes. If you don't see it, please check your spam or junk folder.": {
-    en: "We've sent a password reset link to ${submittedEmail}. The email should arrive within a few minutes. If you don't see it, please check your spam or junk folder.",
-    pt: "Enviamos um link de redefinição de senha para ${submittedEmail}. O e-mail deve chegar em alguns minutos. Se você não o vir, verifique sua pasta de spam ou lixo eletrônico.",
-  },
+  "The password reset link will expire after 1 hour. If you don't receive the email, please verify that you entered the correct email address and check your spam folder before trying again.":
+    {
+      en: "The password reset link will expire after 1 hour. If you don't receive the email, please verify that you entered the correct email address and check your spam folder before trying again.",
+      pt: "O link de redefinição de senha expirará após 1 hora. Se você não receber o e-mail, verifique se inseriu o endereço de e-mail correto e verifique sua pasta de spam antes de tentar novamente.",
+    },
+  "We've sent a password reset link to ${submittedEmail}. The email should arrive within a few minutes. If you don't see it, please check your spam or junk folder.":
+    {
+      en: "We've sent a password reset link to ${submittedEmail}. The email should arrive within a few minutes. If you don't see it, please check your spam or junk folder.",
+      pt: "Enviamos um link de redefinição de senha para ${submittedEmail}. O e-mail deve chegar em alguns minutos. Se você não o vir, verifique sua pasta de spam ou lixo eletrônico.",
+    },
   "Email server configuration is incomplete": {
     en: "Email server configuration is incomplete",
     pt: "A configuração do servidor de e-mail está incompleta",
@@ -2863,27 +2927,27 @@ export const translations: Translations = {
   },
   "Total Points": {
     en: "Total Points",
-    pt: "Total de Pontos"
+    pt: "Total de Pontos",
   },
   "Average Points": {
-    en: "Average Points", 
-    pt: "Média de Pontos"
+    en: "Average Points",
+    pt: "Média de Pontos",
   },
   "Total Estimated Time": {
     en: "Total Estimated Time",
-    pt: "Tempo Total Estimado"
+    pt: "Tempo Total Estimado",
   },
   "Average Time per Task": {
     en: "Average Time per Task",
-    pt: "Tempo Médio por Tarefa"
+    pt: "Tempo Médio por Tarefa",
   },
   "Points Distribution": {
     en: "Points Distribution",
-    pt: "Distribuição por Pontos"
+    pt: "Distribuição por Pontos",
   },
   "Estimated Time": {
     en: "Estimated Time",
-    pt: "Tempo Estimado"
+    pt: "Tempo Estimado",
   },
   "Task moved successfully": {
     en: "Task moved successfully",
@@ -2905,48 +2969,49 @@ export const translations: Translations = {
     en: "Show Completed",
     pt: "Mostrar Concluídas",
   },
-}
+};
 
 interface LanguageStore {
-  language: Language
-  isHydrated: boolean
-  setLanguage: (language: Language) => void
-  setHydrated: (hydrated: boolean) => void
+  language: Language;
+  isHydrated: boolean;
+  setLanguage: (language: Language) => void;
+  setHydrated: (hydrated: boolean) => void;
 }
 
 // Estado simples sem zustand
-let currentLanguage: Language = 'pt';
+let currentLanguage: Language = "pt";
 let isHydrated = false;
 
 // Função para reidratar o store do lado do cliente
 export const rehydrateLanguageStore = () => {
-  if (typeof window === 'undefined') return;
-  
-  const cookieUserLang = getCookie('user-language');
-  const cookieLang = getCookie('language');
+  if (typeof window === "undefined") return;
+
+  const cookieUserLang = getCookie("user-language");
+  const cookieLang = getCookie("language");
   const lang = cookieUserLang || cookieLang;
-  if (lang && (lang === 'en' || lang === 'pt')) {
+  if (lang && (lang === "en" || lang === "pt")) {
     currentLanguage = lang;
   } else {
     currentLanguage = getSystemLanguage();
   }
-  
+
   isHydrated = true;
 };
 
 export function useTranslation() {
   const setLanguage = (language: Language) => {
     currentLanguage = language;
-    setCookie('language', language);
-    setCookie('user-language', language);
+    setCookie("language", language);
+    setCookie("user-language", language);
   };
 
   const t = (key: string): string => {
     if (!translations[key]) {
       return key;
     }
-    
-    const translated = translations[key][currentLanguage] || translations[key]['en'] || key;
+
+    const translated =
+      translations[key][currentLanguage] || translations[key]["en"] || key;
     return translated;
   };
 
@@ -2958,11 +3023,13 @@ export function useTranslation() {
   };
 }
 
-export function getServerTranslation(key: string, language: "en" | "pt" = "pt"): string {
+export function getServerTranslation(
+  key: string,
+  language: "en" | "pt" = "pt"
+): string {
   if (!translations[key]) {
-    return key
+    return key;
   }
-  
-  return translations[key][language] || key
-}
 
+  return translations[key][language] || key;
+}

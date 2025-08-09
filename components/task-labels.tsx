@@ -242,7 +242,10 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
                           style={{ backgroundColor: label.color }}
                           data-testid={`task-labels-available-color-${label.id}`}
                         />
-                        <span data-testid={`task-labels-available-name-${label.id}`}>{label.name}</span>
+                        <span className="flex items-center gap-1" data-testid={`task-labels-available-name-${label.id}`}>
+                          <Tag className="h-3 w-3" />
+                          {label.name}
+                        </span>
                       </div>
                     </button>
                   ))

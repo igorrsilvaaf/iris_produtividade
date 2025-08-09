@@ -195,7 +195,19 @@ export function ChangelogNotification() {
         <div className="p-5">
           <div className="border-l-4 border-primary/30 pl-3 py-2 mb-4 rounded-sm bg-primary/5">
             <p className="text-sm text-muted-foreground" data-testid="changelog-notification-message">
-              {latestChangelog === '2.8.2' ? (
+              {latestChangelog === '2.8.8' ? (
+                <>
+                  <span className="font-medium text-primary">Tarefas, Kanban, Calendário e Editor Aprimorados</span>
+                  <br />
+                  Consolidamos diversas melhorias focadas em produtividade e consistência. O status das tarefas está mais claro, o Kanban e as listas sincronizam mudanças automaticamente e o calendário ganhou filtros por projeto e interface mais fluida. O editor de texto rico agora está presente nos diálogos e nos detalhes de tarefas.
+                  <br /><br />
+                  <span className="font-medium">Destaques:</span> Atualização e exibição de status com ícones e cores consistentes; exibição/filtragem de concluídas; atualizações de criação, conclusão e exclusão refletidas no Kanban e listas; melhorias de desempenho ao arrastar; filtros de projetos no calendário com UI otimizada; editor de texto rico unificado nas tarefas.
+                  <br /><br />
+                  <span className="font-medium text-primary">Robustez de API e testes</span>
+                  <br />
+                  Rotas de upload/download de anexos e APIs de tarefas/comentários receberam validações e tratamento de erros mais sólidos. Padronizamos atributos data-testid em componentes para facilitar testes automatizados.
+                </>
+              ) : latestChangelog === '2.8.2' ? (
                 <>
                   <span className="font-medium text-primary">Sistema de Comentários em Tarefas</span>
                   <br />
