@@ -23,6 +23,7 @@ import {
   Link,
   Image,
   FileText,
+  Folder,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { Project } from "@/lib/projects";
@@ -87,10 +88,10 @@ const formSchema = z.object({
   dueDate: z.date().optional(),
   dueTime: z.string().optional(),
   isAllDay: z.boolean().default(true),
-  priority: z.string().default("4"),
+  priority: z.string().optional(),
   projectId: z.string().optional(),
   labelIds: z.array(z.number()).default([]),
-  points: z.number().min(1).max(5).default(3),
+  points: z.number().min(1).max(5).optional(),
   attachments: z
     .array(
       z.object({
@@ -101,7 +102,7 @@ const formSchema = z.object({
     )
     .default([]),
   estimatedTime: z.number().nullable().default(null),
-  estimatedTimeUnit: z.string().default("min"),
+  estimatedTimeUnit: z.string().default("h"),
   kanban_column: z.string().optional(),
 });
 
@@ -155,13 +156,13 @@ export function AddTaskDialog({
       dueDate: undefined,
       dueTime: "12:00",
       isAllDay: true,
-      priority: "4",
+      priority: undefined as unknown as string,
       projectId: initialProjectId ? initialProjectId.toString() : undefined,
       labelIds: [],
-      points: 3,
+      points: undefined as unknown as number,
       attachments: [],
       estimatedTime: null,
-      estimatedTimeUnit: "min",
+      estimatedTimeUnit: "h",
       kanban_column: initialColumn || undefined,
     },
   });
@@ -267,14 +268,14 @@ export function AddTaskDialog({
     }
   };
 
-  const handleFileUpload = async (
+  const handleFileUpload = (
     event: React.ChangeEvent<HTMLInputElement>,
-  ): Promise<void> => {
+  ): void => {
     event.preventDefault();
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       toast({
         variant: "destructive",
@@ -284,55 +285,33 @@ export function AddTaskDialog({
       return;
     }
 
-    setIsLoading(true);
+    const objectUrl = URL.createObjectURL(file);
+    const inferredType = attachmentType;
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+    const newAttachment = {
+      type: inferredType,
+      url: objectUrl,
+      name: file.name,
+    };
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+    const currentAttachments = [...attachments];
+    const updatedAttachments = [...currentAttachments, newAttachment];
 
-      if (!response.ok) {
-        throw new Error("Failed to upload file");
-      }
+    setAttachments(updatedAttachments);
+    form.setValue("attachments", updatedAttachments, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setShowAddAttachment(false);
 
-      const data = await response.json();
-      const newAttachment = {
-        type: attachmentType,
-        url: data.url,
-        name: file.name,
-      };
-
-      const currentAttachments = [...attachments];
-      const updatedAttachments = [...currentAttachments, newAttachment];
-
-      setAttachments(updatedAttachments);
-      form.setValue("attachments", updatedAttachments, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-      setShowAddAttachment(false);
-
-      // Limpar o input de arquivo
-      if (event.target) {
-        event.target.value = "";
-      }
-
-      toast({
-        title: t("Attachment added"),
-        description: t("Your attachment has been added successfully."),
-      });
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      toast({
-        variant: "destructive",
-        title: t("Failed to upload file"),
-        description: t("Please try again."),
-      });
+    if (event.target) {
+      event.target.value = "";
     }
+
+    toast({
+      title: t("Attachment added"),
+      description: t("Your attachment has been added successfully."),
+    });
   };
 
   const triggerFileUpload = () => {
@@ -417,14 +396,14 @@ export function AddTaskDialog({
         title: values.title,
         description: values.description || null,
         due_date: dueDateTime,
-        priority: Number.parseInt(values.priority),
+        priority: values.priority ? Number.parseInt(values.priority) : null,
         project_id:
           values.projectId && values.projectId !== "noProject"
             ? Number.parseInt(values.projectId)
             : null,
         kanban_column: initialColumn || null,
         completed: initialColumn === "completed",
-        points: values.points,
+        points: typeof values.points === "number" ? values.points : null,
         attachments: formattedAttachments,
         estimated_time: estimatedTimeInMinutes,
       };
@@ -932,12 +911,9 @@ export function AddTaskDialog({
                         <div className="flex items-center">
                           <div
                             className={`w-4 h-4 rounded-full mr-2`}
-                            style={{
-                              backgroundColor:
-                                projects.find(
-                                  (p) => p.id.toString() === field.value,
-                                )?.color || "#ccc",
-                            }}
+                            data-color={
+                              projects.find((p) => p.id.toString() === field.value)?.color || "#ccc"
+                            }
                           />
                           <span>
                             {projects.find(
@@ -1010,17 +986,17 @@ export function AddTaskDialog({
                                 }}
                               >
                                 <div className="flex items-center">
-                                  <div
-                                    className="w-4 h-4 rounded-full mr-2"
-                                    style={{ backgroundColor: project.color }}
-                                  />
-                                  <span>{project.name}</span>
+                                  <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: project.color }} />
+                                  <span className="flex items-center gap-1">
+                                    <Folder className="h-3 w-3" />
+                                    {project.name}
+                                  </span>
                                 </div>
                               </button>
                             ))
                           )}
                         </div>
-                        <div className="mt-4 border-t pt-4 flex justify-between">
+                        <div className="mt-4 border-t pt-4 flex justify-end gap-2">
                           <Button
                             variant="outline"
                             onClick={() => setShowAddProject(false)}
@@ -1083,13 +1059,10 @@ export function AddTaskDialog({
                           key={label.id}
                           className="flex items-center mt-1 space-x-2"
                         >
-                          <div
-                            className="flex items-center justify-between px-3 py-1 rounded-md"
-                            style={{
-                              backgroundColor: label.color,
-                              color: "#ffffff",
-                            }}
-                          >
+                            <div
+                              className="flex items-center justify-between px-3 py-1 rounded-md"
+                              style={{ backgroundColor: label.color, color: '#ffffff' }}
+                            >
                             <Tag className="h-3 w-3" />
                             {label.name}
                             <button
@@ -1162,8 +1135,8 @@ export function AddTaskDialog({
                                 >
                                   <div className="flex items-center">
                                     <div
-                                      className={`w-4 h-4 rounded-full mr-2`}
-                                      style={{ backgroundColor: label.color }}
+                                    className={`w-4 h-4 rounded-full mr-2`}
+                                    data-color={label.color}
                                     />
                                     <span>{label.name}</span>
                                   </div>

@@ -494,6 +494,11 @@ export function CalendarView({ userId }: CalendarViewProps) {
             setShowTaskDetail(open);
             if (!open) setSelectedTask(null);
           }}
+          onDeleted={(id) => {
+            setTasks(prev => prev.filter(t => t.id !== id));
+            setShowTaskDetail(false);
+            setSelectedTask(null);
+          }}
         />
       )}
     </>

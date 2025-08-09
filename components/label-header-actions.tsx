@@ -23,7 +23,7 @@ export function LabelHeaderActions({ label }: { label: any }) {
             <span className="sr-only">{t("Edit Label")}</span>
           </Button>
         </EditLabelDialog>
-        <DeleteLabelDialog labelId={label.id} labelName={label.name}>
+        <DeleteLabelDialog label={label}>
           <Button variant="outline" size="icon">
             <Trash className="h-4 w-4" />
             <span className="sr-only">{t("Delete Label")}</span>

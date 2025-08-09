@@ -20,7 +20,7 @@ export function ProjectHeaderActions({ project }: { project: any }) {
           <span className="sr-only">{t("editProject")}</span>
         </Button>
       </EditProjectDialog>
-      <DeleteProjectDialog projectId={project.id} projectName={project.name}>
+      <DeleteProjectDialog project={project}>
         <Button variant="outline" size="icon">
           <Trash className="h-4 w-4" />
           <span className="sr-only">{t("deleteProject")}</span>

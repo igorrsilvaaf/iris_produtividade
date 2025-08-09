@@ -553,6 +553,9 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
           task={selectedTask}
           open={showTaskDetail}
           onOpenChange={setShowTaskDetail}
+          onDeleted={(id) => {
+            setLocalTasks(prev => prev.filter(t => t.id !== id))
+          }}
           user={user}
         />
       )}
