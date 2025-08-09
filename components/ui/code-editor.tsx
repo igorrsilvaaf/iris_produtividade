@@ -7,6 +7,19 @@ import { python } from "@codemirror/lang-python"
 import { sql } from "@codemirror/lang-sql"
 import { markdown } from "@codemirror/lang-markdown"
 import { EditorView } from "@codemirror/view"
+import { html } from "@codemirror/lang-html"
+import { css } from "@codemirror/lang-css"
+import { json } from "@codemirror/lang-json"
+import { yaml } from "@codemirror/lang-yaml"
+import { StreamLanguage } from "@codemirror/language"
+import { shell as legacyShell } from "@codemirror/legacy-modes/mode/shell"
+import { go } from "@codemirror/lang-go"
+import { rust } from "@codemirror/lang-rust"
+import { php } from "@codemirror/lang-php"
+import { java } from "@codemirror/lang-java"
+import { cpp } from "@codemirror/lang-cpp"
+import { xml } from "@codemirror/lang-xml"
+import { toml as legacyToml } from "@codemirror/legacy-modes/mode/toml"
 
 type CodeEditorProps = {
   value: string
@@ -21,20 +34,53 @@ function getExtensions(language?: string) {
   switch (language) {
     case "ts":
       return [javascript({ typescript: true })]
+    case "tsx":
+      return [javascript({ typescript: true, jsx: true })]
     case "js":
       return [javascript()]
+    case "jsx":
+      return [javascript({ jsx: true })]
     case "py":
       return [python()]
     case "sql":
       return [sql()]
     case "md":
       return [markdown()]
+    case "html":
+      return [html()]
+    case "css":
+      return [css()]
+    case "json":
+      return [json()]
+    case "yaml":
+    case "yml":
+      return [yaml()]
+    case "sh":
+    case "bash":
+      return [StreamLanguage.define(legacyShell)]
+    case "go":
+      return [go()]
+    case "rust":
+    case "rs":
+      return [rust()]
+    case "php":
+      return [php()]
+    case "java":
+      return [java()]
+    case "c":
+    case "cpp":
+    case "c++":
+      return [cpp()]
+    case "xml":
+      return [xml()]
+    case "toml":
+      return [StreamLanguage.define(legacyToml)]
     default:
       return []
   }
 }
 
-export function CodeEditor({ value, onChange, language, height = "300px", className }: CodeEditorProps) {
+export function CodeEditor({ value, onChange, language, height = "300px", className, readOnly }: CodeEditorProps) {
   const [themeKey, setThemeKey] = useState(0)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
 
@@ -92,7 +138,7 @@ export function CodeEditor({ value, onChange, language, height = "300px", classN
       <CodeMirror
         value={value}
         height={height}
-        extensions={[...getExtensions(language), theme]}
+        extensions={[EditorView.editable.of(!(readOnly ?? false)), ...getExtensions(language), theme]}
         onChange={(v) => onChange(v)}
         basicSetup={{ lineNumbers: true, highlightActiveLine: true, bracketMatching: true, foldGutter: true }}
       />

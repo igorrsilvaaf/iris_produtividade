@@ -1,3 +1,5 @@
+import { createRequire } from 'module'
+const require = createRequire(import.meta.url)
 let userConfig = undefined
 try {
   userConfig = await import('./v0-user-next.config')
@@ -40,6 +42,22 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   webpack: (config, { dev, isServer }) => {
+    config.resolve = config.resolve || {}
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      '@codemirror/state': require.resolve('@codemirror/state'),
+      '@codemirror/view': require.resolve('@codemirror/view'),
+      '@codemirror/language': require.resolve('@codemirror/language'),
+      '@codemirror/autocomplete': require.resolve('@codemirror/autocomplete'),
+      '@codemirror/search': require.resolve('@codemirror/search'),
+      '@codemirror/commands': require.resolve('@codemirror/commands'),
+      '@codemirror/lint': require.resolve('@codemirror/lint'),
+      '@codemirror/theme-one-dark': require.resolve('@codemirror/theme-one-dark'),
+      '@codemirror/lang-javascript': require.resolve('@codemirror/lang-javascript'),
+      '@codemirror/lang-python': require.resolve('@codemirror/lang-python'),
+      '@codemirror/lang-sql': require.resolve('@codemirror/lang-sql'),
+      '@codemirror/lang-markdown': require.resolve('@codemirror/lang-markdown'),
+    }
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
         chunks: 'all',

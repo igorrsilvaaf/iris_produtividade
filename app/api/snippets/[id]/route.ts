@@ -35,6 +35,11 @@ export async function PATCH(
     if (!session)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     const { id } = await params;
+    const existing = await prisma.snippets.findFirst({
+      where: { id: parseInt(id, 10), user_id: session.user.id },
+    });
+    if (!existing)
+      return NextResponse.json({ message: "Not found" }, { status: 404 });
     const body = await request.json();
     const title =
       typeof body.title === "string" ? body.title.trim() : undefined;
@@ -75,7 +80,12 @@ export async function DELETE(
     if (!session)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     const { id } = await params;
-    await prisma.snippets.delete({ where: { id: parseInt(id, 10) } });
+    const result = await prisma.snippets.deleteMany({
+      where: { id: parseInt(id, 10), user_id: session.user.id },
+    });
+    if (result.count === 0) {
+      return NextResponse.json({ message: "Not found" }, { status: 404 });
+    }
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("[snippets/:id][DELETE]", error);
