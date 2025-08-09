@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Project } from "@/lib/projects"
 import { CodeEditor } from "@/components/ui/code-editor"
 import { DeleteSnippetDialog } from "@/components/delete-snippet-dialog"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { ChevronDown } from "lucide-react"
 
 type Snippet = {
   id: number
@@ -35,6 +37,42 @@ export default function SnippetsPage() {
   const [editContent, setEditContent] = useState("")
   const [editLanguage, setEditLanguage] = useState<string>("none")
   const [editProjectId, setEditProjectId] = useState<string>("none")
+  const [openById, setOpenById] = useState<Record<number, boolean>>({})
+
+  const languageOptions = [
+    { value: "none", label: t("plainText") },
+    { value: "csharp", label: "C#" },
+    { value: "bash", label: "Shell (Bash)" },
+    { value: "c", label: "C" },
+    { value: "cpp", label: "C++" },
+    { value: "cobol", label: "COBOL" },
+    { value: "css", label: "CSS" },
+    { value: "dart", label: "Dart" },
+    { value: "fsharp", label: "F#" },
+    { value: "go", label: "Go" },
+    { value: "html", label: "HTML" },
+    { value: "java", label: "Java" },
+    { value: "js", label: "JavaScript" },
+    { value: "json", label: "JSON" },
+    { value: "jsx", label: "JSX" },
+    { value: "kotlin", label: "Kotlin" },
+    { value: "md", label: "Markdown" },
+    { value: "php", label: "PHP" },
+    { value: "perl", label: "Perl" },
+    { value: "py", label: "Python" },
+    { value: "r", label: "R" },
+    { value: "ruby", label: "Ruby" },
+    { value: "rust", label: "Rust" },
+    { value: "scala", label: "Scala" },
+    { value: "sql", label: "SQL" },
+    { value: "toml", label: "TOML" },
+    { value: "ts", label: "TypeScript" },
+    { value: "tsx", label: "TSX" },
+    { value: "xml", label: "XML" },
+    { value: "yaml", label: "YAML" },
+    { value: "yml", label: "YML" },
+    { value: "swift", label: "Swift" },
+  ].sort((a, b) => a.label.localeCompare(b.label))
 
   const fetchSnippets = async () => {
     try {
@@ -130,30 +168,10 @@ export default function SnippetsPage() {
             <SelectTrigger>
               <SelectValue placeholder={t("snippets.form.language")} />
             </SelectTrigger>
-              <SelectContent>
-               <SelectItem value="none">{t("plainText")}</SelectItem>
-              <SelectItem value="ts">TypeScript</SelectItem>
-              <SelectItem value="tsx">TSX</SelectItem>
-              <SelectItem value="js">JavaScript</SelectItem>
-              <SelectItem value="jsx">JSX</SelectItem>
-              <SelectItem value="py">Python</SelectItem>
-              <SelectItem value="sql">SQL</SelectItem>
-              <SelectItem value="md">Markdown</SelectItem>
-              <SelectItem value="html">HTML</SelectItem>
-              <SelectItem value="css">CSS</SelectItem>
-              <SelectItem value="json">JSON</SelectItem>
-              <SelectItem value="yaml">YAML</SelectItem>
-              <SelectItem value="yml">YML</SelectItem>
-              <SelectItem value="bash">Bash</SelectItem>
-              <SelectItem value="sh">Shell</SelectItem>
-              <SelectItem value="go">Go</SelectItem>
-              <SelectItem value="rust">Rust</SelectItem>
-              <SelectItem value="php">PHP</SelectItem>
-              <SelectItem value="java">Java</SelectItem>
-              <SelectItem value="c">C</SelectItem>
-              <SelectItem value="cpp">C++</SelectItem>
-              <SelectItem value="xml">XML</SelectItem>
-              <SelectItem value="toml">TOML</SelectItem>
+            <SelectContent>
+              {languageOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={projectId} onValueChange={(v) => setProjectId(v)}>
@@ -198,29 +216,9 @@ export default function SnippetsPage() {
                           <SelectValue placeholder={t("snippets.form.language")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">{t("plainText")}</SelectItem>
-                          <SelectItem value="ts">TypeScript</SelectItem>
-                          <SelectItem value="tsx">TSX</SelectItem>
-                          <SelectItem value="js">JavaScript</SelectItem>
-                          <SelectItem value="jsx">JSX</SelectItem>
-                          <SelectItem value="py">Python</SelectItem>
-                          <SelectItem value="sql">SQL</SelectItem>
-                          <SelectItem value="md">Markdown</SelectItem>
-                          <SelectItem value="html">HTML</SelectItem>
-                          <SelectItem value="css">CSS</SelectItem>
-                          <SelectItem value="json">JSON</SelectItem>
-                          <SelectItem value="yaml">YAML</SelectItem>
-                          <SelectItem value="yml">YML</SelectItem>
-                          <SelectItem value="bash">Bash</SelectItem>
-                          <SelectItem value="sh">Shell</SelectItem>
-                          <SelectItem value="go">Go</SelectItem>
-                          <SelectItem value="rust">Rust</SelectItem>
-                          <SelectItem value="php">PHP</SelectItem>
-                          <SelectItem value="java">Java</SelectItem>
-                          <SelectItem value="c">C</SelectItem>
-                          <SelectItem value="cpp">C++</SelectItem>
-                          <SelectItem value="xml">XML</SelectItem>
-                          <SelectItem value="toml">TOML</SelectItem>
+                          {languageOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <Select value={editProjectId} onValueChange={(v) => setEditProjectId(v)}>
@@ -242,7 +240,7 @@ export default function SnippetsPage() {
                     </div>
                   </>
                 ) : (
-                  <>
+                  <Collapsible open={openById[s.id] ?? false} onOpenChange={(v) => setOpenById((prev) => ({ ...prev, [s.id]: v }))}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">{s.title}</div>
                       <div className="flex items-center gap-2">
@@ -254,10 +252,17 @@ export default function SnippetsPage() {
                         >
                           <Button size="sm" variant="destructive">{t("Delete")}</Button>
                         </DeleteSnippetDialog>
+                        <CollapsibleTrigger asChild>
+                          <Button size="sm" variant="ghost">
+                            <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
+                          </Button>
+                        </CollapsibleTrigger>
                       </div>
                     </div>
-                    <CodeEditor value={s.content} onChange={() => {}} language={s.language ?? undefined} height="240px" readOnly />
-                  </>
+                    <CollapsibleContent>
+                      <CodeEditor value={s.content} onChange={() => {}} language={s.language ?? undefined} height="240px" readOnly />
+                    </CollapsibleContent>
+                  </Collapsible>
                 )}
               </CardContent>
             </Card>
