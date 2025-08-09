@@ -484,6 +484,10 @@ export function TaskNotificationsMenu() {
             setTimeout(() => setSelectedTask(null), 300);
           }
         }} 
+        onDeleted={() => {
+          setShowTaskDetail(false);
+          setTimeout(() => setSelectedTask(null), 300);
+        }}
         user={user}
       />
     )}

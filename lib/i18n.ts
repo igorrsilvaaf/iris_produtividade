@@ -2922,9 +2922,11 @@ let isHydrated = false;
 export const rehydrateLanguageStore = () => {
   if (typeof window === 'undefined') return;
   
+  const cookieUserLang = getCookie('user-language');
   const cookieLang = getCookie('language');
-  if (cookieLang && (cookieLang === 'en' || cookieLang === 'pt')) {
-    currentLanguage = cookieLang;
+  const lang = cookieUserLang || cookieLang;
+  if (lang && (lang === 'en' || lang === 'pt')) {
+    currentLanguage = lang;
   } else {
     currentLanguage = getSystemLanguage();
   }
@@ -2936,6 +2938,7 @@ export function useTranslation() {
   const setLanguage = (language: Language) => {
     currentLanguage = language;
     setCookie('language', language);
+    setCookie('user-language', language);
   };
 
   const t = (key: string): string => {

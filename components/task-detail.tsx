@@ -55,7 +55,7 @@ import {
   // Organização
   Flag,
   Tag,
-  Folders,
+  Folder,
   Square,
   CheckSquare,
   Link,
@@ -125,6 +125,7 @@ interface TaskDetailProps {
   task: TodoWithEditMode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onDeleted?: (id: number) => void;
   user?: {
     id: number;
     name: string;
@@ -133,7 +134,7 @@ interface TaskDetailProps {
   } | null;
 }
 
-export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) {
+export function TaskDetail({ task, open, onOpenChange, onDeleted, user }: TaskDetailProps) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
   const [dueDate, setDueDate] = useState<Date | undefined>(
@@ -177,12 +178,65 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
   const [estimatedTime, setEstimatedTime] = useState<number | null>(
     task.estimated_time || null
   );
-  const [estimatedTimeUnit, setEstimatedTimeUnit] = useState<string>("min");
+  const [estimatedTimeUnit, setEstimatedTimeUnit] = useState<string>("h");
   const router = useRouter();
   const { toast } = useToast();
   const { t, language, setLanguage, isHydrated } = useTranslation();
   const { notifyTaskCompleted, notifyTaskUpdated, notifyTaskDeleted } = useTaskUpdates();
   const { projects, loading: projectsLabelsLoading, notifyProjectCreated } = useProjectsLabelsUpdates();
+
+  const getSafeUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        return url;
+      }
+      return "#";
+    } catch {
+      return "#";
+    }
+  };
+
+  const getSafeDownloadUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      if (
+        parsed.protocol === "http:" ||
+        parsed.protocol === "https:" ||
+        parsed.protocol === "data:" ||
+        parsed.protocol === "blob:"
+      ) {
+        return url;
+      }
+      return "#";
+    } catch {
+      return "#";
+    }
+  };
+
+  const handleDownloadAttachment = useCallback((attachment: any) => {
+    try {
+      if (attachment?.id) {
+        window.location.href = `/api/attachments/download/${attachment.id}`;
+        return;
+      }
+      const url = typeof attachment?.url === 'string' ? attachment.url : '';
+      const name = attachment?.name || 'download';
+      if (!url) return;
+      if (url.startsWith('blob:') || url.startsWith('data:')) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = name;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return;
+      }
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        window.location.href = `/api/attachments/download/url?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+      }
+    } catch {}
+  }, []);
 
   const safeTranslate = (key: string) => {
     if (!isHydrated) return key;
@@ -757,6 +811,10 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
       if (response.ok) {
         const updatedTask = await response.json();
         notifyTaskUpdated(task.id, updatedTask);
+
+        setTitle(updatedTask.title || title);
+        setDescription(updatedTask.description || "");
+
         try {
           const projectIdNumbers = projectIds.map((id) => parseInt(id)).filter((n) => !isNaN(n));
           const projectResponse = await fetch(`/api/tasks/${task.id}/${task.id}/project`, {
@@ -780,9 +838,41 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
           title: safeTranslate("Task updated"),
           description: title,
         });
-        
+
+        if (updatedTask.due_date) {
+          try {
+            const ud = new Date(updatedTask.due_date);
+            setDueDate(ud);
+            const uh = ud.getHours();
+            const um = ud.getMinutes();
+            setDueTime(`${uh.toString().padStart(2, "0")}:${um.toString().padStart(2, "0")}`);
+            setIsAllDay(uh === 0 && um === 0);
+          } catch {}
+        } else {
+          setDueDate(undefined);
+          setDueTime("00:00");
+          setIsAllDay(true);
+        }
+
+        if (typeof updatedTask.priority === "number") {
+          setPriority(updatedTask.priority.toString());
+        }
+        if (typeof updatedTask.points === "number") {
+          setPoints(updatedTask.points);
+        }
+        if (updatedTask.kanban_column) {
+          setStatus(updatedTask.kanban_column);
+        }
+        if (updatedTask.attachments) {
+          setAttachments(updatedTask.attachments);
+        }
+        if (updatedTask.estimated_time !== undefined) {
+          const { value, unit } = getTimeUnitAndValue(updatedTask.estimated_time);
+          setEstimatedTime(value);
+          setEstimatedTimeUnit(unit);
+        }
+
         setIsEditMode(false);
-        onOpenChange(false);
       } else {
         const errorText = await response.text();
         console.error(`Erro ao atualizar tarefa: Status ${response.status}, Detalhes: ${errorText}`);
@@ -825,6 +915,9 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
         throw new Error(`Failed to delete task: ${errorData.error}`);
       }
 
+      if (onDeleted) {
+        onDeleted(task.id);
+      }
       onOpenChange(false);
 
       toast({
@@ -1260,13 +1353,13 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                   {projectIds.map((pid) => {
                     const proj = projects.find((p) => p.id.toString() === pid);
                     if (!proj) return null;
-                    return (
+                      return (
                       <div
                         key={pid}
                         className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                        style={{ backgroundColor: proj.color || "#ccc", color: "#fff" }}
+                        style={{ backgroundColor: proj.color || '#ccc', color: '#fff' }}
                       >
-                        <div className="w-3 h-3 rounded-full mr-1" style={{ backgroundColor: "rgba(255,255,255,0.3)" }} />
+                        <Folder className="h-3 w-3 mr-1 opacity-80" />
                         <span>{proj.name}</span>
                         {isEditMode && (
                           <button
@@ -1334,7 +1427,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                             data-testid={`task-detail-project-${project.id}`}
                           >
                             <div className="flex items-center">
-                              <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: project.color }} />
+                            <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: project.color }} />
                               <span>{project.name}</span>
                             </div>
                             {selected && <Check className="h-4 w-4" />}
@@ -1343,7 +1436,7 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                       })
                     )}
                   </div>
-                  <div className="mt-4 border-t pt-4 flex justify-between">
+                  <div className="mt-4 border-t pt-4 flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setShowAddProject(false)} data-testid="task-detail-cancel-add-project-button">
                       {safeTranslate("Cancel")}
                     </Button>
@@ -1414,27 +1507,33 @@ export function TaskDetail({ task, open, onOpenChange, user }: TaskDetailProps) 
                         <span className="truncate">{attachment.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {attachment.type === "link" ? (
-                          <a
-                            href={attachment.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:text-primary/80 flex-shrink-0"
+                            {attachment.type === "link" ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              const url = getSafeUrl(String(attachment.url));
+                              if (url !== "#") {
+                                window.open(url, "_blank", "noopener,noreferrer");
+                              }
+                            }}
+                            className="text-primary hover:text-primary/80 flex-shrink-0 p-0 h-auto"
+                            title={safeTranslate("Open in new tab")}
                           >
                             <ExternalLink className="h-4 w-4" />
-                          </a>
+                          </Button>
                         ) : (
-                          <a
-                            href={`/api/attachments/download/${attachment.id}`}
-                            download
+                          <button
+                            type="button"
                             className="text-primary hover:text-primary/80 flex-shrink-0"
+                            title={safeTranslate("Download")}
                             onClick={(e) => {
-                              // Impede que o clique no link feche o modal
                               e.stopPropagation();
+                              handleDownloadAttachment(attachment);
                             }}
                           >
                             <Download className="h-4 w-4" />
-                          </a>
+                          </button>
                         )}
                         {isEditMode && (
                           <Button

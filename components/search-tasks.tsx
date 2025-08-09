@@ -343,6 +343,11 @@ export function SearchTasks() {
           task={selectedTask}
           open={showTaskDetail}
           onOpenChange={handleTaskDetailClose}
+          onDeleted={(id) => {
+            setShowTaskDetail(false)
+            setSelectedTask(null)
+            setResults(prev => prev.filter(t => t.id !== id))
+          }}
         />
       )}
     </>

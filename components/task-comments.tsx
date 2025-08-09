@@ -84,6 +84,40 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
     }
   };
 
+  const removeCommentFromTree = useCallback((nodes: Comment[], id: number): Comment[] => {
+    const walk = (list: Comment[]): Comment[] => {
+      const result: Comment[] = [];
+      for (const node of list) {
+        if (node.id === id) {
+          continue;
+        }
+        let nextNode: Comment = node;
+        if (node.replies && node.replies.length > 0) {
+          const pruned = walk(node.replies);
+          nextNode = { ...node, replies: pruned };
+        }
+        result.push(nextNode);
+      }
+      return result;
+    };
+    return walk(nodes);
+  }, []);
+
+  const replaceCommentInTree = useCallback((nodes: Comment[], updated: Comment): Comment[] => {
+    const walk = (list: Comment[]): Comment[] => {
+      return list.map((node) => {
+        if (node.id === updated.id) {
+          return { ...updated, replies: node.replies } as Comment;
+        }
+        if (node.replies && node.replies.length > 0) {
+          return { ...node, replies: walk(node.replies) } as Comment;
+        }
+        return node;
+      });
+    };
+    return walk(nodes);
+  }, []);
+
   const handleAddComment = async () => {
     if (!newComment.trim() || !user) return;
 
@@ -169,11 +203,7 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
 
       if (response.ok) {
         const updatedComment = await response.json();
-        setComments(
-          comments.map((comment) =>
-            comment.id === commentId ? updatedComment : comment
-          )
-        );
+        setComments((prev) => replaceCommentInTree(prev, updatedComment));
         setEditingCommentId(null);
         setEditingContent('');
       } else if (response.status === 401) {
@@ -189,6 +219,8 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
     if (!confirm('Tem certeza que deseja excluir este comentário?')) return;
 
     try {
+      setComments((prev) => removeCommentFromTree(prev, commentId));
+
       const response = await fetch(
         `/api/tasks/${taskId}/comments/${commentId}`,
         {
@@ -197,14 +229,17 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
         }
       );
 
-      if (response.status === 204) {
-        setComments(comments.filter((comment) => comment.id !== commentId));
+      if (response.ok || response.status === 204) {
       } else if (response.status === 401) {
+        await fetchComments();
         console.error('Sessão expirada ao excluir comentário');
         refetchUser();
+      } else {
+        await fetchComments();
       }
     } catch (error) {
       console.error('Erro ao excluir comentário:', error);
+      await fetchComments();
     }
   };
 
