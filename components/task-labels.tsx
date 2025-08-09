@@ -188,10 +188,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
             <div
               key={label.id}
               className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-              style={{
-                backgroundColor: label.color,
-                color: getContrastColor(label.color),
-              }}
+              style={{ backgroundColor: label.color, color: getContrastColor(label.color) }}
               data-testid={`task-label-${label.id}`}
             >
               <Tag className="mr-1 h-3 w-3" />
@@ -251,7 +248,7 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
                   ))
               )}
             </div>
-            <div className="mt-4 border-t pt-4 flex justify-between" data-testid="task-labels-add-dialog-actions">
+            <div className="mt-4 border-t pt-4 flex justify-end gap-2" data-testid="task-labels-add-dialog-actions">
               <Button variant="outline" onClick={() => setShowAddLabel(false)} data-testid="task-labels-add-dialog-cancel">
                 {t("Cancel")}
               </Button>
@@ -271,6 +268,9 @@ export function TaskLabels({ taskId, readOnly = false }: TaskLabelsProps) {
                   <LabelForm onSuccess={handleCreateLabelSuccess} />
                 </DialogContent>
               </Dialog>
+              <Button onClick={() => setShowAddLabel(false)} data-testid="task-labels-done-add-label-button">
+                {t("save")}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

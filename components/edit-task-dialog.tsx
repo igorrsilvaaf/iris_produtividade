@@ -10,6 +10,7 @@ import type { Todo } from "@/lib/todos"
 import type { Project } from "@/lib/projects"
 import { useTranslation } from "@/lib/i18n"
 import { useState, useEffect } from "react"
+import { useTaskUpdates } from "@/hooks/use-task-updates"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -39,16 +40,16 @@ const formSchema = z.object({
   dueDate: z.date().optional(),
   dueTime: z.string().optional(),
   isAllDay: z.boolean().default(true),
-  priority: z.string(),
+  priority: z.string().optional(),
   projectId: z.string().optional(),
-  points: z.number().min(1).max(5).default(3),
+  points: z.number().min(1).max(5).optional(),
   attachments: z.array(z.object({
     type: z.string(),
     url: z.string(),
     name: z.string()
   })).default([]),
   estimatedTime: z.number().nullable().default(null),
-  estimatedTimeUnit: z.string().default("min"),
+  estimatedTimeUnit: z.string().default("h"),
 })
 
 interface EditTaskDialogProps {
@@ -61,6 +62,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
   const router = useRouter()
   const { toast } = useToast()
   const { t } = useTranslation()
+  const { notifyTaskUpdated } = useTaskUpdates()
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
@@ -89,6 +91,11 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      priority: undefined as unknown as string,
+      points: undefined as unknown as number,
+      estimatedTimeUnit: "h",
+    }
   });
 
   useEffect(() => {
@@ -113,11 +120,11 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
               return date.getHours() === 0 && date.getMinutes() === 0;
             })()
           : true,
-        priority: task.priority.toString(),
-        points: task.points || 3,
+        priority: task.priority ? task.priority.toString() : (undefined as unknown as string),
+        points: typeof task.points === "number" ? task.points : (undefined as unknown as number),
         attachments: task.attachments || [],
         estimatedTime: estimatedTimeValue,
-        estimatedTimeUnit: estimatedTimeUnit,
+        estimatedTimeUnit: estimatedTimeUnit || "h",
         projectId: undefined, // Initialize as undefined
       });
 
@@ -306,8 +313,8 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         title: values.title,
         description: values.description || null,
         due_date: dueDateWithTime,
-        priority: Number.parseInt(values.priority),
-        points: values.points,
+        priority: values.priority ? Number.parseInt(values.priority) : null,
+        points: typeof values.points === "number" ? values.points : null,
         attachments: values.attachments,
         estimated_time: estimatedTimeInMinutes,
       };
@@ -326,6 +333,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
         throw new Error("Failed to update task details");
       }
+      const updatedTask = await taskResponse.json();
 
       const projectId = values.projectId && values.projectId !== "noProject"
         ? Number.parseInt(values.projectId)
@@ -348,9 +356,9 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         description: t("Your task has been updated successfully."),
       })
 
+      notifyTaskUpdated(task.id, updatedTask);
       triggerUpdate();
       onOpenChange(false)
-      router.refresh()
     } catch (error) {
       toast({
         variant: "destructive",
@@ -819,7 +827,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                             ))
                           )}
                         </div>
-                        <div className="mt-4 border-t pt-4 flex justify-between">
+                        <div className="mt-4 border-t pt-4 flex justify-end gap-2">
                           <Button type="button" variant="outline" onClick={() => setShowAddProject(false)} data-testid="edit-task-cancel-add-project-button">
                             {t("Cancel")}
                           </Button>

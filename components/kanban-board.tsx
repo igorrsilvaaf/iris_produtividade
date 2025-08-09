@@ -459,60 +459,53 @@ export function KanbanBoard() {
     if (tasksToUpdate.length === 0) return;
 
     try {
-      for (const taskUpdate of tasksToUpdate) {
-        const { id, column, completed, kanban_order } = taskUpdate;
-        if (!column && completed === undefined && kanban_order === undefined) continue;
+      const bulkResponse = await fetch(`/api/tasks/bulk`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ updates: tasksToUpdate }),
+      });
 
-        const updates = {
-          ...(column && { kanban_column: column }), 
-          ...(completed !== undefined && { completed }),
-          ...(kanban_order !== undefined && { kanban_order })
-        };
-
-        const response = await fetch(`/api/tasks/${id}/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updates),
-        });
-      
-        if (response.ok) {
-          try {
-            const responseData = await response.json();
-          } catch (e) {
-          }
-        } else {
-          console.error(`Erro ao atualizar tarefa ID ${id}: ${response.status}`);
-          try {
-            const errorText = await response.text();
-            console.error(`Detalhes do erro para ID ${id}:`, errorText);
-          } catch (e) {
-            console.error(`Não foi possível ler detalhes do erro para ID ${id}`);
-          }
-          toast({
-            variant: "destructive",
-            title: t("Failed to update some tasks"),
-            description: t("Please try refreshing"),
+      if (!bulkResponse.ok) {
+        for (const taskUpdate of tasksToUpdate) {
+          const { id, column, completed, kanban_order } = taskUpdate;
+          const updates = {
+            ...(column && { kanban_column: column }),
+            ...(completed !== undefined && { completed }),
+            ...(kanban_order !== undefined && { kanban_order })
+          };
+          const resp = await fetch(`/api/tasks/${id}/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updates),
           });
+          if (!resp.ok) {
+            toast({
+              variant: "destructive",
+              title: t("Failed to update some tasks"),
+              description: t("Please try refreshing"),
+            });
+          }
         }
       }
 
-      setCards(prevCards => 
-        prevCards.map(card => {
-          const updateForThisCard = tasksToUpdate.find(tu => tu.id === card.id);
-          if (updateForThisCard) {
-            return { 
-              ...card, 
-              ...(updateForThisCard.column && { column: updateForThisCard.column }),
-              ...(updateForThisCard.completed !== undefined && { completed: updateForThisCard.completed }),
-              ...(updateForThisCard.kanban_order !== undefined && { kanban_order: updateForThisCard.kanban_order })
-            };
-          }
-          return card;
-        }).sort((a, b) => (a.kanban_order || 0) - (b.kanban_order || 0))
+      setCards(prevCards =>
+        prevCards
+          .map(card => {
+            const updateForThisCard = tasksToUpdate.find(tu => tu.id === card.id);
+            if (updateForThisCard) {
+              return {
+                ...card,
+                ...(updateForThisCard.column && { column: updateForThisCard.column }),
+                ...(updateForThisCard.completed !== undefined && { completed: updateForThisCard.completed }),
+                ...(updateForThisCard.kanban_order !== undefined && { kanban_order: updateForThisCard.kanban_order })
+              };
+            }
+            return card;
+          })
+          .sort((a, b) => (a.kanban_order || 0) - (b.kanban_order || 0))
       );
-
     } catch (error) {
       toast({
         variant: "destructive",
@@ -532,7 +525,7 @@ export function KanbanBoard() {
     }]);
   };
   
-  const fetchAndDistributeTasks = useCallback(async (signal?: AbortSignal): Promise<void> => {
+  const fetchAndDistributeTasks = useCallback(async (signal?: AbortSignal, options?: { silent?: boolean }): Promise<void> => {
     const now = Date.now();
     const cacheTime = 5000; 
     
@@ -543,7 +536,9 @@ export function KanbanBoard() {
     lastFetchTimeRef.current = now;
     
     try {
-      setIsLoading(true);
+      if (!options?.silent) {
+        setIsLoading(true);
+      }
 
       const tasksResponse = await fetch("/api/tasks?all=true", {
         method: "GET",
@@ -660,7 +655,9 @@ export function KanbanBoard() {
         setHasCriticalError(true);
       }
     } finally {
-      setIsLoading(false);
+      if (!options?.silent) {
+        setIsLoading(false);
+      }
     }
   }, [toast, t, updateTasksOnServer]);
   
@@ -704,8 +701,7 @@ export function KanbanBoard() {
     
     const intervalId = setInterval(() => {
       if (mounted && document.visibilityState === 'visible') {
-
-        fetchAndDistributeTasks().catch(err => {
+        fetchAndDistributeTasks(undefined, { silent: true }).catch(err => {
           console.error("Erro na atualização automática:", err);
         });
       }
@@ -742,7 +738,7 @@ export function KanbanBoard() {
         isRefreshing = true;
 
         
-        fetchAndDistributeTasks()
+        fetchAndDistributeTasks(undefined, { silent: true })
           .finally(() => {
             isRefreshing = false;
           });
@@ -754,7 +750,7 @@ export function KanbanBoard() {
         isRefreshing = true;
 
         
-        fetchAndDistributeTasks()
+        fetchAndDistributeTasks(undefined, { silent: true })
           .finally(() => {
             isRefreshing = false;
           });
@@ -893,46 +889,16 @@ export function KanbanBoard() {
       return;
     }
     
-    const activeCard = cards.find(card => card.id === active.id);
-    
-
-    
     if (over.data?.current?.type === 'column') {
       const newColumn = over.data.current.column as KanbanColumn;
       
       setHighlightedColumn(newColumn);
-      
-      if (activeCard && activeCard.column !== newColumn) {
-
-        setCards(cards.map(card => {
-          if (card.id === active.id) {
-            return {
-              ...card,
-              column: newColumn
-            };
-          }
-          return card;
-        }));
-      }
     }
     else if (over.data?.current?.type === 'card') {
       const overCard = cards.find(card => card.id === over.id);
       
       if (overCard) {
         setHighlightedColumn(overCard.column);
-        
-        if (activeCard && activeCard.column !== overCard.column) {
-
-          setCards(cards.map(card => {
-            if (card.id === active.id) {
-              return {
-                ...card,
-                column: overCard.column
-              };
-            }
-            return card;
-          }));
-        }
       }
     }
   };
@@ -1112,26 +1078,14 @@ export function KanbanBoard() {
 
       // Recalcular kanban_order para as colunas afetadas (antiga e nova, se diferentes)
       const columnsToUpdateOrder = new Set<KanbanColumn>([oldColumnKey, newColumnKey]);
-      
       columnsToUpdateOrder.forEach(colKey => {
-        const cardsInThisColumn = newCards.filter(c => c.column === colKey)
-                                       .sort((a,b) => {
-                                         // Se estamos reordenando, precisamos de uma maneira de saber a ordem visual
-                                         // A ordem em `newCards` DEVE refletir a ordem visual desejada.
-                                         const elementA = document.querySelector(`[data-card-id="${a.id}"]`);
-                                         const elementB = document.querySelector(`[data-card-id="${b.id}"]`);
-                                         if (elementA && elementB) {
-                                           return elementA.getBoundingClientRect().top - elementB.getBoundingClientRect().top;
-                                         }
-                                         return (a.kanban_order || 0) - (b.kanban_order || 0); // Fallback
-                                       });
-        
+        const cardsInThisColumn = newCards.filter(c => c.column === colKey);
         cardsInThisColumn.forEach((card, index) => {
-          if (card.kanban_order !== index || card.id === activeId) { // Se a ordem mudou ou é o card ativo
+          if (card.kanban_order !== index || card.id === activeId) {
             const existingUpdate = tasksToUpdate.find(tu => tu.id === card.id);
             if (existingUpdate) {
               existingUpdate.kanban_order = index;
-              if (card.id === activeId) { // Garante que a coluna e o status completed do card ativo sejam os mais recentes
+              if (card.id === activeId) {
                 existingUpdate.column = newColumnKey;
                 existingUpdate.completed = newCompletedStatus;
               }
@@ -1395,6 +1349,11 @@ export function KanbanBoard() {
           task={selectedTask} 
           open={showTaskDetail} 
           onOpenChange={setShowTaskDetail} 
+          onDeleted={(id) => {
+            setCards(prev => prev.filter(card => card.id !== id));
+            setShowTaskDetail(false);
+            setSelectedTask(null);
+          }}
           user={user}
         />
       )}
