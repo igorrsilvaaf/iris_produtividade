@@ -195,7 +195,13 @@ export function ChangelogNotification() {
         <div className="p-5">
           <div className="border-l-4 border-primary/30 pl-3 py-2 mb-4 rounded-sm bg-primary/5">
             <p className="text-sm text-muted-foreground" data-testid="changelog-notification-message">
-              {latestChangelog === '2.8.8' ? (
+              {latestChangelog === '2.9.0' ? (
+                <>
+                  <span className="font-medium text-primary">Novidades: Feedback e Roadmap</span>
+                  <br />
+                  Agora você pode enviar ideias diretamente pelo app, votar nas melhores sugestões e acompanhar o progresso no novo Roadmap.
+                </>
+              ) : latestChangelog === '2.8.8' ? (
                 <>
                   <span className="font-medium text-primary">Tarefas, Kanban, Calendário e Editor Aprimorados</span>
                   <br />

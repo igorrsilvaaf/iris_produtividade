@@ -74,6 +74,7 @@ export default function ReportsPage() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [recentReports, setRecentReports] = useState<Report[]>([]);
+  const [focusSummary, setFocusSummary] = useState<{ totalMinutes: number; byMode: Record<string, number>; days: Array<{date: string; minutes: number}>; hours: Array<{hour: string; minutes: number}>; insights: { bestHour: string } } | null>(null)
 
   // Estado para os filtros novos
   const [projects, setProjects] = useState<Project[]>([]);
@@ -146,6 +147,10 @@ export default function ReportsPage() {
 
     loadProjects();
     loadLabels();
+    fetch("/api/pomodoro/summary", { credentials: "include" })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.success) setFocusSummary(d) })
+      .catch(() => {})
   }, []);
 
   // Manipuladores dos campos de formulário
@@ -467,6 +472,7 @@ export default function ReportsPage() {
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="generate">Gerar Relatório</TabsTrigger>
           <TabsTrigger value="history">Histórico de Relatórios</TabsTrigger>
+          <TabsTrigger value="focus">Produtividade (Pomodoro)</TabsTrigger>
         </TabsList>
 
         <TabsContent value="generate" className="space-y-4 pt-4">
@@ -1326,6 +1332,50 @@ export default function ReportsPage() {
                   </div>
                 )}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="focus" className="pt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Resumo de Foco</CardTitle>
+              <CardDescription>Tempo focado por dia, modo e hora</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {!focusSummary ? (
+                <div className="text-sm text-muted-foreground">Carregando resumo...</div>
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <div className="text-sm mb-2">Total focado: {Math.round(focusSummary.totalMinutes)} min</div>
+                    <div className="flex gap-2 text-sm">
+                      <span>Trabalho: {focusSummary.byMode.work || 0}m</span>
+                      <span>• Pausa curta: {focusSummary.byMode.shortBreak || 0}m</span>
+                      <span>• Pausa longa: {focusSummary.byMode.longBreak || 0}m</span>
+                    </div>
+                    <div className="text-sm mt-2">Melhor hora: {focusSummary.insights.bestHour}:00</div>
+                  </div>
+                  <div className="overflow-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-muted-foreground">
+                          <th className="py-1 pr-2">Dia</th>
+                          <th className="py-1 pr-2">Minutos</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {focusSummary.days.slice(-14).map((d) => (
+                          <tr key={d.date} className="border-b last:border-0">
+                            <td className="py-1 pr-2">{d.date}</td>
+                            <td className="py-1 pr-2">{d.minutes}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

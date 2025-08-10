@@ -96,15 +96,10 @@ export async function getTodayTasks(userId: number): Promise<Todo[]> {
     where: {
       user_id: userId,
       completed: false,
-      OR: [
-        {
-          due_date: {
-            gte: today,
-            lt: tomorrow,
-          },
-        },
-        { kanban_column: "planning" }, // Tarefas marcadas como "planning"
-      ],
+      due_date: {
+        gte: today,
+        lt: tomorrow,
+      },
     },
     include: {
       todo_projects: {

@@ -19,7 +19,7 @@
 
 ## Visão Geral
 
-Íris produtividade é um sistema avançado de gerenciamento de tarefas desenvolvido com tecnologias modernas. O sistema permite aos usuários criar, organizar, priorizar e acompanhar tarefas em diferentes contextos, como hoje, caixa de entrada e projetos específicos.
+Íris produtividade é um sistema avançado de gerenciamento de tarefas desenvolvido com Next.js (App Router), TypeScript e Prisma (PostgreSQL). O sistema permite criar, organizar, priorizar e acompanhar tarefas em diferentes contextos (Hoje, Caixa de Entrada, Próximos, Projetos, Etiquetas), com recursos de produtividade como Pomodoro, Kanban, calendário, notificações e integrações.
 
 ### Principais Características
 
@@ -34,13 +34,48 @@
 - Integração com Spotify para reprodução de música durante sessões de trabalho
 - Sistema de notificações para tarefas próximas do vencimento
 
+### Requisitos de Ambiente
+
+- Node.js 20+
+- PostgreSQL 14+
+- pnpm 9+
+
+Variáveis de ambiente principais:
+
+```env
+DATABASE_URL=postgresql://user:pass@host:5432/iris
+NEXTAUTH_SECRET=uma_chave_segura
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+EMAIL_SERVER_HOST=smtp.seudominio.com
+EMAIL_SERVER_PORT=587
+EMAIL_SERVER_USER=usuario
+EMAIL_SERVER_PASSWORD=senha
+EMAIL_FROM="Íris <noreply@seudominio.com>"
+GEMINI_API_KEY=chave_da_api_gemini
+# Alternativas/outs:
+GOOGLE_GEMINI_API_KEY=chave_da_api_gemini
+GITHUB_PAT=token
+GITHUB_DEFAULT_REPO=owner/repo
+COOKIE_DOMAIN=seudominio.com
+```
+
+Scripts úteis:
+
+```bash
+pnpm dev
+pnpm build && pnpm start
+pnpm lint
+pnpm test
+pnpm test:e2e
+```
+
 ## Arquitetura do Sistema
 
-O Íris produtividade segue uma arquitetura moderna baseada em componentes, utilizando o React com Next.js para renderização no servidor e cliente. O sistema é construído seguindo os princípios de design atômico e componentização.
+O Íris produtividade segue a arquitetura do Next.js App Router, com separação entre rotas de aplicação (`app/app/**`) e rotas de API (`app/api/**`). A camada de domínio fica em `lib/**`, com Prisma para acesso a dados e utilitários para regras de negócio. UI utiliza Tailwind + Radix (shadcn/ui) com tema claro/escuro.
 
 ### Estrutura de Diretórios
 
-```
+```bash
 Íris produtividade/
 ├── app/                # Rotas e páginas do Next.js App Router
 │   ├── api/            # API endpoints
@@ -55,6 +90,12 @@ O Íris produtividade segue uma arquitetura moderna baseada em componentes, util
 │   └── ...             # Outros utilitários
 ├── styles/             # Estilos globais
 └── public/             # Arquivos estáticos
+
+Outros:
+- `prisma/schema.prisma`: definição do banco
+- `tailwind.config.ts` e `postcss.config.mjs`: estilos
+- `next.config.mjs`: build e imagens
+- `app/metadata.ts`: metadados e `NEXT_PUBLIC_APP_URL`
 ```
 
 ### Fluxo de Dados
@@ -62,9 +103,9 @@ O Íris produtividade segue uma arquitetura moderna baseada em componentes, util
 O sistema segue um padrão de fluxo de dados unidirecional:
 
 1. Ações do usuário geram eventos
-2. Handlers processam eventos e fazem chamadas à API
-3. API processa solicitações e atualiza o banco de dados
-4. Componentes são atualizados com novos dados via refresh ou revalidação
+2. Handlers/Actions disparam chamadas à API (`app/api/**`)
+3. API processa solicitações e atualiza o banco via Prisma
+4. Componentes revalidam/atualizam estado e UI
 
 ## Tecnologias Utilizadas
 
@@ -81,7 +122,8 @@ O sistema segue um padrão de fluxo de dados unidirecional:
 ### Backend
 - **Next.js API Routes**: Endpoints de API
 - **PostgreSQL**: Banco de dados relacional
-- **Auth.js**: Sistema de autenticação
+- **Prisma**: ORM
+- **Autenticação própria** baseada em sessão (`lib/auth.ts` + `sessions`)
 
 ### DevOps
 - **Node.js**: Ambiente de execução JavaScript
@@ -443,6 +485,8 @@ Utilitários para gerenciamento de áudio no sistema.
 
 ## Modelos de Dados
 
+Modelos Prisma principais (resumo): `users`, `sessions`, `todos`, `projects`, `labels`, `snippets`, `attachments`, `pomodoroLog`, `feedback` e relacionadas. Veja `prisma/schema.prisma` para definição completa.
+
 ### Todo (Tarefa)
 ```typescript
 type Todo = {
@@ -701,8 +745,12 @@ A API do Íris produtividade segue os princípios REST e fornece os seguintes en
 * Backup: `/api/backup/*` (exportar, importar)
 * Relatórios: `/api/reports/pdf`
 * Pomodoro: `/api/pomodoro/*` (registro e histórico de sessões)
+* IA: `/api/ai/ask` (Gemini)
 
-Para uma lista completa e detalhada de todos os endpoints, parâmetros e respostas, consulte a documentação interativa da API.
+Observações da IA:
+- A rota `/api/ai/ask` usa Gemini 1.5 Flash com contexto do projeto construído em runtime.
+- Requer `GEMINI_API_KEY` ou `GOOGLE_GEMINI_API_KEY` no servidor.
+- Implementado retry com contexto reduzido para erros 400/413 por tamanho e limitação a 10 mensagens recentes.
 
 ### Endpoints de Pomodoro
 
@@ -964,15 +1012,13 @@ A estrutura utiliza:
 - Code splitting para redução de bundle
 - Otimização de imagens e assets
 - Prefetching de rotas comuns
-- Cache de API com SWR
+- Otimizações Next 15 (chunks, parallelServerCompiles); Tailwind JIT.
 
 ## Segurança
 
 ### Autenticação
-- Senhas com hash seguro
-- Proteção contra força bruta
-- Tokens JWT com expiração
-- Renovação segura de sessões
+- Senhas com hash seguro (bcrypt)
+- Sessão baseada em cookie `session_token` (`lib/auth.ts`, tabela `sessions`)
 
 ### Autorização
 - Verificação de propriedade de recursos
@@ -984,7 +1030,30 @@ A estrutura utiliza:
 - Criptografia em trânsito (HTTPS)
 - Validação de entradas em todos os endpoints
 - Proteção contra injeção SQL
-- Política de CORS restritiva
+- Política padrão Next; acessar via mesmo domínio.
+
+## Guia Rápido (Local)
+
+1. Configure `.env.local` com as variáveis acima
+2. Crie o banco e rode migrações
+
+```
+pnpm i
+pnpm prisma migrate dev
+pnpm dev
+```
+
+3. Acesse `http://localhost:3000`
+
+## Troubleshooting
+
+- CSS 404 em `/_next/static/css/app/layout.css`:
+  - Verifique import em `app/layout.tsx` como `import "./globals.css"`
+  - Limpe `.next` e reinicie: `rm -rf .next && pnpm dev`
+- IA respondendo com erro:
+  - Verifique `GEMINI_API_KEY` no servidor
+  - Confirme login ativo; rota retorna 401 se não autenticado
+  - Logs da rota: `app/api/ai/ask/route.ts`
 
 ## Manutenção e Suporte
 

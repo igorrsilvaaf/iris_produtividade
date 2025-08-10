@@ -78,6 +78,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { LabelForm } from "@/components/label-form";
 import { ProjectForm } from "@/components/project-form";
 import { BackButton } from "@/components/ui/back-button";
+import { cn, getTailwindBgClassForHex } from "@/lib/utils";
 import { useTaskUpdates } from "@/hooks/use-task-updates";
 import { useProjectsLabelsUpdates } from "@/hooks/use-projects-labels-updates";
 import { RichTextEditor } from "@/components/rich-text-editor";
@@ -421,6 +422,31 @@ export function AddTaskDialog({
 
       const responseData = await response.json();
       const taskId = responseData.task.id;
+      const selectedProjectId = form.getValues("projectId");
+
+      if (selectedProjectId && selectedProjectId !== "noProject") {
+        try {
+          const projectIdNumber = Number.parseInt(selectedProjectId);
+          if (!Number.isNaN(projectIdNumber) && projectIdNumber > 0) {
+            const projectResponse = await fetch(`/api/tasks/${taskId}/${taskId}/project`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ projectIds: [projectIdNumber] }),
+            });
+            if (!projectResponse.ok) {
+              throw new Error("Failed to update task project");
+            }
+          }
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: t("Failed to update task"),
+            description: t("Please try again."),
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
       const labelIds = values.labelIds || [];
 
       if (labelIds.length > 0) {
@@ -906,31 +932,27 @@ export function AddTaskDialog({
                 <FormItem>
                   <FormLabel>{t("project")}</FormLabel>
                   <div className="space-y-2">
-                    {field.value && field.value !== "noProject" ? (
-                      <div className="flex items-center justify-between p-2 border rounded">
-                        <div className="flex items-center">
-                          <div
-                            className={`w-4 h-4 rounded-full mr-2`}
-                            data-color={
-                              projects.find((p) => p.id.toString() === field.value)?.color || "#ccc"
-                            }
-                          />
-                          <span>
-                            {projects.find(
-                              (p) => p.id.toString() === field.value,
-                            )?.name || t("Unknown project")}
-                          </span>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => field.onChange("noProject")}
-                          className="h-8 w-8 p-0"
+                    {field.value && field.value !== "noProject" && projects.find(p => p.id.toString() === field.value) ? (
+                      <div className="flex items-center mt-1 space-x-2">
+                        <div
+                          className={cn(
+                            "flex items-center justify-between px-3 py-1 rounded-md text-white",
+                            getTailwindBgClassForHex(
+                              projects.find(p => p.id.toString() === field.value)?.color || "#808080"
+                            )
+                          )}
                         >
-                          <X className="h-4 w-4" />
-                          <span className="sr-only">{t("Remove project")}</span>
-                        </Button>
+                          <Folder className="h-3 w-3 mr-1" />
+                          {projects.find(p => p.id.toString() === field.value)?.name || t("Unknown project")}
+                          <button
+                            type="button"
+                            onClick={() => field.onChange("noProject")}
+                            className="ml-1 hover:bg-black/10 rounded-full p-0.5"
+                            aria-label={t("Remove project")}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground p-2">
@@ -949,7 +971,7 @@ export function AddTaskDialog({
                           className="mt-2"
                         >
                           <Plus className="mr-1 h-3 w-3" />
-                          {t("Add Project")}
+                          {t("addProject")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent
@@ -958,7 +980,7 @@ export function AddTaskDialog({
                         data-testid="add-task-add-project-dialog"
                       >
                         <DialogHeader>
-                          <DialogTitle>{t("Add Project")}</DialogTitle>
+                          <DialogTitle>{t("addProject")}</DialogTitle>
                           <DialogDescription>
                             {t("Select a project or create a new one.")}
                           </DialogDescription>
@@ -971,7 +993,7 @@ export function AddTaskDialog({
                             </div>
                           ) : projects.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
-                              {t("No projects found.")}
+                              {t("No projects found")}
                             </p>
                           ) : (
                             projects.map((project) => (
@@ -986,7 +1008,7 @@ export function AddTaskDialog({
                                 }}
                               >
                                 <div className="flex items-center">
-                                  <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: project.color }} />
+                                  <div className={cn("w-4 h-4 rounded-full mr-2", getTailwindBgClassForHex(project.color || "#808080"))} />
                                   <span className="flex items-center gap-1">
                                     <Folder className="h-3 w-3" />
                                     {project.name}
@@ -1059,10 +1081,12 @@ export function AddTaskDialog({
                           key={label.id}
                           className="flex items-center mt-1 space-x-2"
                         >
-                            <div
-                              className="flex items-center justify-between px-3 py-1 rounded-md"
-                              style={{ backgroundColor: label.color, color: '#ffffff' }}
-                            >
+                        <div
+                          className={cn(
+                            "flex items-center justify-between px-3 py-1 rounded-md text-white",
+                            getTailwindBgClassForHex(label.color || "#808080")
+                          )}
+                        >
                             <Tag className="h-3 w-3" />
                             {label.name}
                             <button
@@ -1134,10 +1158,7 @@ export function AddTaskDialog({
                                   }}
                                 >
                                   <div className="flex items-center">
-                                    <div
-                                      className="w-4 h-4 rounded-full mr-2"
-                                      style={{ backgroundColor: label.color }}
-                                    />
+                                    <div className={cn("w-4 h-4 rounded-full mr-2", getTailwindBgClassForHex(label.color || "#808080"))} />
                                     <span className="flex items-center gap-1">
                                       <Tag className="h-3 w-3" />
                                       {label.name}

@@ -10,6 +10,7 @@ import { useTranslation } from "@/lib/i18n"
 import { useAudioPlayer } from "@/lib/audio-utils"
 import { useRouter } from "next/navigation"
 import { usePomodoroStore, type TimerMode } from "@/lib/stores/pomodoro-store"
+import { startPomodoroQueueProcessor, trySendOrQueue } from "@/lib/offline-queue"
 import { cn } from "@/lib/utils"
 
 interface PomodoroTimerProps {
@@ -71,29 +72,17 @@ export function PomodoroTimer({
       }
 
       // Registra qualquer tipo de sessão completa (work, shortBreak ou longBreak)
-
-
-      fetch(`/api/pomodoro/log`, {
-        method: "POST",
-        credentials: 'include',
-        headers: { 
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache"
-        },
-        body: JSON.stringify({
-          taskId: selectedTaskId || undefined,
-          duration: mode === "work" 
-            ? storeSettings.workMinutes 
-            : mode === "shortBreak" 
-              ? storeSettings.shortBreakMinutes 
-              : storeSettings.longBreakMinutes,
-          mode: mode,
-        }),
+      trySendOrQueue({
+        taskId: selectedTaskId || undefined,
+        duration:
+          mode === "work"
+            ? storeSettings.workMinutes
+            : mode === "shortBreak"
+            ? storeSettings.shortBreakMinutes
+            : storeSettings.longBreakMinutes,
+        mode,
       })
-      .then(response => {
-
-        if (response.ok) {
+        .then(() => {
 
           
           // Disparar um evento personalizado para notificar outros componentes
@@ -127,18 +116,10 @@ export function PomodoroTimer({
           
           // Continuar com a atualização do próximo modo após confirmar que o log foi salvo
           continueWithModeUpdate();
-        } else {
-          console.error(`[Pomodoro Mobile Debug] Erro ao registrar log: ${response.status}`);
-          response.text().then(text => console.error("[Pomodoro Mobile Debug] Detalhes da resposta:", text));
-          // Continuar com a atualização do modo mesmo se houver falha no registro
-          continueWithModeUpdate();
-        }
-      })
-      .catch((error) => {
-        console.error("[Pomodoro Mobile Debug] Erro ao registrar pomodoro:", error);
-        // Continuar com a atualização do modo mesmo se houver falha no registro
-        continueWithModeUpdate();
-      });
+        })
+        .catch(() => {
+          continueWithModeUpdate()
+        })
 
       // Função para atualizar o modo após o registro
       const continueWithModeUpdate = () => {
@@ -198,6 +179,10 @@ export function PomodoroTimer({
     router,
   ]);
 
+  React.useEffect(() => {
+    startPomodoroQueueProcessor()
+  }, [])
+
   useEffect(() => {
     const fetchTaskDetails = async () => {
       if (!selectedTaskId) {
@@ -255,6 +240,27 @@ export function PomodoroTimer({
   const handleTabChange = (newMode: string) => {
     setStoreMode(newMode as TimerMode)
   }
+
+  React.useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
+      const isCmd = e.metaKey || e.ctrlKey
+      if (isCmd && e.shiftKey && (e.key === 'P' || e.key === 'p')) {
+        e.preventDefault()
+        toggleStoreTimer()
+      } else if (isCmd && (e.key === 'Backspace' || e.key === 'Delete')) {
+        e.preventDefault()
+        resetStoreTimer()
+      } else if (isCmd && (e.key === 'ArrowRight')) {
+        e.preventDefault()
+        setStoreMode(mode === 'work' ? 'shortBreak' : mode === 'shortBreak' ? 'longBreak' : 'work')
+        setIsRunning(false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [mode, toggleStoreTimer, resetStoreTimer, setStoreMode, setIsRunning])
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
