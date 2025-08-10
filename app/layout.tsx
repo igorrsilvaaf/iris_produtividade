@@ -18,6 +18,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { TaskProvider } from "@/contexts/task-context";
 import { ProjectsLabelsProvider } from "@/contexts/projects-labels-context";
+import { AIHelpChat } from "@/components/ai-help-chat";
 
 import "@/app/globals.css";
 
@@ -107,6 +108,7 @@ export default async function RootLayout({
                         )}
                       </TaskProvider>
                       <Toaster />
+                      <AIHelpChat />
                     </ProjectsLabelsProvider>
                   </ThemeInitializer>
                 </TranslationsLoader>

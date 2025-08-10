@@ -25,12 +25,14 @@ export interface ReportData {
 // Função para calcular a cor de texto baseada na cor de fundo
 function getContrastColor(hexColor: string) {
   // Se não houver cor ou for inválida, retornar preto
-  if (!hexColor || !hexColor.startsWith('#')) {
-    return '#000000';
+  if (!hexColor || !hexColor.startsWith("#")) {
+    return "#000000";
   }
-  
+
   // Converter hex para RGB
-  let r = 0, g = 0, b = 0;
+  let r = 0,
+    g = 0,
+    b = 0;
   if (hexColor.length === 7) {
     r = parseInt(hexColor.substring(1, 3), 16);
     g = parseInt(hexColor.substring(3, 5), 16);
@@ -40,65 +42,83 @@ function getContrastColor(hexColor: string) {
     g = parseInt(hexColor.substring(2, 3), 16) * 17;
     b = parseInt(hexColor.substring(3, 4), 16) * 17;
   }
-  
+
   // Calcular luminância
   // Fórmula YIQ: https://24ways.org/2010/calculating-color-contrast/
-  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-  
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+
   // Retornar branco ou preto dependendo da luminância
-  return (yiq >= 128) ? '#000000' : '#ffffff';
+  return yiq >= 128 ? "#000000" : "#ffffff";
 }
 
-export async function fetchTasks(reportType: string, startDate: string, endDate: string, filters?: ReportFilters): Promise<Todo[]> {
+export async function fetchTasks(
+  reportType: string,
+  startDate: string,
+  endDate: string,
+  filters?: ReportFilters
+): Promise<Todo[]> {
   try {
     let url = `/api/reports?type=${reportType}&startDate=${startDate}&endDate=${endDate}`;
-    
+
     const safeFilters = filters || {};
 
-    
-    if (safeFilters.projectIds && Array.isArray(safeFilters.projectIds) && safeFilters.projectIds.length > 0) {
-      const projectString = safeFilters.projectIds.join(',');
+    if (
+      safeFilters.projectIds &&
+      Array.isArray(safeFilters.projectIds) &&
+      safeFilters.projectIds.length > 0
+    ) {
+      const projectString = safeFilters.projectIds.join(",");
       url += `&projectIds=${projectString}`;
-
     }
-    
-    if (safeFilters.labelIds && Array.isArray(safeFilters.labelIds) && safeFilters.labelIds.length > 0) {
-      const labelString = safeFilters.labelIds.join(',');
+
+    if (
+      safeFilters.labelIds &&
+      Array.isArray(safeFilters.labelIds) &&
+      safeFilters.labelIds.length > 0
+    ) {
+      const labelString = safeFilters.labelIds.join(",");
       url += `&labelIds=${labelString}`;
-
     }
-    
-    if (safeFilters.priorities && Array.isArray(safeFilters.priorities) && safeFilters.priorities.length > 0) {
-      const priorityString = safeFilters.priorities.join(',');
+
+    if (
+      safeFilters.priorities &&
+      Array.isArray(safeFilters.priorities) &&
+      safeFilters.priorities.length > 0
+    ) {
+      const priorityString = safeFilters.priorities.join(",");
       url += `&priorities=${priorityString}`;
-
     }
-    
 
-    
     const response = await fetch(url);
-    
+
     if (!response.ok) {
-      console.error("Erro na resposta do servidor:", response.status, response.statusText);
+      console.error(
+        "Erro na resposta do servidor:",
+        response.status,
+        response.statusText
+      );
       throw new Error(`Error fetching tasks: ${response.status}`);
     }
-    
+
     const data = await response.json();
 
-    
     if (safeFilters.projectIds && safeFilters.projectIds.length > 0) {
       const projectIds = safeFilters.projectIds;
-      const filteredTasks = data.tasks?.filter((task: Todo) => 
-        task.project_name && 
-        projectIds.some(id => {
-          const projectId = id.toString();
-          return task.project_id ? task.project_id.toString() === projectId : false;
-        })
-      ) || [];
-      
+      const filteredTasks =
+        data.tasks?.filter(
+          (task: Todo) =>
+            task.project_name &&
+            projectIds.some((id) => {
+              const projectId = id.toString();
+              return task.project_id
+                ? task.project_id.toString() === projectId
+                : false;
+            })
+        ) || [];
+
       return filteredTasks;
     }
-    
+
     return data.tasks || [];
   } catch (error) {
     console.error("Error fetching tasks:", error);
@@ -108,11 +128,11 @@ export async function fetchTasks(reportType: string, startDate: string, endDate:
 
 export async function fetchProjects(): Promise<Project[]> {
   try {
-    const response = await fetch('/api/projects');
+    const response = await fetch("/api/projects");
     if (!response.ok) {
       throw new Error(`Error fetching projects: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data.projects || [];
   } catch (error) {
@@ -121,13 +141,33 @@ export async function fetchProjects(): Promise<Project[]> {
   }
 }
 
+export async function fetchFocusSummary(): Promise<{
+  totalMinutes: number;
+  byMode: Record<string, number>;
+  days: Array<{ date: string; minutes: number }>;
+  hours: Array<{ hour: string; minutes: number }>;
+  insights: { bestHour: string };
+} | null> {
+  try {
+    const response = await fetch("/api/pomodoro/summary", {
+      credentials: "include",
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (data && data.success) return data;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchLabels(): Promise<Label[]> {
   try {
-    const response = await fetch('/api/labels');
+    const response = await fetch("/api/labels");
     if (!response.ok) {
       throw new Error(`Error fetching labels: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data.labels || [];
   } catch (error) {
@@ -141,23 +181,23 @@ export function generateCSV(data: ReportData): string {
   const includeAll = customColumns.length === 0;
 
   const defaultHeaders = ["ID", "Título"];
-  
+
   const optionalHeaders: Record<string, string> = {
-    "description": "Descrição",
-    "due_date": "Data de Vencimento",
-    "priority": "Prioridade", 
-    "completed": "Concluída",
-    "project": "Projeto",
-    "labels": "Etiquetas",
-    "kanban_column": "Coluna Kanban",
-    "points": "Pontos",
-    "estimated_time": "Tempo Estimado",
-    "created_at": "Data de Criação",
-    "updated_at": "Última Atualização"
+    description: "Descrição",
+    due_date: "Data de Vencimento",
+    priority: "Prioridade",
+    completed: "Concluída",
+    project: "Projeto",
+    labels: "Etiquetas",
+    kanban_column: "Coluna Kanban",
+    points: "Pontos",
+    estimated_time: "Tempo Estimado",
+    created_at: "Data de Criação",
+    updated_at: "Última Atualização",
   };
-  
+
   let headers = [...defaultHeaders];
-  
+
   if (includeAll) {
     headers = headers.concat(Object.values(optionalHeaders));
   } else {
@@ -167,53 +207,55 @@ export function generateCSV(data: ReportData): string {
       }
     }
   }
-  
+
   if (!data.items || data.items.length === 0) {
-    return headers.join(',') + '\n';
+    return headers.join(",") + "\n";
   }
-  
-  let csv = headers.join(',') + '\n';
-  
+
+  let csv = headers.join(",") + "\n";
+
   const priorityLabels: Record<number, string> = {
     1: "Urgente",
     2: "Alta",
     3: "Média",
     4: "Baixa",
-    5: "Muito Baixa"
+    5: "Muito Baixa",
   };
-  
+
   const kanbanLabels: Record<string, string> = {
-    "backlog": "Backlog",
-    "planning": "Planejamento",
-    "inProgress": "Em Progresso",
-    "validation": "Validação",
-    "completed": "Concluído"
+    backlog: "Backlog",
+    planning: "Planejamento",
+    inProgress: "Em Progresso",
+    validation: "Validação",
+    completed: "Concluído",
   };
-  
+
   // Função auxiliar para formatar pontos
   const formatPoints = (points: number | null | undefined) => {
-    if (!points) return '';
+    if (!points) return "";
     const pointsLabels: Record<number, string> = {
       1: "1 - Muito Fácil",
-      2: "2 - Fácil", 
+      2: "2 - Fácil",
       3: "3 - Médio",
       4: "4 - Difícil",
-      5: "5 - Muito Difícil"
+      5: "5 - Muito Difícil",
     };
     return pointsLabels[points] || points.toString();
   };
-  
+
   // Função auxiliar para formatar tempo estimado
   const formatEstimatedTime = (minutes: number | null | undefined) => {
-    if (!minutes) return '';
-    
+    if (!minutes) return "";
+
     const days = Math.floor(minutes / (60 * 8));
     const remainingHours = Math.floor((minutes % (60 * 8)) / 60);
     const remainingMinutes = minutes % 60;
-    
+
     if (days > 0) {
       if (remainingHours > 0 || remainingMinutes > 0) {
-        return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ''} ${remainingMinutes > 0 ? `${remainingMinutes}min` : ''}`.trim();
+        return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ""} ${
+          remainingMinutes > 0 ? `${remainingMinutes}min` : ""
+        }`.trim();
       }
       return `${days}d`;
     } else if (remainingHours > 0) {
@@ -225,90 +267,98 @@ export function generateCSV(data: ReportData): string {
       return `${remainingMinutes}min`;
     }
   };
-  
+
   data.items.forEach((task) => {
-    const dueDate = task.due_date ? new Date(task.due_date).toLocaleDateString('pt-BR') : '';
-    const priority = task.priority ? priorityLabels[task.priority] || task.priority.toString() : '';
+    const dueDate = task.due_date
+      ? new Date(task.due_date).toLocaleDateString("pt-BR")
+      : "";
+    const priority = task.priority
+      ? priorityLabels[task.priority] || task.priority.toString()
+      : "";
     const completed = task.completed ? "Sim" : "Não";
-    const kanban = task.kanban_column ? kanbanLabels[task.kanban_column as string] || task.kanban_column : '';
+    const kanban = task.kanban_column
+      ? kanbanLabels[task.kanban_column as string] || task.kanban_column
+      : "";
     const points = formatPoints(task.points);
     const estimatedTime = formatEstimatedTime(task.estimated_time);
-    const createdAt = task.created_at ? new Date(task.created_at).toLocaleDateString('pt-BR') : '';
-    const updatedAt = task.updated_at ? new Date(task.updated_at).toLocaleDateString('pt-BR') : '';
-    
-    let labelsText = '';
+    const createdAt = task.created_at
+      ? new Date(task.created_at).toLocaleDateString("pt-BR")
+      : "";
+    const updatedAt = task.updated_at
+      ? new Date(task.updated_at).toLocaleDateString("pt-BR")
+      : "";
+
+    let labelsText = "";
     if (task.labels && task.labels.length > 0) {
-      labelsText = task.labels.map((label: Label) => label.name).join(', ');
+      labelsText = task.labels.map((label: Label) => label.name).join(", ");
     }
-    
+
     const safeTitle = escapeCsvField(task.title);
-    const safeDesc = escapeCsvField(task.description || '');
-    const safeProject = escapeCsvField(task.project_name || '');
+    const safeDesc = escapeCsvField(task.description || "");
+    const safeProject = escapeCsvField(task.project_name || "");
     const safeLabels = escapeCsvField(labelsText);
-    
-    let row = [
-      task.id.toString(),
-      safeTitle
-    ];
-    
-    if (includeAll || customColumns.includes('description')) row.push(safeDesc);
-    if (includeAll || customColumns.includes('due_date')) row.push(dueDate);
-    if (includeAll || customColumns.includes('priority')) row.push(priority);
-    if (includeAll || customColumns.includes('completed')) row.push(completed);
-    if (includeAll || customColumns.includes('project')) row.push(safeProject);
-    if (includeAll || customColumns.includes('labels')) row.push(safeLabels);
-    if (includeAll || customColumns.includes('kanban_column')) row.push(kanban);
-    if (includeAll || customColumns.includes('points')) row.push(points);
-    if (includeAll || customColumns.includes('estimated_time')) row.push(estimatedTime);
-    if (includeAll || customColumns.includes('created_at')) row.push(createdAt);
-    if (includeAll || customColumns.includes('updated_at')) row.push(updatedAt);
-    
-    csv += row.join(',') + '\n';
+
+    let row = [task.id.toString(), safeTitle];
+
+    if (includeAll || customColumns.includes("description")) row.push(safeDesc);
+    if (includeAll || customColumns.includes("due_date")) row.push(dueDate);
+    if (includeAll || customColumns.includes("priority")) row.push(priority);
+    if (includeAll || customColumns.includes("completed")) row.push(completed);
+    if (includeAll || customColumns.includes("project")) row.push(safeProject);
+    if (includeAll || customColumns.includes("labels")) row.push(safeLabels);
+    if (includeAll || customColumns.includes("kanban_column")) row.push(kanban);
+    if (includeAll || customColumns.includes("points")) row.push(points);
+    if (includeAll || customColumns.includes("estimated_time"))
+      row.push(estimatedTime);
+    if (includeAll || customColumns.includes("created_at")) row.push(createdAt);
+    if (includeAll || customColumns.includes("updated_at")) row.push(updatedAt);
+
+    csv += row.join(",") + "\n";
   });
-  
+
   return csv;
 }
 
 export function escapeCsvField(field: string): string {
-  if (!field) return '';
-  
-  if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+  if (!field) return "";
+
+  if (field.includes(",") || field.includes('"') || field.includes("\n")) {
     return `"${field.replace(/"/g, '""')}"`;
   }
-  
+
   return field;
 }
 
 export function generateHTML(data: ReportData): string {
   const customColumns = data.filters?.customColumns || [];
   const includeAll = customColumns.length === 0;
-  
+
   const priorityLabels: Record<number, string> = {
     1: "Urgente",
     2: "Alta",
     3: "Média",
     4: "Baixa",
-    5: "Muito Baixa"
+    5: "Muito Baixa",
   };
-  
+
   const kanbanLabels: Record<string, string> = {
-    "backlog": "Backlog",
-    "planning": "Planejamento",
-    "inProgress": "Em Progresso",
-    "validation": "Validação",
-    "completed": "Concluído"
+    backlog: "Backlog",
+    planning: "Planejamento",
+    inProgress: "Em Progresso",
+    validation: "Validação",
+    completed: "Concluído",
   };
-  
+
   const priorityColors: Record<number, string> = {
     1: "#ef4444",
     2: "#f97316",
     3: "#facc15",
     4: "#16a34a",
-    5: "#3b82f6"
+    5: "#3b82f6",
   };
-  
+
   const defaultColumns = ["ID", "Título"];
-  
+
   interface ColumnConfig {
     id: string;
     label: string;
@@ -316,150 +366,173 @@ export function generateHTML(data: ReportData): string {
     format: (task: Todo) => string;
     width?: string;
   }
-  
+
   const columnConfigs: ColumnConfig[] = [
     {
-      id: "id", 
-      label: "ID", 
+      id: "id",
+      label: "ID",
       includeIf: true,
       format: (task) => String(task.id),
-      width: "50px"
+      width: "50px",
     },
     {
-      id: "title", 
-      label: "Título", 
+      id: "title",
+      label: "Título",
       includeIf: true,
       format: (task) => {
-        const title = task.title || '';
-        const truncated = title.length > 50 ? title.substring(0, 50) + '...' : title;
-        return `<div class="cell-tooltip" data-full-text="${escapeHtml(title)}">${escapeHtml(truncated)}</div>`;
+        const title = task.title || "";
+        const truncated =
+          title.length > 50 ? title.substring(0, 50) + "..." : title;
+        return `<div class="cell-tooltip" data-full-text="${escapeHtml(
+          title
+        )}">${escapeHtml(truncated)}</div>`;
       },
-      width: "20%"
+      width: "20%",
     },
     {
-      id: "description", 
-      label: "Descrição", 
-      includeIf: includeAll || customColumns.includes('description'),
+      id: "description",
+      label: "Descrição",
+      includeIf: includeAll || customColumns.includes("description"),
       format: (task) => {
-        const description = task.description || '';
-        if (!description) return '-';
-        const truncated = description.length > 80 ? description.substring(0, 80) + '...' : description;
-        return `<div class="cell-tooltip" data-full-text="${escapeHtml(description)}">${escapeHtml(truncated)}</div>`;
+        const description = task.description || "";
+        if (!description) return "-";
+        const truncated =
+          description.length > 80
+            ? description.substring(0, 80) + "..."
+            : description;
+        return `<div class="cell-tooltip" data-full-text="${escapeHtml(
+          description
+        )}">${escapeHtml(truncated)}</div>`;
       },
-      width: "25%"
+      width: "25%",
     },
     {
-      id: "due_date", 
-      label: "Vencimento", 
-      includeIf: includeAll || customColumns.includes('due_date'),
-      format: (task) => task.due_date ? new Date(task.due_date).toLocaleDateString('pt-BR') : '-',
-      width: "100px"
+      id: "due_date",
+      label: "Vencimento",
+      includeIf: includeAll || customColumns.includes("due_date"),
+      format: (task) =>
+        task.due_date
+          ? new Date(task.due_date).toLocaleDateString("pt-BR")
+          : "-",
+      width: "100px",
     },
     {
-      id: "priority", 
-      label: "Prioridade", 
-      includeIf: includeAll || customColumns.includes('priority'),
+      id: "priority",
+      label: "Prioridade",
+      includeIf: includeAll || customColumns.includes("priority"),
       format: (task) => {
-        if (!task.priority) return '-';
-        
+        if (!task.priority) return "-";
+
         const label = priorityLabels[task.priority] || task.priority;
-        const color = priorityColors[task.priority] || '#777';
+        const color = priorityColors[task.priority] || "#777";
         const textColor = getContrastColor(color);
-        
+
         return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:${textColor}; font-size:11px; font-weight:bold;">${label}</span>`;
       },
-      width: "80px"
+      width: "80px",
     },
     {
-      id: "completed", 
-      label: "Concluída", 
-      includeIf: includeAll || customColumns.includes('completed'),
-      format: (task) => task.completed 
-        ? '<span style="color:#16a34a; font-weight:bold;">Sim</span>' 
-        : '<span style="color:#ef4444; font-weight:bold;">Não</span>',
-      width: "80px"
+      id: "completed",
+      label: "Concluída",
+      includeIf: includeAll || customColumns.includes("completed"),
+      format: (task) =>
+        task.completed
+          ? '<span style="color:#16a34a; font-weight:bold;">Sim</span>'
+          : '<span style="color:#ef4444; font-weight:bold;">Não</span>',
+      width: "80px",
     },
     {
-      id: "project", 
-      label: "Projeto", 
-      includeIf: includeAll || customColumns.includes('project'),
+      id: "project",
+      label: "Projeto",
+      includeIf: includeAll || customColumns.includes("project"),
       format: (task) => {
-        if (!task.project_name) return '-';
-        
-        const color = task.project_color || '#777';
+        if (!task.project_name) return "-";
+
+        const color = task.project_color || "#777";
         const textColor = getContrastColor(color);
-        
-        return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:${textColor}; font-size:11px;">${escapeHtml(task.project_name)}</span>`;
+
+        return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:${textColor}; font-size:11px;">${escapeHtml(
+          task.project_name
+        )}</span>`;
       },
-      width: "120px"
+      width: "120px",
     },
     {
-      id: "labels", 
-      label: "Etiquetas", 
-      includeIf: includeAll || customColumns.includes('labels'),
+      id: "labels",
+      label: "Etiquetas",
+      includeIf: includeAll || customColumns.includes("labels"),
       format: (task) => {
-        if (!task.labels || task.labels.length === 0) return '-';
-        return task.labels.map((label: Label) => {
-          const color = label.color || '#777';
-          const textColor = getContrastColor(color);
-          return `<span style="display:inline-block; margin:1px 2px; padding:1px 6px; border-radius:8px; background-color:${color}; color:${textColor}; font-size:10px;">${escapeHtml(label.name)}</span>`;
-        }).join(' ');
+        if (!task.labels || task.labels.length === 0) return "-";
+        return task.labels
+          .map((label: Label) => {
+            const color = label.color || "#777";
+            const textColor = getContrastColor(color);
+            return `<span style="display:inline-block; margin:1px 2px; padding:1px 6px; border-radius:8px; background-color:${color}; color:${textColor}; font-size:10px;">${escapeHtml(
+              label.name
+            )}</span>`;
+          })
+          .join(" ");
       },
-      width: "150px"
+      width: "150px",
     },
     {
-      id: "kanban_column", 
-      label: "Coluna", 
-      includeIf: includeAll || customColumns.includes('kanban_column'),
-      format: (task) => task.kanban_column ? kanbanLabels[task.kanban_column as string] || task.kanban_column : '-',
-      width: "120px"
+      id: "kanban_column",
+      label: "Coluna",
+      includeIf: includeAll || customColumns.includes("kanban_column"),
+      format: (task) =>
+        task.kanban_column
+          ? kanbanLabels[task.kanban_column as string] || task.kanban_column
+          : "-",
+      width: "120px",
     },
     {
-      id: "points", 
-      label: "Pontos", 
-      includeIf: includeAll || customColumns.includes('points'),
+      id: "points",
+      label: "Pontos",
+      includeIf: includeAll || customColumns.includes("points"),
       format: (task) => {
-        if (!task.points) return '-';
-        
+        if (!task.points) return "-";
+
         const pointsLabels: Record<number, string> = {
           1: "Muito Fácil",
-          2: "Fácil", 
+          2: "Fácil",
           3: "Médio",
           4: "Difícil",
-          5: "Muito Difícil"
+          5: "Muito Difícil",
         };
-        
+
         const pointsColors: Record<number, string> = {
           1: "#16a34a",
-          2: "#3b82f6", 
+          2: "#3b82f6",
           3: "#facc15",
           4: "#f97316",
-          5: "#ef4444"
+          5: "#ef4444",
         };
-        
+
         const label = pointsLabels[task.points] || task.points.toString();
-        const color = pointsColors[task.points] || '#777';
+        const color = pointsColors[task.points] || "#777";
         const textColor = getContrastColor(color);
-        
+
         return `<span style="display:inline-block; padding:2px 8px; border-radius:10px; background-color:${color}; color:${textColor}; font-size:11px; font-weight:bold;">${task.points} - ${label}</span>`;
       },
-      width: "100px"
+      width: "100px",
     },
     {
-      id: "estimated_time", 
-      label: "Tempo Estimado", 
-      includeIf: includeAll || customColumns.includes('estimated_time'),
+      id: "estimated_time",
+      label: "Tempo Estimado",
+      includeIf: includeAll || customColumns.includes("estimated_time"),
       format: (task) => {
-        if (!task.estimated_time) return '-';
-        
+        if (!task.estimated_time) return "-";
+
         const minutes = task.estimated_time;
         const days = Math.floor(minutes / (60 * 8));
         const remainingHours = Math.floor((minutes % (60 * 8)) / 60);
         const remainingMinutes = minutes % 60;
-        
+
         if (days > 0) {
           if (remainingHours > 0 || remainingMinutes > 0) {
-            return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ''} ${remainingMinutes > 0 ? `${remainingMinutes}min` : ''}`.trim();
+            return `${days}d ${
+              remainingHours > 0 ? `${remainingHours}h` : ""
+            } ${remainingMinutes > 0 ? `${remainingMinutes}min` : ""}`.trim();
           }
           return `${days}d`;
         } else if (remainingHours > 0) {
@@ -471,89 +544,110 @@ export function generateHTML(data: ReportData): string {
           return `${remainingMinutes}min`;
         }
       },
-      width: "120px"
+      width: "120px",
     },
     {
-      id: "created_at", 
-      label: "Criada em", 
-      includeIf: includeAll || customColumns.includes('created_at'),
-      format: (task) => task.created_at ? new Date(task.created_at).toLocaleDateString('pt-BR') : '-',
-      width: "100px"
+      id: "created_at",
+      label: "Criada em",
+      includeIf: includeAll || customColumns.includes("created_at"),
+      format: (task) =>
+        task.created_at
+          ? new Date(task.created_at).toLocaleDateString("pt-BR")
+          : "-",
+      width: "100px",
     },
     {
-      id: "updated_at", 
-      label: "Atualizada em", 
-      includeIf: includeAll || customColumns.includes('updated_at'),
-      format: (task) => task.updated_at ? new Date(task.updated_at).toLocaleDateString('pt-BR') : '-',
-      width: "100px"
-    }
+      id: "updated_at",
+      label: "Atualizada em",
+      includeIf: includeAll || customColumns.includes("updated_at"),
+      format: (task) =>
+        task.updated_at
+          ? new Date(task.updated_at).toLocaleDateString("pt-BR")
+          : "-",
+      width: "100px",
+    },
   ];
-  
-  const columnsToInclude = columnConfigs.filter(col => col.includeIf);
-  
-  const tableHeaders = columnsToInclude.map((col, index) => 
-    `<th class="resizable-column" style="${col.width ? `width:${col.width};` : ''}" data-column="${index}">
+
+  const columnsToInclude = columnConfigs.filter((col) => col.includeIf);
+
+  const tableHeaders = columnsToInclude
+    .map(
+      (col, index) =>
+        `<th class="resizable-column" style="${
+          col.width ? `width:${col.width};` : ""
+        }" data-column="${index}">
       ${col.label}
       <div class="column-resizer"></div>
     </th>`
-  ).join('');
-  
-  let tableRows = '';
-  
+    )
+    .join("");
+
+  let tableRows = "";
+
   if (data.items && data.items.length > 0) {
     data.items.forEach((task, index) => {
-      const rowClass = index % 2 === 0 ? 'even-row' : 'odd-row';
-      
-      const cells = columnsToInclude.map(col => 
-        `<td style="${col.width ? `width:${col.width};` : ''}">${col.format(task)}</td>`
-      ).join('');
-      
+      const rowClass = index % 2 === 0 ? "even-row" : "odd-row";
+
+      const cells = columnsToInclude
+        .map(
+          (col) =>
+            `<td style="${col.width ? `width:${col.width};` : ""}">${col.format(
+              task
+            )}</td>`
+        )
+        .join("");
+
       tableRows += `<tr class="${rowClass}">${cells}</tr>`;
     });
   } else {
     tableRows = `<tr><td colspan="${columnsToInclude.length}" style="text-align:center; padding:20px; color:#888;">Nenhuma tarefa encontrada no período especificado</td></tr>`;
   }
-  
-  let statsSection = '';
-  let chartsSection = '';
-  
+
+  let statsSection = "";
+  let chartsSection = "";
+
   if (data.items && data.items.length > 0) {
     const totalTasks = data.items.length;
-    const completedTasks = data.items.filter(task => task.completed).length;
-    const percentComplete = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    
+    const completedTasks = data.items.filter((task) => task.completed).length;
+    const percentComplete =
+      totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
     const priorityCounts: Record<string, number> = {};
-    data.items.forEach(task => {
+    data.items.forEach((task) => {
       if (task.priority) {
-        const priorityLabel = priorityLabels[task.priority] || task.priority.toString();
-        priorityCounts[priorityLabel] = (priorityCounts[priorityLabel] || 0) + 1;
+        const priorityLabel =
+          priorityLabels[task.priority] || task.priority.toString();
+        priorityCounts[priorityLabel] =
+          (priorityCounts[priorityLabel] || 0) + 1;
       } else {
-        priorityCounts["Sem prioridade"] = (priorityCounts["Sem prioridade"] || 0) + 1;
+        priorityCounts["Sem prioridade"] =
+          (priorityCounts["Sem prioridade"] || 0) + 1;
       }
     });
-    
+
     const projectsCount: Record<string, number> = {};
-    data.items.forEach(task => {
+    data.items.forEach((task) => {
       if (task.project_name) {
-        projectsCount[task.project_name] = (projectsCount[task.project_name] || 0) + 1;
+        projectsCount[task.project_name] =
+          (projectsCount[task.project_name] || 0) + 1;
       } else {
         projectsCount["Sem projeto"] = (projectsCount["Sem projeto"] || 0) + 1;
       }
     });
-    
+
     // Calcular estatísticas de pontos
     const pointsCounts: Record<string, number> = {};
     let totalPoints = 0;
     let tasksWithPoints = 0;
-    
-    data.items.forEach(task => {
+
+    data.items.forEach((task) => {
       if (task.points) {
         const pointsLabels: Record<number, string> = {
           1: "Muito Fácil (1)",
-          2: "Fácil (2)", 
+          2: "Fácil (2)",
           3: "Médio (3)",
           4: "Difícil (4)",
-          5: "Muito Difícil (5)"
+          5: "Muito Difícil (5)",
         };
         const pointsLabel = pointsLabels[task.points] || task.points.toString();
         pointsCounts[pointsLabel] = (pointsCounts[pointsLabel] || 0) + 1;
@@ -561,28 +655,31 @@ export function generateHTML(data: ReportData): string {
         tasksWithPoints++;
       }
     });
-    
-    const averagePoints = tasksWithPoints > 0 ? (totalPoints / tasksWithPoints).toFixed(1) : 0;
-    
+
+    const averagePoints =
+      tasksWithPoints > 0 ? (totalPoints / tasksWithPoints).toFixed(1) : 0;
+
     // Calcular estatísticas de tempo estimado
     let totalEstimatedTime = 0;
     let tasksWithTime = 0;
-    
-    data.items.forEach(task => {
+
+    data.items.forEach((task) => {
       if (task.estimated_time) {
         totalEstimatedTime += task.estimated_time;
         tasksWithTime++;
       }
     });
-    
+
     const formatTotalTime = (minutes: number) => {
       const days = Math.floor(minutes / (60 * 8));
       const remainingHours = Math.floor((minutes % (60 * 8)) / 60);
       const remainingMinutes = minutes % 60;
-      
+
       if (days > 0) {
         if (remainingHours > 0 || remainingMinutes > 0) {
-          return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ''} ${remainingMinutes > 0 ? `${remainingMinutes}min` : ''}`.trim();
+          return `${days}d ${remainingHours > 0 ? `${remainingHours}h` : ""} ${
+            remainingMinutes > 0 ? `${remainingMinutes}min` : ""
+          }`.trim();
         }
         return `${days}d`;
       } else if (remainingHours > 0) {
@@ -594,73 +691,90 @@ export function generateHTML(data: ReportData): string {
         return `${remainingMinutes}min`;
       }
     };
-    
-    const averageEstimatedTime = tasksWithTime > 0 ? Math.round(totalEstimatedTime / tasksWithTime) : 0;
-    
+
+    const averageEstimatedTime =
+      tasksWithTime > 0 ? Math.round(totalEstimatedTime / tasksWithTime) : 0;
+
     const statusData = [
       { label: "Concluídas", value: completedTasks, color: "#16a34a" },
-      { label: "Pendentes", value: totalTasks - completedTasks, color: "#ef4444" }
+      {
+        label: "Pendentes",
+        value: totalTasks - completedTasks,
+        color: "#ef4444",
+      },
     ];
-    
+
     const monthlyData: Record<string, number> = {};
-    
+
     if (data.items[0]?.created_at) {
-      data.items.forEach(task => {
+      data.items.forEach((task) => {
         if (task.created_at) {
-          const month = new Date(task.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+          const month = new Date(task.created_at).toLocaleDateString("pt-BR", {
+            month: "long",
+            year: "numeric",
+          });
           monthlyData[month] = (monthlyData[month] || 0) + 1;
         }
       });
     }
-    
+
     const priorityChartData = {
       labels: Object.keys(priorityCounts),
-      datasets: [{
-        data: Object.values(priorityCounts),
-        backgroundColor: Object.keys(priorityCounts).map(label => {
-          const priorityNumber = Object.entries(priorityLabels).find(([_, pLabel]) => pLabel === label)?.[0];
-          return priorityNumber ? priorityColors[parseInt(priorityNumber, 10)] : '#777';
-        }),
-        borderWidth: 0
-      }]
+      datasets: [
+        {
+          data: Object.values(priorityCounts),
+          backgroundColor: Object.keys(priorityCounts).map((label) => {
+            const priorityNumber = Object.entries(priorityLabels).find(
+              ([_, pLabel]) => pLabel === label
+            )?.[0];
+            return priorityNumber
+              ? priorityColors[parseInt(priorityNumber, 10)]
+              : "#777";
+          }),
+          borderWidth: 0,
+        },
+      ],
     };
-    
+
     const sortedProjects = Object.entries(projectsCount)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10);
-    
+
     const projectChartData = {
       labels: sortedProjects.map(([project]) => project),
-      datasets: [{
-        label: 'Número de Tarefas',
-        data: sortedProjects.map(([_, count]) => count),
-        backgroundColor: '#3b82f6',
-        borderWidth: 0,
-        borderRadius: 4
-      }]
+      datasets: [
+        {
+          label: "Número de Tarefas",
+          data: sortedProjects.map(([_, count]) => count),
+          backgroundColor: "#3b82f6",
+          borderWidth: 0,
+          borderRadius: 4,
+        },
+      ],
     };
-    
-    const sortedMonthlyEntries = Object.entries(monthlyData)
-      .sort((a, b) => {
-        const [monthA, yearA] = a[0].split('/').map(Number);
-        const [monthB, yearB] = b[0].split('/').map(Number);
-        
-        if (yearA !== yearB) return yearA - yearB;
-        return monthA - monthB;
-      });
-    
+
+    const sortedMonthlyEntries = Object.entries(monthlyData).sort((a, b) => {
+      const [monthA, yearA] = a[0].split("/").map(Number);
+      const [monthB, yearB] = b[0].split("/").map(Number);
+
+      if (yearA !== yearB) return yearA - yearB;
+      return monthA - monthB;
+    });
+
     const timelineChartData = {
       labels: sortedMonthlyEntries.map(([date]) => date),
-      datasets: [{
-        label: 'Tarefas Criadas',
-        data: sortedMonthlyEntries.map(([_, count]) => count),
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        tension: 0.4,
-        fill: true
-      }]
+      datasets: [
+        {
+          label: "Tarefas Criadas",
+          data: sortedMonthlyEntries.map(([_, count]) => count),
+          borderColor: "#3b82f6",
+          backgroundColor: "rgba(59, 130, 246, 0.2)",
+          tension: 0.4,
+          fill: true,
+        },
+      ],
     };
-    
+
     statsSection = `
       <div class="stats-section">
         <h3>Resumo do Relatório</h3>
@@ -681,7 +795,9 @@ export function generateHTML(data: ReportData): string {
             <span class="stat-value">${Object.keys(projectsCount).length}</span>
             <span class="stat-label">Projetos</span>
           </div>
-          ${tasksWithPoints > 0 ? `
+          ${
+            tasksWithPoints > 0
+              ? `
           <div class="stat-box">
             <span class="stat-value">${totalPoints}</span>
             <span class="stat-label">Total de Pontos</span>
@@ -690,81 +806,112 @@ export function generateHTML(data: ReportData): string {
             <span class="stat-value">${averagePoints}</span>
             <span class="stat-label">Média de Pontos</span>
           </div>
-          ` : ''}
-          ${tasksWithTime > 0 ? `
+          `
+              : ""
+          }
+          ${
+            tasksWithTime > 0
+              ? `
           <div class="stat-box">
-            <span class="stat-value">${formatTotalTime(totalEstimatedTime)}</span>
+            <span class="stat-value">${formatTotalTime(
+              totalEstimatedTime
+            )}</span>
             <span class="stat-label">Tempo Total Estimado</span>
           </div>
           <div class="stat-box">
-            <span class="stat-value">${formatTotalTime(averageEstimatedTime)}</span>
+            <span class="stat-value">${formatTotalTime(
+              averageEstimatedTime
+            )}</span>
             <span class="stat-label">Tempo Médio por Tarefa</span>
           </div>
-          ` : ''}
+          `
+              : ""
+          }
         </div>
         
         <div class="stats-detail">
           <div class="stats-priorities">
             <h4>Distribuição por Prioridade</h4>
             <ul class="stats-list">
-              ${Object.entries(priorityCounts).map(([priority, count]) => {
-                const priorityNumber = Object.entries(priorityLabels).find(([_, label]) => label === priority)?.[0];
-                const color = priorityNumber ? priorityColors[parseInt(priorityNumber, 10)] : '#777';
-                
-                return `
+              ${Object.entries(priorityCounts)
+                .map(([priority, count]) => {
+                  const priorityNumber = Object.entries(priorityLabels).find(
+                    ([_, label]) => label === priority
+                  )?.[0];
+                  const color = priorityNumber
+                    ? priorityColors[parseInt(priorityNumber, 10)]
+                    : "#777";
+
+                  return `
                   <li>
                     <span class="color-dot" style="background-color: ${color}"></span>
                     <span>${priority}: ${count}</span>
                   </li>
                 `;
-              }).join('')}
+                })
+                .join("")}
             </ul>
           </div>
           
-          ${Object.keys(projectsCount).length > 0 ? `
+          ${
+            Object.keys(projectsCount).length > 0
+              ? `
             <div class="stats-projects">
               <h4>Principais Projetos</h4>
               <ul class="stats-list">
                 ${Object.entries(projectsCount)
                   .sort((a, b) => b[1] - a[1])
                   .slice(0, 5)
-                  .map(([project, count]) => `
+                  .map(
+                    ([project, count]) => `
                     <li>
-                      <span>${escapeHtml(project)}: ${count} tarefa${count > 1 ? 's' : ''}</span>
+                      <span>${escapeHtml(project)}: ${count} tarefa${
+                      count > 1 ? "s" : ""
+                    }</span>
                     </li>
-                  `).join('')}
+                  `
+                  )
+                  .join("")}
               </ul>
             </div>
-          ` : ''}
+          `
+              : ""
+          }
           
-          ${Object.keys(pointsCounts).length > 0 ? `
+          ${
+            Object.keys(pointsCounts).length > 0
+              ? `
             <div class="stats-points">
               <h4>Distribuição por Pontos</h4>
               <ul class="stats-list">
-                ${Object.entries(pointsCounts).map(([points, count]) => {
-                  const pointsColors: Record<string, string> = {
-                    "Muito Fácil (1)": "#16a34a",
-                    "Fácil (2)": "#3b82f6", 
-                    "Médio (3)": "#facc15",
-                    "Difícil (4)": "#f97316",
-                    "Muito Difícil (5)": "#ef4444"
-                  };
-                  const color = pointsColors[points] || '#777';
-                  
-                  return `
+                ${Object.entries(pointsCounts)
+                  .map(([points, count]) => {
+                    const pointsColors: Record<string, string> = {
+                      "Muito Fácil (1)": "#16a34a",
+                      "Fácil (2)": "#3b82f6",
+                      "Médio (3)": "#facc15",
+                      "Difícil (4)": "#f97316",
+                      "Muito Difícil (5)": "#ef4444",
+                    };
+                    const color = pointsColors[points] || "#777";
+
+                    return `
                     <li>
                       <span class="color-dot" style="background-color: ${color}"></span>
                       <span>${points}: ${count}</span>
                     </li>
                   `;
-                }).join('')}
+                  })
+                  .join("")}
               </ul>
             </div>
-          ` : ''}
+          `
+              : ""
+          }
         </div>
       </div>
     `;
-    
+
     chartsSection = `
       <div class="charts-section">
         <h3>Visualização Gráfica</h3>
@@ -784,32 +931,44 @@ export function generateHTML(data: ReportData): string {
             </div>
           </div>
           
-          ${Object.keys(pointsCounts).length > 0 ? `
+          ${
+            Object.keys(pointsCounts).length > 0
+              ? `
           <div class="chart-container">
             <h4>Distribuição por Pontos</h4>
             <div class="chart-wrapper">
               <canvas id="pointsChart"></canvas>
             </div>
           </div>
-          ` : ''}
+          `
+              : ""
+          }
           
-          ${Object.keys(projectsCount).length > 3 ? `
+          ${
+            Object.keys(projectsCount).length > 3
+              ? `
             <div class="chart-container chart-full-width">
               <h4>Tarefas por Projeto</h4>
               <div class="chart-wrapper">
                 <canvas id="projectChart"></canvas>
               </div>
             </div>
-          ` : ''}
+          `
+              : ""
+          }
           
-          ${Object.keys(monthlyData).length > 1 ? `
+          ${
+            Object.keys(monthlyData).length > 1
+              ? `
             <div class="chart-container chart-full-width">
               <h4>Linha do Tempo de Tarefas</h4>
               <div class="chart-wrapper">
                 <canvas id="timelineChart"></canvas>
               </div>
             </div>
-          ` : ''}
+          `
+              : ""
+          }
         </div>
       </div>
       
@@ -855,10 +1014,12 @@ export function generateHTML(data: ReportData): string {
             {
               type: 'pie',
               data: {
-                labels: ${JSON.stringify(statusData.map(item => item.label))},
+                labels: ${JSON.stringify(statusData.map((item) => item.label))},
                 datasets: [{
-                  data: ${JSON.stringify(statusData.map(item => item.value))},
-                  backgroundColor: ${JSON.stringify(statusData.map(item => item.color))},
+                  data: ${JSON.stringify(statusData.map((item) => item.value))},
+                  backgroundColor: ${JSON.stringify(
+                    statusData.map((item) => item.color)
+                  )},
                   borderWidth: 0
                 }]
               },
@@ -881,7 +1042,9 @@ export function generateHTML(data: ReportData): string {
             }
           );
           
-          ${Object.keys(pointsCounts).length > 0 ? `
+          ${
+            Object.keys(pointsCounts).length > 0
+              ? `
           new Chart(
             document.getElementById('pointsChart'),
             {
@@ -890,16 +1053,18 @@ export function generateHTML(data: ReportData): string {
                 labels: ${JSON.stringify(Object.keys(pointsCounts))},
                 datasets: [{
                   data: ${JSON.stringify(Object.values(pointsCounts))},
-                  backgroundColor: ${JSON.stringify(Object.keys(pointsCounts).map(points => {
-                    const pointsColors: Record<string, string> = {
-                      "Muito Fácil (1)": "#16a34a",
-                      "Fácil (2)": "#3b82f6", 
-                      "Médio (3)": "#facc15",
-                      "Difícil (4)": "#f97316",
-                      "Muito Difícil (5)": "#ef4444"
-                    };
-                    return pointsColors[points] || '#777';
-                  }))},
+                  backgroundColor: ${JSON.stringify(
+                    Object.keys(pointsCounts).map((points) => {
+                      const pointsColors: Record<string, string> = {
+                        "Muito Fácil (1)": "#16a34a",
+                        "Fácil (2)": "#3b82f6",
+                        "Médio (3)": "#facc15",
+                        "Difícil (4)": "#f97316",
+                        "Muito Difícil (5)": "#ef4444",
+                      };
+                      return pointsColors[points] || "#777";
+                    })
+                  )},
                   borderWidth: 0
                 }]
               },
@@ -928,9 +1093,13 @@ export function generateHTML(data: ReportData): string {
               }
             }
           );
-          ` : ''}
+          `
+              : ""
+          }
           
-          ${Object.keys(projectsCount).length > 3 ? `
+          ${
+            Object.keys(projectsCount).length > 3
+              ? `
             new Chart(
               document.getElementById('projectChart'),
               {
@@ -963,9 +1132,13 @@ export function generateHTML(data: ReportData): string {
                 }
               }
             );
-          ` : ''}
+          `
+              : ""
+          }
           
-          ${Object.keys(monthlyData).length > 1 ? `
+          ${
+            Object.keys(monthlyData).length > 1
+              ? `
             new Chart(
               document.getElementById('timelineChart'),
               {
@@ -998,54 +1171,70 @@ export function generateHTML(data: ReportData): string {
                 }
               }
             );
-          ` : ''}
+          `
+              : ""
+          }
         });
       </script>
     `;
   }
-  
-  let filtersSection = '';
+
+  let filtersSection = "";
   if (data.filters) {
     let filtersList = [];
-    
+
     if (data.filters.projectIds && data.filters.projectIds.length > 0) {
-      const projectNames = data.filters.projectIds.map(id => {
-        const project = data.items.find(item => item.project_name && item.id.toString() === id);
-        return project ? project.project_name : id;
-      }).join(', ');
-      
-      filtersList.push(`<strong>Projetos:</strong> ${escapeHtml(projectNames)}`);
+      const projectNames = data.filters.projectIds
+        .map((id) => {
+          const project = data.items.find(
+            (item) => item.project_name && item.id.toString() === id
+          );
+          return project ? project.project_name : id;
+        })
+        .join(", ");
+
+      filtersList.push(
+        `<strong>Projetos:</strong> ${escapeHtml(projectNames)}`
+      );
     }
-    
+
     if (data.filters.labelIds && data.filters.labelIds.length > 0) {
-      const labelNames = data.filters.labelIds.map(id => {
-        const item = data.items.find(item => 
-          item.labels && item.labels.some((label: any) => label.id.toString() === id)
-        );
-        const label = item?.labels?.find((l: any) => l.id.toString() === id);
-        return label ? label.name : id;
-      }).join(', ');
-      
+      const labelNames = data.filters.labelIds
+        .map((id) => {
+          const item = data.items.find(
+            (item) =>
+              item.labels &&
+              item.labels.some((label: any) => label.id.toString() === id)
+          );
+          const label = item?.labels?.find((l: any) => l.id.toString() === id);
+          return label ? label.name : id;
+        })
+        .join(", ");
+
       filtersList.push(`<strong>Etiquetas:</strong> ${escapeHtml(labelNames)}`);
     }
-    
+
     if (data.filters.priorities && data.filters.priorities.length > 0) {
-      const priorityNames = data.filters.priorities.map(p => priorityLabels[parseInt(p)] || p).join(', ');
-      filtersList.push(`<strong>Prioridades:</strong> ${escapeHtml(priorityNames)}`);
+      const priorityNames = data.filters.priorities
+        .map((p) => priorityLabels[parseInt(p)] || p)
+        .join(", ");
+      filtersList.push(
+        `<strong>Prioridades:</strong> ${escapeHtml(priorityNames)}`
+      );
     }
-    
+
     if (filtersList.length > 0) {
       filtersSection = `
         <div class="filters-section">
           <h3>Filtros Aplicados</h3>
           <ul>
-            ${filtersList.map(filter => `<li>${filter}</li>`).join('')}
+            ${filtersList.map((filter) => `<li>${filter}</li>`).join("")}
           </ul>
         </div>
       `;
     }
   }
-  
+
   const signatureSection = `
     <div class="signature-section">
       <div class="signature-line">
@@ -1054,17 +1243,17 @@ export function generateHTML(data: ReportData): string {
       </div>
     </div>
   `;
-  
+
   const formatDate = (dateString: string) => {
     try {
-      const [year, month, day] = dateString.split('-');
+      const [year, month, day] = dateString.split("-");
       return `${day}/${month}/${year}`;
     } catch (error) {
       console.error("Erro ao formatar data:", error);
       return dateString;
     }
   };
-  
+
   return `
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -1493,8 +1682,12 @@ export function generateHTML(data: ReportData): string {
         <div class="header">
           <h1>${data.title}</h1>
           <div class="info">
-            <p><strong>Período:</strong> ${formatDate(data.period.start)} a ${formatDate(data.period.end)}</p>
-            <p><strong>Gerado em:</strong> ${new Date(data.generatedAt).toLocaleString('pt-BR')}</p>
+            <p><strong>Período:</strong> ${formatDate(
+              data.period.start
+            )} a ${formatDate(data.period.end)}</p>
+            <p><strong>Gerado em:</strong> ${new Date(
+              data.generatedAt
+            ).toLocaleString("pt-BR")}</p>
           </div>
         </div>
         
@@ -1592,7 +1785,7 @@ export function generateHTML(data: ReportData): string {
 }
 
 export function escapeHtml(text: string): string {
-  if (!text) return '';
+  if (!text) return "";
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -1602,31 +1795,35 @@ export function escapeHtml(text: string): string {
 }
 
 export function generateFileName(type: string, format: string): string {
-  const date = new Date().toISOString().split('T')[0];
+  const date = new Date().toISOString().split("T")[0];
   const reportName = type.charAt(0).toUpperCase() + type.slice(1);
-  let extension = 'html';
-  
-  if (format === 'excel') {
-    extension = 'csv';
+  let extension = "html";
+
+  if (format === "excel") {
+    extension = "csv";
   }
-  
+
   return `Relatorio_${reportName}_${date}.${extension}`;
 }
 
-export function triggerDownload(content: string, fileName: string, mimeType: string): void {
+export function triggerDownload(
+  content: string,
+  fileName: string,
+  mimeType: string
+): void {
   const blob = new Blob([content], { type: mimeType });
-  
+
   const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
+
+  const link = document.createElement("a");
   link.href = url;
   link.download = fileName;
-  
+
   document.body.appendChild(link);
   link.click();
-  
+
   setTimeout(() => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   }, 100);
-} 
+}

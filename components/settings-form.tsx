@@ -87,6 +87,9 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   const [playlistUrl, setPlaylistUrl] = useState(
     settings.spotify_playlist_url || "",
   );
+  const [githubToken, setGithubToken] = useState("")
+  const [jiraToken, setJiraToken] = useState("")
+  const [asanaToken, setAsanaToken] = useState("")
 
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") || "general";
@@ -421,6 +424,12 @@ export function SettingsForm({ settings }: SettingsFormProps) {
             className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
           >
             Flip Clock
+          </TabsTrigger>
+          <TabsTrigger
+            value="integrations"
+            className="text-sm font-medium px-4 py-3 min-w-[80px] flex-shrink-0 border-0 rounded-none text-white cursor-pointer hover:opacity-90 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent"
+          >
+            Integrações
           </TabsTrigger>
         </TabsList>
 
@@ -1559,6 +1568,69 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                         </svg>
                       </span>
                     )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="integrations">
+              <Card className="overflow-hidden">
+                <CardHeader className="px-4 sm:px-6">
+                  <CardTitle>Integrações</CardTitle>
+                  <CardDescription>Configure tokens pessoais para GitHub, Jira e Asana</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 px-4 sm:px-6">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <FormItem>
+                      <FormLabel>GitHub Personal Access Token</FormLabel>
+                      <FormControl>
+                        <Input type="password" value={githubToken} onChange={(e) => setGithubToken(e.target.value)} placeholder="ghp_..." />
+                      </FormControl>
+                      <FormDescription>Escopos mínimos para issues e PRs.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                    <FormItem>
+                      <FormLabel>Jira API Token</FormLabel>
+                      <FormControl>
+                        <Input type="password" value={jiraToken} onChange={(e) => setJiraToken(e.target.value)} placeholder="token Atlassian" />
+                      </FormControl>
+                      <FormDescription>Usado com seu email Atlassian.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                    <FormItem>
+                      <FormLabel>Asana Personal Access Token</FormLabel>
+                      <FormControl>
+                        <Input type="password" value={asanaToken} onChange={(e) => setAsanaToken(e.target.value)} placeholder="1/123:..." />
+                      </FormControl>
+                      <FormDescription>Para importar tarefas.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  </div>
+                </CardContent>
+                <CardFooter className="px-4 sm:px-6 flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    disabled={isLoading}
+                    className="relative w-full sm:w-auto"
+                    onClick={async () => {
+                      try {
+                        setIsLoading(true)
+                        const res = await fetch("/api/integrations/tokens", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          credentials: "include",
+                          body: JSON.stringify({ githubToken, jiraToken, asanaToken }),
+                        })
+                        if (!res.ok) throw new Error("Falha ao salvar tokens")
+                        toast({ title: "Integrações", description: "Tokens salvos com sucesso.", variant: "success", duration: 4000 })
+                      } catch (e) {
+                        toast({ title: "Erro", description: "Não foi possível salvar.", variant: "destructive" })
+                      } finally {
+                        setIsLoading(false)
+                      }
+                    }}
+                  >
+                    {isLoading ? "Salvando..." : "Salvar Tokens"}
                   </Button>
                 </CardFooter>
               </Card>

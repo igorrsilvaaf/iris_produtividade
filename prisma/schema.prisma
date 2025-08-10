@@ -134,6 +134,7 @@ model todos {
   attachments    Json?           @default("[]")
   estimated_time Int?
   kanban_order   Int?
+  external_links Json?
   comments       task_comments[] @relation("TaskComments")
   todo_labels    todo_labels[]
   todo_projects  todo_projects[]
@@ -209,6 +210,19 @@ model users {
   todos                   todos[]
   user_settings           user_settings?
   snippets                snippets[]
+  integrations            user_integrations?
+}
+
+model user_integrations {
+  id          Int      @id @default(autoincrement())
+  user_id     Int      @unique
+  github_pat  String?
+  jira_token  String?
+  jira_domain String?
+  asana_pat   String?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+  users       users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model attachments {
