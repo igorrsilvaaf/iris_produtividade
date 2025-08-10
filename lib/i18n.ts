@@ -560,6 +560,50 @@ export const translations: Translations = {
     en: "Notifications",
     pt: "Notificações",
   },
+  integrations: {
+    en: "Integrations",
+    pt: "Integrações",
+  },
+  validateGithub: {
+    en: "Validate GitHub",
+    pt: "Validar GitHub",
+  },
+  validateJira: {
+    en: "Validate Jira",
+    pt: "Validar Jira",
+  },
+  validateAsana: {
+    en: "Validate Asana",
+    pt: "Validar Asana",
+  },
+  jiraDomain: {
+    en: "Jira Domain",
+    pt: "Domínio do Jira",
+  },
+  jiraEmail: {
+    en: "Jira Email",
+    pt: "Email do Jira",
+  },
+  configured: {
+    en: "Connected",
+    pt: "Conectado",
+  },
+  notConfigured: {
+    en: "Not configured",
+    pt: "Não configurado",
+  },
+  validationFailed: {
+    en: "Validation failed",
+    pt: "Falha na validação",
+  },
+  provideEmail: {
+    en: "Provide your email",
+    pt: "Informe seu email",
+  },
+  statusLabel: {
+    en: "Status",
+    pt: "Status",
+  },
   markAllAsRead: {
     en: "Mark all as read",
     pt: "Marcar todas como lidas",

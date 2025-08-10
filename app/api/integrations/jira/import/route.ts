@@ -8,12 +8,9 @@ export async function POST(request: Request) {
     if (!session || !session.user?.id) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
-    const { jql, domain } = await request.json();
-    if (!jql || !domain)
-      return NextResponse.json(
-        { error: "jql e domain obrigatórios" },
-        { status: 400 }
-      );
+    const { jql, domain, email } = await request.json();
+    if (!jql)
+      return NextResponse.json({ error: "jql é obrigatório" }, { status: 400 });
     const integ = await prisma.user_integrations.findUnique({
       where: { user_id: session.user.id },
     });
@@ -22,11 +19,23 @@ export async function POST(request: Request) {
         { error: "Token Jira não configurado" },
         { status: 400 }
       );
-    const url = `https://${domain}/rest/api/3/search`;
+    const jiraDomain = (domain || integ?.jira_domain || "").trim();
+    if (!jiraDomain)
+      return NextResponse.json(
+        { error: "domain obrigatório (ex.: suaorg.atlassian.net)" },
+        { status: 400 }
+      );
+    const authEmail = (email || "").trim();
+    if (!authEmail)
+      return NextResponse.json(
+        { error: "email obrigatório para autenticação no Jira" },
+        { status: 400 }
+      );
+    const url = `https://${jiraDomain}/rest/api/3/search`;
     const resp = await fetch(url, {
       method: "POST",
       headers: {
-        Authorization: `Basic ${btoa(`email:${integ.jira_token}`)}`,
+        Authorization: `Basic ${btoa(`${authEmail}:${integ.jira_token}`)}`,
         Accept: "application/json",
         "Content-Type": "application/json",
       },
