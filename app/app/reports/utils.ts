@@ -5,6 +5,7 @@ import type { Project } from "@/lib/projects";
 interface Todo extends BaseTodo {
   labels?: Label[];
   project_id?: number;
+  pomodoro_minutes?: number;
 }
 
 export interface ReportFilters {
@@ -192,6 +193,7 @@ export function generateCSV(data: ReportData): string {
     kanban_column: "Coluna Kanban",
     points: "Pontos",
     estimated_time: "Tempo Estimado",
+    pomodoro_minutes: "Tempo Gasto (Pomodoro)",
     created_at: "Data de Criação",
     updated_at: "Última Atualização",
   };
@@ -311,6 +313,8 @@ export function generateCSV(data: ReportData): string {
     if (includeAll || customColumns.includes("estimated_time"))
       row.push(estimatedTime);
     if (includeAll || customColumns.includes("created_at")) row.push(createdAt);
+    if (includeAll || customColumns.includes("pomodoro_minutes"))
+      row.push(String(task.pomodoro_minutes || 0));
     if (includeAll || customColumns.includes("updated_at")) row.push(updatedAt);
 
     csv += row.join(",") + "\n";

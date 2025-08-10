@@ -50,6 +50,15 @@ export function PomodoroTimer({
 
   const handleTimerComplete = React.useCallback(() => {
     try {
+      if (typeof window !== 'undefined') {
+        const w = window as unknown as { __pomodoroInCompletion?: boolean; __pomodoroInCompletionMs?: number }
+        const now = Date.now()
+        if (w.__pomodoroInCompletion && w.__pomodoroInCompletionMs && now - w.__pomodoroInCompletionMs < 2000) {
+          return
+        }
+        w.__pomodoroInCompletion = true
+        w.__pomodoroInCompletionMs = now
+      }
       if (storeSettings.enableSound) {
         playSound(storeSettings.pomodoroSound)
       }
@@ -71,7 +80,6 @@ export function PomodoroTimer({
         setTimeout(() => notification.close(), 5000)
       }
 
-      // Registra qualquer tipo de sessão completa (work, shortBreak ou longBreak)
       trySendOrQueue({
         taskId: selectedTaskId || undefined,
         duration:
@@ -81,81 +89,45 @@ export function PomodoroTimer({
             ? storeSettings.shortBreakMinutes
             : storeSettings.longBreakMinutes,
         mode,
+        createdAt: Date.now(),
       })
         .then(() => {
-
-          
-          // Disparar um evento personalizado para notificar outros componentes
           if (typeof window !== 'undefined') {
             try {
               const event = new CustomEvent('pomodoroCompleted', { 
                 detail: { taskId: selectedTaskId, timestamp: Date.now() }
               });
               window.dispatchEvent(event);
-
             } catch (error) {
               console.error("[Pomodoro Mobile Debug] Erro ao disparar evento:", error);
             }
           }
-          
-          // Tentar forçar uma atualização de rota para atualizar o histórico
-          if (typeof window !== 'undefined') {
-            // Atualiza a URL atual com um timestamp para forçar a recarga dos dados
-            try {
-              const currentPath = window.location.pathname;
-
-              if (currentPath.includes('/app/pomodoro')) {
-                // Somente se estiver na página do pomodoro
-
-                router.refresh();
-              }
-            } catch (error) {
-              console.error("[Pomodoro Mobile Debug] Erro ao atualizar rota:", error);
-            }
-          }
-          
-          // Continuar com a atualização do próximo modo após confirmar que o log foi salvo
+          // Removido refresh de rota para evitar reload da página
           continueWithModeUpdate();
         })
         .catch(() => {
           continueWithModeUpdate()
         })
 
-      // Função para atualizar o modo após o registro
       const continueWithModeUpdate = () => {
-        let nextMode: TimerMode;
-        let newInternalCycle = cycles;
-        
-        // Usar o longBreakInterval das configurações (pomodoro_cycles)
-        const longBreakInterval = storeSettings.longBreakInterval || 4;
-  
-
+        let nextMode: TimerMode
+        let newInternalCycle = cycles
+        const longBreakInterval = Math.max(1, Number(storeSettings.longBreakInterval) || 4)
         if (mode === "work") {
-          // Verificar se completamos o número de ciclos de trabalho definido antes da pausa longa
-          const isLongBreakDue = (cycles + 1) % longBreakInterval === 0;
-          
+          const isLongBreakDue = (cycles + 1) % longBreakInterval === 0
           if (isLongBreakDue) {
-            // É hora de uma pausa longa
-
-            nextMode = "longBreak";
+            nextMode = "longBreak"
           } else {
-            // Ainda não é hora de pausa longa, então é pausa curta
-
-            nextMode = "shortBreak";
+            nextMode = "shortBreak"
           }
-          
-          // Incrementa o ciclo após o trabalho
-          newInternalCycle = cycles + 1;
+          newInternalCycle = cycles + 1
         } else {
-          // Após qualquer tipo de pausa, voltamos ao trabalho (sem incrementar o ciclo)
-          nextMode = "work";
+          nextMode = "work"
         }
-
-  
-        setCycles(newInternalCycle);
-        setStoreMode(nextMode);
-        setIsRunning(false);
-      };
+        setCycles(newInternalCycle)
+        setStoreMode(nextMode)
+        setIsRunning(false)
+      }
     } catch (error) {
       console.error("Error in handleTimerComplete:", error)
       setIsRunning(false)
@@ -203,23 +175,34 @@ export function PomodoroTimer({
   }, [selectedTaskId])
 
   useEffect(() => {
-    if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft(timeLeft - 1)
-        if (timeLeft <= 1) {
-          handleTimerComplete()
-        }
-      }, 1000)
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current)
+    if (!isRunning) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      return
     }
-
+    intervalRef.current = setInterval(() => {
+      const state = usePomodoroStore.getState()
+      const current = state.timeLeft
+      if (current <= 1) {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current)
+          intervalRef.current = null
+        }
+        setTimeLeft(0)
+        handleTimerComplete()
+        return
+      }
+      setTimeLeft(current - 1)
+    }, 1000)
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
+        intervalRef.current = null
       }
     }
-  }, [isRunning, timeLeft, setTimeLeft, handleTimerComplete])
+  }, [isRunning, setTimeLeft, handleTimerComplete])
 
   useEffect(() => {
     const originalTitle = document.title
@@ -295,6 +278,9 @@ export function PomodoroTimer({
 
   const tabsTriggerBaseClass = "px-2 py-1.5 text-xs sm:text-sm"
   const activeBorderClass = "border-b-2"
+  const computedLongBreakInterval = Math.max(1, Number(storeSettings.longBreakInterval) || 4)
+  const completedInInterval = cycles % computedLongBreakInterval
+  const currentCycleStage = mode === "work" ? (completedInInterval === 0 ? 1 : completedInInterval + 1) : (completedInInterval === 0 ? computedLongBreakInterval : completedInInterval)
 
   return (
     <Card className={fullScreen ? "h-full border-0 shadow-none rounded-none flex flex-col bg-transparent" : ""} data-testid="pomodoro-timer">
@@ -374,7 +360,7 @@ export function PomodoroTimer({
           </div>
 
           <div className={`text-xs sm:text-sm text-muted-foreground ${fullScreen ? 'mt-2' : 'mt-6'}`} data-testid="pomodoro-cycle-info">
-            {t("cycleStage")}: {mode === "work" ? (cycles % (storeSettings.longBreakInterval || 4)) + 1 : cycles % (storeSettings.longBreakInterval || 4)}/{storeSettings.longBreakInterval || 4} 
+            {t("cycleStage")}: {currentCycleStage}/{computedLongBreakInterval}
           </div>
         </div>
       </CardContent>

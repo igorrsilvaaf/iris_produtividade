@@ -98,37 +98,27 @@ export function PomodoroHistory({ taskId = null, className = "", hideWhenEmpty =
   }, [taskId])
 
   useEffect(() => {
-    const handlePomodoroCompleted = (event: Event) => {
-
-      
-      try {
-        // Garantir que o evento pomodoroCompleted seja processado corretamente
-        const pomodoroEvent = event as CustomEvent;
-        
-        // Tentar atualizar o histórico mesmo que não tenhamos detalhes específicos
-        const currentTaskId = taskId;
-
-        
-        setTimeout(() => {
-
-          if (currentTaskId) {
-            fetchSessions(1);
-          }
-        }, 500);
-      } catch (error) {
-        console.error("[Pomodoro History Debug] Erro ao processar evento pomodoroCompleted:", error);
+    let debounceTimer: number | null = null
+    const handlePomodoroCompleted = () => {
+      if (debounceTimer) {
+        window.clearTimeout(debounceTimer)
       }
-    };
-    
-    if (typeof window !== 'undefined') {
-
-      window.addEventListener('pomodoroCompleted', handlePomodoroCompleted);
-      return () => {
-
-        window.removeEventListener('pomodoroCompleted', handlePomodoroCompleted);
-      };
+      debounceTimer = window.setTimeout(() => {
+        if (taskId) {
+          fetchSessions(1)
+        }
+      }, 300)
     }
-  }, [taskId]);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pomodoroCompleted', handlePomodoroCompleted)
+      return () => {
+        if (debounceTimer) {
+          window.clearTimeout(debounceTimer)
+        }
+        window.removeEventListener('pomodoroCompleted', handlePomodoroCompleted)
+      }
+    }
+  }, [taskId])
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= pagination.totalPages) {

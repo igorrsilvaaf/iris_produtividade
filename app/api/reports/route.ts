@@ -147,6 +147,37 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    try {
+      const taskIds = tasks
+        .map((t: any) => t.id)
+        .filter((id: any) => typeof id === "number");
+      if (taskIds.length > 0) {
+        const sums = await prisma.pomodoroLog.groupBy({
+          by: ["taskId"],
+          where: {
+            userId: String(session.user.id),
+            mode: "work",
+            taskId: { in: taskIds },
+            completedAt: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          },
+          _sum: { duration: true },
+        });
+        const map = new Map<number, number>();
+        for (const row of sums) {
+          if (row.taskId != null) {
+            map.set(Number(row.taskId), Number(row._sum.duration || 0));
+          }
+        }
+        tasks = tasks.map((t: any) => ({
+          ...t,
+          pomodoro_minutes: map.get(t.id) || 0,
+        }));
+      }
+    } catch {}
+
     return NextResponse.json({
       tasks,
       filters: {

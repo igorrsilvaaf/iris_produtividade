@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         projects p ON tp.project_id = p.id 
       WHERE 
         t.user_id = $1
-        AND (t.due_date IS NULL OR (t.due_date >= $2 AND t.due_date <= $3))
+        AND (t.due_date IS NULL OR (t.due_date::date >= $2::date AND t.due_date::date <= $3::date))
         AND tp.project_id IN (
       `;
 
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         projects p ON tp.project_id = p.id
       WHERE 
         t.user_id = $1
-        AND (t.due_date IS NULL OR (t.due_date >= $2 AND t.due_date <= $3))
+        AND (t.due_date IS NULL OR (t.due_date::date >= $2::date AND t.due_date::date <= $3::date))
       `;
     }
 
@@ -284,6 +284,37 @@ export async function POST(request: NextRequest) {
 
         return sanitizedTask;
       });
+
+      try {
+        const taskIds = sanitizedTasks
+          .map((t) => t.id)
+          .filter((id) => typeof id === "number");
+        if (taskIds.length > 0) {
+          const sumsQuery = `
+            SELECT "taskId" as task_id, COALESCE(SUM(duration),0) as minutes
+            FROM "pomodoroLog"
+            WHERE "userId" = $1 AND mode = 'work' AND "taskId" = ANY($2)
+              AND "completedAt"::date >= $3::date AND "completedAt"::date <= $4::date
+            GROUP BY "taskId"
+          `;
+          const sums = await sql.query(sumsQuery, [
+            String(session.user.id),
+            taskIds,
+            startDate,
+            endDate,
+          ]);
+          const map: Record<number, number> = {};
+          if (Array.isArray(sums)) {
+            sums.forEach((r: any) => {
+              if (r && r.task_id != null)
+                map[Number(r.task_id)] = Number(r.minutes || 0);
+            });
+          }
+          sanitizedTasks.forEach((t) => {
+            (t as any).pomodoro_minutes = map[t.id] || 0;
+          });
+        }
+      } catch {}
 
       // Processar e sanitizar os dados antes de enviá-los para o gerador de PDF
       // Agora incluir os dados do relatório completo
