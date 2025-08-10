@@ -54,6 +54,30 @@ function formatPathForApiRoute(fullPath: string, rootApiDir: string) {
   return "/api/" + mapped;
 }
 
+function mapRouteToFriendlyName(routePath: string) {
+  const lower = routePath.toLowerCase();
+  if (lower === "/app" || lower === "/app/") return "Início";
+  if (lower.includes("/app/inbox")) return "Caixa de Entrada";
+  if (lower.includes("/app/today")) return "Hoje";
+  if (lower.includes("/app/upcoming")) return "Próximos";
+  if (lower.includes("/app/completed")) return "Concluídos";
+  if (lower.includes("/app/kanban")) return "Kanban";
+  if (lower.includes("/app/calendar")) return "Calendário";
+  if (lower.includes("/app/labels/")) return "Etiqueta";
+  if (lower.includes("/app/labels")) return "Etiquetas";
+  if (lower.includes("/app/projects/")) return "Projeto";
+  if (lower.includes("/app/projects")) return "Projetos";
+  if (lower.includes("/app/notifications")) return "Notificações";
+  if (lower.includes("/app/reports")) return "Relatórios";
+  if (lower.includes("/app/profile")) return "Perfil";
+  if (lower.includes("/app/settings")) return "Configurações";
+  if (lower.includes("/app/pomodoro")) return "Pomodoro";
+  if (lower.includes("/app/snippets")) return "Snippets";
+  if (lower.includes("/app/storage")) return "Armazenamento";
+  if (lower.includes("/app/roadmap")) return "Roadmap";
+  return routePath;
+}
+
 async function detectHttpMethods(filePath: string) {
   try {
     const content = await fs.readFile(filePath, "utf8");
@@ -85,6 +109,7 @@ async function buildProjectContext() {
     path.join(cwd, "public", "swagger.yaml")
   );
   const i18nFile = await readTextFileIfExists(path.join(cwd, "lib", "i18n.ts"));
+  const testsDir = path.join(cwd, "__tests__");
 
   const apiDir = path.join(cwd, "app", "api");
   const appDir = path.join(cwd, "app", "app");
@@ -93,6 +118,7 @@ async function buildProjectContext() {
   let apiRoutes: string[] = [];
   let appPages: string[] = [];
   let libModules: string[] = [];
+  let testTitles: string[] = [];
 
   try {
     const apiFiles = await listFilesRecursive(apiDir);
@@ -125,6 +151,37 @@ async function buildProjectContext() {
       .sort();
   } catch {}
 
+  try {
+    const testFiles = await listFilesRecursive(testsDir);
+    const codeFiles = testFiles.filter((f) =>
+      /\.test\.(ts|tsx|js|jsx)$/.test(f)
+    );
+    const seen = new Set<string>();
+    for (const file of codeFiles.slice(0, 100)) {
+      const content = await readTextFileIfExists(file);
+      const describeRegex = /\bdescribe\(\s*["'`]([^"'`]+)["'`]/g;
+      const itRegex = /\b(it|test)\(\s*["'`]([^"'`]+)["'`]/g;
+      let m: RegExpExecArray | null;
+      while ((m = describeRegex.exec(content))) {
+        const t = m[1].trim();
+        if (t && !seen.has(t)) {
+          seen.add(t);
+          testTitles.push(`Describe: ${t}`);
+        }
+        if (testTitles.length > 400) break;
+      }
+      while ((m = itRegex.exec(content))) {
+        const t = m[2].trim();
+        if (t && !seen.has(t)) {
+          seen.add(t);
+          testTitles.push(`Test: ${t}`);
+        }
+        if (testTitles.length > 800) break;
+      }
+      if (testTitles.length > 800) break;
+    }
+  } catch {}
+
   const readmeTrim = readme.slice(0, 120000);
   const prismaTrim = prismaSchema.slice(0, 60000);
   const swaggerTrim = swagger.slice(0, 40000);
@@ -150,13 +207,24 @@ async function buildProjectContext() {
       if (key && pt && interesting(key) && !seen.has(key)) {
         seen.add(key);
         uiLabels.push(`${key} = ${pt}`);
-        if (uiLabels.length > 200) break;
+        if (uiLabels.length > 350) break;
       }
     }
   } catch {}
   const apiList = apiRoutes.slice(0, 1000).join("\n");
-  const pagesList = appPages.slice(0, 1000).join("\n");
+  const pagesMapped = appPages
+    .slice(0, 1000)
+    .map((p) => {
+      const route = p
+        .replace(/\\/g, "/")
+        .replace(/\/app\/app\//, "/app/")
+        .replace(/\/page\.(tsx|jsx)$/i, "");
+      const friendly = mapRouteToFriendlyName(route);
+      return `${friendly}: ${route}`;
+    })
+    .join("\n");
   const libList = libModules.slice(0, 1000).join("\n");
+  const testsList = testTitles.slice(0, 800).join("\n");
 
   const context = [
     "Projeto: Íris produtividade",
@@ -171,10 +239,12 @@ async function buildProjectContext() {
     swaggerTrim,
     uiLabels.length ? "Rótulos de UI (pt-BR):" : "",
     uiLabels.join("\n"),
-    "Páginas do App:",
-    pagesList,
+    "Telas do App e rotas:",
+    pagesMapped,
     "Módulos Lib:",
     libList,
+    testsList ? "Cenários de testes (resumo):" : "",
+    testsList,
   ].join("\n\n");
 
   cachedProjectContext = context;
@@ -209,45 +279,65 @@ export async function POST(request: NextRequest) {
     }
 
     const projectContext = await buildProjectContext();
-    const contents = [
+    const recent = incoming.slice(-10);
+    const makeContents = (ctx: string) => [
       {
-        role: "user",
+        role: "user" as const,
         parts: [
           {
-            text: "Contexto do projeto Íris. Responda somente com base neste contexto. Use nomes visíveis na interface (botões, menus, páginas) em pt-BR a partir de 'Rótulos de UI', nunca nomes de componentes internos.",
+            text: "Você é a assistente do Íris, em pt-BR. Responda em linguagem natural, clara e direta, usando termos da interface em português. Seja amigável e prática. Quando útil, referencie telas e rotas. Não revele nomes de arquivos ou componentes internos. Se algo não estiver no contexto, diga apenas: 'não está no contexto'.",
           },
-          {
-            text: projectContext,
-          },
-          {
-            text: "Você é a assistente do Íris (pt-BR). Responda de forma objetiva e curta, citando telas, rotas e modelos quando útil. Se faltar contexto, diga 'não está no contexto'.",
-          },
+          { text: "Contexto do projeto:" },
+          { text: ctx },
         ],
       },
-      ...incoming.map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
+      ...recent.map((m) => ({
+        role: m.role === "assistant" ? ("model" as const) : ("user" as const),
         parts: [{ text: m.content }],
       })),
     ];
 
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
-      {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
+    async function callModel(ctx: string) {
+      const r = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents,
+          contents: makeContents(ctx),
           generationConfig: { temperature: 0.6, topP: 0.9 },
         }),
-      }
-    );
+      });
+      return r;
+    }
+
+    let resp = await callModel(projectContext);
 
     if (!resp.ok) {
       const text = await resp.text().catch(() => "");
-      return NextResponse.json(
-        { error: `Upstream error: ${resp.status} ${text || resp.statusText}` },
-        { status: 502 }
-      );
+      const shouldRetry =
+        resp.status === 400 ||
+        resp.status === 413 ||
+        /exceed|too\s*large|max(imum)?\s*(input|content|tokens)|request\s*payload/i.test(
+          text
+        );
+
+      if (shouldRetry) {
+        const reduced = projectContext.slice(0, 20000);
+        resp = await callModel(reduced);
+      }
+
+      if (!resp.ok) {
+        const text2 = await resp.text().catch(() => "");
+        return NextResponse.json(
+          {
+            error: `Upstream error: ${resp.status} ${
+              text2 || text || resp.statusText
+            }`,
+          },
+          { status: 502 }
+        );
+      }
     }
 
     const data = await resp.json();

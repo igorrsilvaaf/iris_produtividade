@@ -76,8 +76,18 @@ export function AIHelpChat() {
         const reply: string = data.reply || ""
         const assistantMessage: ChatMessage = { role: "assistant", content: reply }
         setMessages((prev) => [...prev, assistantMessage])
+      } else if (res.status === 401) {
+        const assistantMessage: ChatMessage = { role: "assistant", content: "Você precisa estar logado para usar a ajuda por IA." }
+        setMessages((prev) => [...prev, assistantMessage])
       } else {
-        const assistantMessage: ChatMessage = { role: "assistant", content: "Não foi possível obter uma resposta agora." }
+        let errorText = "Não foi possível obter uma resposta agora."
+        try {
+          const err = await res.json()
+          if (typeof err?.error === "string" && err.error.trim().length > 0) {
+            errorText = err.error
+          }
+        } catch {}
+        const assistantMessage: ChatMessage = { role: "assistant", content: errorText }
         setMessages((prev) => [...prev, assistantMessage])
       }
     } catch {

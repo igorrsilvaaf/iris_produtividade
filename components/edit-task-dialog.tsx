@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, type Resolver } from "react-hook-form"
 import * as z from "zod"
 import { CalendarIcon, Flag, Clock, X, Plus, CircleDot, ChevronDown, Check, Paperclip, Timer, Link, Image, FileText } from "lucide-react"
 import { format } from "date-fns"
@@ -33,6 +33,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ProjectForm } from "@/components/project-form"
 import { BackButton } from "@/components/ui/back-button"
 import { RichTextEditor } from "@/components/rich-text-editor"
+import { useProjectsLabelsContext } from "@/contexts/projects-labels-context"
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -52,6 +53,8 @@ const formSchema = z.object({
   estimatedTimeUnit: z.string().default("h"),
 })
 
+type FormValues = z.infer<typeof formSchema>
+
 interface EditTaskDialogProps {
   task: Todo
   open: boolean
@@ -63,6 +66,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
   const { toast } = useToast()
   const { t } = useTranslation()
   const { notifyTaskUpdated } = useTaskUpdates()
+  const { triggerUpdate } = useProjectsLabelsContext()
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
@@ -89,14 +93,22 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
     }
   }
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
+      title: "",
+      description: "",
+      dueDate: undefined,
+      dueTime: "00:00",
+      isAllDay: true,
       priority: undefined as unknown as string,
+      projectId: undefined,
       points: undefined as unknown as number,
+      attachments: [],
+      estimatedTime: null,
       estimatedTimeUnit: "h",
-    }
-  });
+    },
+  })
 
   useEffect(() => {
     if (open) {
@@ -260,54 +272,27 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
     }
   }
 
-  import { useProjectsLabelsContext } from "@/contexts/projects-labels-context";
-
-// ... (imports omitidos)
-
-export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps) {
-  const router = useRouter();
-  const { toast } = useToast();
-  const { t } = useTranslation();
-  const { triggerUpdate } = useProjectsLabelsContext();
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
-  const [showAddProject, setShowAddProject] = useState(false);
-  const [showCreateProject, setShowCreateProject] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [attachments, setAttachments] = useState<Array<{ type: string; url: string; name: string }>>([]);
-  const [attachmentUrl, setAttachmentUrl] = useState("");
-  const [attachmentName, setAttachmentName] = useState("");
-  const [attachmentType, setAttachmentType] = useState("link");
-  const [showAddAttachment, setShowAddAttachment] = useState(false);
-  const [fileUploadRef, setFileUploadRef] = useState<HTMLInputElement | null>(null);
-  const [imageUploadRef, setImageUploadRef] = useState<HTMLInputElement | null>(null);
-
-  // ... (funções omitidas)
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
-    console.log("EditTaskDialog onSubmit - values:", values)
-
     try {
-      let dueDateWithTime = null;
-
+      let dueDateWithTime: string | null = null
       if (values.dueDate) {
         if (values.isAllDay) {
-          const date = new Date(values.dueDate);
-          date.setHours(0, 0, 0, 0);
-          dueDateWithTime = date.toISOString();
-
+          const date = new Date(values.dueDate)
+          date.setHours(0, 0, 0, 0)
+          dueDateWithTime = date.toISOString()
         } else if (values.dueTime) {
-          const date = new Date(values.dueDate);
-          const [hours, minutes] = values.dueTime.split(':').map(Number);
-          date.setHours(hours, minutes, 0, 0);
-          dueDateWithTime = date.toISOString();
-
+          const date = new Date(values.dueDate)
+          const [hours, minutes] = values.dueTime.split(":").map(Number)
+          date.setHours(hours, minutes, 0, 0)
+          dueDateWithTime = date.toISOString()
         }
       }
 
-      const estimatedTimeInMinutes = convertTimeToMinutes(values.estimatedTime, values.estimatedTimeUnit)
+      const estimatedTimeInMinutes = convertTimeToMinutes(
+        values.estimatedTime,
+        values.estimatedTimeUnit
+      )
 
       const taskData = {
         title: values.title,
@@ -317,38 +302,32 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         points: typeof values.points === "number" ? values.points : null,
         attachments: values.attachments,
         estimated_time: estimatedTimeInMinutes,
-      };
-
-
+      }
 
       const taskResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(taskData),
-      });
-
-
+      })
 
       if (!taskResponse.ok) {
-
-        throw new Error("Failed to update task details");
+        throw new Error("Failed to update task details")
       }
-      const updatedTask = await taskResponse.json();
+      const updatedTask = await taskResponse.json()
 
-      const projectId = values.projectId && values.projectId !== "noProject"
-        ? Number.parseInt(values.projectId)
-        : null;
+      const projectId =
+        values.projectId && values.projectId !== "noProject"
+          ? Number.parseInt(values.projectId)
+          : null
 
       const projectResponse = await fetch(`/api/tasks/${task.id}/project`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId: projectId,
-        }),
-      });
+        body: JSON.stringify({ projectId }),
+      })
 
       if (!projectResponse.ok) {
-        throw new Error("Failed to update task project");
+        throw new Error("Failed to update task project")
       }
 
       toast({
@@ -356,8 +335,8 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         description: t("Your task has been updated successfully."),
       })
 
-      notifyTaskUpdated(task.id, updatedTask);
-      triggerUpdate();
+      notifyTaskUpdated(task.id, updatedTask)
+      triggerUpdate()
       onOpenChange(false)
     } catch (error) {
       toast({
@@ -369,12 +348,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
       setIsLoading(false)
     }
   }
-
-  // ... (resto do componente omitido)
-
-
-
-
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]" data-testid="edit-task-dialog-content">

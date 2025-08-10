@@ -7,6 +7,7 @@ import {
   getTasksForNotifications,
   searchTasks,
   getAllTasksForUser,
+  setTaskProject,
 } from "@/lib/todos";
 import prisma from "@/lib/prisma";
 
@@ -63,6 +64,11 @@ export async function POST(request: NextRequest) {
 
     const dueDateValue = body.due_date || null;
     const projectIdValue = body.project_id || null;
+    const projectIdsValue = Array.isArray(body?.projectIds)
+      ? body.projectIds
+      : Array.isArray(body?.project_ids)
+      ? body.project_ids
+      : null;
     const attachmentsValue = body.attachments || [];
     const estimatedTimeValue = body.estimated_time || null;
 
@@ -79,6 +85,22 @@ export async function POST(request: NextRequest) {
         attachments: attachmentsValue,
         estimatedTime: estimatedTimeValue,
       });
+
+      try {
+        const targetProjectIds = Array.isArray(projectIdsValue)
+          ? projectIdsValue
+          : projectIdValue
+          ? [projectIdValue]
+          : null;
+        if (Array.isArray(targetProjectIds) && targetProjectIds.length > 0) {
+          const normalizedIds = targetProjectIds
+            .map((id: any) => Number(id))
+            .filter((n: number) => Number.isFinite(n) && n > 0);
+          if (normalizedIds.length > 0) {
+            await setTaskProject(task.id, session.user.id, normalizedIds);
+          }
+        }
+      } catch {}
 
       // Vincular automaticamente PR/Issue do GitHub quando aplicável
       try {

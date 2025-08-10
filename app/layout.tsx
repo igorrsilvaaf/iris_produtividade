@@ -19,8 +19,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { TaskProvider } from "@/contexts/task-context";
 import { ProjectsLabelsProvider } from "@/contexts/projects-labels-context";
 import { AIHelpChat } from "@/components/ai-help-chat";
+import { FeedbackDialog } from "@/components/feedback-dialog";
 
-import "@/app/globals.css";
+import "./globals.css";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -108,6 +109,9 @@ export default async function RootLayout({
                         )}
                       </TaskProvider>
                       <Toaster />
+                      <div className="fixed bottom-24 right-4 z-50">
+                        <FeedbackDialog />
+                      </div>
                       <AIHelpChat />
                     </ProjectsLabelsProvider>
                   </ThemeInitializer>
