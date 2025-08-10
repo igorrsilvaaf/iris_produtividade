@@ -109,10 +109,14 @@ export default async function RootLayout({
                         )}
                       </TaskProvider>
                       <Toaster />
-                      <div className="fixed bottom-24 right-4 z-50">
-                        <FeedbackDialog />
-                      </div>
-                      <AIHelpChat />
+                      {session?.user && (
+                        <>
+                          <div className="fixed bottom-24 right-4 z-50">
+                            <FeedbackDialog />
+                          </div>
+                          <AIHelpChat />
+                        </>
+                      )}
                     </ProjectsLabelsProvider>
                   </ThemeInitializer>
                 </TranslationsLoader>
