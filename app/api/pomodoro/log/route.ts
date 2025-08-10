@@ -53,22 +53,37 @@ export async function POST(request: Request) {
       }
     }
 
-    const newPomodoroLogId = crypto.randomUUID();
+    const now = Date.now();
+    const startedAt = new Date(now - duration * 60 * 1000);
+    const completedAt = new Date(now);
 
-    const startedAt = new Date(Date.now() - duration * 60 * 1000);
-    const completedAt = new Date();
-
-    const pomodoroLog = await prisma.pomodoroLog.create({
-      data: {
-        id: newPomodoroLogId,
-        userId: userId,
-        taskId: taskIdInt,
-        duration: duration,
-        mode: mode,
-        startedAt: startedAt,
-        completedAt: completedAt,
+    const dedupeWindowMs = 10000;
+    const existing = await prisma.pomodoroLog.findFirst({
+      where: {
+        userId,
+        duration,
+        mode,
+        taskId: taskIdInt ?? undefined,
+        completedAt: {
+          gte: new Date(now - dedupeWindowMs),
+        },
       },
+      orderBy: { completedAt: "desc" },
     });
+
+    const pomodoroLog = existing
+      ? existing
+      : await prisma.pomodoroLog.create({
+          data: {
+            id: crypto.randomUUID(),
+            userId,
+            taskId: taskIdInt,
+            duration,
+            mode,
+            startedAt,
+            completedAt,
+          },
+        });
 
     // Resposta com cabeçalhos que evitam cache em dispositivos móveis
     return new NextResponse(
