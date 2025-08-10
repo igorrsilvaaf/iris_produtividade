@@ -197,9 +197,9 @@ export function ChangelogNotification() {
             <p className="text-sm text-muted-foreground" data-testid="changelog-notification-message">
               {latestChangelog === '2.9.0' ? (
                 <>
-                  <span className="font-medium text-primary">Novidades: Feedback e Roadmap</span>
+                  <span className="font-medium text-primary">Novidades: Feedback e Assistente por IA</span>
                   <br />
-                  Agora você pode enviar ideias diretamente pelo app, votar nas melhores sugestões e acompanhar o progresso no novo Roadmap.
+                  Agora você pode enviar ideias diretamente pelo app, votar nas melhores sugestões e contar com um Assistente por IA para tirar dúvidas e guiar ações na interface, de forma contextual.
                 </>
               ) : latestChangelog === '2.8.8' ? (
                 <>

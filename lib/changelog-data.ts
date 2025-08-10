@@ -35,8 +35,7 @@ export const CHANGELOG_DATA: ChangelogData[] = [
           },
           {
             type: "feature",
-            content:
-              "Endpoint de API para feedback com autenticação e notificação por e-mail",
+            content: "Endpoint de API para feedback com autenticação",
           },
           {
             type: "feature",
@@ -46,20 +45,23 @@ export const CHANGELOG_DATA: ChangelogData[] = [
         ],
       },
       {
-        id: "product-roadmap",
-        title: "Roadmap de Produto",
-        description:
-          "Visualize o status das ideias e funcionalidades em andamento.",
+        id: "ai-assistant",
+        title: "Assistente por IA no App",
+        description: "Ajuda rápida e contextual dentro do aplicativo.",
         items: [
           {
             type: "feature",
             content:
-              "Página de roadmap com ideias agrupadas por status (Triagem, Planejado, Em Progresso, Concluído)",
+              "Assistente por IA integrado ao app para responder dúvidas",
           },
-          { type: "feature", content: "Filtros por status, tipo e busca" },
           {
             type: "feature",
-            content: "Paginação e ordenação por relevância (upvotes) e data",
+            content:
+              "Respostas guiadas pela interface do Íris e conteúdo do projeto",
+          },
+          {
+            type: "feature",
+            content: "Disponível apenas para usuários autenticados",
           },
         ],
       },

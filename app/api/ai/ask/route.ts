@@ -8,6 +8,83 @@ type IncomingMessage = { role: "user" | "assistant"; content: string };
 let cachedProjectContext = "";
 let cachedProjectContextAt = 0;
 
+const uiGuide = [
+  "Fluxos de UI do Íris (pt-BR)",
+  "- Criar tarefa:",
+  "  1. Nas páginas 'Caixa de Entrada', 'Hoje' ou 'Próximos', clique no botão 'Adicionar Tarefa' no topo",
+  "  2. Preencha 'Título' e, se quiser, 'Prioridade' (P1–P4)",
+  "  3. Confirme em 'Adicionar'",
+  "- Editar tarefa:",
+  "  1. Clique no título da tarefa para abrir os detalhes",
+  "  2. Clique em 'Editar'",
+  "  3. Ajuste campos como 'Título', 'Descrição', 'Data de Vencimento', 'Prioridade', 'Pontos' e 'Projetos'",
+  "  4. Seção 'Anexos' para adicionar 'Link', 'Imagem' ou 'Arquivo'",
+  "  5. Clique em 'Salvar'",
+  "- Concluir tarefa:",
+  "  1. Na lista de tarefas, marque o checkbox à esquerda do título",
+  "- Criar projeto:",
+  "  1. Abra a barra lateral (no mobile, toque no botão de menu no topo para abrir a sidebar)",
+  "  2. Seção 'Projetos'",
+  "  3. Clique em 'Adicionar Projeto'",
+  "  4. Preencha 'Nome' e 'Cor'",
+  "  5. Confirme em 'Criar Projeto'",
+  "- Criar etiqueta:",
+  "  1. Abra a barra lateral",
+  "  2. Seção 'Etiquetas'",
+  "  3. Clique em 'Adicionar Etiqueta'",
+  "  4. Preencha 'Nome' e 'Cor'",
+  "  5. Confirme em 'Criar Etiqueta'",
+  "- Kanban:",
+  "  1. Vá em 'Kanban' (rota /app/kanban)",
+  "  2. Arraste cartões entre colunas ('Backlog', 'Planejamento', 'Em Progresso', 'Validação', 'Concluídos')",
+  "  3. Para ver/editar um cartão, clique no título",
+  "- Calendário:",
+  "  1. Vá em 'Calendário' (rota /app/calendar)",
+  "  2. Use os botões de mês para navegar e o botão 'Hoje' para voltar",
+  "  3. Clique no dia e use o botão '+' para adicionar uma tarefa naquele dia",
+  "- Busca de tarefas:",
+  "  1. Use o campo de busca no topo (atalho ⌘K/CTRL+K)",
+  "  2. Digite ao menos 2 caracteres e selecione um resultado para abrir os detalhes",
+  "- Pomodoro:",
+  "  1. Vá em 'Pomodoro' (rota /app/pomodoro)",
+  "  2. Selecione uma tarefa no seletor e clique em 'Iniciar Pomodoro'",
+  "  3. Ajuste tempos em 'Configurações' > 'Cronômetro Pomodoro' se necessário",
+  "- Abrir 'Configurações':",
+  "  1. Na barra superior, clique no ícone de engrenagem 'Configurações' (ou menu do usuário > 'Configurações')",
+  "  2. Alternativamente, acesse /app/settings",
+  "- Integrações: GitHub (conectar via token pessoal):",
+  "  1. Em 'Configurações', abra a aba 'Integrações'",
+  "  2. No campo 'GitHub Personal Access Token', cole seu token (formato 'ghp_...')",
+  "  3. Clique em 'Salvar Tokens'",
+  "  4. Pronto: os recursos que usam GitHub ficam habilitados para sua conta",
+  "- Vincular uma issue/PR do GitHub a uma tarefa (via anexo):",
+  "  1. Abra a tarefa (clique no título para abrir os detalhes)",
+  "  2. Clique em 'Editar'",
+  "  3. Seção 'Anexos' > 'Adicionar anexo'",
+  "  4. Selecione 'Link', cole a URL da issue/PR do GitHub e confirme em 'Adicionar'",
+  "  5. Dica: ao criar a tarefa com título contendo 'Issue #123' ou 'PR #45', o Íris tenta vincular automaticamente",
+  "- Integrações: Jira/Asana (tokens):",
+  "  1. Em 'Configurações' > aba 'Integrações'",
+  "  2. Preencha 'Jira API Token' e, se necessário, 'Jira Domain'; e/ou 'Asana Personal Access Token'",
+  "  3. Clique em 'Salvar Tokens'",
+  "- Notificações:",
+  "  1. Em 'Configurações' > aba 'Notificações'",
+  "  2. Ative 'Notificações Sonoras' e escolha o som",
+  "  3. Ative 'Notificações de Desktop' (aceite a permissão do navegador)",
+  "  4. Configure 'Dias de Notificação' para lembretes de tarefas",
+  "- Backup e Restauração:",
+  "  1. Vá em 'Armazenamento & Backup' (rota /app/storage)",
+  "  2. 'Exportar Dados' para baixar um backup .json",
+  "  3. 'Importar Dados' para restaurar a partir de um arquivo .json",
+  "- Relatórios:",
+  "  1. Vá em 'Relatórios' (rota /app/reports)",
+  "  2. Selecione 'Tipo', 'Período' e filtros (Projetos/Etiquetas/Prioridades)",
+  "  3. Escolha 'Formato' (Web, PDF, Excel) e clique em 'Gerar Relatório'",
+  "- Perfil e Avatar:",
+  "  1. Vá em 'Perfil'",
+  "  2. Use 'Upload Photo' para enviar uma imagem de avatar",
+].join("\n");
+
 async function readTextFileIfExists(filePath: string) {
   try {
     const data = await fs.readFile(filePath, "utf8");
@@ -74,7 +151,6 @@ function mapRouteToFriendlyName(routePath: string) {
   if (lower.includes("/app/pomodoro")) return "Pomodoro";
   if (lower.includes("/app/snippets")) return "Snippets";
   if (lower.includes("/app/storage")) return "Armazenamento";
-  if (lower.includes("/app/roadmap")) return "Roadmap";
   return routePath;
 }
 
@@ -222,6 +298,7 @@ async function buildProjectContext() {
       const friendly = mapRouteToFriendlyName(route);
       return `${friendly}: ${route}`;
     })
+    .filter((line) => !/\/app\/roadmap(\b|\/|\?|$)/i.test(line))
     .join("\n");
   const libList = libModules.slice(0, 1000).join("\n");
   const testsList = testTitles.slice(0, 800).join("\n");
@@ -285,10 +362,12 @@ export async function POST(request: NextRequest) {
         role: "user" as const,
         parts: [
           {
-            text: "Você é a assistente do Íris, em pt-BR. Responda em linguagem natural, clara e direta, usando termos da interface em português. Seja amigável e prática. Quando útil, referencie telas e rotas. Não revele nomes de arquivos ou componentes internos. Se algo não estiver no contexto, diga apenas: 'não está no contexto'.",
+            text: "Você é a assistente do Íris, em pt-BR. Responda em linguagem natural, clara e direta, usando os textos reais da interface em português. Seja amigável e prática. Para fluxos como criar/editar/organizar itens, responda com passos exatos da UI (ex.: barra lateral > seção 'Projetos'/'Etiquetas' > 'Adicionar Projeto'/'Adicionar Etiqueta' > campos 'Nome' e 'Cor'). Evite instruções genéricas como 'procure um botão +'. Quando útil, referencie telas e rotas do app, mas não revele nomes de arquivos nem componentes internos. Se algo não estiver no contexto, responda apenas: 'não está no contexto'.",
           },
           { text: "Contexto do projeto:" },
           { text: ctx },
+          { text: "Guia de navegação da UI do Íris:" },
+          { text: uiGuide },
         ],
       },
       ...recent.map((m) => ({

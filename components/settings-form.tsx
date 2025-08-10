@@ -89,11 +89,33 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   );
   const [githubToken, setGithubToken] = useState("")
   const [jiraToken, setJiraToken] = useState("")
+  const [jiraDomain, setJiraDomain] = useState("")
+  const [jiraEmail, setJiraEmail] = useState("")
   const [asanaToken, setAsanaToken] = useState("")
+  const [statusGithub, setStatusGithub] = useState<string>("—")
+  const [statusJira, setStatusJira] = useState<string>("—")
+  const [statusAsana, setStatusAsana] = useState<string>("—")
 
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") || "general";
   const [activeTab, setActiveTab] = useState<string>(initialTab);
+
+  useEffect(() => {
+    const loadIntegrationStatus = async () => {
+      try {
+        const res = await fetch("/api/integrations/tokens", { cache: "no-store" })
+        if (!res.ok) return
+        const data = await res.json()
+        setStatusGithub(data?.github?.configured ? t("configured") : t("notConfigured"))
+        setStatusJira(data?.jira?.configured ? t("configured") : t("notConfigured"))
+        setStatusAsana(data?.asana?.configured ? t("configured") : t("notConfigured"))
+        if (typeof data?.jira?.domain === "string" && !jiraDomain) {
+          setJiraDomain(data.jira.domain)
+        }
+      } catch {}
+    }
+    loadIntegrationStatus()
+  }, [t])
 
   // Inicializar o playlistId na primeira carga se o Spotify estiver habilitado
   useEffect(() => {
@@ -630,7 +652,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     {t("Customize your Pomodoro timer preferences.")}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6 px-4 sm:px-6">
+                  <CardContent className="space-y-6 px-4 sm:px-6">
                   <div className="grid gap-4 md:grid-cols-2">
                     <FormField
                       control={form.control}
@@ -1575,13 +1597,13 @@ export function SettingsForm({ settings }: SettingsFormProps) {
 
             <TabsContent value="integrations">
               <Card className="overflow-hidden">
-                <CardHeader className="px-4 sm:px-6">
-                  <CardTitle>Integrações</CardTitle>
-                  <CardDescription>Configure tokens pessoais para GitHub, Jira e Asana</CardDescription>
+                  <CardHeader className="px-4 sm:px-6">
+                    <CardTitle>{t("integrations")}</CardTitle>
+                    <CardDescription>Configure tokens pessoais para GitHub, Jira e Asana</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 px-4 sm:px-6">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormItem>
+                   <div className="grid gap-4 md:grid-cols-2">
+                     <FormItem>
                       <FormLabel>GitHub Personal Access Token</FormLabel>
                       <FormControl>
                         <Input type="password" value={githubToken} onChange={(e) => setGithubToken(e.target.value)} placeholder="ghp_..." />
@@ -1589,7 +1611,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                       <FormDescription>Escopos mínimos para issues e PRs.</FormDescription>
                       <FormMessage />
                     </FormItem>
-                    <FormItem>
+                     <div className="flex items-center gap-2">
+                       <div className="text-xs text-muted-foreground">{t("statusLabel")}:</div>
+                       <span className="text-xs">{statusGithub}</span>
+                     </div>
+                     <FormItem>
                       <FormLabel>Jira API Token</FormLabel>
                       <FormControl>
                         <Input type="password" value={jiraToken} onChange={(e) => setJiraToken(e.target.value)} placeholder="token Atlassian" />
@@ -1597,7 +1623,27 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                       <FormDescription>Usado com seu email Atlassian.</FormDescription>
                       <FormMessage />
                     </FormItem>
-                    <FormItem>
+                     <div className="flex items-center gap-2">
+                       <div className="text-xs text-muted-foreground">{t("statusLabel")}:</div>
+                       <span className="text-xs">{statusJira}</span>
+                     </div>
+                     <FormItem>
+                       <FormLabel>Jira Domain</FormLabel>
+                       <FormControl>
+                         <Input value={jiraDomain} onChange={(e) => setJiraDomain(e.target.value)} placeholder="suaorg.atlassian.net" />
+                       </FormControl>
+                       <FormDescription>Domínio do seu site Jira Cloud.</FormDescription>
+                       <FormMessage />
+                     </FormItem>
+                     <FormItem>
+                       <FormLabel>Jira Email</FormLabel>
+                       <FormControl>
+                         <Input type="email" value={jiraEmail} onChange={(e) => setJiraEmail(e.target.value)} placeholder="voce@empresa.com" />
+                       </FormControl>
+                       <FormDescription>Email da sua conta Atlassian.</FormDescription>
+                       <FormMessage />
+                     </FormItem>
+                     <FormItem>
                       <FormLabel>Asana Personal Access Token</FormLabel>
                       <FormControl>
                         <Input type="password" value={asanaToken} onChange={(e) => setAsanaToken(e.target.value)} placeholder="1/123:..." />
@@ -1605,7 +1651,54 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                       <FormDescription>Para importar tarefas.</FormDescription>
                       <FormMessage />
                     </FormItem>
+                     <div className="flex items-center gap-2">
+                       <div className="text-xs text-muted-foreground">{t("statusLabel")}:</div>
+                       <span className="text-xs">{statusAsana}</span>
+                     </div>
                   </div>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={async () => {
+                          const r = await fetch("/api/integrations/github/validate", { cache: "no-store" })
+                          const j = await r.json().catch(() => ({}))
+                          toast({ title: "GitHub", description: j?.ok ? t("configured") : t("validationFailed"), variant: j?.ok ? "success" : "destructive" })
+                          setStatusGithub(j?.ok ? t("configured") : t("validationFailed"))
+                        }}
+                      >
+                        {t("validateGithub")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={async () => {
+                          const email = jiraEmail.trim()
+                          if (!email) {
+                            toast({ title: "Jira", description: t("provideEmail"), variant: "destructive" })
+                            return
+                          }
+                          const r = await fetch(`/api/integrations/jira/validate?email=${encodeURIComponent(email)}`, { cache: "no-store" })
+                          const j = await r.json().catch(() => ({}))
+                          toast({ title: "Jira", description: j?.ok ? t("configured") : t("validationFailed"), variant: j?.ok ? "success" : "destructive" })
+                          setStatusJira(j?.ok ? t("configured") : t("validationFailed"))
+                        }}
+                      >
+                        {t("validateJira")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={async () => {
+                          const r = await fetch("/api/integrations/asana/validate", { cache: "no-store" })
+                          const j = await r.json().catch(() => ({}))
+                          toast({ title: "Asana", description: j?.ok ? t("configured") : t("validationFailed"), variant: j?.ok ? "success" : "destructive" })
+                          setStatusAsana(j?.ok ? t("configured") : t("validationFailed"))
+                        }}
+                      >
+                        {t("validateAsana")}
+                      </Button>
+                    </div>
                 </CardContent>
                 <CardFooter className="px-4 sm:px-6 flex-wrap gap-2">
                   <Button
@@ -1615,11 +1708,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     onClick={async () => {
                       try {
                         setIsLoading(true)
-                        const res = await fetch("/api/integrations/tokens", {
+                         const res = await fetch("/api/integrations/tokens", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           credentials: "include",
-                          body: JSON.stringify({ githubToken, jiraToken, asanaToken }),
+                            body: JSON.stringify({ githubToken, jiraToken, jiraDomain, asanaToken }),
                         })
                         if (!res.ok) throw new Error("Falha ao salvar tokens")
                         toast({ title: "Integrações", description: "Tokens salvos com sucesso.", variant: "success", duration: 4000 })
