@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate && prisma migrate deploy",
+    "postinstall": "prisma generate",
     "test": "jest --config=jest.config.mjs",
     "test:watch": "jest --watch --config=jest.config.mjs",
     "test:ci": "jest --config=jest.config.mjs --ci --coverage",
