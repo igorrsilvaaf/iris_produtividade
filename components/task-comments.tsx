@@ -53,7 +53,9 @@ export function TaskComments({ taskId, user: userProp }: TaskCommentsProps) {
   const [likeLoadingId, setLikeLoadingId] = useState<number | null>(null);
   const [replyingToId, setReplyingToId] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState('');
-  const { user, loading: userLoading, error: userError, refetch: refetchUser } = useUser(userProp);
+  // Use a prop user se disponível, senão use o hook useUser
+  const { user: hookUser, loading: userLoading, error: userError, refetch: refetchUser } = useUser(userProp || undefined);
+  const user = userProp || hookUser;
 
   useEffect(() => {
     if (taskId) {

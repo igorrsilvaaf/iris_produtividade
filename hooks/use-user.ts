@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { deduplicatedFetch } from '@/lib/request-deduplicator';
 
 export interface User {
   id: number;
@@ -23,7 +24,7 @@ export function useUser(initialUser?: User | null) {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/auth/session', {
+      const response = await deduplicatedFetch('/api/auth/session', {
         credentials: 'same-origin',
         headers: {
           'Cache-Control': 'no-cache',
@@ -59,7 +60,10 @@ export function useUser(initialUser?: User | null) {
   };
 
   useEffect(() => {
-    fetchUser();
+    // Só busca dados do usuário se não foi fornecido um initialUser
+    if (!initialUser) {
+      fetchUser();
+    }
   }, []);
 
   useEffect(() => {
@@ -76,4 +80,4 @@ export function useUser(initialUser?: User | null) {
     refetch: fetchUser,
     setUser
   };
-} 
+}

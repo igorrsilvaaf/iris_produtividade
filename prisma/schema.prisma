@@ -214,6 +214,7 @@ model users {
   feedback                feedback[]
   feedback_comments       feedback_comments[]
   feedback_votes          feedback_votes[]
+  kanban_columns          kanban_columns[]
 }
 
 model user_integrations {
@@ -295,4 +296,19 @@ model feedback_votes {
   @@unique([feedback_id, user_id], map: "uniq_feedback_vote")
   @@index([feedback_id], map: "idx_feedback_votes_feedback_id")
   @@index([user_id], map: "idx_feedback_votes_user_id")
+}
+
+model kanban_columns {
+  id         String    @id
+  user_id    Int
+  title      String    @db.VarChar(100)
+  color      String?   @db.VarChar(20)
+  order      Int
+  is_default Boolean   @default(false)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_kanban_columns_user_id")
+  @@index([user_id, order], map: "idx_kanban_columns_user_order")
 }

@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/components/language-provider";
 import { ChangelogNotification } from "@/components/changelog-notification";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { deduplicatedFetch } from "@/lib/request-deduplicator";
 
 // Importar dinamicamente o SpotifyPlayerWrapper para evitar problemas de SSR
 const SpotifyPlayerWrapper = dynamic(
@@ -27,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     async function loadData() {
       try {
         // Verificar autenticação e obter dados do usuário
-        const authResponse = await fetch("/api/auth/session");
+        const authResponse = await deduplicatedFetch("/api/auth/session");
 
         if (!authResponse.ok) {
           router.push("/login");
