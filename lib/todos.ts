@@ -26,11 +26,13 @@ export type Todo = {
   estimated_time?: number | null;
 };
 
+import { KanbanColumnId } from './types/kanban';
+
 // Função auxiliar para determinar o board correto baseado na data
 function determineKanbanColumnByDate(
   dueDate: Date | null,
   completed: boolean
-): string {
+): KanbanColumnId {
   if (completed) {
     return "completed";
   }
@@ -51,13 +53,18 @@ function determineKanbanColumnByDate(
 
   const taskTime = taskDateOnly.getTime();
   const todayTime = today.getTime();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowTime = tomorrow.getTime();
 
-  if (taskTime === todayTime) {
-    return "planning"; // Tarefas para hoje vão para "planning"
-  } else if (taskTime < todayTime) {
-    return "planning"; // Tasks atrasadas vão para planning para serem priorizadas
+  if (taskTime < todayTime) {
+    return "planning"; // Atrasado
+  } else if (taskTime === todayTime) {
+    return "planning"; // Hoje
+  } else if (taskTime >= tomorrowTime) {
+    return "backlog"; // Futuro
   } else {
-    return "backlog"; // Tarefas futuras vão para "backlog" (seção "Próximos")
+    return "planning"; // Padrão
   }
 }
 
@@ -200,7 +207,7 @@ export async function createTask({
   dueDate?: string | null;
   priority?: number;
   projectId?: number | null;
-  kanbanColumn?: string | null;
+  kanbanColumn?: KanbanColumnId | null;
   kanbanOrder?: number | null;
   points?: number;
   attachments?: any[];
@@ -679,7 +686,6 @@ export async function searchTasks(
 
   try {
     const normalizedSearchText = searchText.toLowerCase().trim();
-    const pattern = `%${normalizedSearchText}%`;
 
     const userCheck = await prisma.users.findFirst({
       where: {
@@ -690,11 +696,7 @@ export async function searchTasks(
       return [];
     }
 
-    const taskCount = await prisma.todos.count({
-      where: {
-        user_id: userId,
-      },
-    });
+
 
     const result = await prisma.todos.findMany({
       where: {
@@ -748,8 +750,7 @@ export async function searchTasks(
 
 export async function getTasksForNotifications(
   userId: number,
-  daysAhead: number = 3,
-  ignoreReadStatus: boolean = false
+  daysAhead: number = 3
 ): Promise<{
   overdueCount: number;
   dueTodayCount: number;

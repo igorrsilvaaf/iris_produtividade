@@ -104,7 +104,7 @@ const formSchema = z.object({
     .default([]),
   estimatedTime: z.number().nullable().default(null),
   estimatedTimeUnit: z.string().default("h"),
-  kanban_column: z.string().optional(),
+  kanban_column: z.enum(['backlog', 'planning', 'inProgress', 'validation', 'completed']).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;

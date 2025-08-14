@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback, memo } from "react"
-import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, KeyboardSensor, TouchSensor, closestCorners } from "@dnd-kit/core"
-import { SortableContext, arrayMove, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
+import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, KeyboardSensor, TouchSensor, closestCorners, DragEndEvent } from "@dnd-kit/core"
+import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, Edit, Trash2, Calendar, CheckSquare, RefreshCw } from "lucide-react"
+import { Plus, Edit, Trash2, Calendar, CheckSquare, RefreshCw, Wifi, WifiOff } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useTranslation } from "@/lib/i18n"
 import type { Todo } from "@/lib/todos"
@@ -18,13 +18,20 @@ import { ptBR, enUS } from "date-fns/locale"
 import { AddTaskDialog } from "@/components/add-task-dialog"
 import { TaskDetail } from "@/components/task-detail"
 import { useTaskUpdates } from "@/hooks/use-task-updates"
+import { KanbanSyncManager } from "@/lib/kanban/sync-manager"
+import { KanbanDragDropHandler } from "@/lib/kanban/drag-drop-handler"
+import { KanbanCache, kanbanCache } from "@/lib/kanban/cache"
+import { deduplicatedFetch } from "@/lib/request-deduplicator"
+import { useOfflineSupport } from "@/hooks/useOfflineSupport"
+import { useDynamicColumns } from "@/hooks/use-dynamic-columns"
+import { AddColumnButton, ColumnActionsMenu } from "@/components/kanban/column-management"
+import type { KanbanState, KanbanTask, KanbanColumnId, KanbanColumnData, SyncStatus } from "@/lib/types/kanban"
+import { useUser } from "@/hooks/use-user"
 
 type TranslationFunction = (key: string) => string;
 
-type KanbanColumn = "backlog" | "planning" | "inProgress" | "validation" | "completed"
-
 type KanbanCard = Todo & {
-  column: KanbanColumn
+  column: KanbanColumnId
   kanban_order?: number
 }
 
@@ -74,7 +81,7 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
     }
   }, [t]);
   
-  const columnOrder: KanbanColumn[] = ["backlog", "planning", "inProgress", "validation", "completed"];
+  const columnOrder: KanbanColumnId[] = ["backlog", "planning", "inProgress", "validation", "completed"];
   const currentColumnIndex = columnOrder.indexOf(card.column);
   const hasPreviousColumn = currentColumnIndex > 0;
   const hasNextColumn = currentColumnIndex < columnOrder.length - 1;
@@ -150,8 +157,12 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
             </div>
           )}
           {card.points !== undefined && (
-            <div className={`text-xs px-1.5 py-0.5 rounded-full ${getPointsBadgeColor(card.points)}`} data-testid={`kanban-card-points-${card.id}`}>
-              {card.points} {getPointsLabel(card.points) && `- ${getPointsLabel(card.points)}`}
+            <div className={`text-xs px-1.5 py-0.5 rounded-full ${getPointsBadgeColor(card.points ?? 0)}`} data-testid={`kanban-card-points-${card.id}`}>
+              {card.points !== null && card.points !== undefined && (
+                <>
+                  {card.points} {getPointsLabel(card.points) && `- ${getPointsLabel(card.points)}`}
+                </>
+              )}
             </div>
           )}
         </div>
@@ -216,8 +227,7 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
           <Button
             variant="outline"
             size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={() => {
               onDelete(card.id);
             }}
             className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
@@ -234,6 +244,16 @@ const SortableCard = memo(({ card, onDelete, onEdit }: { card: KanbanCard, onDel
 
 SortableCard.displayName = "SortableCard";
 
+interface DynamicColumn {
+  id: string
+  title: string
+  color: string
+  order: number
+  is_default: boolean
+  created_at: string
+  updated_at: string
+}
+
 const DroppableColumn = ({ 
   title, 
   columnKey, 
@@ -247,21 +267,23 @@ const DroppableColumn = ({
   onEditCard,
   language,
   highlightedColumn,
-  activeCardId
+  column,
+  showActions = false
 }: { 
   title: string, 
-  columnKey: KanbanColumn, 
+  columnKey: string, 
   items: KanbanCard[],
-  activeColumn: KanbanColumn | null,
-  setActiveColumn: (column: KanbanColumn | null) => void,
+  activeColumn: string | null,
+  setActiveColumn: (column: string | null) => void,
   newCardTitle: string,
   setNewCardTitle: (title: string) => void,
-  createNewCard: (column: KanbanColumn) => void,
+  createNewCard: (column: string) => void,
   onDeleteCard: (id: number) => void,
   onEditCard: (id: number) => void,
   language?: string,
-  highlightedColumn?: KanbanColumn | null,
-  activeCardId?: number | null
+  highlightedColumn?: string | null,
+  column?: DynamicColumn,
+  showActions?: boolean
 }) => {
   const { t } = useTranslation();
   const { setNodeRef } = useSortable({
@@ -297,10 +319,23 @@ const DroppableColumn = ({
       <Card className="h-full">
         <CardHeader className="px-3 py-2 border-b">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">{title}</CardTitle>
-            <Badge variant="outline" className="ml-2">
-              {items.length}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {column && (
+                <div 
+                  className="w-3 h-3 rounded-full" 
+                  style={{ backgroundColor: column.color }}
+                />
+              )}
+              <CardTitle className="text-base font-semibold">{title}</CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">
+                {items.length}
+              </Badge>
+              {showActions && column && (
+                <ColumnActionsMenu column={column} />
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-2">
@@ -376,23 +411,51 @@ export function KanbanBoard() {
   const { t, language } = useTranslation();
   const { toast } = useToast();
   const { notifyTaskDeleted } = useTaskUpdates();
+  const { columns, isLoading: columnsLoading, ensureColumnsLoaded, createColumn, updateColumn, deleteColumn, reorderColumns } = useDynamicColumns();
+  
+  // Nova estrutura de estado usando KanbanState
+  const [kanbanState, setKanbanState] = useState<KanbanState>({
+    columns: {
+      backlog: { id: 'backlog', title: 'Backlog', taskIds: [], order: 0 },
+      planning: { id: 'planning', title: 'Planning', taskIds: [], order: 1 },
+      inProgress: { id: 'inProgress', title: 'In Progress', taskIds: [], order: 2 },
+      validation: { id: 'validation', title: 'Validation', taskIds: [], order: 3 },
+      completed: { id: 'completed', title: 'Completed', taskIds: [], order: 4 }
+    },
+    tasks: {},
+    columnOrder: ['backlog', 'planning', 'inProgress', 'validation', 'completed'] as KanbanColumnId[],
+    syncStatus: {
+      pending: [],
+      syncing: [],
+      failed: []
+    },
+    lastSync: Date.now()
+  });
+  
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [cards, setCards] = useState<KanbanCard[]>([]);
   const [newCardTitle, setNewCardTitle] = useState("");
-  const [activeColumn, setActiveColumn] = useState<KanbanColumn | null>(null);
+  const [activeColumn, setActiveColumn] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeCardId, setActiveCardId] = useState<number | null>(null);
   const [shouldRefetch, setShouldRefetch] = useState(0);
   const lastFetchTimeRef = useRef<number>(0);
   const initialLoadDoneRef = useRef<boolean>(false);
-  const [highlightedColumn, setHighlightedColumn] = useState<KanbanColumn | null>(null);
+  const [highlightedColumn, setHighlightedColumn] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null)
   const [showTaskDetail, setShowTaskDetail] = useState(false)
-  const [user, setUser] = useState<{
-    id: number;
-    name: string;
-    email: string;
-    avatar_url?: string | null;
-  } | null>(null);
+  const [hasCriticalError, setHasCriticalError] = useState<boolean>(false);
+  
+  // Usar hook useUser em vez de estado local
+  const { user } = useUser();
+  
+  // Hooks para suporte offline
+  const { isOnline, queueOfflineOperation, processOfflineQueue, offlineQueueSize } = useOfflineSupport();
+  
+  // Instâncias dos gerenciadores
+  const syncManagerRef = useRef<KanbanSyncManager | null>(null);
+  const dragDropHandlerRef = useRef<KanbanDragDropHandler | null>(null);
+  const cacheRef = useRef<KanbanCache>(kanbanCache);
   
   const activeCard = activeCardId ? cards.find(card => card.id === activeCardId) : null;
   
@@ -411,32 +474,113 @@ export function KanbanBoard() {
   );
   
   const [isClient, setIsClient] = useState(false);
-  const [hasCriticalError, setHasCriticalError] = useState<boolean>(false);
   
   useEffect(() => {
     setIsClient(true);
     
-    const fetchUser = async () => {
-      try {
-        const response = await fetch('/api/auth/session');
-        if (response.ok) {
-          const session = await response.json();
-          if (session?.user) {
-            setUser({
-              id: session.user.id,
-              name: session.user.name || '',
-              email: session.user.email || '',
-              avatar_url: session.user.avatar_url
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao buscar dados do usuário:', error);
-      }
+    // Inicializar gerenciadores
+    if (!syncManagerRef.current) {
+      syncManagerRef.current = new KanbanSyncManager(
+        (status) => setSyncStatus(status)
+      );
+    }
+    
+    if (!dragDropHandlerRef.current) {
+      dragDropHandlerRef.current = new KanbanDragDropHandler(
+        syncManagerRef.current
+      );
+    }
+    
+    // Lazy loading: carregar colunas apenas quando necessário
+    const initializeColumns = async () => {
+      await ensureColumnsLoaded();
     };
 
-    fetchUser();
-  }, []);
+    initializeColumns();
+  }, [ensureColumnsLoaded]);
+  
+  // Converter Todo[] para KanbanState dinâmico
+  const convertTodosToKanbanState = useCallback((todos: Todo[]): KanbanState => {
+    const dynamicColumns: Record<string, KanbanColumnData> = {};
+    const columnOrder: KanbanColumnId[] = [];
+    
+    // Criar colunas dinâmicas baseadas no hook
+    columns.forEach(column => {
+      dynamicColumns[column.id] = {
+        id: column.id as KanbanColumnId,
+        title: column.title,
+        taskIds: [],
+        order: column.order,
+        color: column.color,
+        isDefault: column.is_default,
+        lastUpdated: new Date(Date.now())
+      };
+      columnOrder.push(column.id as KanbanColumnId);
+    });
+    
+    const newState: KanbanState = {
+      columns: dynamicColumns,
+      tasks: {},
+      columnOrder,
+      syncStatus: {
+        pending: [],
+        syncing: [],
+        failed: []
+      },
+      lastSync: Date.now()
+    }
+
+    // Conversor de prioridade numérica -> string do KanbanTask
+    const getPriorityString = (
+      priority: number | null | undefined
+    ): 'low' | 'medium' | 'high' => {
+      if (priority == null) return 'medium';
+      if (priority <= 2) return 'high';
+      if (priority === 3) return 'medium';
+      return 'low';
+    };
+    
+    todos.forEach(todo => {
+      const status = (
+        (todo.kanban_column as KanbanColumnId) ??
+        (columns[0]?.id as KanbanColumnId) ??
+        'backlog'
+      ) as KanbanColumnId;
+
+      const task: KanbanTask = {
+        id: todo.id,
+        title: todo.title,
+        description: todo.description || '',
+        status,
+        priority: getPriorityString(todo.priority),
+        points: todo.points ?? undefined,
+        projectId: todo.project_id ?? undefined,
+        projectName: todo.project_name,
+        projectColor: todo.project_color,
+        createdAt: todo.created_at,
+        updatedAt: todo.updated_at ?? undefined,
+        order: todo.kanban_order ?? 0,
+        completed: todo.completed
+      }
+      
+      newState.tasks[task.id] = task
+      const columnId = (task.status || 'inProgress') as KanbanColumnId;
+      if (newState.columns[columnId]) {
+        newState.columns[columnId].taskIds.push(task.id)
+      }
+    })
+    
+    // Ordenar tasks em cada coluna
+    Object.values(newState.columns).forEach(column => {
+      column.taskIds.sort((a, b) => {
+        const taskA = newState.tasks[a]
+        const taskB = newState.tasks[b]
+        return (taskA?.order || 0) - (taskB?.order || 0)
+      })
+    })
+    
+    return newState
+  }, [columns])
   
   // Manipulador para o evento personalizado 'kanban-move-card'
   useEffect(() => {
@@ -444,8 +588,12 @@ export function KanbanBoard() {
       const detail = event.detail;
       if (!detail || !detail.active || !detail.over) return;
       
-
-      handleDragEnd(detail);
+      if (dragDropHandlerRef.current) {
+        dragDropHandlerRef.current.handleDragEnd(detail, kanbanState, setKanbanState);
+      } else {
+        // Fallback para o método local
+        handleDragEnd(detail);
+      }
     };
     
     window.addEventListener('kanban-move-card', handleKanbanMoveCard as EventListener);
@@ -453,40 +601,57 @@ export function KanbanBoard() {
     return () => {
       window.removeEventListener('kanban-move-card', handleKanbanMoveCard as EventListener);
     };
-  }, [cards]); // Dependência em cards para garantir acesso aos dados mais recentes
+  }, [kanbanState]); // Dependência em kanbanState para garantir acesso aos dados mais recentes
 
-  const updateTasksOnServer = useCallback(async (tasksToUpdate: Array<{ id: number; column?: KanbanColumn; completed?: boolean; kanban_order?: number }>) => {
+  const updateTasksOnServer = useCallback(async (tasksToUpdate: Array<{ id: number; column?: KanbanColumnId; completed?: boolean; kanban_order?: number }>) => {
     if (tasksToUpdate.length === 0) return;
 
-    try {
-      const bulkResponse = await fetch(`/api/tasks/bulk`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ updates: tasksToUpdate }),
-      });
+    // Processar em lotes de 10 tarefas para evitar requisições muito grandes
+    const BATCH_SIZE = 10;
+    const batches = [];
+    
+    for (let i = 0; i < tasksToUpdate.length; i += BATCH_SIZE) {
+      batches.push(tasksToUpdate.slice(i, i + BATCH_SIZE));
+    }
 
-      if (!bulkResponse.ok) {
-        for (const taskUpdate of tasksToUpdate) {
-          const { id, column, completed, kanban_order } = taskUpdate;
-          const updates = {
-            ...(column && { kanban_column: column }),
-            ...(completed !== undefined && { completed }),
-            ...(kanban_order !== undefined && { kanban_order })
-          };
-          const resp = await fetch(`/api/tasks/${id}/${id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updates),
-          });
-          if (!resp.ok) {
-            toast({
-              variant: "destructive",
-              title: t("Failed to update some tasks"),
-              description: t("Please try refreshing"),
+    try {
+      // Processar cada lote sequencialmente para evitar sobrecarga
+      for (const batch of batches) {
+        const bulkResponse = await deduplicatedFetch(`/api/tasks/bulk`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ updates: batch }),
+        });
+
+        if (!bulkResponse.ok) {
+          // Fallback: processar individualmente apenas as tarefas do lote atual
+          for (const taskUpdate of batch) {
+            const { id, column, completed, kanban_order } = taskUpdate;
+            const updates = {
+              ...(column && { kanban_column: column }),
+              ...(completed !== undefined && { completed }),
+              ...(kanban_order !== undefined && { kanban_order })
+            };
+            const resp = await deduplicatedFetch(`/api/tasks/${id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(updates),
             });
+            if (!resp.ok) {
+              toast({
+                variant: "destructive",
+                title: t("Failed to update some tasks"),
+                description: t("Please try refreshing"),
+              });
+            }
           }
+        }
+        
+        // Pequeno delay entre lotes para evitar sobrecarga do servidor
+        if (batches.length > 1 && batch !== batches[batches.length - 1]) {
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
 
@@ -512,11 +677,11 @@ export function KanbanBoard() {
         title: t("Failed to update tasks on server"),
         description: t("An unexpected error occurred"),
       });
-      console.error(`Erro ao atualizar tarefas no servidor:`, error);
+      console.error(`Error updating tasks on server:`, error);
     }
   }, [toast, t]);
 
-  const updateColumnOnServer = async (taskId: number, column: KanbanColumn, completed: boolean, order?: number) => {
+  const updateColumnOnServer = async (taskId: number, column: KanbanColumnId, completed: boolean, order?: number) => {
     await updateTasksOnServer([{ 
       id: taskId, 
       column, 
@@ -533,6 +698,14 @@ export function KanbanBoard() {
       return Promise.resolve();
     }
     
+    // Verificar cache primeiro
+    const cached = cacheRef.current.get('kanban-tasks');
+    if (cached && initialLoadDoneRef.current) {
+      const newState = convertTodosToKanbanState(cached);
+      setKanbanState(newState);
+      return Promise.resolve();
+    }
+    
     lastFetchTimeRef.current = now;
     
     try {
@@ -540,7 +713,7 @@ export function KanbanBoard() {
         setIsLoading(true);
       }
 
-      const tasksResponse = await fetch("/api/tasks?all=true", {
+      const tasksResponse = await deduplicatedFetch("/api/tasks?all=true", {
         method: "GET",
         signal,
         headers: {
@@ -571,81 +744,91 @@ export function KanbanBoard() {
       }
       
       const allTasks = tasksData.tasks as Todo[];
+
+      
       let orderCounter = 0;
-      const tasksToUpdateOnServer: Array<{ id: number; column?: KanbanColumn; completed?: boolean; kanban_order?: number }> = [];
+      const tasksToUpdateOnServer: Array<{ id: number; column?: string; completed?: boolean; kanban_order?: number }> = [];
 
       const kanbanCards: KanbanCard[] = allTasks.map((task: Todo) => {
-        let column: KanbanColumn;
-        let needsServerUpdate = false;
-        let currentKanbanOrder = task.kanban_order;
+          let column: KanbanColumnId;
+          let needsServerUpdate = false;
+          let currentKanbanOrder = task.kanban_order;
 
-        // Se a tarefa já tem uma coluna kanban definida, use ela
-        if (task.kanban_column && 
-            ["backlog", "planning", "inProgress", "validation", "completed"].includes(task.kanban_column)) {
-          column = task.kanban_column as KanbanColumn;
-        } 
-        // Se não tem coluna definida, determine baseado na data
-        else {
-          needsServerUpdate = true;
-          if (task.completed) {
-            column = "completed";
+          // Se a tarefa já tem uma coluna kanban definida, use ela
+          if (task.kanban_column && 
+              ["backlog", "planning", "inProgress", "validation", "completed"].includes(task.kanban_column)) {
+            column = task.kanban_column as KanbanColumnId;
           } 
-          else if (task.due_date) {
-            const taskDate = new Date(task.due_date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            
-            const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
-            const todayTime = today.getTime();
-            const tomorrowTime = tomorrow.getTime();
-            const taskTime = taskDateOnly.getTime();
-            
-            if (taskTime === todayTime) {
-              column = "planning"; // Hoje
-            } else if (taskTime >= tomorrowTime) {
-              column = "backlog"; // Futuro
-            } else {
-              column = "planning"; // Atrasado
+          // Se não tem coluna definida, determine baseado na data
+          else {
+            needsServerUpdate = true;
+            if (task.completed) {
+              column = "completed";
+            } 
+            else if (task.due_date) {
+              const taskDate = new Date(task.due_date);
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const tomorrow = new Date(today);
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              
+              const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+              const todayTime = today.getTime();
+              const tomorrowTime = tomorrow.getTime();
+              const taskTime = taskDateOnly.getTime();
+              
+              if (taskTime === todayTime) {
+                column = "planning"; // Hoje
+              } else if (taskTime >= tomorrowTime) {
+                column = "backlog"; // Futuro
+              } else {
+                column = "planning"; // Atrasado
+              }
+            }
+            else {
+              column = "inProgress"; // Sem data
             }
           }
-          else {
-            column = "inProgress"; // Sem data
-          }
-        }
 
-        if (currentKanbanOrder == null) {
-          currentKanbanOrder = orderCounter++;
-          needsServerUpdate = true;
-        }
-        
-        if (needsServerUpdate) {
-          tasksToUpdateOnServer.push({
-            id: task.id,
+          if (currentKanbanOrder == null) {
+            currentKanbanOrder = orderCounter++;
+            needsServerUpdate = true;
+          }
+          
+          if (needsServerUpdate) {
+            tasksToUpdateOnServer.push({
+              id: task.id,
+              column,
+              completed: column === "completed",
+              kanban_order: currentKanbanOrder
+            });
+          }
+          
+          return {
+            ...task,
             column,
-            completed: column === "completed",
             kanban_order: currentKanbanOrder
-          });
-        }
-        
-        return {
-          ...task,
-          column,
-          kanban_order: currentKanbanOrder as number
-        };
-      }).sort((a, b) => {
-        return (a.kanban_order || 0) - (b.kanban_order || 0);
-      });
+          } as KanbanCard;
+        }).sort((a, b) => {
+          return (a.kanban_order || 0) - (b.kanban_order || 0);
+        });
 
       if (tasksToUpdateOnServer.length > 0) {
-        updateTasksOnServer(tasksToUpdateOnServer);
+        await updateTasksOnServer(tasksToUpdateOnServer as { id: number; column?: KanbanColumnId; completed?: boolean; kanban_order?: number }[]);
       }
       
+      // Converter para nova estrutura e atualizar estado
+      const newState = convertTodosToKanbanState(kanbanCards);
+      setKanbanState(newState);
+      
+      // Atualizar cache
+      cacheRef.current.set('kanban-tasks', kanbanCards, 'high');
+      
+      // Manter compatibilidade com código legado
       setCards(kanbanCards);
       initialLoadDoneRef.current = true;
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
+    } catch (error: unknown) {
+      if ((error as Error).name !== 'AbortError') {
         console.error("Erro ao buscar tarefas:", error);
         toast({
           variant: "destructive",
@@ -659,7 +842,7 @@ export function KanbanBoard() {
         setIsLoading(false);
       }
     }
-  }, [toast, t, updateTasksOnServer]);
+  }, [toast, t, updateTasksOnServer, convertTodosToKanbanState]);
   
   const fetchTasksRef = useRef(fetchAndDistributeTasks);
   useEffect(() => {
@@ -684,8 +867,8 @@ export function KanbanBoard() {
           setIsLoading(false);
           initialLoadDoneRef.current = true;
         }
-      } catch (error) {
-        console.error("Erro ao carregar dados do localStorage:", error);
+      } catch {
+        console.error("Erro ao carregar dados do localStorage");
       }
     };
     
@@ -704,60 +887,91 @@ export function KanbanBoard() {
         }
       });
     
-    const intervalId = setInterval(() => {
-      if (mounted && document.visibilityState === 'visible') {
-        fetchTasksRef.current(undefined, { silent: true }).catch(err => {
-          console.error("Erro na atualização automática:", err);
-        });
+    // Debounce para polling automático
+    let pollingTimeoutId: NodeJS.Timeout | null = null;
+    
+    const debouncedPolling = () => {
+      if (pollingTimeoutId) {
+        clearTimeout(pollingTimeoutId);
       }
-    }, 120000);
+      pollingTimeoutId = setTimeout(() => {
+        if (mounted && document.visibilityState === 'visible') {
+          fetchTasksRef.current(undefined, { silent: true }).catch(err => {
+            console.error("Erro na atualização automática:", err);
+          });
+        }
+      }, 1000); // 1s debounce
+    };
+    
+    const intervalId = setInterval(() => {
+      debouncedPolling();
+    }, 300000); // Reduzido de 120s para 300s (5min)
     
     return () => {
       mounted = false;
       controller.abort();
       clearInterval(intervalId);
+      if (pollingTimeoutId) {
+        clearTimeout(pollingTimeoutId);
+      }
     };
   }, [isClient]);
   
   useEffect(() => {
     if (!isClient || isLoading || cards.length === 0) return;
     
+    // Debounce mais longo para localStorage (5s) para reduzir escritas
     const timeoutId = setTimeout(() => {
       try {
         const cardsJson = JSON.stringify(cards);
-        localStorage.setItem('kanban-cards', cardsJson);
-
-      } catch (error) {
-        console.error("Erro ao salvar no localStorage:", error);
-      }
-    }, 2000);
+        const currentStored = localStorage.getItem('kanban-cards');
+        
+        // Só salva se realmente mudou para evitar escritas desnecessárias
+        if (currentStored !== cardsJson) {
+          localStorage.setItem('kanban-cards', cardsJson);
+          console.debug('Cards salvos no localStorage:', cards.length, 'items');
+        }
+      } catch {
+         console.error("Erro ao salvar no localStorage");
+       }
+    }, 5000); // Aumentado de 2s para 5s
     
     return () => clearTimeout(timeoutId);
   }, [cards, isLoading, isClient]);
   
   useEffect(() => {
     let isRefreshing = false;
+    let visibilityTimeoutId: NodeJS.Timeout | null = null;
+    let focusTimeoutId: NodeJS.Timeout | null = null;
+    
+    const debouncedRefresh = (timeoutRef: { current: NodeJS.Timeout | null }, delay: number = 2000) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      
+      timeoutRef.current = setTimeout(() => {
+        if (!isRefreshing && document.visibilityState === 'visible') {
+          isRefreshing = true;
+          fetchTasksRef.current(undefined, { silent: true })
+            .finally(() => {
+              isRefreshing = false;
+            });
+        }
+      }, delay);
+    };
     
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !isRefreshing) {
-        isRefreshing = true;
-
-        fetchTasksRef.current(undefined, { silent: true })
-          .finally(() => {
-            isRefreshing = false;
-          });
+      if (document.visibilityState === 'visible') {
+        const timeoutRef = { current: visibilityTimeoutId };
+        debouncedRefresh(timeoutRef, 1500); // 1.5s debounce para visibilidade
+        visibilityTimeoutId = timeoutRef.current;
       }
     };
     
     const handleFocus = () => {
-      if (!isRefreshing) {
-        isRefreshing = true;
-        
-        fetchTasksRef.current(undefined, { silent: true })
-          .finally(() => {
-            isRefreshing = false;
-          });
-      }
+      const timeoutRef = { current: focusTimeoutId };
+      debouncedRefresh(timeoutRef, 3000); // 3s debounce para focus
+      focusTimeoutId = timeoutRef.current;
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -766,77 +980,68 @@ export function KanbanBoard() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
+      if (visibilityTimeoutId) clearTimeout(visibilityTimeoutId);
+      if (focusTimeoutId) clearTimeout(focusTimeoutId);
     };
   }, []);
   
-  const createNewCard = async (column: KanbanColumn) => {
+  const createNewCard = useCallback(async (columnId: string) => {
     if (!newCardTitle.trim()) return;
-    
-    try {
 
-      setIsLoading(true);
+    const column = columns.find(col => col.id === columnId);
+    if (!column) return;
+
+    try {
+      const response = await deduplicatedFetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: newCardTitle,
+          kanban_column: columnId,
+          priority: 'medium'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao criar tarefa');
+      }
+
+      const newTodo = await response.json();
       
-      const taskData = {
-        title: newCardTitle,
-        description: "",
-        kanban_column: column,
-        completed: column === "completed",
+      // Atualizar estado local
+      const newCard: KanbanCard = {
+        ...newTodo,
+        column: columnId as KanbanColumnId,
+        description: newTodo.description || "",
+        priority: newTodo.priority || 'medium',
+        dueDate: newTodo.due_date,
+        tags: newTodo.tags || [],
+        assignee: newTodo.assignee,
+        createdAt: newTodo.created_at,
+        updatedAt: newTodo.updated_at
       };
       
+      setCards(prev => [...prev, newCard]);
 
-      
-      const response = await fetch("/api/tasks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(taskData),
-      });
-      
-
-      
-      if (response.ok) {
-        const data = await response.json();
-
-        
-        try {
-          await updateColumnOnServer(data.task.id, column, column === "completed");
-
-        } catch (error) {
-          console.error("Erro ao definir coluna da tarefa:", error);
-        }
-        
-        fetchAndDistributeTasks();
-        
-        setNewCardTitle("");
-        setActiveColumn(null);
-        
-        toast({
-          title: t("taskCreated"),
-          description: newCardTitle,
-        });
-      } else {
-        const errorText = await response.text();
-        console.error(`Erro ao criar tarefa na coluna ${column}: Status ${response.status}, Detalhes: ${errorText}`);
-        
-        toast({
-          variant: "destructive",
-          title: t("Failed to create task"),
-          description: t("Please try again"),
-        });
-        setShouldRefetch(prev => prev + 1);
-      }
-    } catch (error) {
-      console.error(`Exceção ao criar tarefa na coluna ${column}:`, error);
+      setNewCardTitle("");
+      setActiveColumn(null);
       
       toast({
-        variant: "destructive",
-        title: t("Failed to create task"),
-        description: t("Please try again"),
+        title: "Sucesso",
+        description: "Tarefa criada com sucesso!",
       });
-      setShouldRefetch(prev => prev + 1);
+      
+    } catch (error) {
+      console.error('Erro ao criar tarefa:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao criar tarefa. Tente novamente.",
+        variant: "destructive",
+      });
     }
-  };
+  }, [newCardTitle, columns, toast]);
   
   const editCard = (taskId: number) => {
     const task = cards.find(card => card.id === taskId)
@@ -847,7 +1052,7 @@ export function KanbanBoard() {
   };
   const deleteCard = async (cardId: number) => {
     try {
-      const response = await fetch(`/api/tasks/${cardId}/${cardId}`, {
+      const response = await deduplicatedFetch(`/api/tasks/${cardId}`, {
         method: "DELETE",
       });
       
@@ -869,6 +1074,7 @@ export function KanbanBoard() {
         setShouldRefetch(prev => prev + 1);
       }
     } catch (error) {
+      console.error('Erro ao deletar tarefa:', error);
       toast({
         variant: "destructive",
         title: t("Failed to delete task"),
@@ -878,13 +1084,19 @@ export function KanbanBoard() {
     }
   };
   
-  const handleDragStart = (event: any) => {
+  const handleDragStart = (event: DragEndEvent) => {
     const { active } = event;
-    setActiveCardId(active.id);
-
+    setActiveCardId(Number(active.id));
+    
+    // Usar o novo handler se disponível
+    if (dragDropHandlerRef.current) {
+      dragDropHandlerRef.current.handleDragStart?.(event, (task) => {
+        setActiveCardId(task?.id || null);
+      });
+    }
   };
   
-  const handleDragOver = (event: any) => {
+  const handleDragOver = (event: DragEndEvent) => {
     const { active, over } = event;
     
     if (!over) {
@@ -892,252 +1104,121 @@ export function KanbanBoard() {
       return;
     }
     
+    // Usar o novo handler se disponível
+    if (dragDropHandlerRef.current) {
+      dragDropHandlerRef.current.handleDragOver?.(event, (column) => {
+        setHighlightedColumn(column);
+      });
+    }
+    
     if (over.data?.current?.type === 'column') {
-      const newColumn = over.data.current.column as KanbanColumn;
-      
+      const newColumn = over.data.current.column;
       setHighlightedColumn(newColumn);
     }
     else if (over.data?.current?.type === 'card') {
       const overCard = cards.find(card => card.id === over.id);
-      
       if (overCard) {
         setHighlightedColumn(overCard.column);
       }
     }
   };
   
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
+  const handleDragEnd = async (event: DragEndEvent) => {
     setActiveCardId(null);
     setActiveColumn(null);
     setHighlightedColumn(null);
     
-    if (!over || !active) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    const activeCard = cards.find(card => card.id === activeId);
-    if (!activeCard) return;
-
-    let newColumnKey = activeCard.column;
-    let newCards = [...cards];
-    const tasksToUpdate: Array<{ id: number; column?: KanbanColumn; completed?: boolean; kanban_order?: number }> = [];
-
-    const overIsColumn = over.data?.current?.type === 'column';
-    const overIsCard = over.data?.current?.type === 'card';
-
-    if (overIsColumn) {
-      newColumnKey = over.data.current.column as KanbanColumn;
-    } else if (overIsCard) {
-      const overCard = cards.find(card => card.id === overId);
-      if (overCard) {
-        newColumnKey = overCard.column;
+    // Usar o novo handler se disponível
+    if (dragDropHandlerRef.current) {
+      try {
+        await dragDropHandlerRef.current.handleDragEnd(event, kanbanState, setKanbanState);
+      } catch (error) {
+        console.error('Sync error:', error);
+        toast({
+          variant: "destructive",
+          title: t("Sync Error"),
+          description: error instanceof Error ? error.message : "Erro desconhecido"
+        });
       }
-    }
-    
-    let isMoveAllowed = true;
-    let newCompletedStatus = activeCard.completed;
-
-    if (activeCard.column !== newColumnKey) {
-      if (newColumnKey === "completed") {
-        newCompletedStatus = true;
-      } else {
-        newCompletedStatus = false;
-      }
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const taskDueDate = activeCard.due_date ? new Date(activeCard.due_date) : null;
-      if (taskDueDate) taskDueDate.setHours(0,0,0,0);
-
-      if (newColumnKey === "backlog") {
-        if (taskDueDate && taskDueDate.getTime() < today.getTime()) {
-        }
-      } else if (newColumnKey === "planning") {
-        if (taskDueDate && taskDueDate.getTime() !== today.getTime()) {
-        }
-      }
-    }
-
-    if (!isMoveAllowed) {
-            toast({
-        variant: "destructive",
-        title: t("Move not allowed"),
-        description: t("This task cannot be moved to the selected column based on current rules."),
-      });
       return;
     }
-
-    // Se o card ativo foi movido para uma nova posição (nova coluna ou reordenado)
-    if (activeId !== overId || activeCard.column !== newColumnKey) {
-      const oldColumnKey = activeCard.column;
-      const oldIndex = newCards.filter(c => c.column === oldColumnKey).findIndex(c => c.id === activeId);
-      const itemBeingDragged = newCards.find(c => c.id === activeId);
-
-      if (!itemBeingDragged) return;
-
-      // Remover o item da sua posição original (temporariamente, se for arrayMove)
-      // Se estivermos usando arrayMove, ele já lida com a remoção e inserção na nova lista visual.
-      // A lógica aqui é para recalcular as ordens numéricas para o backend.
-
-      let targetIndexInNewColumn = -1;
-      let cardsInNewColumn = newCards.filter(c => c.column === newColumnKey);
-
-      if (overIsColumn && overId === `column-${newColumnKey}`) {
-        // Se soltou diretamente na coluna (sem ser sobre um card específico), assume o final da coluna.
-        targetIndexInNewColumn = cardsInNewColumn.length;
-      } else if (overIsCard) {
-        const overCardIndexInItsColumn = cardsInNewColumn.findIndex(c => c.id === overId);
-        targetIndexInNewColumn = overCardIndexInItsColumn;
-      } else if (overIsColumn && oldColumnKey === newColumnKey) {
-        // Este caso é quando se arrasta para a mesma coluna mas não sobre um card específico
-        // DND Kit pode não dar um overId de card aqui, pode ser a própria coluna.
-        // Se for para reordenar na mesma coluna, o over.id pode ser o id da coluna.
-        // Esta parte pode precisar de ajuste dependendo do comportamento exato do DND Kit com `closestCorners`.
-        // Por ora, se `overId` não for um card, e a coluna for a mesma, não fazemos nada aqui, 
-        // pois a reordenação visual via SortableContext já ocorreu. O recalculo da ordem virá depois.
-      }
-      
-      // Atualizar o estado local de `cards` para refletir a nova coluna e a reordenação visual
-      // se `dnd-kit` não o fizer automaticamente ao mudar de `SortableContext`.
-      // Se o DND kit move entre listas (colunas), precisamos atualizar a coluna do item.
-      const updatedActiveCard = {
-        ...itemBeingDragged,
-        column: newColumnKey,
-        completed: newCompletedStatus,
-      };
-      
-      // Atualiza o card movido no array principal
-      newCards = newCards.map(card => card.id === activeId ? updatedActiveCard : card);
-
-      // Se moveu para uma coluna diferente, ou se não houve "over" de card (soltou no espaço vazio da coluna)
-      if (oldColumnKey !== newColumnKey || (overIsColumn && overId === `column-${newColumnKey}`)) {
-        // Lógica de `arrayMove` manual para refletir visualmente ANTES de salvar as ordens numéricas.
-        // Encontrar o índice do item ativo na lista `newCards` (já pode ter a coluna atualizada)
-        const activeCardCurrentIndex = newCards.findIndex(c => c.id === activeId);
-
-        if (activeCardCurrentIndex !== -1) {
-          const cardToMove = newCards[activeCardCurrentIndex];
-          newCards.splice(activeCardCurrentIndex, 1); // Remove da posição antiga
-
-          // Filtra os cards da nova coluna APÓS a remoção do card movido (se ele era da mesma coluna)
-          const currentCardsInNewColumn = newCards.filter(c => c.column === newColumnKey);
-          
-          if (overIsCard) {
-            const overCardGlobalIndex = newCards.findIndex(c => c.id === overId);
-            if (overCardGlobalIndex !== -1) {
-                // Decide se insere antes ou depois do overCard
-                const overRect = document.querySelector(`[data-card-id="${overId}"]`)?.getBoundingClientRect();
-                const clientY = event.activatorEvent?.clientY; // Posição Y do mouse/touch
-
-                let insertAtIndex = newCards.indexOf(newCards.find(c => c.id === overId)!);
-
-                if (overRect && clientY && clientY > overRect.top + overRect.height / 2) {
-                    insertAtIndex +=1;
-                }
-                newCards.splice(insertAtIndex, 0, cardToMove);
-            } else {
-                 // Se overCard não for encontrado (improvável, mas como fallback), adiciona ao final da coluna
-                newCards.push(cardToMove);
-            }
-          } else {
-            // Se soltou na coluna (não sobre um card), adiciona ao final da lista de cards dessa coluna.
-            // Encontra o índice do último card da nova coluna em newCards e insere depois dele.
-            let lastIndexOfColumn = -1;
-            for(let i = newCards.length - 1; i >= 0; i--) {
-                if(newCards[i].column === newColumnKey) {
-                    lastIndexOfColumn = i;
-                    break;
-                }
-            }
-            if(lastIndexOfColumn !== -1) {
-                newCards.splice(lastIndexOfColumn + 1, 0, cardToMove);
-            } else {
-                newCards.push(cardToMove); // Se a coluna estava vazia
-            }
-          }
-        }
-      } else if (oldColumnKey === newColumnKey && overIsCard && activeId !== overId) {
-        // Reordenando dentro da mesma coluna
-        const fromIndex = newCards.filter(c => c.column === oldColumnKey).findIndex(c => c.id === activeId);
-        const toIndex = newCards.filter(c => c.column === oldColumnKey).findIndex(c => c.id === overId);
-        
-        // Simular o arrayMove para a lista filtrada da coluna e depois aplicar no array geral
-        const itemsInColumn = newCards.filter(c => c.column === oldColumnKey);
-        const movedItemsInColumn = arrayMove(itemsInColumn, fromIndex, toIndex);
-        
-        // Atualizar newCards com base na ordem de movedItemsInColumn
-        let columnCardIndex = 0;
-        newCards = newCards.map(card => {
-          if (card.column === oldColumnKey) {
-            return movedItemsInColumn[columnCardIndex++];
-          }
-          return card;
-        });
-      }
-
-      setCards(newCards); // Atualiza o estado visual imediatamente
-
-      // Recalcular kanban_order para as colunas afetadas (antiga e nova, se diferentes)
-      const columnsToUpdateOrder = new Set<KanbanColumn>([oldColumnKey, newColumnKey]);
-      columnsToUpdateOrder.forEach(colKey => {
-        const cardsInThisColumn = newCards.filter(c => c.column === colKey);
-        cardsInThisColumn.forEach((card, index) => {
-          if (card.kanban_order !== index || card.id === activeId) {
-            const existingUpdate = tasksToUpdate.find(tu => tu.id === card.id);
-            if (existingUpdate) {
-              existingUpdate.kanban_order = index;
-              if (card.id === activeId) {
-                existingUpdate.column = newColumnKey;
-                existingUpdate.completed = newCompletedStatus;
-              }
-            } else {
-              tasksToUpdate.push({
-                id: card.id,
-                kanban_order: index,
-                ...(card.id === activeId && { column: newColumnKey, completed: newCompletedStatus }),
-              });
-            }
-          }
-        });
-      });
+    
+    // Fallback para a implementação local existente
+    const { active, over } = event;
+    
+    if (!over || !active) return;
+    
+    const activeId = Number(active.id);
+    const overId = over.id as string;
+    
+    // Se o item foi solto na mesma posição, não fazer nada
+    if (active.id === over.id) return;
+    
+    // Encontrar o card que está sendo movido
+    const activeCard = cards.find(card => card.id === activeId);
+    if (!activeCard) return;
+    
+    // Determinar a nova coluna
+    let newColumnId: string;
+    if (overId.startsWith('column-')) {
+      newColumnId = overId.replace('column-', '');
     } else {
-      // Se não houve mudança de posição (nem coluna nem ordem), mas a coluna é 'completed', apenas atualiza o status
-      if (activeCard.column === "completed" && activeCard.completed !== true) {
-         tasksToUpdate.push({ id: activeCard.id, completed: true, column: "completed" });
-      } else if (activeCard.column !== "completed" && activeCard.completed !== false) {
-         tasksToUpdate.push({ id: activeCard.id, completed: false, column: activeCard.column });
-      }
+      // Se foi solto em outro card, usar a coluna desse card
+      const overCard = cards.find(card => card.id === Number(overId));
+      if (!overCard) return;
+      newColumnId = overCard.column;
     }
-
-    if (tasksToUpdate.length > 0) {
-
-      updateTasksOnServer(tasksToUpdate);
-      // Notificar o usuário sobre a ação (opcional, pode ser coberto por updateTasksOnServer)
+    
+    // Se a coluna não mudou, não fazer nada
+    if (activeCard.column === newColumnId) return;
+    
+    // Verificar se a coluna de destino existe
+    const targetColumn = columns.find(col => col.id === newColumnId);
+    if (!targetColumn) return;
+    
+    try {
+      // Atualizar localmente primeiro (optimistic update)
+      setCards(prevCards => 
+        prevCards.map(card => 
+          card.id === activeId 
+            ? { ...card, column: newColumnId as KanbanColumnId, completed: newColumnId === 'completed' }
+            : card
+        )
+      );
+      
+      // Atualizar no servidor
+      await updateColumnOnServer(activeId, newColumnId as KanbanColumnId, newColumnId === 'completed');
+      
+      // Exibir toast de sucesso
       toast({
-        title: t("Kanban updated"),
-        description: t("Task positions and statuses have been updated."),
+        title: t("Task moved successfully"),
+        description: `${activeCard.title} ${t("moved to")} ${targetColumn.title}`,
+      });
+      
+    } catch (error) {
+      // Reverter mudança local em caso de erro
+      setCards(prevCards => 
+        prevCards.map(card => 
+          card.id === activeId 
+            ? { ...card, column: activeCard.column, completed: activeCard.completed }
+            : card
+        )
+      );
+      
+      toast({
+        variant: "destructive",
+        title: t("Failed to move task"),
+        description: t("Please try again"),
       });
     }
   };
   
-  // Agrupar cartões por coluna
-  const backlogCards = cards.filter(card => card.column === "backlog");
-  const planningCards = cards.filter(card => card.column === "planning");
-  const inProgressCards = cards.filter(card => card.column === "inProgress");
-  const validationCards = cards.filter(card => card.column === "validation");
-  const completedCards = cards.filter(card => card.column === "completed");
+  // Loading state que inclui colunas e cards
+  const isFullyLoaded = !isLoading && !columnsLoading && columns.length > 0;
   
-  const getColumnTitle = (key: KanbanColumn): string => {
-    switch (key) {
-      case "backlog": return t("backlog");
-      case "planning": return t("planning");
-      case "inProgress": return t("inProgress");
-      case "validation": return t("validation");
-      case "completed": return t("completed");
-      default: return "";
-    }
+  const getColumnTitle = (columnId: string): string => {
+    const column = columns.find(col => col.id === columnId);
+    return column ? column.title : columnId;
   };
   
   if (hasCriticalError) {
@@ -1161,10 +1242,11 @@ export function KanbanBoard() {
     );
   }
   
-  if (isLoading) {
+  if (!isFullyLoaded) {
     return (
-      <div className="flex justify-center items-center h-40">
-        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full"></div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <span className="ml-2">Carregando colunas e tarefas...</span>
       </div>
     );
   }
@@ -1172,7 +1254,59 @@ export function KanbanBoard() {
   return (
     <>
       <div className="flex justify-between items-center mb-4 px-4">
-        <h2 className="text-2xl font-bold">{t("kanban")}</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold">{t("kanban")}</h2>
+          
+          {/* Indicadores de status */}
+          <div className="flex items-center gap-2">
+            {/* Status de conectividade */}
+            <div className="flex items-center gap-1 text-sm">
+              {isOnline ? (
+                <Wifi className="h-4 w-4 text-green-500" />
+              ) : (
+                <WifiOff className="h-4 w-4 text-red-500" />
+              )}
+              <span className={`text-xs ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
+                {isOnline ? t('Online') : t('Offline')}
+              </span>
+            </div>
+            
+            {/* Status de sincronização */}
+            {syncStatus && (
+              <div className="flex items-center gap-1 text-sm">
+                {syncStatus === 'syncing' && (
+                  <>
+                    <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse" />
+                    <span className="text-xs text-blue-600">{t('Syncing')}</span>
+                  </>
+                )}
+                {syncStatus === 'error' && (
+                  <>
+                    <div className="h-2 w-2 bg-red-500 rounded-full" />
+                    <span className="text-xs text-red-600">{t('Sync Error')}</span>
+                  </>
+                )}
+                {syncStatus === 'idle' && (
+                  <>
+                    <div className="h-2 w-2 bg-green-500 rounded-full" />
+                    <span className="text-xs text-green-600">{t('Synced')}</span>
+                  </>
+                )}
+              </div>
+            )}
+            
+            {/* Indicador de operações pendentes */}
+            {offlineQueueSize > 0 && (
+              <div className="flex items-center gap-1 text-sm">
+                <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse" />
+                <span className="text-xs text-orange-600">
+                  {offlineQueueSize} {t('pending')}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        
         <Button 
           variant="outline" 
           size="sm" 
@@ -1181,13 +1315,11 @@ export function KanbanBoard() {
             if (isLoading) return;
             
             // Forçar atualização das tarefas
-
             setIsLoading(true);
             
             // Primeiro vamos buscar as tarefas
             fetchAndDistributeTasks()
               .then(() => {
-
                 toast({
                   variant: "default",
                   title: t("Tasks updated"),
@@ -1223,86 +1355,35 @@ export function KanbanBoard() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex flex-nowrap gap-4 p-4 overflow-x-auto pb-8">
-          <DroppableColumn
-            title={getColumnTitle("backlog")}
-            columnKey="backlog"
-            items={backlogCards}
-            activeColumn={activeColumn}
-            setActiveColumn={setActiveColumn}
-            newCardTitle={newCardTitle}
-            setNewCardTitle={setNewCardTitle}
-            createNewCard={createNewCard}
-            onDeleteCard={deleteCard}
-            onEditCard={editCard}
-            language={language}
-            highlightedColumn={highlightedColumn}
-            activeCardId={activeCardId}
-          />
+        <div className="flex gap-4 h-full overflow-x-auto p-4 pb-8">
+          {columns.map((column) => {
+            const columnCards = cards.filter(card => card.column === column.id);
+            return (
+              <div key={column.id} className="flex-shrink-0 w-80">
+                <DroppableColumn 
+                  title={column.title} 
+                  columnKey={column.id} 
+                  items={columnCards}
+                  activeColumn={activeColumn}
+                  setActiveColumn={setActiveColumn}
+                  newCardTitle={newCardTitle}
+                  setNewCardTitle={setNewCardTitle}
+                  createNewCard={createNewCard}
+                  onDeleteCard={deleteCard}
+                  onEditCard={editCard}
+                  language={language}
+                  highlightedColumn={highlightedColumn}
+                  column={column}
+                  showActions={!column.is_default}
+                />
+              </div>
+            );
+          })}
           
-          <DroppableColumn
-            title={getColumnTitle("planning")}
-            columnKey="planning"
-            items={planningCards}
-            activeColumn={activeColumn}
-            setActiveColumn={setActiveColumn}
-            newCardTitle={newCardTitle}
-            setNewCardTitle={setNewCardTitle}
-            createNewCard={createNewCard}
-            onDeleteCard={deleteCard}
-            onEditCard={editCard}
-            language={language}
-            highlightedColumn={highlightedColumn}
-            activeCardId={activeCardId}
-          />
-          
-          <DroppableColumn
-            title={getColumnTitle("inProgress")}
-            columnKey="inProgress"
-            items={inProgressCards}
-            activeColumn={activeColumn}
-            setActiveColumn={setActiveColumn}
-            newCardTitle={newCardTitle}
-            setNewCardTitle={setNewCardTitle}
-            createNewCard={createNewCard}
-            onDeleteCard={deleteCard}
-            onEditCard={editCard}
-            language={language}
-            highlightedColumn={highlightedColumn}
-            activeCardId={activeCardId}
-          />
-          
-          <DroppableColumn
-            title={getColumnTitle("validation")}
-            columnKey="validation"
-            items={validationCards}
-            activeColumn={activeColumn}
-            setActiveColumn={setActiveColumn}
-            newCardTitle={newCardTitle}
-            setNewCardTitle={setNewCardTitle}
-            createNewCard={createNewCard}
-            onDeleteCard={deleteCard}
-            onEditCard={editCard}
-            language={language}
-            highlightedColumn={highlightedColumn}
-            activeCardId={activeCardId}
-          />
-          
-          <DroppableColumn
-            title={getColumnTitle("completed")}
-            columnKey="completed"
-            items={completedCards}
-            activeColumn={activeColumn}
-            setActiveColumn={setActiveColumn}
-            newCardTitle={newCardTitle}
-            setNewCardTitle={setNewCardTitle}
-            createNewCard={createNewCard}
-            onDeleteCard={deleteCard}
-            onEditCard={editCard}
-            language={language}
-            highlightedColumn={highlightedColumn}
-            activeCardId={activeCardId}
-          />
+          {/* Botão para adicionar nova coluna */}
+          <div className="flex-shrink-0">
+            <AddColumnButton/>
+          </div>
         </div>
         
         <DragOverlay>
