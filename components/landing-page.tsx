@@ -34,6 +34,8 @@ import {
   Users,
   CheckCircle,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -41,11 +43,154 @@ export default function LandingPage() {
   const [isClient, setIsClient] = useState(false);
   const [showPurchaseScreen, setShowPurchaseScreen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'pro'>('basic');
+  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [windowWidth, setWindowWidth] = useState(0);
+
+  // Arrays de dados
+  const basicFeatures = [
+    t("Kanban básico com 3 colunas") || "Kanban básico com 3 colunas",
+    t("Até 10 projetos") || "Até 10 projetos",
+    t("Temporizador Pomodoro") || "Temporizador Pomodoro",
+    t("Notificações básicas") || "Notificações básicas",
+    t("Modo escuro") || "Modo escuro",
+    t("Suporte por email") || "Suporte por email"
+  ];
+
+  const proFeatures = [
+    t("Tudo do plano Básico") || "Tudo do plano Básico",
+    t("Projetos ilimitados") || "Projetos ilimitados",
+    t("Kanban avançado com colunas personalizadas") || "Kanban avançado com colunas personalizadas",
+    t("Relatórios detalhados de produtividade") || "Relatórios detalhados de produtividade",
+    t("Integração com calendário") || "Integração com calendário",
+    t("Backup automático na nuvem") || "Backup automático na nuvem",
+    t("Suporte prioritário") || "Suporte prioritário",
+    t("Temas personalizados") || "Temas personalizados"
+  ];
+
+  const testimonials = [
+    {
+      name: "Maria Silva",
+      role: "Gerente de Projetos",
+      content: "O Iris transformou completamente minha forma de trabalhar. Consegui aumentar minha produtividade em 150% e nunca mais perdi um prazo importante.",
+      rating: 5
+    },
+    {
+      name: "João Santos",
+      role: "Desenvolvedor",
+      content: "Finalmente encontrei uma ferramenta que realmente funciona. O sistema Kanban é intuitivo e o Pomodoro integrado é perfeito para manter o foco.",
+      rating: 5
+    },
+    {
+      name: "Ana Costa",
+      role: "Designer UX",
+      content: "A interface é linda e funcional. Uso todos os dias para organizar meus projetos e a sincronização entre dispositivos é impecável.",
+      rating: 5
+    },
+    {
+      name: "Carlos Oliveira",
+      role: "Consultor",
+      content: "Os relatórios de produtividade me ajudaram a identificar onde estava perdendo tempo. Agora sou muito mais eficiente.",
+      rating: 5
+    },
+    {
+      name: "Lucia Ferreira",
+      role: "Arquiteta",
+      content: "Perfeito para gerenciar múltiplos projetos. A visualização em calendário é exatamente o que eu precisava.",
+      rating: 5
+    },
+    {
+      name: "Pedro Almeida",
+      role: "Empreendedor",
+      content: "Desde que comecei a usar o Iris, minha empresa cresceu 40%. A organização faz toda a diferença.",
+      rating: 5
+    },
+    {
+      name: "Fernanda Lima",
+      role: "Professora",
+      content: "Uso para organizar minhas aulas e projetos acadêmicos. É simples, eficiente e me poupa muito tempo.",
+      rating: 5
+    },
+    {
+      name: "Roberto Souza",
+      role: "Advogado",
+      content: "O sistema de notificações me salvou várias vezes. Nunca mais esqueci de um prazo processual importante.",
+      rating: 5
+    }
+  ];
 
   // Detectar quando está no cliente
   useEffect(() => {
     setIsClient(true);
+    
+    // Detectar tamanho da janela para responsividade
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    if (typeof window !== 'undefined') {
+      setWindowWidth(window.innerWidth);
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
   }, []);
+
+  // Auto-play do carrossel
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      setCurrentTestimonialIndex((prev) => 
+        prev === testimonials.length - 1 ? 0 : prev + 1
+      );
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, testimonials.length]);
+
+  // Funções de navegação do carrossel
+  const nextTestimonial = () => {
+    setCurrentTestimonialIndex((prev) => 
+      prev === testimonials.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const prevTestimonial = () => {
+    setCurrentTestimonialIndex((prev) => 
+      prev === 0 ? testimonials.length - 1 : prev - 1
+    );
+  };
+
+  const goToTestimonial = (index: number) => {
+    setCurrentTestimonialIndex(index);
+  };
+
+  // Calcular depoimentos visíveis baseado no tamanho da tela
+  const getVisibleTestimonials = () => {
+    const isMobile = windowWidth < 768;
+    const isTablet = windowWidth >= 768 && windowWidth < 1024;
+    
+    let visibleCount = 3; // desktop
+    if (isMobile) visibleCount = 1;
+    else if (isTablet) visibleCount = 2;
+    
+    const visible = [];
+    for (let i = 0; i < visibleCount; i++) {
+      const index = (currentTestimonialIndex + i) % testimonials.length;
+      visible.push(testimonials[index]);
+    }
+    return visible;
+  };
+  
+  // Obter classes CSS responsivas para o grid
+  const getGridClasses = () => {
+    const isMobile = windowWidth < 768;
+    const isTablet = windowWidth >= 768 && windowWidth < 1024;
+    
+    if (isMobile) return "grid-cols-1";
+    if (isTablet) return "grid-cols-2";
+    return "grid-cols-3";
+  };
 
   useEffect(() => {
     if (!isClient) return;
@@ -75,44 +220,7 @@ export default function LandingPage() {
     };
   }, [setLanguage, isClient]);
 
-  const basicFeatures = [
-    t("Gerenciamento básico de tarefas") || "Gerenciamento básico de tarefas",
-    t("Temporizador Pomodoro") || "Temporizador Pomodoro",
-    t("Visualização de calendário") || "Visualização de calendário",
-    t("Notificações básicas") || "Notificações básicas",
-    t("Modo escuro") || "Modo escuro",
-  ];
 
-  const proFeatures = [
-    t("Todos os recursos do Básico") || "Todos os recursos do Básico",
-    t("Projetos ilimitados") || "Projetos ilimitados",
-    t("Kanban avançado") || "Kanban avançado",
-    t("Relatórios e analytics") || "Relatórios e analytics",
-    t("Backup automático") || "Backup automático",
-    t("Integração com APIs") || "Integração com APIs",
-    t("Suporte prioritário") || "Suporte prioritário",
-  ];
-
-  const testimonials = [
-    {
-      name: "Maria Silva",
-      role: t("Gerente de Projetos") || "Gerente de Projetos",
-      content: t("O Iris transformou completamente minha produtividade. Consegui organizar todos os meus projetos e aumentar minha eficiência em 200%.") || "O Iris transformou completamente minha produtividade. Consegui organizar todos os meus projetos e aumentar minha eficiência em 200%.",
-      rating: 5,
-    },
-    {
-      name: "João Santos",
-      role: t("Desenvolvedor") || "Desenvolvedor",
-      content: t("A combinação do Pomodoro com o Kanban é perfeita. Nunca mais perdi prazos e meu foco melhorou drasticamente.") || "A combinação do Pomodoro com o Kanban é perfeita. Nunca mais perdi prazos e meu foco melhorou drasticamente.",
-      rating: 5,
-    },
-    {
-      name: "Ana Costa",
-      role: t("Freelancer") || "Freelancer",
-      content: t("Interface intuitiva e recursos poderosos. O plano Pro vale cada centavo pelos relatórios detalhados que me ajudam a precificar melhor meus serviços.") || "Interface intuitiva e recursos poderosos. O plano Pro vale cada centavo pelos relatórios detalhados que me ajudam a precificar melhor meus serviços.",
-      rating: 5,
-    },
-  ];
 
   const faqs = [
     {
@@ -463,36 +571,83 @@ export default function LandingPage() {
                 {t("O que nossos usuários dizem") || "O que nossos usuários dizem"}
               </h2>
               <p className="max-w-[600px] text-muted-foreground text-base md:text-lg">
-                {t("Mais de 10.000 profissionais já transformaram sua produtividade") || "Mais de 10.000 profissionais já transformaram sua produtividade"}
+                {t("Mais de 100 profissionais já transformaram sua produtividade") || "Mais de 100 profissionais já transformaram sua produtividade"}
               </p>
             </div>
             
-            <div className="grid gap-6 md:grid-cols-3 max-w-6xl mx-auto animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-              {testimonials.map((testimonial, index) => (
-                <Card key={index} className="border-2 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:-translate-y-2 glass-effect animate-fade-in-up" style={{animationDelay: `${0.1 * (index + 1)}s`}}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                      "{testimonial.content}"
-                    </p>
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
-                        <span className="text-sm font-semibold text-primary">
-                          {testimonial.name.charAt(0)}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-sm">{testimonial.name}</p>
-                        <p className="text-xs text-muted-foreground">{testimonial.role}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            {/* Carrossel de Depoimentos */}
+            <div className="relative">
+              {/* Container do carrossel */}
+              <div 
+                className="overflow-hidden rounded-2xl"
+                onMouseEnter={() => setIsAutoPlaying(false)}
+                onMouseLeave={() => setIsAutoPlaying(true)}
+              >
+                <div className={`grid gap-6 ${getGridClasses()} max-w-6xl mx-auto animate-fade-in-up transition-all duration-500`} style={{animationDelay: '0.2s'}}>
+                  {getVisibleTestimonials().map((testimonial, index) => (
+                    <Card 
+                      key={`${currentTestimonialIndex}-${index}`} 
+                      className="border-2 hover:border-primary/30 transition-all duration-500 hover:shadow-lg hover:scale-105 hover:-translate-y-2 glass-effect animate-fade-in-up animate-in slide-in-from-right-5" 
+                      style={{animationDelay: `${0.1 * (index + 1)}s`}}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center mb-4">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                          "{testimonial.content}"
+                        </p>
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                            <span className="text-sm font-semibold text-primary">
+                              {testimonial.name.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">{testimonial.name}</p>
+                            <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {/* Botões de navegação */}
+              <button
+                onClick={prevTestimonial}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-background/80 backdrop-blur-sm border border-border rounded-full p-3 hover:bg-muted/50 transition-all duration-300 hover:scale-110 shadow-lg"
+                aria-label="Depoimento anterior"
+              >
+                <ChevronLeft className="h-6 w-6 text-foreground" />
+              </button>
+              
+              <button
+                onClick={nextTestimonial}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-background/80 backdrop-blur-sm border border-border rounded-full p-3 hover:bg-muted/50 transition-all duration-300 hover:scale-110 shadow-lg"
+                aria-label="Próximo depoimento"
+              >
+                <ChevronRight className="h-6 w-6 text-foreground" />
+              </button>
+
+              {/* Indicadores */}
+              <div className="flex justify-center mt-8 space-x-2">
+                {testimonials.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToTestimonial(index)}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                      index === currentTestimonialIndex
+                        ? 'bg-primary scale-125'
+                        : 'bg-muted hover:bg-muted-foreground/20'
+                    }`}
+                    aria-label={`Ir para depoimento ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </section>

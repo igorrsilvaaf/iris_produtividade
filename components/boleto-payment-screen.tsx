@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -42,6 +42,13 @@ export function BoletoPaymentScreen({ selectedPlan, customerData, onBack }: Bole
 
   const currentPlan = plans[selectedPlan]
 
+  // Estabilizar a referência do customerData para evitar re-execuções desnecessárias
+  const stableCustomerData = useMemo(() => ({
+    name: customerData.name,
+    cpf: customerData.cpf,
+    email: customerData.email
+  }), [customerData.name, customerData.cpf, customerData.email])
+
   // Gerar dados do boleto simulado
   useEffect(() => {
     const generateBoleto = async () => {
@@ -70,9 +77,9 @@ export function BoletoPaymentScreen({ selectedPlan, customerData, onBack }: Bole
           address: 'Rua das Flores, 123 - São Paulo/SP'
         },
         payer: {
-          name: customerData.name,
-          cpf: customerData.cpf,
-          email: customerData.email
+          name: stableCustomerData.name,
+          cpf: stableCustomerData.cpf,
+          email: stableCustomerData.email
         },
         instructions: [
           'Não receber após o vencimento',
@@ -86,7 +93,7 @@ export function BoletoPaymentScreen({ selectedPlan, customerData, onBack }: Bole
     }
 
     generateBoleto()
-  }, [currentPlan.priceValue, customerData])
+  }, [currentPlan.priceValue, stableCustomerData])
 
   const copyDigitableLine = async () => {
     if (!boletoData) return
