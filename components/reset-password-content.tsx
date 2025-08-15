@@ -43,9 +43,6 @@ export function ResetPasswordContent({ token }: ResetPasswordContentProps) {
               <Link href="/login">
                 <Button variant="outline">{t("Entrar")}</Button>
               </Link>
-              <Link href="/register">
-                <Button>{t("Cadastrar")}</Button>
-              </Link>
             </div>
             <div className="sm:hidden">
               <Link href="/login">
@@ -81,4 +78,4 @@ export function ResetPasswordContent({ token }: ResetPasswordContentProps) {
       </main>
     </div>
   );
-} 
+}

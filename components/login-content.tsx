@@ -35,16 +35,6 @@ export function LoginContent() {
 
           <div className="flex items-center gap-2 sm:gap-4" data-testid="actions-container">
             <ModeToggle />
-            <div className="hidden sm:flex gap-4">
-              <Link href="/register">
-                <Button data-testid="signup-button-desktop">{t("Sign Up")}</Button>
-              </Link>
-            </div>
-            <div className="sm:hidden">
-              <Link href="/register">
-                <Button size="sm" data-testid="signup-button-mobile">{t("Sign Up")}</Button>
-              </Link>
-            </div>
           </div>
         </div>
       </header>
@@ -59,20 +49,9 @@ export function LoginContent() {
           <div className="bg-card p-6 rounded-lg border shadow-sm" data-testid="login-form-container">
             <LoginForm />
           </div>
-          <div className="text-center text-sm">
-            <p data-testid="no-account-text">
-              {t("Don't have an account?")}{" "}
-              <a
-                href="/register"
-                className="font-medium text-primary hover:underline"
-                data-testid="signup-link"
-              >
-                {t("Sign Up")}
-              </a>
-            </p>
-          </div>
+
         </div>
       </main>
     </div>
   );
-} 
+}

@@ -36,6 +36,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  LogIn,
+  Play,
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -276,24 +278,16 @@ export default function LandingPage() {
             <div className="hidden sm:flex gap-4">
               <Link href="/login">
                 <Button variant="outline" data-testid="landing-login-button">
+                  <LogIn className="w-4 h-4 mr-2" />
                   {t("Entrar")}
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" data-testid="landing-register-button">
-                  {t("Cadastrar")}
                 </Button>
               </Link>
             </div>
             <div className="flex sm:hidden gap-3">
               <Link href="/login">
                 <Button variant="outline" size="sm" data-testid="landing-login-button-mobile">
+                  <LogIn className="w-4 h-4 mr-2" />
                   {t("Entrar")}
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground" data-testid="landing-register-button-mobile">
-                  {t("Cadastrar")}
                 </Button>
               </Link>
             </div>
@@ -328,17 +322,15 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-                  <Button 
-                    onClick={() => handlePlanSelect('pro')}
-                    size="lg" 
-                    className="w-full sm:w-auto px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105 hover:-translate-y-1"
-                  >
-                    <Zap className="w-4 h-4 mr-2 group-hover:animate-pulse" />
-                    {t("Começar Gratuitamente") || "Começar Gratuitamente"}
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                  <Link href="/register">
+                    <Button size="lg" className="w-full sm:w-auto px-8 py-3 hover:scale-105 hover:-translate-y-1 transition-all duration-300" data-testid="landing-trial-button">
+                      <Rocket className="w-5 h-5 mr-2" />
+                      {t("Comece de Graça") || "Comece de Graça"}
+                    </Button>
+                  </Link>
                   <Link href="#plans">
                     <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-3 border-2 hover:bg-muted/50 hover:scale-105 hover:-translate-y-1 transition-all duration-300">
+                      <Star className="w-5 h-5 mr-2" />
                       {t("Ver Planos") || "Ver Planos"}
                     </Button>
                   </Link>
@@ -420,15 +412,19 @@ export default function LandingPage() {
                     ))}
                   </ul>
                   <Separator />
-                  <Button 
-                    onClick={() => handlePlanSelect('basic')}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
-                  >
-                    {t("Começar com Básico") || "Começar com Básico"}
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    {t("Teste grátis por 14 dias") || "Teste grátis por 14 dias"}
-                  </p>
+                  <div className="space-y-4">
+                    <Button 
+                      onClick={() => handlePlanSelect('basic')}
+                      className="w-full hover:scale-105 transition-all duration-300"
+                      data-testid="basic-plan-button"
+                    >
+                      <Crown className="w-4 h-4 mr-2" />
+                      {t("Escolher Plano Básico") || "Escolher Plano Básico"}
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      {t("Teste grátis por 14 dias") || "Teste grátis por 14 dias"}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
               
@@ -465,16 +461,19 @@ export default function LandingPage() {
                     ))}
                   </ul>
                   <Separator />
-                  <Button 
-                    onClick={() => handlePlanSelect('pro')}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <TrendingUp className="w-4 h-4 mr-2" />
-                    {t("Começar com Pro") || "Começar com Pro"}
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    {t("Teste grátis por 14 dias • Cancele quando quiser") || "Teste grátis por 14 dias • Cancele quando quiser"}
-                  </p>
+                  <div className="space-y-4">
+                    <Button 
+                      onClick={() => handlePlanSelect('pro')}
+                      className="w-full bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300"
+                      data-testid="pro-plan-button"
+                    >
+                      <Star className="w-4 h-4 mr-2" />
+                      {t("Escolher Plano Pro") || "Escolher Plano Pro"}
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      {t("Teste grátis por 14 dias • Cancele quando quiser") || "Teste grátis por 14 dias • Cancele quando quiser"}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -707,16 +706,11 @@ export default function LandingPage() {
                 {t("Junte-se a mais de 10.000 profissionais que já aumentaram sua produtividade em 200% com o Iris. Teste grátis por 14 dias.") || "Junte-se a mais de 10.000 profissionais que já aumentaram sua produtividade em 200% com o Iris. Teste grátis por 14 dias."}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                <Button 
-                  onClick={() => handlePlanSelect('pro')}
-                  size="lg" 
-                  className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group" 
-                  data-testid="landing-create-account-button"
-                >
-                  <Zap className="w-5 h-5 mr-2 group-hover:animate-pulse" />
-                  {t("Começar Teste Grátis Agora") || "Começar Teste Grátis Agora"}
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
+                <Link href="/register">
+                  <Button size="lg" className="w-full sm:w-auto px-8 py-4 hover:scale-105 transition-all duration-300" data-testid="landing-cta-trial-button">
+                    {t("Comece de Graça") || "Comece de Graça"}
+                  </Button>
+                </Link>
                 <Link href="#plans">
                   <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-4 border-2 hover:bg-muted/50">
                     {t("Ver Planos Novamente") || "Ver Planos Novamente"}
@@ -752,8 +746,8 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-row gap-3 sm:gap-4 mt-3 sm:mt-4">
                 <Link href="/register">
-                  <Button size="default" className="px-4 sm:px-8 bg-primary hover:bg-primary/90 text-primary-foreground" data-testid="landing-create-account-button">
-                    {t("Criar conta grátis")}
+                  <Button size="default" className="px-4 sm:px-8" data-testid="landing-final-trial-button">
+                    {t("Comece de Graça") || "Comece de Graça"}
                   </Button>
                 </Link>
                 <Link href="/login">

@@ -26,41 +26,16 @@ export function AuthHeader() {
         <div className="flex items-center gap-2 sm:gap-4">
           <ModeToggle data-testid="auth-header-mode-toggle" />
           <div className="hidden sm:flex gap-4">
-            {isLoginPage && (
-              <Link href="/register" data-testid="auth-header-register-link">
-                <Button>{t("Sign Up")}</Button>
-              </Link>
-            )}
-            {isRegisterPage && (
+            {(isRegisterPage || !isLoginPage) && (
               <Link href="/login" data-testid="auth-header-login-link">
-                <Button variant="default">{t("Login")}</Button>
+                <Button variant={isRegisterPage ? "default" : "outline"}>{t("Login")}</Button>
               </Link>
-            )}
-            {!isLoginPage && !isRegisterPage && (
-              <>
-                <Link href="/login" data-testid="auth-header-login-link">
-                  <Button variant="outline">{t("Login")}</Button>
-                </Link>
-                <Link href="/register" data-testid="auth-header-register-link">
-                  <Button>{t("Sign Up")}</Button>
-                </Link>
-              </>
             )}
           </div>
           <div className="sm:hidden">
-            {isLoginPage && (
-              <Link href="/register" data-testid="auth-header-register-link-mobile">
-                <Button size="sm">{t("Sign Up")}</Button>
-              </Link>
-            )}
-            {isRegisterPage && (
+            {(isRegisterPage || !isLoginPage) && (
               <Link href="/login" data-testid="auth-header-login-link-mobile">
-                <Button size="sm" variant="default">{t("Login")}</Button>
-              </Link>
-            )}
-            {!isLoginPage && !isRegisterPage && (
-              <Link href="/login" data-testid="auth-header-login-link-mobile">
-                <Button size="sm">{t("Login")}</Button>
+                <Button size="sm" variant={isRegisterPage ? "default" : "outline"}>{t("Login")}</Button>
               </Link>
             )}
           </div>
