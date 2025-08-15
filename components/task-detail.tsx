@@ -141,7 +141,7 @@ export function TaskDetail({ task, open, onOpenChange, onDeleted, user }: TaskDe
   const [dueDate, setDueDate] = useState<Date | undefined>(
     task.due_date ? new Date(task.due_date) : undefined
   );
-  const [dueTime, setDueTime] = useState<string | undefined>(
+  const [dueTime, setDueTime] = useState<string>(
     task.due_date ? new Date(task.due_date).toTimeString().slice(0, 5) : "00:00"
   );
   const [dueTimeUpdate, setDueTimeUpdate] = useState(false);

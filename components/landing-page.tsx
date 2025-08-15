@@ -11,6 +11,7 @@ import { useTranslation } from "@/lib/i18n";
 import { AuthFooter } from "@/components/auth-footer";
 import { Logo } from "@/components/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { PurchaseScreen } from "@/components/purchase-screen";
 import {
   Check,
   Clock,
@@ -38,6 +39,8 @@ import {
 export default function LandingPage() {
   const { t, language, setLanguage } = useTranslation();
   const [isClient, setIsClient] = useState(false);
+  const [showPurchaseScreen, setShowPurchaseScreen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'pro'>('basic');
 
   // Detectar quando está no cliente
   useEffect(() => {
@@ -134,6 +137,24 @@ export default function LandingPage() {
     },
   ];
 
+  const handlePlanSelect = (plan: 'basic' | 'pro') => {
+    setSelectedPlan(plan);
+    setShowPurchaseScreen(true);
+  };
+
+  const handleBackToLanding = () => {
+    setShowPurchaseScreen(false);
+  };
+
+  if (showPurchaseScreen) {
+    return (
+      <PurchaseScreen 
+        selectedPlan={selectedPlan} 
+        onBack={handleBackToLanding}
+      />
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background" data-testid="landing-page">
       <header className="w-full border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
@@ -173,37 +194,48 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         <section className="w-full py-8 sm:py-16 md:py-24 lg:py-32 overflow-hidden relative border-b bg-gradient-to-br from-primary/5 via-background to-primary/10">
+          {/* Efeito de fundo acrílico/vidro fosco */}
+          <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-muted/20 to-background/95 backdrop-blur-sm"></div>
+          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px] animate-pulse"></div>
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] backdrop-blur-md"></div>
+          
+          {/* Elementos flutuantes animados */}
+          <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-bounce" style={{animationDelay: '0s', animationDuration: '3s'}}></div>
+          <div className="absolute top-40 right-20 w-16 h-16 bg-blue-500/10 rounded-full blur-lg animate-bounce" style={{animationDelay: '1s', animationDuration: '4s'}}></div>
+          <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-purple-500/10 rounded-full blur-lg animate-bounce" style={{animationDelay: '2s', animationDuration: '5s'}}></div>
           <div className="absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10 bg-repeat"></div>
           <div className="container px-4 md:px-6 relative">
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-16 xl:gap-20 items-center max-w-[1920px] mx-auto">
-              <div className="flex flex-col justify-center space-y-6 max-w-3xl">
+              <div className="flex flex-col justify-center space-y-6 max-w-3xl animate-fade-in-up">
                 <div className="space-y-4 sm:space-y-6">
                   <Badge className="w-fit bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
                     <Rocket className="w-3 h-3 mr-1" />
                     {t("Aumente sua produtividade em 200%") || "Aumente sua produtividade em 200%"}
                   </Badge>
-                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl xl:text-6xl bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text" data-testid="landing-main-title">
+                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl xl:text-6xl bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text animate-fade-in-up hover:scale-105 transition-transform duration-500" data-testid="landing-main-title" style={{animationDelay: '0.2s'}}>
                     {t("Transforme sua produtividade com o Iris") || "Transforme sua produtividade com o Iris"}
                   </h1>
-                  <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-[600px] leading-relaxed" data-testid="landing-main-subtitle">
+                  <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-[600px] leading-relaxed animate-fade-in-up" data-testid="landing-main-subtitle" style={{animationDelay: '0.4s'}}>
                     {t("O sistema de produtividade mais completo do Brasil. Kanban avançado, Pomodoro inteligente e relatórios que realmente importam.") || "O sistema de produtividade mais completo do Brasil. Kanban avançado, Pomodoro inteligente e relatórios que realmente importam."}
                   </p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/register">
-                    <Button size="lg" className="w-full sm:w-auto px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group">
-                      <Zap className="w-4 h-4 mr-2 group-hover:animate-pulse" />
-                      {t("Começar Gratuitamente") || "Começar Gratuitamente"}
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
+                <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+                  <Button 
+                    onClick={() => handlePlanSelect('pro')}
+                    size="lg" 
+                    className="w-full sm:w-auto px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group hover:scale-105 hover:-translate-y-1"
+                  >
+                    <Zap className="w-4 h-4 mr-2 group-hover:animate-pulse" />
+                    {t("Começar Gratuitamente") || "Começar Gratuitamente"}
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
                   <Link href="#plans">
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-3 border-2 hover:bg-muted/50">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-3 border-2 hover:bg-muted/50 hover:scale-105 hover:-translate-y-1 transition-all duration-300">
                       {t("Ver Planos") || "Ver Planos"}
                     </Button>
                   </Link>
                 </div>
-                <div className="flex flex-wrap gap-6 text-sm text-muted-foreground" data-testid="landing-features-list">
+                <div className="flex flex-wrap gap-6 text-sm text-muted-foreground animate-fade-in-up" data-testid="landing-features-list" style={{animationDelay: '0.8s'}}>
                   <div className="flex items-center" data-testid="landing-feature-free">
                     <CheckCircle className="text-green-500 h-4 w-4 mr-2" />
                     {t("Teste grátis por 14 dias") || "Teste grátis por 14 dias"}
@@ -214,16 +246,16 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center" data-testid="landing-feature-secure">
                     <Users className="text-purple-500 h-4 w-4 mr-2" />
-                    {t("Mais de 10.000 usuários") || "Mais de 10.000 usuários"}
+                    {t("Mais de 100 usuários") || "Mais de 100 usuários"}
                   </div>
                 </div>
               </div>
-              <div className="flex justify-center items-center w-full">
+              <div className="flex justify-center items-center w-full animate-fade-in-up" style={{animationDelay: '1s'}}>
                 <div className="w-full max-w-[600px] sm:max-w-[700px] md:max-w-[800px] lg:max-w-[900px] xl:max-w-[1000px] mx-auto">
                   <img 
                     src="/iris_principal.png" 
                     alt="Interface do aplicativo Iris Produtividade" 
-                    className="w-full h-auto object-contain transition-transform duration-300 hover:scale-[1.02]"
+                    className="w-full h-auto object-contain transition-all duration-500 hover:scale-[1.05] hover:rotate-1 hover:shadow-2xl"
                     loading="lazy"
                   />
                 </div>
@@ -233,9 +265,13 @@ export default function LandingPage() {
         </section>
         
         {/* Seção de Planos */}
-        <section id="plans" className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-muted/30 relative">
-          <div className="container px-4 md:px-6 mx-auto">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+        <section id="plans" className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-muted/30 relative overflow-hidden">
+          {/* Efeito de fundo acrílico para seção de planos */}
+          <div className="absolute inset-0 bg-gradient-to-br from-background/90 via-muted/40 to-background/90 backdrop-blur-sm"></div>
+          <div className="absolute top-10 right-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl animate-float"></div>
+          <div className="absolute bottom-20 left-10 w-24 h-24 bg-blue-500/5 rounded-full blur-xl animate-float" style={{animationDelay: '1s'}}></div>
+          <div className="container px-4 md:px-6 mx-auto relative z-10">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12 animate-fade-in-up">
               <Badge className="bg-primary/10 text-primary border-primary/20">
                 <Crown className="w-3 h-3 mr-1" />
                 {t("Planos Especiais") || "Planos Especiais"}
@@ -248,9 +284,9 @@ export default function LandingPage() {
               </p>
             </div>
             
-            <div className="grid gap-8 lg:gap-12 md:grid-cols-2 max-w-4xl mx-auto">
+            <div className="grid gap-8 lg:gap-12 md:grid-cols-2 max-w-4xl mx-auto animate-fade-in-up" style={{animationDelay: '0.3s'}}>
               {/* Plano Básico */}
-              <Card className="relative border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
+              <Card className="relative border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:-translate-y-2 glass-effect">
                 <CardHeader className="text-center pb-8">
                   <div className="mx-auto w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
                     <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -276,11 +312,12 @@ export default function LandingPage() {
                     ))}
                   </ul>
                   <Separator />
-                  <Link href="/register" className="block">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3">
-                      {t("Começar com Básico") || "Começar com Básico"}
-                    </Button>
-                  </Link>
+                  <Button 
+                    onClick={() => handlePlanSelect('basic')}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
+                  >
+                    {t("Começar com Básico") || "Começar com Básico"}
+                  </Button>
                   <p className="text-xs text-center text-muted-foreground">
                     {t("Teste grátis por 14 dias") || "Teste grátis por 14 dias"}
                   </p>
@@ -288,7 +325,7 @@ export default function LandingPage() {
               </Card>
               
               {/* Plano Pro */}
-              <Card className="relative border-2 border-primary hover:border-primary/80 transition-all duration-300 hover:shadow-xl shadow-lg">
+              <Card className="relative border-2 border-primary hover:border-primary/80 transition-all duration-300 hover:shadow-xl shadow-lg hover:scale-105 hover:-translate-y-2 glass-effect animate-glow">
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-primary text-primary-foreground px-4 py-1">
                     <Award className="w-3 h-3 mr-1" />
@@ -320,12 +357,13 @@ export default function LandingPage() {
                     ))}
                   </ul>
                   <Separator />
-                  <Link href="/register" className="block">
-                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300">
-                      <TrendingUp className="w-4 h-4 mr-2" />
-                      {t("Começar com Pro") || "Começar com Pro"}
-                    </Button>
-                  </Link>
+                  <Button 
+                    onClick={() => handlePlanSelect('pro')}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    {t("Começar com Pro") || "Começar com Pro"}
+                  </Button>
                   <p className="text-xs text-center text-muted-foreground">
                     {t("Teste grátis por 14 dias • Cancele quando quiser") || "Teste grátis por 14 dias • Cancele quando quiser"}
                   </p>
@@ -336,10 +374,12 @@ export default function LandingPage() {
         </section>
         
         {/* Seção de Recursos */}
-        <section className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-background relative">
-          <div className="absolute inset-0 bg-muted/20 opacity-50"></div>
+        <section className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-background relative overflow-hidden">
+          <div className="absolute inset-0 bg-muted/20 opacity-50 backdrop-blur-sm"></div>
+          <div className="absolute top-1/4 left-1/4 w-40 h-40 bg-purple-500/5 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+          <div className="absolute bottom-1/3 right-1/4 w-36 h-36 bg-green-500/5 rounded-full blur-2xl animate-float" style={{animationDelay: '3s'}}></div>
           <div className="container px-4 md:px-6 mx-auto relative">
-            <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4 text-center mb-8 sm:mb-12">
+            <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4 text-center mb-8 sm:mb-12 animate-fade-in-up">
               <div className="space-y-2 max-w-3xl">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tighter md:text-4xl lg:text-5xl" data-testid="landing-features-title">
                   {t("Recursos avançados de produtividade")}
@@ -350,7 +390,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 sm:gap-6 md:gap-8 py-4 sm:py-8 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-pomodoro">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-105 hover:-translate-y-1 animate-fade-in-up stagger-animation glass-effect" data-testid="landing-feature-pomodoro">
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
@@ -359,7 +399,7 @@ export default function LandingPage() {
                   {t("Mantenha o foco com temporizador Pomodoro integrado para aumentar sua produtividade e gerenciar períodos de trabalho e descanso.")}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-tasks">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-105 hover:-translate-y-1 animate-fade-in-up stagger-animation glass-effect" data-testid="landing-feature-tasks" style={{animationDelay: '0.1s'}}>
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <List className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
@@ -368,7 +408,7 @@ export default function LandingPage() {
                   {t("Organize tarefas com projetos personalizados, níveis de prioridade e datas de vencimento para manter seu fluxo de trabalho organizado.")}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-calendar">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-105 hover:-translate-y-1 animate-fade-in-up stagger-animation glass-effect" data-testid="landing-feature-calendar" style={{animationDelay: '0.2s'}}>
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
@@ -377,7 +417,7 @@ export default function LandingPage() {
                   {t("Veja suas tarefas em uma visualização de calendário para planejar sua semana com eficiência e nunca perder prazos importantes.")}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-notifications">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-105 hover:-translate-y-1 animate-fade-in-up stagger-animation glass-effect" data-testid="landing-feature-notifications" style={{animationDelay: '0.3s'}}>
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
@@ -386,7 +426,7 @@ export default function LandingPage() {
                   {t("Receba avisos sobre tarefas próximas ao vencimento, atrasadas e eventos importantes para nunca perder um prazo.")}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-dark-mode">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-105 hover:-translate-y-1 animate-fade-in-up stagger-animation glass-effect" data-testid="landing-feature-dark-mode" style={{animationDelay: '0.4s'}}>
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <Moon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
@@ -395,7 +435,7 @@ export default function LandingPage() {
                   {t("Alterne entre temas claros e escuros para reduzir o cansaço visual e adaptar a interface às suas preferências.")}
                 </p>
               </div>
-              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10" data-testid="landing-feature-customization">
+              <div className="flex flex-col space-y-2 sm:space-y-3 rounded-xl p-4 sm:p-6 bg-card border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-105 hover:-translate-y-1 animate-fade-in-up stagger-animation glass-effect" data-testid="landing-feature-customization" style={{animationDelay: '0.5s'}}>
                 <div className="rounded-full bg-primary/10 p-2 sm:p-3 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center mb-1">
                   <Star className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
@@ -409,9 +449,12 @@ export default function LandingPage() {
         </section>
         
         {/* Seção de Depoimentos */}
-        <section className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-muted/20">
-          <div className="container px-4 md:px-6 mx-auto">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+        <section className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-muted/20 relative overflow-hidden">
+          {/* Efeito de fundo acrílico para depoimentos */}
+          <div className="absolute inset-0 bg-gradient-to-tl from-background/95 via-muted/30 to-background/95 backdrop-blur-sm"></div>
+          <div className="absolute top-1/3 right-1/3 w-28 h-28 bg-yellow-500/5 rounded-full blur-2xl animate-float" style={{animationDelay: '1.5s'}}></div>
+          <div className="container px-4 md:px-6 mx-auto relative z-10">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12 animate-fade-in-up">
               <Badge className="bg-primary/10 text-primary border-primary/20">
                 <MessageCircle className="w-3 h-3 mr-1" />
                 {t("Depoimentos") || "Depoimentos"}
@@ -424,9 +467,9 @@ export default function LandingPage() {
               </p>
             </div>
             
-            <div className="grid gap-6 md:grid-cols-3 max-w-6xl mx-auto">
+            <div className="grid gap-6 md:grid-cols-3 max-w-6xl mx-auto animate-fade-in-up" style={{animationDelay: '0.2s'}}>
               {testimonials.map((testimonial, index) => (
-                <Card key={index} className="border-2 hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
+                <Card key={index} className="border-2 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:-translate-y-2 glass-effect animate-fade-in-up" style={{animationDelay: `${0.1 * (index + 1)}s`}}>
                   <CardContent className="p-6">
                     <div className="flex items-center mb-4">
                       {[...Array(testimonial.rating)].map((_, i) => (
@@ -455,9 +498,12 @@ export default function LandingPage() {
         </section>
         
         {/* Seção FAQ */}
-        <section className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-background">
-          <div className="container px-4 md:px-6 mx-auto">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+        <section className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-background relative overflow-hidden">
+          {/* Efeito de fundo acrílico para FAQ */}
+          <div className="absolute inset-0 bg-gradient-to-br from-muted/20 via-background/90 to-muted/20 backdrop-blur-sm"></div>
+          <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl animate-float" style={{animationDelay: '2.5s'}}></div>
+          <div className="container px-4 md:px-6 mx-auto relative z-10">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12 animate-fade-in-up">
               <Badge className="bg-primary/10 text-primary border-primary/20">
                 <HelpCircle className="w-3 h-3 mr-1" />
                 {t("FAQ") || "FAQ"}
@@ -471,9 +517,9 @@ export default function LandingPage() {
             </div>
             
             <div className="max-w-3xl mx-auto">
-              <Accordion type="single" collapsible className="w-full">
+              <Accordion type="single" collapsible className="w-full animate-fade-in-up" style={{animationDelay: '0.3s'}}>
                 {faqs.map((faq, index) => (
-                  <AccordionItem key={index} value={`item-${index}`} className="border-b">
+                  <AccordionItem key={index} value={`item-${index}`} className="border-b hover:bg-muted/30 transition-all duration-300 rounded-lg px-2 glass-effect">
                     <AccordionTrigger className="text-left hover:text-primary transition-colors">
                       {faq.question}
                     </AccordionTrigger>
@@ -488,9 +534,13 @@ export default function LandingPage() {
         </section>
         
         {/* CTA Final */}
-        <section className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-t">
-          <div className="container px-4 md:px-6 mx-auto">
-            <div className="flex flex-col items-center justify-center space-y-6 text-center max-w-3xl mx-auto">
+        <section className="w-full py-12 sm:py-16 md:py-24 lg:py-32 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-t relative overflow-hidden">
+          {/* Efeito de fundo acrílico para CTA final */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 backdrop-blur-sm"></div>
+          <div className="absolute top-10 left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-10 right-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl animate-float" style={{animationDelay: '1s'}}></div>
+          <div className="container px-4 md:px-6 mx-auto relative z-20">
+            <div className="flex flex-col items-center justify-center space-y-6 text-center max-w-3xl mx-auto animate-fade-in-up">
               <Badge className="bg-primary/20 text-primary border-primary/30">
                 <Rocket className="w-3 h-3 mr-1" />
                 {t("Última Chance") || "Última Chance"}
@@ -502,13 +552,16 @@ export default function LandingPage() {
                 {t("Junte-se a mais de 10.000 profissionais que já aumentaram sua produtividade em 200% com o Iris. Teste grátis por 14 dias.") || "Junte-se a mais de 10.000 profissionais que já aumentaram sua produtividade em 200% com o Iris. Teste grátis por 14 dias."}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                <Link href="/register">
-                  <Button size="lg" className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group" data-testid="landing-create-account-button">
-                    <Zap className="w-5 h-5 mr-2 group-hover:animate-pulse" />
-                    {t("Começar Teste Grátis Agora") || "Começar Teste Grátis Agora"}
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => handlePlanSelect('pro')}
+                  size="lg" 
+                  className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 group" 
+                  data-testid="landing-create-account-button"
+                >
+                  <Zap className="w-5 h-5 mr-2 group-hover:animate-pulse" />
+                  {t("Começar Teste Grátis Agora") || "Começar Teste Grátis Agora"}
+                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
                 <Link href="#plans">
                   <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-4 border-2 hover:bg-muted/50">
                     {t("Ver Planos Novamente") || "Ver Planos Novamente"}
