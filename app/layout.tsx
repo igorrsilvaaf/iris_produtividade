@@ -21,6 +21,7 @@ import { ProjectsLabelsProvider } from "@/contexts/projects-labels-context";
 import { AIHelpChat } from "@/components/ai-help-chat";
 import { FeedbackDialog } from "@/components/feedback-dialog";
 
+
 import "./globals.css";
 
 const inter = Inter({ 
@@ -87,7 +88,7 @@ export default async function RootLayout({
     >
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <LanguageProvider initialLanguage={initialLanguage}>
+            <LanguageProvider initialLanguage={initialLanguage}>
             <LanguageInitializer initialLanguage={initialLanguage} />
             <SyncLanguage initialLanguage={initialLanguage} />
             <AppLoading>
@@ -122,7 +123,7 @@ export default async function RootLayout({
                 </TranslationsLoader>
               </AppWrapper>
             </AppLoading>
-          </LanguageProvider>
+            </LanguageProvider>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

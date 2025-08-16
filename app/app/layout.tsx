@@ -6,6 +6,9 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { AppHeader } from "@/components/app-header";
 import { LanguageProvider } from "@/components/language-provider";
 import { ChangelogNotification } from "@/components/changelog-notification";
+import { TrialGuard } from "@/components/trial-guard";
+import { TrialStatus } from "@/components/trial-status";
+
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { deduplicatedFetch } from "@/lib/request-deduplicator";
@@ -92,21 +95,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <LanguageProvider initialLanguage={initialLanguage}>
-      <div className="flex min-h-screen flex-col md:flex-row md:overflow-hidden">
-        <div className="w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r bg-background md:block hidden">
-          {session?.user && <AppSidebar user={session.user} />}
-        </div>
-        <div className="flex flex-1 flex-col overflow-hidden">
-          {session?.user && <AppHeader user={session.user} />}
-          <main className="flex-1 overflow-auto p-4 md:p-6">
-            <ChangelogNotification />
-            {children}
-          </main>
-        </div>
+        <div className="flex min-h-screen flex-col md:flex-row md:overflow-hidden">
+          <div className="w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r bg-background md:block hidden">
+            {session?.user && <AppSidebar user={session.user} />}
+          </div>
+          <div className="flex flex-1 flex-col overflow-hidden">
+            {session?.user && <AppHeader user={session.user} />}
+            <main className="flex-1 overflow-auto p-4 md:p-6">
+              <ChangelogNotification />
+              <div className="mb-4">
+                <TrialStatus variant="banner" />
+              </div>
+              <TrialGuard>
+                {children}
+              </TrialGuard>
+            </main>
+          </div>
 
-        {/* Adicionar o player do Spotify aqui */}
-        {settings?.enable_spotify && <SpotifyPlayerWrapper />}
-      </div>
+          {/* Adicionar o player do Spotify aqui */}
+          {settings?.enable_spotify && <SpotifyPlayerWrapper />}
+        </div>
     </LanguageProvider>
   );
 }

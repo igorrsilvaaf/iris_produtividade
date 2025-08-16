@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useTranslation } from "@/lib/i18n";
-import { RegisterForm } from "@/components/register-form";
+import RegisterForm from "@/components/register-form";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
@@ -35,25 +35,15 @@ export function RegisterContent() {
 
           <div className="flex items-center gap-2 sm:gap-4">
             <ModeToggle />
-            <div className="hidden sm:flex gap-4">
-              <Link href="/login">
-                <Button variant="default">{t("Login")}</Button>
-              </Link>
-            </div>
-            <div className="sm:hidden">
-              <Link href="/login">
-                <Button size="sm" variant="default">{t("Login")}</Button>
-              </Link>
-            </div>
           </div>
         </div>
       </header>
-      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12 md:py-16 lg:py-20">
+      <main className="flex-1 flex items-center justify-center px-4 py-4 sm:px-6 sm:py-6 md:py-8 lg:py-10">
         <div className="mx-auto w-full max-w-md space-y-6 sm:space-y-8">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("Create an account")}</h1>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("Criar conta grátis")}</h1>
             <p className="text-sm text-muted-foreground sm:text-base">
-              {t("Sign up to get started with Íris")}
+              {t("Cadastre-se para começar a usar o Íris")}
             </p>
           </div>
           <div className="bg-card p-6 rounded-lg border shadow-sm">
@@ -74,4 +64,4 @@ export function RegisterContent() {
       </main>
     </div>
   );
-} 
+}

@@ -4,6 +4,7 @@ import * as bcrypt from "bcryptjs"
 import crypto from "crypto"
 import prisma from "./prisma"
 
+
 export type User = {
   id: number
   name: string
@@ -117,7 +118,9 @@ export async function register(name: string, email: string, password: string): P
       data: {
         name,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        trial_start_date: new Date(),
+        trial_expired: false
       },
       select: {
         id: true,

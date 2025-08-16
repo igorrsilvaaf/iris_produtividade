@@ -39,9 +39,6 @@ export function ForgotPasswordContent() {
               <Link href="/login">
                 <Button variant="outline">{t("Sign In")}</Button>
               </Link>
-              <Link href="/register">
-                <Button>{t("Sign Up")}</Button>
-              </Link>
             </div>
             <div className="sm:hidden">
               <Link href="/login">
@@ -77,4 +74,4 @@ export function ForgotPasswordContent() {
       </main>
     </div>
   );
-} 
+}

@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+import { getTrialStatus, expireTrial } from './lib/trial'
+
+export async function middleware(request: NextRequest) {
+  // Verificação de variáveis de ambiente em produção
   if (process.env.NODE_ENV === 'production') {
     if (request.nextUrl.pathname === '/api/auth/forgot-password') {
       const requiredVars = [
@@ -22,6 +25,28 @@ export function middleware(request: NextRequest) {
           { status: 500 }
         )
       }
+    }
+  }
+
+  // Verificação de trial para rotas protegidas
+  const protectedPaths = ['/app', '/api/tasks', '/api/kanban']
+  const isProtectedPath = protectedPaths.some(path => 
+    request.nextUrl.pathname.startsWith(path)
+  )
+
+  if (isProtectedPath) {
+    try {
+      // Verificar sessão customizada através do cookie
+      const sessionToken = request.cookies.get('session_token')?.value
+      
+      if (sessionToken) {
+        // Para verificação de trial, precisaríamos fazer uma consulta ao banco
+        // Por enquanto, vamos permitir o acesso e deixar a verificação para as rotas individuais
+        // TODO: Implementar verificação de trial no middleware usando sistema customizado
+      }
+    } catch (error) {
+      console.error('Erro na verificação de trial:', error)
+      // Em caso de erro, permite o acesso para não quebrar a aplicação
     }
   }
   
@@ -48,6 +73,7 @@ export const config = {
   matcher: [
     '/api/tasks/:path*',
     '/api/auth/:path*',
+    '/api/kanban/:path*',
     '/app/:path*'
   ]
-} 
+}
