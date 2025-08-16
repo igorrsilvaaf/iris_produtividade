@@ -1057,7 +1057,7 @@ export function TaskDetail({ task, open, onOpenChange, onDeleted, user }: TaskDe
                 dataTestid="task-detail-description-input"
               />
             ) : (
-              <div className="p-3 border rounded-md min-h-[120px] cursor-not-allowed" data-testid="task-detail-description-display">
+              <div className="p-3 border rounded-md min-h-[120px] max-h-[300px] overflow-y-auto cursor-not-allowed" data-testid="task-detail-description-display">
                 {description ? (
                   <MarkdownRenderer content={description} />
                 ) : (

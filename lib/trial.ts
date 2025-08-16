@@ -79,11 +79,26 @@ export async function expireTrial(userId: string): Promise<void> {
  * Verifica se o usuário tem acesso às funcionalidades premium
  */
 export async function hasAccess(userId: string): Promise<boolean> {
-  const trialStatus = await getTrialStatus(userId);
+  try {
+    const user = await prisma.users.findUnique({
+      where: { id: parseInt(userId) },
+      select: { email: true },
+    });
 
-  // TODO: Adicionar verificação de assinatura paga quando implementada
-  // Por enquanto, só verifica o trial
-  return trialStatus.isActive;
+    if (user?.email === "iristodo6@gmail.com") {
+      // Usuário interno para testes
+      return true;
+    }
+
+    const trialStatus = await getTrialStatus(userId);
+
+    // TODO: Adicionar verificação de assinatura paga quando implementada
+    // Por enquanto, só verifica o trial
+    return trialStatus.isActive;
+  } catch (error) {
+    console.error("Erro ao verificar acesso:", error);
+    return false;
+  }
 }
 
 /**

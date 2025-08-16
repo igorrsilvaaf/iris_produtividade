@@ -77,12 +77,21 @@ export function RichTextEditor({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-resize da textarea
+  // Auto-resize da textarea com controle de altura máxima
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
-      textarea.style.height = Math.max(textarea.scrollHeight, parseInt(minHeight)) + 'px';
+      const newHeight = Math.max(textarea.scrollHeight, parseInt(minHeight));
+      const maxHeight = parseInt(minHeight) * 2.5; // Altura máxima é 2.5x a altura mínima
+      
+      if (newHeight > maxHeight) {
+        textarea.style.height = maxHeight + 'px';
+        textarea.style.overflowY = 'auto';
+      } else {
+        textarea.style.height = newHeight + 'px';
+        textarea.style.overflowY = 'hidden';
+      }
     }
   }, [value, minHeight]);
 
@@ -451,7 +460,9 @@ export function RichTextEditor({
         </TabsContent>
 
         <TabsContent value="preview" className="m-0">
-          <div className="p-3 min-h-[120px] prose-comment text-sm" style={{ minHeight }}>
+          <div 
+            className="p-3 min-h-[120px] max-h-[300px] prose-comment text-sm overflow-y-auto"
+          >
             {value.trim() ? (
               renderMarkdown(value)
             ) : (

@@ -112,11 +112,16 @@ export default function SnippetsPage() {
       body: JSON.stringify({ title: title.trim(), content, language: language !== 'none' ? language : undefined, projectId: projectId !== 'none' ? Number(projectId) : undefined }),
     })
     if (res.ok) {
+      const data = await res.json()
+      const createdSnippet = data.snippet
+      
+      // Adiciona o snippet criado diretamente ao estado local (atualização dinâmica)
+      setSnippets(prevSnippets => [createdSnippet, ...prevSnippets])
+      
       setTitle("")
       setContent("")
       setLanguage("none")
       setProjectId("none")
-      fetchSnippets()
     }
   }
 
@@ -148,6 +153,8 @@ export default function SnippetsPage() {
     if (res.ok) {
       const data = await res.json()
       const updated = data.snippet as Snippet
+      
+      // Atualiza o snippet editado diretamente no estado local (atualização dinâmica)
       setSnippets((prev) => prev.map((it) => (it.id === updated.id ? { ...it, ...updated } : it)))
       setEditingId(null)
     }
