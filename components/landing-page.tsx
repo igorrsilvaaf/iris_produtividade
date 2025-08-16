@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,12 +43,13 @@ import {
 
 export default function LandingPage() {
   const { t, language, setLanguage } = useTranslation();
+  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
-  const [showPurchaseScreen, setShowPurchaseScreen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'pro'>('basic');
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [windowWidth, setWindowWidth] = useState(0);
+  const [showPurchaseScreen, setShowPurchaseScreen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'pro'>('basic');
 
   // Arrays de dados
   const basicFeatures = [
@@ -252,15 +254,15 @@ export default function LandingPage() {
     setShowPurchaseScreen(true);
   };
 
-  const handleBackToLanding = () => {
+  const handleBackFromPurchase = () => {
     setShowPurchaseScreen(false);
   };
 
   if (showPurchaseScreen) {
     return (
       <PurchaseScreen 
-        selectedPlan={selectedPlan} 
-        onBack={handleBackToLanding}
+        selectedPlan={selectedPlan}
+        onBack={handleBackFromPurchase}
       />
     );
   }

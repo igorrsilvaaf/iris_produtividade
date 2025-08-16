@@ -1,11 +1,11 @@
-import prisma from './prisma'
+import prisma from "./prisma";
 
 export interface TrialStatus {
-  isActive: boolean
-  daysRemaining: number
-  startDate: Date | null
-  expiresAt: Date | null
-  isExpired: boolean
+  isActive: boolean;
+  daysRemaining: number;
+  startDate: Date | null;
+  expiresAt: Date | null;
+  isExpired: boolean;
 }
 
 /**
@@ -14,12 +14,12 @@ export interface TrialStatus {
 export async function getTrialStatus(userId: string): Promise<TrialStatus> {
   try {
     const user = await prisma.users.findUnique({
-      where: { id: userId },
+      where: { id: parseInt(userId) },
       select: {
         trial_start_date: true,
-        trial_expired: true
-      }
-    })
+        trial_expired: true,
+      },
+    });
 
     if (!user || !user.trial_start_date) {
       return {
@@ -27,37 +27,37 @@ export async function getTrialStatus(userId: string): Promise<TrialStatus> {
         daysRemaining: 0,
         startDate: null,
         expiresAt: null,
-        isExpired: true
-      }
+        isExpired: true,
+      };
     }
 
-    const startDate = user.trial_start_date
-    const expiresAt = new Date(startDate)
-    expiresAt.setDate(expiresAt.getDate() + 14) // 14 dias de trial
+    const startDate = user.trial_start_date;
+    const expiresAt = new Date(startDate);
+    expiresAt.setDate(expiresAt.getDate() + 14); // 14 dias de trial
 
-    const now = new Date()
-    const timeDiff = expiresAt.getTime() - now.getTime()
-    const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24))
+    const now = new Date();
+    const timeDiff = expiresAt.getTime() - now.getTime();
+    const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
-    const isExpired = user.trial_expired || now > expiresAt
-    const isActive = !isExpired && daysRemaining > 0
+    const isExpired = user.trial_expired || now > expiresAt;
+    const isActive = !isExpired && daysRemaining > 0;
 
     return {
       isActive,
       daysRemaining: Math.max(0, daysRemaining),
       startDate,
       expiresAt,
-      isExpired
-    }
+      isExpired,
+    };
   } catch (error) {
-    console.error('Erro ao verificar status do trial:', error)
+    console.error("Erro ao verificar status do trial:", error);
     return {
       isActive: false,
       daysRemaining: 0,
       startDate: null,
       expiresAt: null,
-      isExpired: true
-    }
+      isExpired: true,
+    };
   }
 }
 
@@ -67,11 +67,11 @@ export async function getTrialStatus(userId: string): Promise<TrialStatus> {
 export async function expireTrial(userId: string): Promise<void> {
   try {
     await prisma.users.update({
-      where: { id: userId },
-      data: { trial_expired: true }
-    })
+      where: { id: parseInt(userId) },
+      data: { trial_expired: true },
+    });
   } catch (error) {
-    console.error('Erro ao expirar trial:', error)
+    console.error("Erro ao expirar trial:", error);
   }
 }
 
@@ -79,11 +79,11 @@ export async function expireTrial(userId: string): Promise<void> {
  * Verifica se o usuário tem acesso às funcionalidades premium
  */
 export async function hasAccess(userId: string): Promise<boolean> {
-  const trialStatus = await getTrialStatus(userId)
-  
+  const trialStatus = await getTrialStatus(userId);
+
   // TODO: Adicionar verificação de assinatura paga quando implementada
   // Por enquanto, só verifica o trial
-  return trialStatus.isActive
+  return trialStatus.isActive;
 }
 
 /**
@@ -91,12 +91,12 @@ export async function hasAccess(userId: string): Promise<boolean> {
  */
 export function formatDaysRemaining(daysRemaining: number): string {
   if (daysRemaining <= 0) {
-    return 'Trial expirado'
+    return "Trial expirado";
   }
-  
+
   if (daysRemaining === 1) {
-    return '1 dia restante'
+    return "1 dia restante";
   }
-  
-  return `${daysRemaining} dias restantes`
+
+  return `${daysRemaining} dias restantes`;
 }
