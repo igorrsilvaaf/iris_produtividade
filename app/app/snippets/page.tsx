@@ -122,7 +122,6 @@ export default function SnippetsPage() {
       setContent("")
       setLanguage("none")
       setProjectId("none")
-      // Removido fetchSnippets() - não é mais necessário
     }
   }
 
@@ -158,7 +157,6 @@ export default function SnippetsPage() {
       // Atualiza o snippet editado diretamente no estado local (atualização dinâmica)
       setSnippets((prev) => prev.map((it) => (it.id === updated.id ? { ...it, ...updated } : it)))
       setEditingId(null)
-      // Removido fetchSnippets() - não é mais necessário
     }
   }
 

@@ -45,9 +45,11 @@ export function TaskTooltip({ task, language, className }: TaskTooltipProps) {
 
       {/* Description */}
       {task.description && (
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          {task.description}
-        </p>
+        <div className="max-h-[120px] overflow-y-auto">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {task.description}
+          </p>
+        </div>
       )}
 
       {/* Details */}

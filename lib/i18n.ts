@@ -127,6 +127,10 @@ export const translations: Translations = {
     en: "Kanban",
     pt: "Kanban",
   },
+  snippets: {
+    en: "Snippets",
+    pt: "Snippets",
+  },
   "snippets.title": {
     en: "Snippets",
     pt: "Snippets",

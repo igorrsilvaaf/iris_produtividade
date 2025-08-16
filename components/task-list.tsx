@@ -539,7 +539,7 @@ export function TaskList({ initialTasks, user, showCompleted = false }: TaskList
             {expandedTask === task.id && task.description && (
               <div 
                 data-testid={`task-expanded-description-${task.id}`}
-                className="mt-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-md"
+                className="mt-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-md max-h-[200px] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MarkdownRenderer content={task.description} />
