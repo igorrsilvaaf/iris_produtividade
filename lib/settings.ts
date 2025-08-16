@@ -68,16 +68,69 @@ export async function getUserSettings(userId: number): Promise<UserSettings> {
       flip_clock_color: "#ff5722"
     }
 
-    await prisma.user_settings.create({
-      data: {
+    const createdSettings = await prisma.user_settings.upsert({
+      where: { user_id: userId },
+      update: {},
+      create: {
         user_id: userId,
         ...defaultSettings
       }
     })
 
-    return defaultSettings
+    return {
+      theme: createdSettings.theme || "system",
+      language: createdSettings.language || "pt",
+      pomodoro_work_minutes: createdSettings.pomodoro_work_minutes || 25,
+      pomodoro_break_minutes: createdSettings.pomodoro_break_minutes || 5,
+      pomodoro_long_break_minutes: createdSettings.pomodoro_long_break_minutes || 15,
+      pomodoro_cycles: createdSettings.pomodoro_cycles || 4,
+      enable_sound: createdSettings.enable_sound ?? true,
+      notification_sound: createdSettings.notification_sound || "default",
+      pomodoro_sound: createdSettings.pomodoro_sound || "pomodoro",
+      enable_desktop_notifications: createdSettings.enable_desktop_notifications ?? true,
+      enable_task_notifications: createdSettings.enable_task_notifications ?? true,
+      task_notification_days: createdSettings.task_notification_days || 3,
+      enable_spotify: createdSettings.enable_spotify ?? true,
+      spotify_playlist_url: createdSettings.spotify_playlist_url || null,
+      enable_flip_clock: createdSettings.enable_flip_clock ?? true,
+      flip_clock_size: createdSettings.flip_clock_size || "medium",
+      flip_clock_color: createdSettings.flip_clock_color || "#ff5722"
+    }
   } catch (error) {
     console.error("Error getting user settings:", error)
+    
+    // Se for erro de constraint única, tenta buscar novamente
+    if (error instanceof Error && error.message.includes('Unique constraint failed')) {
+      try {
+        const existingSettings = await prisma.user_settings.findUnique({
+          where: { user_id: userId }
+        })
+        
+        if (existingSettings) {
+          return {
+            theme: existingSettings.theme || "system",
+            language: existingSettings.language || "pt",
+            pomodoro_work_minutes: existingSettings.pomodoro_work_minutes || 25,
+            pomodoro_break_minutes: existingSettings.pomodoro_break_minutes || 5,
+            pomodoro_long_break_minutes: existingSettings.pomodoro_long_break_minutes || 15,
+            pomodoro_cycles: existingSettings.pomodoro_cycles || 4,
+            enable_sound: existingSettings.enable_sound ?? true,
+            notification_sound: existingSettings.notification_sound || "default",
+            pomodoro_sound: existingSettings.pomodoro_sound || "pomodoro",
+            enable_desktop_notifications: existingSettings.enable_desktop_notifications ?? true,
+            enable_task_notifications: existingSettings.enable_task_notifications ?? true,
+            task_notification_days: existingSettings.task_notification_days || 3,
+            enable_spotify: existingSettings.enable_spotify ?? true,
+            spotify_playlist_url: existingSettings.spotify_playlist_url || null,
+            enable_flip_clock: existingSettings.enable_flip_clock ?? true,
+            flip_clock_size: existingSettings.flip_clock_size || "medium",
+            flip_clock_color: existingSettings.flip_clock_color || "#ff5722"
+          }
+        }
+      } catch (retryError) {
+        console.error("Error retrying user settings fetch:", retryError)
+      }
+    }
     
     return {
       theme: "system",
